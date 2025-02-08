@@ -1,0 +1,9 @@
+﻿################################################################################
+# 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
+################################################################################
+
+/QwQ Music/bin
+/QwQ Music/obj/Release/net9.0
+/QwQ Music/obj
+/.vs/QwQ Music
+/.idea/.idea.QwQ Music/.idea
