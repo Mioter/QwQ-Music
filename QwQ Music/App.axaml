@@ -1,0 +1,55 @@
+<Application
+    x:Class="QwQ_Music.App"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:CompileBindings="True"
+    xmlns:semi="https://irihi.tech/semi"
+    xmlns:conver="clr-namespace:QwQ_Music.Converter"
+    xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
+    RequestedThemeVariant="Default">
+    <!--xmlns:sukiUi="clr-namespace:SukiUI;assembly=SukiUI"-->
+    <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
+
+    <Application.Styles>
+        <semi:SemiTheme Locale="zh-CN" />
+        <u-Semi:SemiTheme Locale="zh-CN" />
+        <!--<sukiUi:SukiTheme ThemeColor="Blue"  />-->
+
+        <StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
+        <StyleInclude Source="Assets/Styles/_indexes.axaml" />
+
+        <StyleInclude Source="Assets/Animations/PopupAnimations.axaml" />
+
+        <Style Selector="Image.AlbumCoverNull">
+            <Setter Property="Source" Value="/Assets/默认专辑封面.png" />
+        </Style>
+
+    </Application.Styles>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="Assets/Theme/_indexes.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+
+        <conver:CalcConverter x:Key="CalcConverter" />
+        <conver:AlbumImageConverter x:Key="AlbumImageConverter" />
+        <conver:TruncateDecimalConverter x:Key="TruncateDecimalConverter" />
+        <conver:SecondsToStringConverter x:Key="SecondsToStringConverter" />
+        <conver:StringToSecondsConverter x:Key="StringToSecondsConverter" />
+        <conver:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
+
+        <StreamGeometry x:Key="PlayIconData">
+            F1 M1024,1024z M0,0z M458.9056,302.6944L707.2256,446.0544C756.224,474.368,756.224,545.1264,707.2256,573.3888L458.9056,716.7488C409.9072,745.0624,348.6208,709.6832,348.6208,653.056L348.6208,366.336C348.6208,309.76,409.856,274.3808,458.9056,302.6944z
+        </StreamGeometry>
+        <StreamGeometry x:Key="PauseIconData">
+            F1 M1024,1024z M0,0z M429.64323,692.01625C439.2763,683.53624,445.34152,671.70613,445.34152,658.82919L445.34152,365.17088C445.34152,339.31212 421.31835,318.05988 391.82451,318.05988 377.07759,318.05988 363.75782,323.39909 354.12475,331.87912 344.49171,340.35906 338.42643,352.18915 338.42643,365.06612L338.42643,658.82916C338.42643,684.68784 362.44962,705.94012 391.94346,705.94012 406.33359,705.83558 419.7723,700.60092 429.64323,692.01625z M669.87523,692.01625C679.50828,683.53624,685.57357,671.70613,685.57357,658.82919L685.57357,365.17088C685.57357,339.31212 661.55043,318.05988 632.05655,318.05988 617.30966,318.05988 603.98983,323.39909 594.35676,331.87912 584.7237,340.35906 578.65844,352.18915 578.65844,365.06612L578.65844,658.82916C578.65844,684.68784 602.68163,705.94012 632.17547,705.94012 646.56559,705.83558 660.00431,700.60092 669.87523,692.01625z
+        </StreamGeometry>
+
+        <FontFamily x:Key="VivoSans">/Assets/Fonts#VivoSans</FontFamily>
+        <FontFamily x:Key="Consolab">/Assets/Fonts#Consola</FontFamily>
+
+    </Application.Resources>
+
+</Application>

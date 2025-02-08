@@ -1,0 +1,240 @@
+<Window
+    x:Class="QwQ_Music.Views.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+    xmlns:attribute="clr-namespace:QwQ_Music.Attribute"
+    Title="QwQ"
+    Width="1200"
+    Height="800"
+    WindowState="{Binding MainWindowState ,Mode=OneWayToSource}"
+    xmlns:userControls="clr-namespace:QwQ_Music.UserControls"
+    x:DataType="viewModels:MainWindowViewModel"
+    ExtendClientAreaTitleBarHeightHint="40"
+    ExtendClientAreaToDecorationsHint="True">
+
+    <!--
+        亚克力效果
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+    -->
+
+    <Design.DataContext>
+        <viewModels:MainWindowViewModel />
+    </Design.DataContext>
+
+    <Window.Styles>
+
+        <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons">
+            <Setter Property="MinHeight" Value="40" />
+        </Style>
+
+        <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons /template/ StackPanel">
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="Spacing" Value="5" />
+        </Style>
+
+        <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons /template/ Button">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Width" Value="30" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+
+        <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons">
+            <Style Selector="^:normal /template/ PathIcon#PART_CloseButtonIcon">
+                <Setter Property="Data" Value="{StaticResource SemiIconClose}" />
+                <Setter Property="Height" Value="13.5" />
+            </Style>
+            <Style Selector="^:maximized /template/ PathIcon#PART_CloseButtonIcon">
+                <Setter Property="Data" Value="{StaticResource SemiIconClose}" />
+                <Setter Property="Height" Value="13.5" />
+            </Style>
+        </Style>
+
+    </Window.Styles>
+
+    <Grid RowDefinitions="40,*">
+
+        <TextBlock Text="QwQ Music"
+                   Margin="20,0"
+                   FontWeight="ExtraBold"
+                   IsHitTestVisible="False"
+                   VerticalAlignment="Center"
+                   FontFamily="{StaticResource VivoSans}"
+                   HorizontalAlignment="Left">
+
+            <TextBlock.Foreground>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Color="#FFF02FC2" Offset="0" />
+                    <GradientStop Color="#FF6094EA" Offset="1" />
+                </LinearGradientBrush>
+            </TextBlock.Foreground>
+
+            <TextBlock.Effect>
+                <DropShadowEffect Color="Black" Opacity="0.1" />
+            </TextBlock.Effect>
+
+        </TextBlock>
+
+        <Grid ColumnDefinitions="Auto,*" Grid.Row="1">
+
+            <Grid Width="{Binding NavigationBarWidth}"
+                  HorizontalAlignment="Left"
+                  RowDefinitions="Auto,Auto,120">
+
+                <Grid.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Width" Duration="0:0:0.5" Easing="CircularEaseOut" />
+                    </Transitions>
+                </Grid.Transitions>
+
+                <ToggleButton Margin="20,0"
+                              Classes="Rotate"
+                              HorizontalAlignment="Right"
+                              IsChecked="{Binding IsNavigationExpand}">
+                    <ToggleButton.Content>
+                        <PathIcon Height="10" Data="{StaticResource SemiIconChevronRight}" />
+                    </ToggleButton.Content>
+                </ToggleButton>
+
+                <u:SelectionList Grid.Row="1"
+                                 Loaded="SelectionList_Loaded"
+                                 SelectedItem="{Binding NavigationSelectedItem}">
+
+                    <u:SelectionList.Indicator>
+                        <Border Classes.Expanded="{Binding IsNavigationExpand}"
+                                Background="{StaticResource ToggleButtonPrimaryCheckedBackground}"
+                                BoxShadow="0 0 10 0 LightGray"
+                                CornerRadius="8">
+                            <Border.Transitions>
+                                <Transitions>
+                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3"
+                                                                   Easing="CircularEaseOut" />
+                                </Transitions>
+                            </Border.Transitions>
+                        </Border>
+                    </u:SelectionList.Indicator>
+
+                    <u:SelectionList.Styles>
+
+                        <Style Selector="Border.Expanded">
+                            <Setter Property="RenderTransform" Value="scale(1.1,1)" />
+                        </Style>
+
+                        <Style Selector="u|SelectionListItem">
+                            <Setter Property="Height" Value="35" />
+                            <Setter Property="Margin" Value="20,10" />
+                            <Setter Property="Padding" Value="10" />
+                            <Setter Property="FontWeight" Value="Bold" />
+                            <Setter Property="Transitions">
+                                <Transitions>
+                                    <BrushTransition Property="Foreground" Duration="0:0:0.3" />
+                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3" />
+                                </Transitions>
+                            </Setter>
+
+                            <Style Selector="^:selected">
+                                <Setter Property="FontWeight" Value="ExtraBold" />
+                                <Setter Property="Foreground" Value="{DynamicResource ToggleButtonCheckedForeground}" />
+                                <Setter Property="RenderTransform" Value="scale(1.1,1.1)" />
+                            </Style>
+                        </Style>
+
+                        <Style Selector="u|SelectionList > StackPanel">
+                            <Setter Property="Spacing" Value="10" />
+                            <Setter Property="Orientation" Value="Horizontal" />
+                        </Style>
+
+                        <Style Selector="u|SelectionList > StackPanel > TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                        </Style>
+
+                    </u:SelectionList.Styles>
+
+                    <StackPanel>
+                        <PathIcon Data="{StaticResource SemiIconSong}" />
+                        <TextBlock Text="音乐" />
+                    </StackPanel>
+                    <StackPanel>
+                        <PathIcon Data="{StaticResource SemiIconDisc}" />
+                        <TextBlock Text="分类" />
+                    </StackPanel>
+                    <StackPanel>
+                        <PathIcon Data="{StaticResource SemiIconKanban}" />
+                        <TextBlock Text="统计" />
+                    </StackPanel>
+
+                </u:SelectionList>
+            </Grid>
+
+            <TransitioningContentControl Grid.Column="1" Content="{Binding PageContent}">
+                <TransitioningContentControl.PageTransition>
+                    <CompositePageTransition>
+                        <CrossFade Duration="0:0:0.5" />
+                        <PageSlide Duration="0:0:0.3" Orientation="Vertical" SlideInEasing="QuadraticEaseIn"
+                                   SlideOutEasing="QuadraticEaseOut" />
+                    </CompositePageTransition>
+                </TransitioningContentControl.PageTransition>
+            </TransitioningContentControl>
+
+        </Grid>
+
+        <Panel Name="MusicPlayerTrayPanel"
+               Height="120"
+               Width="600"
+               VerticalAlignment="Bottom"
+               Grid.Row="1"
+               Classes.Visible="{Binding IsMusicPlayerTrayVisible}"
+               Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"
+               attribute:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
+               attribute:SizeAdjuster.ScaleFactor="1.2,1">
+            <Panel.RenderTransform>
+                <TranslateTransform Y="{Binding NavigationBarYaxisOffset,Mode=OneWayToSource}" />
+            </Panel.RenderTransform>
+
+            <Panel.Styles>
+                <Style Selector="Panel#MusicPlayerTrayPanel.Hide">
+                    <Style.Animations>
+                        <Animation Easing="QuadraticEaseOut"
+                                   FillMode="Forward"
+                                   Duration="0:0:0.5">
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding NavigationBarYaxisOffset}" />
+                            </KeyFrame>
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding #MusicPlayerTrayPanel.Height}" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+            </Panel.Styles>
+
+            <Panel.Styles>
+                <Style Selector="Panel#MusicPlayerTrayPanel.Visible">
+                    <Style.Animations>
+                        <Animation Easing="QuadraticEaseIn"
+                                   FillMode="Forward"
+                                   Duration="0:0:0.5">
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding NavigationBarYaxisOffset}" />
+                            </KeyFrame>
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
+                                <Setter Property="TranslateTransform.Y" Value="0" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+            </Panel.Styles>
+
+            <Panel.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Height" Duration="0:0:0.5" Easing="CircularEaseOut" />
+                    <DoubleTransition Property="Width" Duration="0:0:0.5" Easing="CircularEaseOut" />
+                </Transitions>
+            </Panel.Transitions>
+
+            <userControls:MusicPlayerTray />
+        </Panel>
+    </Grid>
+</Window>

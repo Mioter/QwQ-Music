@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="QwQ_Music.Pages.MusicPlayerPage">
+
+    <Grid Background="Aquamarine">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="5">
+
+            <Border Classes="Short" />
+            <Border Classes="Long" />
+            <Border Classes="Short" />
+
+            <StackPanel.Styles>
+                <Style Selector="Border">
+                    <Setter Property="CornerRadius" Value="3" />
+                    <Setter Property="Width" Value="5" />
+                    <Setter Property="Background" Value="White" />
+                </Style>
+
+                <Style Selector="Border.Long">
+                    <Setter Property="Height" Value="25" />
+                    <Style.Animations>
+                        <Animation IterationCount="Infinite" Duration="0:0:1" FillMode="Forward">
+                            <KeyFrame Cue="0%">
+                                <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                            </KeyFrame>
+                            <KeyFrame Cue="50%">
+                                <Setter Property="ScaleTransform.ScaleY" Value="0.5" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+
+                <Style Selector="Border.Short">
+                    <Setter Property="Height" Value="15" />
+                    <Style.Animations>
+                        <Animation IterationCount="Infinite" Duration="0:0:1" FillMode="Forward">
+                            <KeyFrame Cue="0%">
+                                <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                            </KeyFrame>
+                            <KeyFrame Cue="50%">
+                                <Setter Property="ScaleTransform.ScaleY" Value="1.5" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+
+            </StackPanel.Styles>
+        </StackPanel>
+    </Grid>
+
+</UserControl>
