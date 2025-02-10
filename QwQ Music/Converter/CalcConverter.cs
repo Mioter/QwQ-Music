@@ -7,12 +7,12 @@ using Avalonia.Data.Converters;
 
 namespace QwQ_Music.Converter;
 
-// 进行数学计算的转换器。
-// 在mathEquation中使用@VALUE作为绑定值的占位符，允许全大写与全小写。
-// 操作符顺序：先括号，然后根据优先级从左到右进行计算
 public class CalcConverter : IValueConverter
 {
-    private static readonly char[] AllOperators = ['+', '-', '*', '/', '%', '(', ')'];
+    private static readonly char[] AllOperators =
+    {
+        '+', '-', '*', '/', '%', '(', ')',
+    };
     private static readonly Dictionary<char, int> OperatorPrecedence = new()
     {
         {
@@ -32,78 +32,96 @@ public class CalcConverter : IValueConverter
         },
     };
 
-    // 计算数学表达式的值
     private static double EvaluateExpression(string expression)
     {
-        Stack<double> values = new(); // 存储数值
-        Stack<char> operators = new(); // 存储操作符
+        var values = new Stack<double>();
+        var operators = new Stack<char>();
 
         for (int i = 0; i < expression.Length; i++)
         {
-            if (char.IsWhiteSpace(expression[i])) continue;
+            char currentChar = expression[i];
+            if (char.IsWhiteSpace(currentChar)) continue;
 
-            if (char.IsDigit(expression[i]) || expression[i] == '.')
+            if (char.IsDigit(currentChar) || currentChar == '.')
             {
-                // 提取数字
                 string numStr = ExtractNumber(expression, ref i);
                 values.Push(double.Parse(numStr));
             }
-            else
-                switch (expression[i])
-                {
-                    case '(':
-                        // 左括号入栈
-                        operators.Push(expression[i]);
-                        break;
-                    case ')':
-                        // 右括号，弹出所有操作符直到遇到左括号
-                        while (operators.Count > 0 && operators.Peek() != '(')
+            else switch (currentChar)
+            {
+                case '(':
+                    operators.Push(currentChar);
+                    break;
+                case ')':
+                    {
+                        while (operators.Peek() != '(')
                         {
-                            values.Push(ApplyOperator(operators.Pop(), values.Pop(), values.Pop()));
+                            ApplyTopOperator(values, operators);
                         }
-                        operators.Pop(); // 弹出左括号
+                        operators.Pop(); // Remove '('
                         break;
-                    default:
-                        if (AllOperators.Contains(expression[i]))
+                    }
+                default:
+                    {
+                        if (AllOperators.Contains(currentChar))
                         {
-                            // 处理操作符优先级
-                            while (
-                                operators.Count > 0
-                             && operators.Peek() != '('
-                             && OperatorPrecedence[operators.Peek()] >= OperatorPrecedence[expression[i]]
-                            )
+                            // Handle unary minus
+                            if (currentChar == '-' && IsUnaryOperator(expression, i))
                             {
-                                values.Push(ApplyOperator(operators.Pop(), values.Pop(), values.Pop()));
+                                values.Push(0); // Treat unary '-' as 0 - value
                             }
-                            operators.Push(expression[i]);
+
+                            while (operators.Count > 0 && operators.Peek() != '(' &&
+                                   OperatorPrecedence[operators.Peek()] >= OperatorPrecedence[currentChar])
+                            {
+                                ApplyTopOperator(values, operators);
+                            }
+                            operators.Push(currentChar);
                         }
                         break;
-                }
+                    }
+            }
         }
 
-        // 处理剩余的操作符
         while (operators.Count > 0)
         {
-            values.Push(ApplyOperator(operators.Pop(), values.Pop(), values.Pop()));
+            ApplyTopOperator(values, operators);
         }
 
-        return values.Pop(); // 返回最终结果
+        return values.Pop();
     }
 
-    // 提取数字
+    private static bool IsUnaryOperator(string expression, int index)
+    {
+        // Check if the '-' is a unary operator
+        if (index == 0) return true;
+        char prevChar = expression[index - 1];
+        return prevChar == '(' || AllOperators.Contains(prevChar);
+    }
+
+    private static void ApplyTopOperator(Stack<double> values, Stack<char> operators)
+    {
+        char op = operators.Pop();
+        double b = values.Pop();
+        double a = values.Count > 0 ? values.Pop() : 0; // Handle case with insufficient values
+        values.Push(ApplyOperator(op, a, b));
+    }
+
     private static string ExtractNumber(string expression, ref int index)
     {
-        StringBuilder numStr = new();
-        while (index < expression.Length && (char.IsDigit(expression[index]) || expression[index] == '.'))
+        var numStr = new StringBuilder();
+        while (index < expression.Length && (char.IsDigit(expression[index]) || expression[index] == '.' || expression[index] == '-'))
         {
+            // Handle negative numbers
+            if (expression[index] == '-' && numStr.Length > 0)
+                break;
             numStr.Append(expression[index++]);
         }
-        index--; // 回退一位
+        index--; // Adjust index back
         return numStr.ToString();
     }
 
-    // 应用操作符进行计算
-    private static double ApplyOperator(char op, double b, double a)
+    private static double ApplyOperator(char op, double a, double b)
     {
         return op switch
         {
@@ -112,29 +130,26 @@ public class CalcConverter : IValueConverter
             '*' => a * b,
             '/' => a / b,
             '%' => a % b,
-            _ => throw new ArgumentException("无效的操作符"),
+            _ => throw new ArgumentException("Invalid operator: " + op),
         };
     }
 
-    #region IValueConverter Members
-
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        // 检查参数是否为空
         if (parameter is not string mathEquation)
-            throw new ArgumentNullException(nameof(parameter), "Parameter cannot be null");
+            throw new ArgumentNullException(nameof(parameter));
 
-        // 替换占位符并移除空格
-        mathEquation = mathEquation.Replace(" ", "").Replace("@VALUE", value?.ToString()).Replace("@value", value?.ToString());
+        string equation = mathEquation.Replace(" ", "")
+            .Replace("@VALUE", value?.ToString())
+            .Replace("@value", value?.ToString());
 
-        // 解析并计算表达式
         try
         {
-            return EvaluateExpression(mathEquation);
+            return EvaluateExpression(equation);
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("Failed to evaluate the mathematical expression", ex);
+            throw new InvalidOperationException("表达式计算失败", ex);
         }
     }
 
@@ -142,6 +157,4 @@ public class CalcConverter : IValueConverter
     {
         throw new NotImplementedException();
     }
-
-    #endregion
 }

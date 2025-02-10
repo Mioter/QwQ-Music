@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -22,13 +21,16 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
     private AudioFileReader? _audioFileReader;
 
     [ObservableProperty] private double _currentDurationInSeconds;
-
     private int _currentIndex;
 
     [ObservableProperty] private MusicItemModel _currentMusicItem = new("听你想听~", "YOU");
     private bool _isAutoChange;
 
     [ObservableProperty] private bool _isPlaying;
+
+    [ObservableProperty] private ObservableCollection<MusicItemModel> _musicItems = [];
+
+    [ObservableProperty] private ObservableCollection<MusicItemModel> _musicPlaylist = [];
     private DispatcherTimer? _progressTimer;
     private WaveOutEvent? _waveOutEvent;
 
@@ -38,17 +40,13 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
     }
     public static MusicPlayerViewModel Instance => _instance.Value;
 
-    public ObservableCollection<MusicItemModel> MusicPlaylist { get; private set; } = [];
-    public ObservableCollection<MusicItemModel> MusicItems { get; private set; } = [];
-
     public event EventHandler<bool>? PlaybackStateChanged;
+
+    public event EventHandler<(MusicItemModel oldMusic, MusicItemModel newMusic)>? CurrentMusicChanged;
 
     public void UpdateMusicPlaylist(MusicItemModel currentMusicItem, ObservableCollection<MusicItemModel>? musicList = null)
     {
-        if (musicList != null && !MusicPlaylist.SequenceEqual(musicList))
-            MusicPlaylist = musicList;
-        else
-            MusicPlaylist = MusicItems;
+        if (musicList != null) MusicPlaylist = !MusicPlaylist.SequenceEqual(musicList) ? musicList : MusicItems;
 
         if (CurrentMusicItem == currentMusicItem) return;
 
@@ -62,10 +60,7 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
             var musicItems = await ConfigService.GetMusicInfoAsync();
             if (musicItems != null)
             {
-                foreach (var item in musicItems)
-                {
-                    MusicItems.Add(item);
-                }
+                MusicItems = musicItems;
             }
 
             var cachePlayList = await ConfigService.GetMusicListAsync();
@@ -73,10 +68,9 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
             if (cachePlayList == null) return;
 
             string? currentMusicPath = cachePlayList.CurrentMusicPath;
-            foreach (var item in cachePlayList.MusicPlayList.Select(musicItemPath => MusicItems.FirstOrDefault(p => p.FilePath == musicItemPath)).OfType<MusicItemModel>())
-            {
-                MusicPlaylist.Add(item);
-            }
+            List<MusicItemModel> musicPlayList = [];
+            musicPlayList.AddRange(cachePlayList.MusicPlayList.Select(musicItemPath => MusicItems.FirstOrDefault(p => p.FilePath == musicItemPath)).OfType<MusicItemModel>());
+            MusicPlaylist = new ObservableCollection<MusicItemModel>(musicPlayList);
             var currentMusicItem = MusicPlaylist.FirstOrDefault(musicItem => musicItem.FilePath == currentMusicPath);
 
             if (currentMusicItem == null) return;
@@ -106,8 +100,8 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
         {
             _progressTimer.Stop();
             _progressTimer.Tick -= OnProgressTimerTick;
-            _progressTimer = null;
         }
+        _progressTimer = null;
     }
 
     partial void OnCurrentMusicItemChanged(MusicItemModel value)
@@ -122,6 +116,8 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
 
         CurrentDurationInSeconds = value.CurrentDuration.ParseSeconds();
         InitializeNewTrack();
+
+        CurrentMusicChanged?.Invoke(this, (value, _currentMusicItem));
     }
 
     private void InitializeNewTrack()
@@ -181,7 +177,7 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
             ToggleNextSong();
             CurrentDurationInSeconds = 0;
             IsPlaying = true;
-            
+
         }
     }
 
@@ -224,18 +220,14 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
             MusicPlaylist = MusicItems;
 
         if (MusicPlaylist.Count > 0)
-        {
             if (CurrentMusicItem.FilePath == null)
             {
                 var item = MusicPlaylist.FirstOrDefault(musicItem => musicItem.FilePath != null);
                 if (item != null)
                     CurrentMusicItem = item;
+                else
+                    return;
             }
-        }
-        else
-        {
-            return;
-        }
 
         IsPlaying = !IsPlaying;
     }
@@ -287,10 +279,11 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
+
     public void SaveMusicInfoAsync()
     {
         if (MusicItems.Count == 0) return;
-       _ = ConfigService.SaveMusicInfoAsync(MusicItems).WaitAsync(new CancellationToken(false));
+        _ = ConfigService.SaveMusicInfoAsync(MusicItems);
     }
 
     public void SaveMusicListAsync()
@@ -304,5 +297,11 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
         }
 
         _ = ConfigService.SaveMusicListAsync(new MusicListModel(CurrentMusicItem.FilePath, filePaths));
+    }
+
+    public void CleaningAndRelease()
+    {
+        IsPlaying = false;
+        StopAndDisposeCurrentTrack();
     }
 }

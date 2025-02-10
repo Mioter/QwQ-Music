@@ -49,7 +49,7 @@ public class App : Application
         {
             var musicPlayerViewModel = MusicPlayerViewModel.Instance;
 
-            musicPlayerViewModel.IsPlaying = false;
+            musicPlayerViewModel.CleaningAndRelease();
             musicPlayerViewModel.SaveMusicListAsync();
             musicPlayerViewModel.SaveMusicInfoAsync();
         }

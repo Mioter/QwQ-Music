@@ -28,6 +28,7 @@
         <PackageReference Include="NAudio" Version="2.2.1"/>
         <PackageReference Include="Semi.Avalonia" Version="11.2.1.4"/>
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.4"/>
+        <PackageReference Include="Semi.Avalonia.TreeDataGrid" Version="11.0.10.1"/>
         <PackageReference Include="TagLibSharp" Version="2.3.0"/>
     </ItemGroup>
 

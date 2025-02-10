@@ -1,6 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Input;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Common;
@@ -28,15 +33,43 @@ public partial class MusicPageViewModel : ViewModelBase
     {
         if (e?.Data.Contains(DataFormats.Files) != true) return;
 
-        var filePaths = e.Data.GetFiles()?.ToList();
-        var audioFilePaths = AudioFileValidator.FilterAudioFiles(filePaths);
+        var items = e.Data.GetFiles()?.ToList();
+
+        if (items == null) return;
+
+        var allFilePaths = GetAllFilePaths(items);
+        var audioFilePaths = AudioFileValidator.FilterAudioFiles(allFilePaths);
 
         if (audioFilePaths == null) return;
 
         var musicItems = await Task.WhenAll(audioFilePaths.Select(MusicExtractor.ExtractMusicInfoAsync));
-        foreach (var musicItem in musicItems.Where(item => item != null))
+        MusicPlayerViewModel.MusicItems = new ObservableCollection<MusicItemModel>(musicItems.Where(item => item != null).ToList()!);
+    }
+
+    private static List<string> GetAllFilePaths(List<IStorageItem> items)
+    {
+        var allFilePaths = new List<string>();
+        foreach (string path in items.Select(item => item.Path.LocalPath))
         {
-            MusicPlayerViewModel.MusicItems.Add(musicItem!);
+            if (Directory.Exists(path))
+            {
+                try
+                {
+                    // 递归获取所有文件
+                    string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+                    allFilePaths.AddRange(files);
+                }
+                catch
+                {
+                    // 处理无法访问的目录
+                    Console.WriteLine($"无法访问的路径: {path}");
+                }
+            }
+            else if (File.Exists(path))
+            {
+                allFilePaths.Add(path);
+            }
         }
+        return allFilePaths;
     }
 }
