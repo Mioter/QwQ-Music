@@ -1,7 +1,5 @@
 using System.Linq;
-using System.Threading;
 using Avalonia;
-using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
@@ -16,15 +14,10 @@ public class IndexControl : ItemsControl
             nameof(Index),
             defaultBindingMode: BindingMode.TwoWay);
 
-    public static readonly StyledProperty<IPageTransition> TransitionProperty =
-        AvaloniaProperty.Register<IndexControl, IPageTransition>(nameof(Transition));
-
     public static readonly StyledProperty<object?> DefaultContentProperty =
         AvaloniaProperty.Register<IndexControl, object?>(nameof(DefaultContent));
-    private ContentControl? _contentControl;
 
-    private CancellationTokenSource? _cts;
-    private int _lastIndex;
+    private ContentControl? _contentControl;
 
     static IndexControl()
     {
@@ -35,12 +28,6 @@ public class IndexControl : ItemsControl
     {
         get => GetValue(IndexProperty);
         set => SetValue(IndexProperty, value);
-    }
-
-    public IPageTransition Transition
-    {
-        get => GetValue(TransitionProperty);
-        set => SetValue(TransitionProperty, value);
     }
 
     public object? DefaultContent
@@ -66,17 +53,6 @@ public class IndexControl : ItemsControl
         object? newContent = targetIndex >= 0 && targetIndex < items.Count
             ? items[targetIndex]
             : DefaultContent ?? CreateDefaultFallback();
-
-        if (_contentControl.Content is Visual oldVisual && newContent is Visual newVisual)
-        {
-            _cts?.Cancel();
-            _cts = new CancellationTokenSource();
-
-            bool forward = Index > _lastIndex;
-            _lastIndex = Index;
-
-            Transition.Start(oldVisual, newVisual, forward, _cts.Token);
-        }
 
         _contentControl.Content = newContent;
     }

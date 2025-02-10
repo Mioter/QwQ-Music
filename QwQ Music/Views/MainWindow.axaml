@@ -4,12 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:u="https://irihi.tech/ursa"
     xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
-    xmlns:attribute="clr-namespace:QwQ_Music.Attribute"
     Title="QwQ"
     Width="1200"
     Height="800"
     WindowState="{Binding MainWindowState ,Mode=OneWayToSource}"
     xmlns:userControls="clr-namespace:QwQ_Music.UserControls"
+    xmlns:behaviors="clr-namespace:QwQ_Music.Behaviors"
     x:DataType="viewModels:MainWindowViewModel"
     ExtendClientAreaTitleBarHeightHint="40"
     ExtendClientAreaToDecorationsHint="True">
@@ -179,6 +179,70 @@
             </TransitioningContentControl>
 
         </Grid>
+        
+        <Border Grid.Row="1" IsVisible="{Binding IsBackgroundLayerVisible}">
+            <Button Classes="None"
+                    Command="{Binding GlobalButtonClickCommand}"
+                    HorizontalAlignment="Stretch" 
+                    VerticalAlignment="Stretch"/>
+        </Border>
+
+        <Panel Name="MusicPlayListPanel"
+            Grid.Row="1" 
+               Width="300" 
+               HorizontalAlignment="Right"
+               Classes.Visible="{Binding IsMusicPlayListVisible}"
+               Classes.Hide="{Binding !IsMusicPlayListVisible}"
+               behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
+               behaviors:SizeAdjuster.ScaleFactor="1.2,1">
+            <Panel.RenderTransform>
+                <TranslateTransform X="{Binding MusicPlayListXaxisOffset,Mode=OneWayToSource}" />
+            </Panel.RenderTransform>
+
+            <Panel.Styles>
+                <Style Selector="Panel#MusicPlayListPanel.Hide">
+                    <Style.Animations>
+                        <Animation Easing="QuadraticEaseOut"
+                                   FillMode="Forward"
+                                   Duration="0:0:0.5">
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
+                                <Setter Property="TranslateTransform.X" Value="{Binding MusicPlayListXaxisOffset}" />
+                            </KeyFrame>
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
+                                <Setter Property="TranslateTransform.X" Value="{Binding #MusicPlayListPanel.Width}" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+            </Panel.Styles>
+
+            <Panel.Styles>
+                <Style Selector="Panel#MusicPlayListPanel.Visible">
+                    <Style.Animations>
+                        <Animation Easing="QuadraticEaseIn"
+                                   FillMode="Forward"
+                                   Duration="0:0:0.5">
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
+                                <Setter Property="TranslateTransform.X" Value="{Binding MusicPlayListXaxisOffset}" />
+                            </KeyFrame>
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
+                                <Setter Property="TranslateTransform.X" Value="0" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+            </Panel.Styles>
+
+            <Panel.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Height" Duration="0:0:0.5" Easing="CircularEaseOut" />
+                    <DoubleTransition Property="Width" Duration="0:0:0.5" Easing="CircularEaseOut" />
+                </Transitions>
+            </Panel.Transitions>
+            
+            <userControls:MusicPlayList />
+            
+        </Panel>
 
         <Panel Name="MusicPlayerTrayPanel"
                Height="120"
@@ -187,10 +251,10 @@
                Grid.Row="1"
                Classes.Visible="{Binding IsMusicPlayerTrayVisible}"
                Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"
-               attribute:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
-               attribute:SizeAdjuster.ScaleFactor="1.2,1">
+               behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
+               behaviors:SizeAdjuster.ScaleFactor="1.2,1">
             <Panel.RenderTransform>
-                <TranslateTransform Y="{Binding NavigationBarYaxisOffset,Mode=OneWayToSource}" />
+                <TranslateTransform Y="{Binding MusicPlayerTrayYaxisOffset,Mode=OneWayToSource}" />
             </Panel.RenderTransform>
 
             <Panel.Styles>
@@ -200,7 +264,7 @@
                                    FillMode="Forward"
                                    Duration="0:0:0.5">
                             <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
-                                <Setter Property="TranslateTransform.Y" Value="{Binding NavigationBarYaxisOffset}" />
+                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
                             </KeyFrame>
                             <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
                                 <Setter Property="TranslateTransform.Y" Value="{Binding #MusicPlayerTrayPanel.Height}" />
@@ -217,7 +281,7 @@
                                    FillMode="Forward"
                                    Duration="0:0:0.5">
                             <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
-                                <Setter Property="TranslateTransform.Y" Value="{Binding NavigationBarYaxisOffset}" />
+                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
                             </KeyFrame>
                             <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
                                 <Setter Property="TranslateTransform.Y" Value="0" />
@@ -235,6 +299,8 @@
             </Panel.Transitions>
 
             <userControls:MusicPlayerTray />
+            
         </Panel>
+
     </Grid>
 </Window>

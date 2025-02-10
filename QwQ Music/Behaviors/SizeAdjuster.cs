@@ -2,7 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 
-namespace QwQ_Music.Attribute;
+namespace QwQ_Music.Behaviors;
 
 public class SizeAdjuster
 {
@@ -12,9 +12,6 @@ public class SizeAdjuster
 
     public static readonly AttachedProperty<string> ScaleFactorProperty =
         AvaloniaProperty.RegisterAttached<SizeAdjuster, Control, string>("ScaleFactor", "1");
-
-    public static readonly AttachedProperty<bool> CanAdjustProperty =
-        AvaloniaProperty.RegisterAttached<SizeAdjuster, Control, bool>("CanAdjust", true);
 
     // 监听 IsAdjusted 属性的变化
     static SizeAdjuster()
@@ -33,11 +30,6 @@ public class SizeAdjuster
         return element.GetValue(ScaleFactorProperty);
     }
 
-    public static bool GetCanAdjust(Control element)
-    {
-        return element.GetValue(CanAdjustProperty);
-    }
-
     // 设置附加属性值
     public static void SetIsAdjusted(Control element, bool value)
     {
@@ -49,14 +41,9 @@ public class SizeAdjuster
         element.SetValue(ScaleFactorProperty, value);
     }
 
-    public static void SetCanAdjust(Control element, bool value)
-    {
-        element.SetValue(CanAdjustProperty, value);
-    }
-
     private static void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Sender is not Control control || !GetCanAdjust(control)) return;
+        if (e.Sender is not Control control) return;
 
         // 如果 IsAdjusted 为 true，按比例缩放控件的宽高
         if (GetIsAdjusted(control))

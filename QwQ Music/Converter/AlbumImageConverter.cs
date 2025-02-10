@@ -11,7 +11,7 @@ public class AlbumImageConverter : IValueConverter
     {
         if (value is string albumImageIndex)
         {
-            return MusicExtractor.LoadAlbumImageFromCache(albumImageIndex);
+            return MusicExtractor.LoadCompressedBitmapFromCache(albumImageIndex);
         }
 
         return null;

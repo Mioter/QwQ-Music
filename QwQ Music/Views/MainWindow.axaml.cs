@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -8,18 +9,22 @@ namespace QwQ_Music.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly MainWindowViewModel _viewModel;
+    private readonly MainWindowViewModel _viewModel = new();
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = _viewModel = new MainWindowViewModel();
+        DataContext = _viewModel;
         PointerWheelChanged += OnPointerWheelChanged;
+        Closed += OnClosed;
     }
 
-    ~MainWindow()
+    private void OnClosed(object? sender, EventArgs e)
     {
         PointerWheelChanged -= OnPointerWheelChanged;
+        _viewModel.ManualCleaning();
+        Closed -= OnClosed;
     }
+
 
     private void SelectionList_Loaded(object sender, RoutedEventArgs e)
     {

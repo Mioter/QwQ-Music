@@ -1,11 +1,11 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:attribute="clr-namespace:QwQ_Music.Attribute"
              xmlns:viewModel="clr-namespace:QwQ_Music.ViewModels"
              x:DataType="viewModel:MusicPlayerTrayViewModel"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:customControls="clr-namespace:QwQ_Music.CustomControls"
+             xmlns:behaviors="clr-namespace:QwQ_Music.Behaviors"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="120"
              x:Class="QwQ_Music.UserControls.MusicPlayerTray">
 
@@ -46,7 +46,7 @@
                         BorderThickness="3"
                         Background="Black"
                         BoxShadow="0 0 10 0 DarkGray"
-                        attribute:RoundedCornerBehavior.IsEnabled="True">
+                        behaviors:DynamicCornerBehavior.IsEnabled="True">
 
                     <Border ClipToBounds="True" Margin="5">
                         <!-- 专辑封面 Image 控件 -->
@@ -102,7 +102,7 @@
                     <Button Classes="Icon"
                             Margin="6"
                             Command="{Binding  MusicPlayerViewModel.TogglePreviousSongCommand}"
-                            attribute:RoundedCornerBehavior.IsEnabled="True"
+                            behaviors:DynamicCornerBehavior.IsEnabled="True"
                             Foreground="{DynamicResource TextBlockDefaultForeground}">
                         <PathIcon Data="{StaticResource PlayIconData}" RenderTransform="rotate(180deg)" />
                     </Button>
@@ -118,7 +118,7 @@
                                     Background="#FF51C5FF"
                                     Padding="{Binding PlayButtonPadding,Mode=OneWayToSource}"
                                     ClipToBounds="True"
-                                    attribute:RoundedCornerBehavior.IsEnabled="True">
+                                    behaviors:DynamicCornerBehavior.IsEnabled="True">
                                 <Border.RenderTransform>
                                     <RotateTransform Angle="{Binding PlayButtonAngle,Mode=OneWayToSource}" />
                                 </Border.RenderTransform>
@@ -192,7 +192,7 @@
                     <Button Classes="Icon"
                             Margin="6"
                             Command="{Binding MusicPlayerViewModel.ToggleNextSongCommand}"
-                            attribute:RoundedCornerBehavior.IsEnabled="True"
+                            behaviors:DynamicCornerBehavior.IsEnabled="True"
                             Foreground="{DynamicResource TextBlockDefaultForeground}">
                         <PathIcon Data="{StaticResource PlayIconData}" />
                     </Button>
@@ -241,18 +241,21 @@
 
                     <StackPanel.Styles>
                         <Style Selector="TextBlock">
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="FontFamily" Value="{StaticResource Consolab}"/>
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="FontFamily" Value="{StaticResource Consolab}" />
                         </Style>
                     </StackPanel.Styles>
-                    
+
                 </StackPanel>
 
                 <!-- 操作按钮 -->
                 <Panel Margin="10,5" Grid.Row="0" Grid.Column="1">
-                    <Button Height="20" Width="20" Classes="Icon">
-                        <PathIcon Margin="3" Data="{StaticResource SemiIconDescend2}" />
+
+                    <Button Classes="Icon"
+                            Command="{Binding $parent[Window].((viewModel:MainWindowViewModel)DataContext).ShowMusicPlaylistCommand}">
+                        <PathIcon Height="12" Width="12" Margin="5" Data="{StaticResource SemiIconDescend2}" />
                     </Button>
+
                 </Panel>
             </Grid>
 

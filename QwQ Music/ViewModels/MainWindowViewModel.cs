@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Pages;
 
 namespace QwQ_Music.ViewModels;
@@ -23,25 +25,46 @@ public partial class MainWindowViewModel : ViewModelBase
         },
     };
 
-    [ObservableProperty] private bool _isMusicPlayerTrayVisible = true;
-
     [ObservableProperty] private bool _isNavigationExpand = true;
 
     [ObservableProperty] private bool _isWindowMaximizedOrFullScreen;
 
     [ObservableProperty] private WindowState _mainWindowState;
 
+    [ObservableProperty] private bool _isMusicPlayerTrayVisible = true;
+
+    [ObservableProperty] private double _musicPlayerTrayYaxisOffset;
+    
+    [ObservableProperty] private bool _isMusicPlayListVisible;
+    
+    [ObservableProperty] private double _musicPlayListXaxisOffset;
+
     [ObservableProperty] private double _navigationBarWidth;
 
-    [ObservableProperty] private double _navigationBarYaxisOffset;
-
     [ObservableProperty] private object? _navigationSelectedItem;
+
+    [ObservableProperty] private bool _isBackgroundLayerVisible;
 
     [ObservableProperty] private UserControl? _pageContent;
 
     public MainWindowViewModel()
     {
         SetNavigationBarWidth();
+    }
+
+    partial void OnMusicPlayListXaxisOffsetChanged(double value)
+    {
+        if (value != 0) return;
+        
+        IsMusicPlayListVisible = false;
+        IsMusicPlayListVisible = true;
+        IsBackgroundLayerVisible = true;
+    }
+
+    partial void OnIsMusicPlayListVisibleChanged(bool value)
+    {
+        if (!value)
+            IsBackgroundLayerVisible = false;
     }
 
     partial void OnIsNavigationExpandChanged(bool value)
@@ -66,10 +89,36 @@ public partial class MainWindowViewModel : ViewModelBase
         NavigationBarWidth = IsNavigationExpand ? IsWindowMaximizedOrFullScreen ? 200 : 150 : 75;
     }
 
+    [RelayCommand] 
+    private void ShowMusicPlaylist()
+    {
+        IsMusicPlayListVisible = !IsMusicPlayListVisible;
+        
+        if(IsMusicPlayListVisible)
+            IsBackgroundLayerVisible = true;
+    }
+
+    [RelayCommand]
+    private void GlobalButtonClick()
+    {
+        IsMusicPlayListVisible = false;
+    }
+
     private void TogglePage(object value)
     {
         if (value is not StackPanel stackPanel || stackPanel.Children[1] is not TextBlock { Text: not null } textBlock) return;
 
         PageContent = _textToPageDictionary[textBlock.Text];
+    }
+
+    public void ManualCleaning()
+    {
+        foreach (var userControl in _textToPageDictionary.Values)
+        {
+            if (userControl.DataContext is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
     }
 }

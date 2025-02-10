@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+             xmlns:userControls="clr-namespace:QwQ_Music.UserControls"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="800"
+             x:DataType="viewModels:MusicPlayerViewModel"
+             x:Class="QwQ_Music.UserControls.MusicPlayList">
+
+    <Border Margin="5,5,10,20" 
+            Padding="10" 
+            Background="{DynamicResource BorderCardBackground}"
+            BoxShadow="0 0 10 0 LightGray" 
+            CornerRadius="10">
+        <Grid RowDefinitions="Auto,*">
+            <TextBlock Text="播放列表" 
+                       Margin="8" 
+                       FontFamily="{StaticResource VivoSans}" 
+                       FontSize="15" />
+            <ListBox Grid.Row="1" ItemsSource="{Binding MusicItems}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Panel>
+                            <StackPanel Orientation="Horizontal">
+
+                                <userControls:MusicAlbumButton
+                                    ExternalMouseTouch="{Binding $parent[ListBoxItem].IsPointerOver}"
+                                    IsPlaying="{ Binding $parent[UserControl].((viewModels:MusicPlayerViewModel)DataContext).IsPlaying}"
+                                    CurrentMusicItem="{Binding $parent[UserControl].((viewModels:MusicPlayerViewModel)DataContext).CurrentMusicItem}"
+                                    Command="{Binding $parent[UserControl].((viewModels:MusicPlayerViewModel)DataContext).PlaySpecifiedMusicCommand}"
+                                    CommandParameter="{Binding}">
+                                    <Button.Effect>
+                                        <DropShadowEffect OffsetX="0"
+                                                          OffsetY="0"
+                                                          BlurRadius="10"
+                                                          Opacity="0.5"
+                                                          Color="DarkGray" />
+                                    </Button.Effect>
+                                </userControls:MusicAlbumButton>
+
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Title}" />
+                                    <TextBlock Classes="Tertiary" Text="{Binding Singer}" FontSize="12" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Panel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="CornerRadius" Value="10" />
+                    </Style>
+                </ListBox.Styles>
+
+            </ListBox>
+        </Grid>
+    </Border>
+
+</UserControl>

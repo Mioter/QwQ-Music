@@ -8,5 +8,5 @@
     <Design.DataContext>
         <viewModels:StatisticsPageViewModel />
     </Design.DataContext>
-    Welcome to 统计!
+
 </UserControl>

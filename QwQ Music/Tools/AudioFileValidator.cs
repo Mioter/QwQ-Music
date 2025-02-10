@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Avalonia.Platform.Storage;
 using NAudio.Wave;
 using TagLib;
 using File = System.IO.File;
@@ -60,10 +59,9 @@ public static class AudioFileValidator
         }
     }
 
-    public static List<string>? FilterAudioFiles(List<IStorageItem>? items)
+    public static List<string>? FilterAudioFiles(List<string>? items)
     {
         return items?
-            .Select(x => x.Path.LocalPath)
             .Where(IsAudioFile)
             .ToList();
     }

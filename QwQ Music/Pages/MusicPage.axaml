@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
-             xmlns:customControls="clr-namespace:QwQ_Music.CustomControls"
+             xmlns:userControls="clr-namespace:QwQ_Music.UserControls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="viewModels:MusicPageViewModel"
              x:Class="QwQ_Music.Pages.MusicPage">
@@ -41,6 +41,7 @@
             </StackPanel>
         </Panel>
 
+        <!-- DataGrid 方展示案 -->
         <DataGrid Grid.Row="1"
                   CanUserReorderColumns="True"
                   CanUserResizeColumns="True"
@@ -60,7 +61,7 @@
                 <Style Selector="DataGridColumnHeadersPresenter > DataGridColumnHeader">
                     <Setter Property="Theme" Value="{StaticResource NoDecorativeThread}" />
                 </Style>
-                
+
                 <Style Selector="DataGrid /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
                     <Setter Property="Opacity" Value="0" />
                 </Style>
@@ -101,14 +102,13 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Margin="10"
-                                        Height="50"
-                                        Width="50"
-                                        Classes="None"
-                                        Background="{x:Null}"
-                                        Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
-                                        CommandParameter="{Binding $parent[DataGridRow].DataContext}"
-                                        Foreground="White">
+
+                                <userControls:MusicAlbumButton
+                                    ExternalMouseTouch="{Binding $parent[DataGridRow].IsPointerOver}"
+                                    IsPlaying="{ Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}"
+                                    CurrentMusicItem="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
+                                    Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                    CommandParameter="{Binding}">
                                     <Button.Effect>
                                         <DropShadowEffect OffsetX="0"
                                                           OffsetY="0"
@@ -116,155 +116,13 @@
                                                           Opacity="0.5"
                                                           Color="DarkGray" />
                                     </Button.Effect>
-                                    <Border CornerRadius="8"
-                                            ClipToBounds="True">
-                                        <Panel>
-                                            <Image
-                                                Classes.AlbumCoverNull="{Binding AlbumImageIndex,Converter={x:Static ObjectConverters.IsNull}}"
-                                                Classes.AlbumCoverBinding="{Binding AlbumImageIndex,Converter={x:Static ObjectConverters.IsNotNull}}" />
-                                            <Border Background="#33000000" IsHitTestVisible="False">
-                                                <Border.IsVisible>
-                                                    <MultiBinding
-                                                        Converter="{x:Static BoolConverters.Or}">
-                                                        <Binding ElementName="QuickPlaySwitchControl" Path="Condition" />
-                                                        <Binding Path="$parent[DataGridRow].IsPointerOver" />
-                                                    </MultiBinding>
-                                                </Border.IsVisible>
+                                </userControls:MusicAlbumButton>
 
-                                                <customControls:SwitchControl Name="QuickPlaySwitchControl"
-                                                                              Foreground="White" Margin="6">
-
-                                                    <customControls:SwitchControl.Condition>
-                                                        <MultiBinding
-                                                            Converter="{StaticResource InstanceEqualityMultiConverter}">
-                                                            <Binding
-                                                                Path="$parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem" />
-                                                            <Binding Path="$parent[DataGridRow].DataContext" />
-                                                        </MultiBinding>
-                                                    </customControls:SwitchControl.Condition>
-
-                                                    <customControls:SwitchControl.TrueContent>
-
-                                                        <customControls:SwitchControl
-                                                            Condition="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
-
-                                                            <customControls:SwitchControl.TrueContent>
-
-                                                                <customControls:SwitchControl
-
-                                                                    Condition="{Binding $parent[Button].IsPointerOver}">
-
-                                                                    <customControls:SwitchControl.TrueContent>
-                                                                        <PathIcon
-                                                                            Data="{StaticResource PauseIconData}" />
-                                                                    </customControls:SwitchControl.TrueContent>
-
-                                                                    <customControls:SwitchControl.FalseContent>
-                                                                        <StackPanel HorizontalAlignment="Center"
-                                                                            VerticalAlignment="Center"
-                                                                            Orientation="Horizontal" Spacing="4">
-
-                                                                            <Border Classes="Short" />
-                                                                            <Border Classes="Long" />
-                                                                            <Border Classes="Short" />
-
-                                                                            <StackPanel.Styles>
-                                                                                <Style Selector="Border">
-                                                                                    <Setter Property="CornerRadius"
-                                                                                        Value="3" />
-                                                                                    <Setter Property="Width" Value="4" />
-                                                                                    <Setter Property="Background"
-                                                                                        Value="White" />
-                                                                                </Style>
-
-                                                                                <Style Selector="Border.Long">
-                                                                                    <Setter Property="Height"
-                                                                                        Value="20" />
-                                                                                    <Style.Animations>
-                                                                                        <Animation
-                                                                                            IterationCount="Infinite"
-                                                                                            Duration="0:0:1"
-                                                                                            FillMode="Forward">
-                                                                                            <KeyFrame Cue="0%">
-                                                                                                <Setter
-                                                                                                    Property="ScaleTransform.ScaleY"
-                                                                                                    Value="1" />
-                                                                                            </KeyFrame>
-                                                                                            <KeyFrame Cue="50%">
-                                                                                                <Setter
-                                                                                                    Property="ScaleTransform.ScaleY"
-                                                                                                    Value="0.5" />
-                                                                                            </KeyFrame>
-                                                                                            <KeyFrame Cue="100%">
-                                                                                                <Setter
-                                                                                                    Property="ScaleTransform.ScaleY"
-                                                                                                    Value="1" />
-                                                                                            </KeyFrame>
-                                                                                        </Animation>
-                                                                                    </Style.Animations>
-                                                                                </Style>
-
-                                                                                <Style Selector="Border.Short">
-                                                                                    <Setter Property="Height"
-                                                                                        Value="10" />
-                                                                                    <Style.Animations>
-                                                                                        <Animation
-                                                                                            IterationCount="Infinite"
-                                                                                            Duration="0:0:1"
-                                                                                            FillMode="Forward">
-                                                                                            <KeyFrame Cue="0%">
-                                                                                                <Setter
-                                                                                                    Property="ScaleTransform.ScaleY"
-                                                                                                    Value="1" />
-                                                                                            </KeyFrame>
-                                                                                            <KeyFrame Cue="50%">
-                                                                                                <Setter
-                                                                                                    Property="ScaleTransform.ScaleY"
-                                                                                                    Value="1.5" />
-                                                                                            </KeyFrame>
-                                                                                            <KeyFrame Cue="100%">
-                                                                                                <Setter
-                                                                                                    Property="ScaleTransform.ScaleY"
-                                                                                                    Value="1" />
-                                                                                            </KeyFrame>
-                                                                                        </Animation>
-                                                                                    </Style.Animations>
-                                                                                </Style>
-
-                                                                            </StackPanel.Styles>
-                                                                        </StackPanel>
-                                                                    </customControls:SwitchControl.FalseContent>
-                                                                </customControls:SwitchControl>
-
-                                                            </customControls:SwitchControl.TrueContent>
-
-                                                        </customControls:SwitchControl>
-                                                    </customControls:SwitchControl.TrueContent>
-
-                                                    <customControls:SwitchControl.FalseContent>
-                                                        <PathIcon
-                                                            Data="{StaticResource PlayIconData}" />
-                                                    </customControls:SwitchControl.FalseContent>
-
-                                                </customControls:SwitchControl>
-
-                                            </Border>
-
-                                            <Panel.Styles>
-
-                                                <Style Selector="Image.AlbumCoverBinding">
-                                                    <Setter Property="Source"
-                                                            Value="{Binding AlbumImageIndex,Converter={StaticResource AlbumImageConverter}}" />
-                                                </Style>
-
-                                            </Panel.Styles>
-                                        </Panel>
-                                    </Border>
-                                </Button>
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Title}" />
                                     <TextBlock Classes="Tertiary" Text="{Binding Singer}" FontSize="12" />
                                 </StackPanel>
+
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -279,22 +137,22 @@
                                     IsVisible="{Binding ElementName=MoreColumn1,Path=IsChecked}"
                                     Binding="{Binding Genre}" />
 
-                <DataGridTextColumn Header="时长"
+                <DataGridTextColumn MinWidth="80"
+                                    Header="时长"
                                     Binding="{Binding TotalDuration,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter}}" />
 
                 <DataGridTextColumn Header="大小"
                                     IsVisible="{Binding IsChecked, ElementName=MoreColumn2}"
                                     Binding="{Binding FileSize}" />
 
-                
                 <DataGridTextColumn Header="备注"
                                     IsVisible="{Binding IsChecked, ElementName=MoreColumn3}"
                                     Binding="{Binding Remarks}" />
 
             </DataGrid.Columns>
 
-
             <Interaction.Behaviors>
+
                 <RoutedEventTriggerBehavior RoutedEvent="{x:Static DragDrop.DropEvent}">
                     <InvokeCommandAction Command="{Binding DropFilesCommand}" PassEventArgsToCommand="True" />
                 </RoutedEventTriggerBehavior>
@@ -308,4 +166,5 @@
         </DataGrid>
 
     </Grid>
+
 </UserControl>
