@@ -13,17 +13,17 @@
     x:DataType="viewModels:MainWindowViewModel"
     ExtendClientAreaTitleBarHeightHint="40"
     ExtendClientAreaToDecorationsHint="True">
-
+    
+    <Design.DataContext>
+        <viewModels:MainWindowViewModel />
+    </Design.DataContext>
+    
     <!--
         亚克力效果
         Background="Transparent"
         TransparencyLevelHint="AcrylicBlur"
     -->
-
-    <Design.DataContext>
-        <viewModels:MainWindowViewModel />
-    </Design.DataContext>
-
+            
     <Window.Styles>
 
         <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons">
@@ -76,7 +76,7 @@
             </TextBlock.Effect>
 
         </TextBlock>
-
+        
         <Grid ColumnDefinitions="Auto,*" Grid.Row="1">
 
             <Grid Width="{Binding NavigationBarWidth}"
@@ -183,16 +183,18 @@
         <Border Grid.Row="1" IsVisible="{Binding IsBackgroundLayerVisible}">
             <Button Classes="None"
                     Command="{Binding GlobalButtonClickCommand}"
-                    HorizontalAlignment="Stretch" 
-                    VerticalAlignment="Stretch"/>
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch" />
         </Border>
 
         <Panel Name="MusicPlayListPanel"
-            Grid.Row="1" 
-               Width="300" 
+               Grid.Row="1"
+               Width="300"
+               IsVisible="{Binding MusicPlayListXaxisOffset}"
                HorizontalAlignment="Right"
                Classes.Visible="{Binding IsMusicPlayListVisible}"
                Classes.Hide="{Binding !IsMusicPlayListVisible}"
+               behaviors:SizeAdjuster.CanAdjust="{Binding IsMusicPlayListVisible}"
                behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
                behaviors:SizeAdjuster.ScaleFactor="1.2,1">
             <Panel.RenderTransform>
@@ -204,6 +206,7 @@
                     <Style.Animations>
                         <Animation Easing="QuadraticEaseOut"
                                    FillMode="Forward"
+                                   IterationCount="1"
                                    Duration="0:0:0.5">
                             <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
                                 <Setter Property="TranslateTransform.X" Value="{Binding MusicPlayListXaxisOffset}" />
@@ -221,12 +224,13 @@
                     <Style.Animations>
                         <Animation Easing="QuadraticEaseIn"
                                    FillMode="Forward"
+                                   IterationCount="1"
                                    Duration="0:0:0.5">
                             <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
                                 <Setter Property="TranslateTransform.X" Value="{Binding MusicPlayListXaxisOffset}" />
                             </KeyFrame>
                             <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
-                                <Setter Property="TranslateTransform.X" Value="0" />
+                                <Setter Property="TranslateTransform.X" Value="-1" />
                             </KeyFrame>
                         </Animation>
                     </Style.Animations>

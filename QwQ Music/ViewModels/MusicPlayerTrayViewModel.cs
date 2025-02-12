@@ -1,6 +1,8 @@
 using System;
 using Avalonia;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 
 namespace QwQ_Music.ViewModels;
@@ -19,10 +21,41 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
     public MusicPlayerTrayViewModel()
     {
         MusicPlayerViewModel.PlaybackStateChanged += MusicPlayerViewModelOnPlaybackStateChanged;
-        MusicPlayerViewModel.CurrentMusicChanged += MusicPlayerViewModelOnCurrentMusicChanged;
+        MusicPlayerViewModel.CurrentMusicItemChanged += AudioPlayOnTrackIndexChanged;
     }
 
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
+
+
+    [RelayCommand]
+    private void OnVolumeBarPointerWheelChanged( PointerWheelEventArgs? e)
+    {
+        if (e == null) return;
+        // 阻止事件冒泡到父级元素
+        e.Handled = true;
+
+        switch (e.Delta.Y)
+        {
+            // 根据你的需求处理滚轮滚动事件
+            case > 0:
+                MusicPlayerViewModel.VolumePercent += 2;
+                break;
+            case < 0:
+                MusicPlayerViewModel.VolumePercent -= 2;
+                break;
+        }
+    }
+    
+
+    private void MusicPlayerViewModelOnPlaybackStateChanged(object? sender, bool e)
+    {
+        if (!e) AlbumCoverRecordAngle = AlbumCoverCurrentAngle;
+    }
+
+    private void AudioPlayOnTrackIndexChanged(object? sender, MusicItemModel musicItemModel)
+    {
+        AlbumCoverRecordAngle = 0;
+    }
 
     public void Dispose()
     {
@@ -30,22 +63,11 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void MusicPlayerViewModelOnPlaybackStateChanged(object? sender, bool e)
-    {
-        if (!e) AlbumCoverRecordAngle = AlbumCoverCurrentAngle;
-    }
-
-    private void MusicPlayerViewModelOnCurrentMusicChanged(object? sender, (MusicItemModel oldMusic, MusicItemModel newMusic) e)
-    {
-        AlbumCoverRecordAngle = 0;
-    }
-
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
-        {
-            MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
-            MusicPlayerViewModel.CurrentMusicChanged -= MusicPlayerViewModelOnCurrentMusicChanged;
-        }
+        if (!disposing) return;
+        
+        MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
+        MusicPlayerViewModel.CurrentMusicItemChanged -= AudioPlayOnTrackIndexChanged;
     }
 }

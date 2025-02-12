@@ -1,17 +1,29 @@
 using System;
 using System.Linq;
 
-namespace QwQ_Music.Tools;
+namespace QwQ_Music.Utilities;
 
 public static class TimeConverter
 {
-    public static string FormatSeconds(this double totalSeconds)
+    public static string FormatSeconds(this double totalSeconds, int decimalPlaces = 3)
     {
+        if (decimalPlaces < 0)
+            throw new ArgumentOutOfRangeException(nameof(decimalPlaces), "Decimal places must be non-negative.");
+
         if (totalSeconds < 0)
             return "00:00";
 
-        var time = TimeSpan.FromSeconds(totalSeconds);
-        return time.ToString(@"mm\:ss");
+        int hours = (int)(totalSeconds / 3600);
+        double remainingAfterHours = totalSeconds % 3600;
+        int minutes = (int)(remainingAfterHours / 60);
+        double seconds = remainingAfterHours % 60;
+
+        string secondsFormat = decimalPlaces > 0 ? $"00.{new string('#', decimalPlaces)}" : "00";
+        string formattedSeconds = seconds.ToString(secondsFormat);
+
+        return hours > 0
+            ? $"{hours:D2}:{minutes:D2}:{formattedSeconds}"
+            : $"{minutes:D2}:{formattedSeconds}";
     }
 
     public static double ParseSeconds(this string? timeString)

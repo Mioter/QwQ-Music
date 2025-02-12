@@ -9,7 +9,7 @@ using Avalonia.Media.Imaging;
 using QwQ_Music.Models;
 using File = System.IO.File;
 
-namespace QwQ_Music.Common;
+namespace QwQ_Music.Services;
 
 public static class MusicExtractor
 {

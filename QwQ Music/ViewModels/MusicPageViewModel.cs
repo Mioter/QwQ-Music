@@ -7,9 +7,9 @@ using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using QwQ_Music.Common;
 using QwQ_Music.Models;
-using QwQ_Music.Tools;
+using QwQ_Music.Services;
+using QwQ_Music.Utilities;
 
 namespace QwQ_Music.ViewModels;
 
@@ -24,7 +24,7 @@ public partial class MusicPageViewModel : ViewModelBase
     private void ToggleMusic()
     {
         if (SelectedItem != null)
-            MusicPlayerViewModel.UpdateMusicPlaylist(SelectedItem);
+            MusicPlayerViewModel.PlaySpecifiedMusic(SelectedItem);
     }
 
     [RelayCommand]
@@ -53,9 +53,8 @@ public partial class MusicPageViewModel : ViewModelBase
     private static List<string> GetAllFilePaths(List<IStorageItem> items)
     {
         var allFilePaths = new List<string>();
-        foreach (var item in items)
+        foreach (var uri in items.Select(item => item.Path))
         {
-            var uri = item.Path;
             if (!uri.IsAbsoluteUri)
             {
                 Console.WriteLine($"跳过非绝对路径的项: {uri}");

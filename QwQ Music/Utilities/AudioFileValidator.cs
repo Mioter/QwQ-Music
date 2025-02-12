@@ -6,7 +6,7 @@ using NAudio.Wave;
 using TagLib;
 using File = System.IO.File;
 
-namespace QwQ_Music.Tools;
+namespace QwQ_Music.Utilities;
 
 public static class AudioFileValidator
 {

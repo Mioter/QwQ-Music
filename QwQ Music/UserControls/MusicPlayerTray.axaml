@@ -40,7 +40,7 @@
             <!-- 专辑按钮 -->
             <Button Classes="None"
                     Background="{x:Null}"
-                    Command="{Binding MusicPlayerViewModel.StartOrStopPlaybackCommand}">
+                    Command="{Binding MusicPlayerViewModel.TogglePlaybackCommand}">
                 <Border Margin="10"
                         BorderBrush="White"
                         BorderThickness="3"
@@ -110,7 +110,7 @@
                     <!-- 播放/暂停 按钮 -->
                     <Button Name="PlayButton"
                             Classes="None"
-                            Command="{Binding MusicPlayerViewModel.StartOrStopPlaybackCommand}">
+                            Command="{Binding MusicPlayerViewModel.TogglePlaybackCommand}">
 
                         <Panel>
                             <Border Classes.Run="{Binding #PlayButton.IsPointerOver}"
@@ -205,22 +205,7 @@
                         Margin="20,0"
                         Maximum="{Binding MusicPlayerViewModel.CurrentMusicItem.TotalDuration,Converter={StaticResource StringToSecondsConverter}}"
                         Value="{Binding MusicPlayerViewModel.CurrentDurationInSeconds}">
-                    <Slider.Styles>
 
-                        <Style Selector="Slider:horizontal /template/ Thumb#thumb">
-                            <Setter Property="Transitions">
-                                <Transitions>
-                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
-                                </Transitions>
-                            </Setter>
-                            <Setter Property="RenderTransform" Value="scale(0.5)" />
-                        </Style>
-
-                        <Style Selector="Slider:pointerover /template/ Thumb#thumb">
-                            <Setter Property="RenderTransform" Value="scale(0.8)" />
-                        </Style>
-
-                    </Slider.Styles>
                 </Slider>
 
                 <!-- 播放时长 / 总时长 -->
@@ -249,14 +234,94 @@
                 </StackPanel>
 
                 <!-- 操作按钮 -->
-                <Panel Margin="10,5" Grid.Row="0" Grid.Column="1">
+                <WrapPanel Margin="0,5" Grid.Row="0" Grid.Column="1">
 
+                    <Button Name="VolumeButton" 
+                            Classes="Icon">
+                        <Button.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Width" Duration="0:0:0.3" />
+                            </Transitions>
+                        </Button.Transitions>
+                        <Panel>
+                            <Border Background="#20c997"
+                                    behaviors:DynamicCornerBehavior.IsEnabled="True"
+                                    Margin="7,7,4,7"
+                                    IsVisible="{Binding !MusicPlayerViewModel.IsSilent}"/>
+                            <PathIcon Height="14" Width="14" Data="{StaticResource EmptyVolume}" />
+                            <Border Background="#ff6b6b"
+                                    Width="3"
+                                    CornerRadius="10"
+                                    Margin="3"
+                                    IsVisible="{Binding MusicPlayerViewModel.IsSilent}"
+                                    RenderTransform="rotate(120deg)" />
+                        </Panel>
+                        
+                        <Button.Resources>
+                            <!-- ReSharper disable once Xaml.RedundantResource -->
+                            <x:Double x:Key="FlyoutMinWidth">30</x:Double>
+                            <!-- ReSharper disable once Xaml.RedundantResource -->
+                            <x:Double x:Key="FlyoutMaxHeight">200</x:Double>
+                            <!-- ReSharper disable once Xaml.RedundantResource -->
+                            <x:Double x:Key="FlyoutMinHeight">150</x:Double>
+                            <!-- ReSharper disable once Xaml.RedundantResource -->
+                            <Thickness x:Key="FlyoutPadding">0</Thickness>
+                        </Button.Resources>
+
+                        <Button.Flyout>
+                            <Flyout ShowMode="TransientWithDismissOnPointerMoveAway" Placement="Top">
+                                <Grid Margin="0,5,0,0" RowDefinitions="*,Auto">
+                                    <Slider HorizontalAlignment="Center" Orientation="Vertical"
+                                            Value="{Binding MusicPlayerViewModel.VolumePercent}" Maximum="100" />
+                                    <Button Classes.Silent="{Binding MusicPlayerViewModel.IsSilent}"
+                                            Command="{Binding MusicPlayerViewModel.ToggleSilentModeCommand}"
+                                            Grid.Row="1" 
+                                            Classes="Icon">
+                                        <PathIcon Data="{StaticResource Prohibit}" />
+
+                                        <Button.Styles>
+                                            <Style Selector="Button.Silent">
+                                                <Setter Property="Background" Value="#FFFF4D3C" />
+                                                <Setter Property="Foreground" Value="White"/>
+                                                <Style Selector="^:pointerover /template/ ContentPresenter">
+                                                    <Setter Property="Background" Value="#AAFF4D3C" />
+                                                </Style>
+                                            </Style>
+                                        </Button.Styles>
+                                        
+                                        <Interaction.Behaviors>
+                                        
+                                            <EventTriggerBehavior EventName="PointerWheelChanged">
+                                                <InvokeCommandAction Command="{Binding VolumeBarPointerWheelChangedCommand}" PassEventArgsToCommand="True"  />
+                                            </EventTriggerBehavior>
+
+                                        </Interaction.Behaviors>
+
+                                        
+                                    </Button>
+                                    
+                                </Grid>
+                            </Flyout>
+                        </Button.Flyout>
+                        
+                    </Button>
+                    
                     <Button Classes="Icon"
                             Command="{Binding $parent[Window].((viewModel:MainWindowViewModel)DataContext).ShowMusicPlaylistCommand}">
-                        <PathIcon Height="12" Width="12" Margin="5" Data="{StaticResource SemiIconDescend2}" />
+                        <PathIcon Height="12" Width="12" Data="{StaticResource SemiIconDescend2}" />
                     </Button>
 
-                </Panel>
+                    <WrapPanel.Styles>
+                        
+                        <Style Selector="Button">
+                            <Setter Property="Height" Value="20"/>
+                            <Setter Property="Width" Value="20"/>
+                            <Setter Property="Margin" Value="5"/>
+                        </Style>
+ 
+                    </WrapPanel.Styles>
+                    
+                </WrapPanel>
             </Grid>
 
         </Grid>

@@ -1,82 +1,73 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
-using QwQ_Music.Common;
 using QwQ_Music.Models;
-using QwQ_Music.Tools;
+using QwQ_Music.Services;
+using QwQ_Music.Utilities;
 
 namespace QwQ_Music.ViewModels;
 
-public sealed partial class MusicPlayerViewModel : ViewModelBase
+public partial class MusicPlayerViewModel : ViewModelBase
 {
     private static readonly Lazy<MusicPlayerViewModel> _instance = new(() => new MusicPlayerViewModel());
-
-    private AudioFileReader? _audioFileReader;
+    private readonly ConfigService _configService = new();
+    private bool _isAutoChange;
+    
 
     [ObservableProperty] private double _currentDurationInSeconds;
-    private int _currentIndex;
-
     [ObservableProperty] private MusicItemModel _currentMusicItem = new("听你想听~", "YOU");
-    private bool _isAutoChange;
-
     [ObservableProperty] private bool _isPlaying;
-
+    [ObservableProperty] private bool _isSilent;
     [ObservableProperty] private ObservableCollection<MusicItemModel> _musicItems = [];
-
     [ObservableProperty] private ObservableCollection<MusicItemModel> _musicPlaylist = [];
-    private DispatcherTimer? _progressTimer;
-    private WaveOutEvent? _waveOutEvent;
 
-    private MusicPlayerViewModel()
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(VolumePercent))]
+    private float _volume = 1.0f;
+
+    public float VolumePercent
     {
-        InitializeCurrentMusicItemAsync().ConfigureAwait(false);
+        get => Volume * 100;
+        set => Volume = value / 100.0f;
     }
+
+    partial void OnVolumeChanged(float value) => AudioPlay.SetVolume(value);
+
+    private AudioPlay AudioPlay { get; } = new();
+    private int CurrentIndex => MusicPlaylist.IndexOf(CurrentMusicItem);
     public static MusicPlayerViewModel Instance => _instance.Value;
 
     public event EventHandler<bool>? PlaybackStateChanged;
+    public event EventHandler<MusicItemModel>? CurrentMusicItemChanged;
 
-    public event EventHandler<(MusicItemModel oldMusic, MusicItemModel newMusic)>? CurrentMusicChanged;
-
-    public void UpdateMusicPlaylist(MusicItemModel currentMusicItem, ObservableCollection<MusicItemModel>? musicList = null)
+    private MusicPlayerViewModel()
     {
-        if (musicList != null) MusicPlaylist = !MusicPlaylist.SequenceEqual(musicList) ? musicList : MusicItems;
-
-        if (CurrentMusicItem == currentMusicItem) return;
-
-        CurrentMusicItem = currentMusicItem;
+        InitializeMusicItemAsync().ConfigureAwait(false);
+        AudioPlay.PositionChanged += OnPositionChanged;
     }
 
-    private async Task InitializeCurrentMusicItemAsync()
+    private async Task InitializeMusicItemAsync()
     {
         try
         {
-            var musicItems = await ConfigService.GetMusicInfoAsync();
+            var musicItems = await _configService.GetMusicInfoAsync();
             if (musicItems != null)
-            {
                 MusicItems = musicItems;
-            }
 
-            var cachePlayList = await ConfigService.GetMusicListAsync();
-
+            var cachePlayList = await _configService.GetMusicListAsync();
             if (cachePlayList == null) return;
 
-            string? currentMusicPath = cachePlayList.CurrentMusicPath;
-            List<MusicItemModel> musicPlayList = [];
-            musicPlayList.AddRange(cachePlayList.MusicPlayList.Select(musicItemPath => MusicItems.FirstOrDefault(p => p.FilePath == musicItemPath)).OfType<MusicItemModel>());
-            MusicPlaylist = new ObservableCollection<MusicItemModel>(musicPlayList);
-            var currentMusicItem = MusicPlaylist.FirstOrDefault(musicItem => musicItem.FilePath == currentMusicPath);
+            MusicPlaylist = new ObservableCollection<MusicItemModel>(
+                cachePlayList.MusicPlayList
+                    .Select(path => MusicItems.FirstOrDefault(item => item.FilePath == path))
+                    .Where(item => item != null)!);
 
-            if (currentMusicItem == null) return;
-
-            CurrentMusicItem = currentMusicItem;
-
+            var currentMusicItem = MusicPlaylist.FirstOrDefault(item => item.FilePath == cachePlayList.CurrentMusicPath);
+            if (currentMusicItem != null)
+                SetCurrentMusicItem(currentMusicItem);
         }
         catch
         {
@@ -84,224 +75,135 @@ public sealed partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
-    private void StopAndDisposeCurrentTrack()
+    private void OnPositionChanged(object? sender, double positionInSeconds)
     {
-        IsPlaying = false;
-
-        _waveOutEvent?.Stop();
-        _waveOutEvent?.Dispose();
-        _waveOutEvent = null;
-
-        _audioFileReader?.Dispose();
-        _audioFileReader = null;
-
-        // 停止并释放定时器
-        if (_progressTimer != null)
-        {
-            _progressTimer.Stop();
-            _progressTimer.Tick -= OnProgressTimerTick;
-        }
-        _progressTimer = null;
-    }
-
-    partial void OnCurrentMusicItemChanged(MusicItemModel value)
-    {
-        StopAndDisposeCurrentTrack();
-
-        if (value.FilePath == null) return;
-
-        _currentIndex = MusicPlaylist.IndexOf(CurrentMusicItem);
-        if (_currentIndex == -1)
-            _currentIndex = 0; // 默认从第一首开始播放
-
-        CurrentDurationInSeconds = value.CurrentDuration.ParseSeconds();
-        InitializeNewTrack();
-
-        CurrentMusicChanged?.Invoke(this, (value, _currentMusicItem));
-    }
-
-    private void InitializeNewTrack()
-    {
-        try
-        {
-            _audioFileReader = new AudioFileReader(CurrentMusicItem.FilePath!);
-
-            // 设置初始位置（边界检查）
-            var targetTime = TimeSpan.FromSeconds(CurrentDurationInSeconds);
-            if (targetTime > _audioFileReader.TotalTime)
-                targetTime = _audioFileReader.TotalTime;
-
-            var offsetSampleProvider = new OffsetSampleProvider(_audioFileReader)
-            {
-                SkipOver = targetTime,
-            };
-
-            // 初始化播放设备
-            _waveOutEvent = new WaveOutEvent();
-            _waveOutEvent.PlaybackStopped += OnPlaybackStopped;
-            _waveOutEvent.Init(offsetSampleProvider);
-
-            // 初始化定时器
-            _progressTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(1000),
-            };
-            _progressTimer.Tick += OnProgressTimerTick;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"初始化音轨失败: {ex.Message}");
-        }
-    }
-
-
-    private void OnPlaybackStopped(object? sender, StoppedEventArgs e)
-    {
-        if (e.Exception != null)
-        {
-            // 处理播放异常
-            Console.WriteLine($"播放错误: {e.Exception.Message}");
-        }
-
-        // 自动播放下一首
-        if (_waveOutEvent?.PlaybackState == PlaybackState.Stopped)
-        {
-            if (_audioFileReader == null) return;
-
-            double currentSeconds = _audioFileReader.CurrentTime.TotalSeconds;
-            double targetSeconds = CurrentMusicItem.TotalDuration.ParseSeconds();
-
-            if (!(Math.Abs(currentSeconds - targetSeconds) < 0.1)) return;
-
-            CurrentMusicItem.CurrentDuration = TimeConverter.FormatSeconds(0);
-            ToggleNextSong();
-            CurrentDurationInSeconds = 0;
-            IsPlaying = true;
-
-        }
-    }
-
-    private void OnProgressTimerTick(object? sender, EventArgs e)
-    {
-        if (_audioFileReader == null || _waveOutEvent == null) return;
-
         _isAutoChange = true;
-        CurrentDurationInSeconds = _audioFileReader.CurrentTime.TotalSeconds;
+        CurrentDurationInSeconds = positionInSeconds;
         _isAutoChange = false;
     }
 
-    partial void OnIsPlayingChanged(bool value)
-    {
-        PlaybackStateChanged?.Invoke(this, value);
-        UpdatePlaybackState();
-    }
+    partial void OnIsPlayingChanged(bool value) => PlaybackStateChanged?.Invoke(this, value);
 
-    private void UpdatePlaybackState()
+    private void UpdatePlaybackState(bool isPlaying)
     {
-        if (_waveOutEvent == null) return;
-
-        if (IsPlaying)
-        {
-            // 先启动定时器再开始播放
-            _progressTimer?.Start();
-            _waveOutEvent.Play();
-        }
+        if (isPlaying)
+            AudioPlay.PlayWithFade(1000); // 1秒淡入
         else
-        {
-            _waveOutEvent.Pause();
-            _progressTimer?.Stop();
-        }
+            AudioPlay.StopWithFade(1000); // 1秒淡出
     }
 
     [RelayCommand]
-    private void StartOrStopPlayback()
+    private void TogglePlayback()
     {
         if (MusicPlaylist.Count == 0)
             MusicPlaylist = MusicItems;
 
-        if (MusicPlaylist.Count > 0)
-            if (CurrentMusicItem.FilePath == null)
-            {
-                var item = MusicPlaylist.FirstOrDefault(musicItem => musicItem.FilePath != null);
-                if (item != null)
-                    CurrentMusicItem = item;
-                else
-                    return;
-            }
+        if (FallbackMusicItem()) return;
 
         IsPlaying = !IsPlaying;
+        UpdatePlaybackState(IsPlaying);
+    }
+
+    private bool FallbackMusicItem()
+    {
+        if (CurrentMusicItem.FilePath != null) return false;
+
+        var item = MusicPlaylist.FirstOrDefault(item => item.FilePath != null);
+        if (item != null)
+            SetCurrentMusicItem(item);
+        return item == null;
     }
 
     [RelayCommand]
-    private void PlaySpecifiedMusic(MusicItemModel? musicItem)
+    public void PlaySpecifiedMusic(MusicItemModel? musicItem)
     {
         if (musicItem == null) return;
-        UpdateMusicPlaylist(musicItem);
-        StartOrStopPlayback();
+
+        if (CurrentMusicItem == musicItem)
+        {
+            IsPlaying = !IsPlaying;
+        }
+
+        if (CurrentMusicItem != musicItem)
+        {
+            SetCurrentMusicItem(musicItem);
+            IsPlaying = true;
+        }
+      
+        UpdatePlaybackState(IsPlaying);
     }
 
     [RelayCommand]
-    private void TogglePreviousSong()
-    {
-        if (MusicPlaylist.Count == 0 || _currentIndex == -1) return;
+    private void TogglePreviousSong() => SetAndPlay(GetPreviousIndex(CurrentIndex));
 
-        _currentIndex--;
-        if (_currentIndex < 0) _currentIndex = MusicPlaylist.Count - 1;
-        CurrentMusicItem = MusicPlaylist[_currentIndex];
+    [RelayCommand]
+    private void ToggleNextSong() => SetAndPlay(GetNextIndex(CurrentIndex));
+
+    private void SetAndPlay(int index)
+    {
+        SetCurrentMusicItem(MusicPlaylist[index]);
         IsPlaying = true;
+        UpdatePlaybackState(true);
     }
 
     [RelayCommand]
-    private void ToggleNextSong()
+    private async Task ToggleSilentModeAsync()
     {
-        if (MusicPlaylist.Count == 0 || _currentIndex == -1) return;
+        IsSilent = !IsSilent;
+        if (IsSilent) SaveConfigInfoAsync();
+        VolumePercent = IsSilent ? 0 : await LoadVolumeConfigAsync();
 
-        _currentIndex++;
-        if (_currentIndex >= MusicPlaylist.Count) _currentIndex = 0;
-        CurrentMusicItem = MusicPlaylist[_currentIndex];
-        IsPlaying = true;
     }
 
     partial void OnCurrentDurationInSecondsChanged(double value)
-    {
+    {   
         CurrentMusicItem.CurrentDuration = value.FormatSeconds();
-
-        if (_isAutoChange || _audioFileReader == null) return;
-
-        if (IsPlaying)
-        {
-            _audioFileReader.CurrentTime = TimeSpan.FromSeconds(value);
-        }
-        else
-        {
-            StopAndDisposeCurrentTrack();
-            InitializeNewTrack();
-        }
+        if (_isAutoChange) return;
+        AudioPlay.Seek(value);
     }
 
-
-    public void SaveMusicInfoAsync()
+    private async Task<float> LoadVolumeConfigAsync()
     {
-        if (MusicItems.Count == 0) return;
-        _ = ConfigService.SaveMusicInfoAsync(MusicItems);
+        var info = await _configService.GetConfigInfoAsync().ConfigureAwait(false); // 避免回到 UI 线程
+        return info?.PlayerConfig?.Volume ?? 100;
     }
+
+    public void SaveMusicInfoAsync() => _ = _configService.SaveMusicInfoAsync(MusicItems);
 
     public void SaveMusicListAsync()
     {
-        List<string?> filePaths = [];
-        if (MusicPlaylist.Count > 0)
-        {
-            filePaths = MusicPlaylist
-                .Select(item => item.FilePath)
-                .ToList();
-        }
-
-        _ = ConfigService.SaveMusicListAsync(new MusicListModel(CurrentMusicItem.FilePath, filePaths));
+        var filePaths = MusicPlaylist.Select(item => item.FilePath).ToList();
+        _ = _configService.SaveMusicListAsync(new MusicListModel(CurrentMusicItem.FilePath, filePaths));
     }
 
-    public void CleaningAndRelease()
+    public void SaveConfigInfoAsync()
+    {
+        _ = _configService.SaveConfigInfoAsync(new ConfigInfoModel
+        {
+            PlayerConfig = new PlayerConfig { Volume = VolumePercent },
+        });
+    }
+
+    public void CleanupAndRelease()
     {
         IsPlaying = false;
-        StopAndDisposeCurrentTrack();
+        AudioPlay.Stop();
+        AudioPlay.PositionChanged -= OnPositionChanged;
     }
+
+    private void SetCurrentMusicItem(MusicItemModel musicItem)
+    {
+        if (musicItem.FilePath == null) return;
+
+        musicItem.ReplayGain ??= MultiChannelReplayGain.CalculateMultiChannelReplayGain(musicItem.FilePath);
+
+        CurrentMusicItem = musicItem;
+        CurrentDurationInSeconds = CurrentMusicItem.CurrentDuration.ParseSeconds();
+        CurrentMusicItemChanged?.Invoke(this, musicItem);
+        AudioPlay.SetAudioTrack(musicItem.FilePath, CurrentDurationInSeconds, musicItem.ReplayGain);
+    }
+
+    private int GetNextIndex(int current) => (current + 1) % MusicPlaylist.Count;
+    private int GetPreviousIndex(int current) => (current - 1 + MusicPlaylist.Count) % MusicPlaylist.Count;
+    
 }

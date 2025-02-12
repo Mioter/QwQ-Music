@@ -11,6 +11,8 @@ namespace QwQ_Music;
 
 public class App : Application
 {
+    private IClassicDesktopStyleApplicationLifetime? _applicationLifetime;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -23,6 +25,7 @@ public class App : Application
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
+            _applicationLifetime = desktop;
             desktop.MainWindow = new MainWindow();
             desktop.Exit += OnExit;
         }
@@ -43,13 +46,15 @@ public class App : Application
         }
     }
 
-    private static void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    private void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
     {
         try
         {
+            if (_applicationLifetime != null) _applicationLifetime.Exit -= OnExit;
+
             var musicPlayerViewModel = MusicPlayerViewModel.Instance;
 
-            musicPlayerViewModel.CleaningAndRelease();
+            musicPlayerViewModel.CleanupAndRelease();
             musicPlayerViewModel.SaveMusicListAsync();
             musicPlayerViewModel.SaveMusicInfoAsync();
         }

@@ -60,5 +60,7 @@ public partial class MusicItemModel(
 
     [ObservableProperty] private string? _trackNumber = trackNumber;
 
+    [ObservableProperty] private float[]? _replayGain ; 
+    
     [ObservableProperty] private string? _year = year;
 }

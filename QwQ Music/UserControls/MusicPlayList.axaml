@@ -8,15 +8,15 @@
              x:DataType="viewModels:MusicPlayerViewModel"
              x:Class="QwQ_Music.UserControls.MusicPlayList">
 
-    <Border Margin="5,5,10,20" 
-            Padding="10" 
+    <Border Margin="5,5,10,20"
+            Padding="10"
             Background="{DynamicResource BorderCardBackground}"
-            BoxShadow="0 0 10 0 LightGray" 
+            BoxShadow="0 0 10 0 LightGray"
             CornerRadius="10">
         <Grid RowDefinitions="Auto,*">
-            <TextBlock Text="播放列表" 
-                       Margin="8" 
-                       FontFamily="{StaticResource VivoSans}" 
+            <TextBlock Text="播放列表"
+                       Margin="8"
+                       FontFamily="{StaticResource VivoSans}"
                        FontSize="15" />
             <ListBox Grid.Row="1" ItemsSource="{Binding MusicItems}">
                 <ListBox.ItemTemplate>
@@ -51,6 +51,7 @@
                 <ListBox.Styles>
                     <Style Selector="ListBoxItem">
                         <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="3" />
                         <Setter Property="CornerRadius" Value="10" />
                     </Style>
                 </ListBox.Styles>

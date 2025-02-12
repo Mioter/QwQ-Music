@@ -25,25 +25,25 @@ public partial class MainWindowViewModel : ViewModelBase
         },
     };
 
+    [ObservableProperty] private bool _isBackgroundLayerVisible;
+
+    [ObservableProperty] private bool _isMusicPlayerTrayVisible = true;
+
+    [ObservableProperty] private bool _isMusicPlayListVisible;
+
     [ObservableProperty] private bool _isNavigationExpand = true;
 
     [ObservableProperty] private bool _isWindowMaximizedOrFullScreen;
 
     [ObservableProperty] private WindowState _mainWindowState;
 
-    [ObservableProperty] private bool _isMusicPlayerTrayVisible = true;
-
     [ObservableProperty] private double _musicPlayerTrayYaxisOffset;
-    
-    [ObservableProperty] private bool _isMusicPlayListVisible;
-    
+
     [ObservableProperty] private double _musicPlayListXaxisOffset;
 
     [ObservableProperty] private double _navigationBarWidth;
 
     [ObservableProperty] private object? _navigationSelectedItem;
-
-    [ObservableProperty] private bool _isBackgroundLayerVisible;
 
     [ObservableProperty] private UserControl? _pageContent;
 
@@ -52,13 +52,12 @@ public partial class MainWindowViewModel : ViewModelBase
         SetNavigationBarWidth();
     }
 
-    partial void OnMusicPlayListXaxisOffsetChanged(double value)
+    partial void OnMusicPlayListXaxisOffsetChanging(double oldValue, double newValue)
     {
-        if (value != 0) return;
+        if (oldValue < newValue || newValue > 0.9 ) return;
         
         IsMusicPlayListVisible = false;
         IsMusicPlayListVisible = true;
-        IsBackgroundLayerVisible = true;
     }
 
     partial void OnIsMusicPlayListVisibleChanged(bool value)
@@ -84,17 +83,12 @@ public partial class MainWindowViewModel : ViewModelBase
         TogglePage(value);
     }
 
-    private void SetNavigationBarWidth()
-    {
-        NavigationBarWidth = IsNavigationExpand ? IsWindowMaximizedOrFullScreen ? 200 : 150 : 75;
-    }
-
-    [RelayCommand] 
+    [RelayCommand]
     private void ShowMusicPlaylist()
     {
         IsMusicPlayListVisible = !IsMusicPlayListVisible;
-        
-        if(IsMusicPlayListVisible)
+
+        if (IsMusicPlayListVisible)
             IsBackgroundLayerVisible = true;
     }
 
@@ -109,6 +103,11 @@ public partial class MainWindowViewModel : ViewModelBase
         if (value is not StackPanel stackPanel || stackPanel.Children[1] is not TextBlock { Text: not null } textBlock) return;
 
         PageContent = _textToPageDictionary[textBlock.Text];
+    }
+
+    private void SetNavigationBarWidth()
+    {
+        NavigationBarWidth = IsNavigationExpand ? IsWindowMaximizedOrFullScreen ? 200 : 150 : 75;
     }
 
     public void ManualCleaning()

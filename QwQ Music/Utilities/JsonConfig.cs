@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace QwQ_Music.Tools;
+namespace QwQ_Music.Utilities;
 
 /// <summary>
 ///     Json 配置类，提供读取和写入 JSON 的方法。

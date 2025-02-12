@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
-using QwQ_Music.Tools;
+using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Converter;
 
@@ -12,7 +12,10 @@ public class SecondsToStringConverter : IValueConverter
     {
         if (value is not double seconds) throw new NotSupportedException();
 
-        return seconds.FormatSeconds();
+        if (parameter is int paramInt)
+            return seconds.FormatSeconds(paramInt);
+
+        return seconds.FormatSeconds(0);
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
