@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
              xmlns:userControls="clr-namespace:QwQ_Music.UserControls"
+             xmlns:b="clr-namespace:QwQ_Music.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="viewModels:MusicPageViewModel"
              x:Class="QwQ_Music.Pages.MusicPage">
@@ -16,16 +17,20 @@
 
         <Panel Margin="0,5">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                
+                <StackPanel.Styles>
 
-                <Button Content="更多" CornerRadius="5">
-                    <Button.Styles>
+                    <Style Selector="Button">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="CornerRadius" Value="8"></Setter>
+                    </Style>
 
-                        <Style Selector="Button">
-                            <Setter Property="Background" Value="Transparent" />
-                        </Style>
+                </StackPanel.Styles>
 
-                    </Button.Styles>
+                <Button Content="当前音乐" Command="{Binding SelectedCurrentMusicItemCommand}"/>
 
+                <Button Content="更多">
+      
                     <Button.Flyout>
                         <Flyout>
                             <StackPanel Spacing="5">
@@ -47,6 +52,7 @@
                   CanUserResizeColumns="True"
                   CanUserSortColumns="True"
                   IsReadOnly="True"
+                  b:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}"
                   Background="Transparent"
                   SelectedItem="{Binding SelectedItem}"
                   ItemsSource="{Binding  MusicPlayerViewModel.MusicItems}"

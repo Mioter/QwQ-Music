@@ -18,7 +18,7 @@
                        Margin="8"
                        FontFamily="{StaticResource VivoSans}"
                        FontSize="15" />
-            <ListBox Grid.Row="1" ItemsSource="{Binding MusicItems}">
+            <ListBox Grid.Row="1" ItemsSource="{Binding MusicPlaylist}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Panel>

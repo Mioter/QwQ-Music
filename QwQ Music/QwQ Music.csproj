@@ -26,10 +26,10 @@
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0"/>
         <PackageReference Include="Irihi.Ursa" Version="1.8.0" />
         <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.8.0"/>
-        <PackageReference Include="NAudio" Version="2.2.1"/>
         <PackageReference Include="Semi.Avalonia" Version="11.2.1.4"/>
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.4"/>
         <PackageReference Include="Semi.Avalonia.TreeDataGrid" Version="11.0.10.1"/>
+        <PackageReference Include="SonicBoom" Version="1.0.9" />
         <PackageReference Include="TagLibSharp" Version="2.3.0"/>
     </ItemGroup>
 

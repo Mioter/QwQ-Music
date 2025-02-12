@@ -23,8 +23,17 @@ public partial class MusicPageViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleMusic()
     {
-        if (SelectedItem != null)
-            MusicPlayerViewModel.PlaySpecifiedMusic(SelectedItem);
+        if (SelectedItem == null) return;
+        
+        MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
+
+    }
+
+    [RelayCommand]
+    private void SelectedCurrentMusicItem()
+    {
+        SelectedItem = null;
+        SelectedItem = MusicPlayerViewModel.CurrentMusicItem;
     }
 
     [RelayCommand]

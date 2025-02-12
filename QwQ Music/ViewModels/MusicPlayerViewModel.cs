@@ -28,10 +28,14 @@ public partial class MusicPlayerViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(VolumePercent))]
     private float _volume = 1.0f;
 
-    public float VolumePercent
+    public int VolumePercent
     {
-        get => Volume * 100;
-        set => Volume = value / 100.0f;
+        get => (int)(Volume * 100);
+        set
+        {
+            IsSilent = value <= 0;
+            Volume = Math.Clamp(value / 100f, 0f, 1.0f);
+        }
     }
 
     partial void OnVolumeChanged(float value) => AudioPlay.SetVolume(value);
@@ -45,8 +49,20 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private MusicPlayerViewModel()
     {
-        InitializeMusicItemAsync().ConfigureAwait(false);
+        InitializeAsync();
         AudioPlay.PositionChanged += OnPositionChanged;
+        AudioPlay.PlaybackCompleted += AudioPlayOnPlaybackCompleted;
+    }
+
+    private void InitializeAsync()
+    {
+        InitializeConfigInfoAsync().ConfigureAwait(false);
+        InitializeMusicItemAsync().ConfigureAwait(false);
+    }
+    
+    private async Task InitializeConfigInfoAsync()
+    {
+        VolumePercent = await LoadVolumeConfigAsync();
     }
 
     private async Task InitializeMusicItemAsync()
@@ -80,6 +96,13 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _isAutoChange = true;
         CurrentDurationInSeconds = positionInSeconds;
         _isAutoChange = false;
+    }
+    
+    private void AudioPlayOnPlaybackCompleted(object? sender, EventArgs e)
+    {
+        CurrentMusicItem.CurrentDuration = "00:00";
+        ToggleNextSong();
+        CurrentDurationInSeconds = 0;
     }
 
     partial void OnIsPlayingChanged(bool value) => PlaybackStateChanged?.Invoke(this, value);
@@ -115,7 +138,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void PlaySpecifiedMusic(MusicItemModel? musicItem)
+    private void PlaySpecifiedMusic(MusicItemModel? musicItem)
     {
         if (musicItem == null) return;
 
@@ -126,7 +149,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
         if (CurrentMusicItem != musicItem)
         {
-            SetCurrentMusicItem(musicItem);
+            SetCurrentMusicItem(musicItem,true);
             IsPlaying = true;
         }
       
@@ -159,10 +182,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {   
         CurrentMusicItem.CurrentDuration = value.FormatSeconds();
         if (_isAutoChange) return;
+
         AudioPlay.Seek(value);
     }
 
-    private async Task<float> LoadVolumeConfigAsync()
+    private async Task<int> LoadVolumeConfigAsync()
     {
         var info = await _configService.GetConfigInfoAsync().ConfigureAwait(false); // 避免回到 UI 线程
         return info?.PlayerConfig?.Volume ?? 100;
@@ -190,15 +214,35 @@ public partial class MusicPlayerViewModel : ViewModelBase
         AudioPlay.Stop();
         AudioPlay.PositionChanged -= OnPositionChanged;
     }
+    
 
-    private void SetCurrentMusicItem(MusicItemModel musicItem)
+    public void SetCurrentMusicItem(MusicItemModel musicItem,bool restart = false )
     {
-        if (musicItem.FilePath == null) return;
+        if (MusicPlaylist.IndexOf(musicItem) == -1)
+        {
+            MusicPlaylist = MusicItems;
+        }
+        
+        if (musicItem.FilePath == null || musicItem == CurrentMusicItem) return;
 
+        IsPlaying = false;
+        
         musicItem.ReplayGain ??= MultiChannelReplayGain.CalculateMultiChannelReplayGain(musicItem.FilePath);
 
         CurrentMusicItem = musicItem;
-        CurrentDurationInSeconds = CurrentMusicItem.CurrentDuration.ParseSeconds();
+        if (restart)
+        {
+            CurrentDurationInSeconds = 0;
+        }
+        else
+        {
+            CurrentDurationInSeconds = CurrentMusicItem.CurrentDuration.ParseSeconds();
+            if (Math.Abs(CurrentMusicItem.TotalDuration.ParseSeconds() - CurrentDurationInSeconds) < 0.1)
+            {
+                CurrentDurationInSeconds = 0; // 如果将播放的音乐已播放至结尾，则使已播放进度归零
+            } 
+        }
+
         CurrentMusicItemChanged?.Invoke(this, musicItem);
         AudioPlay.SetAudioTrack(musicItem.FilePath, CurrentDurationInSeconds, musicItem.ReplayGain);
     }

@@ -57,6 +57,7 @@ public class App : Application
             musicPlayerViewModel.CleanupAndRelease();
             musicPlayerViewModel.SaveMusicListAsync();
             musicPlayerViewModel.SaveMusicInfoAsync();
+            musicPlayerViewModel.SaveConfigInfoAsync();
         }
         catch (Exception ex)
         {

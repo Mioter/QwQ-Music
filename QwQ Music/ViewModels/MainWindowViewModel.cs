@@ -62,8 +62,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     partial void OnIsMusicPlayListVisibleChanged(bool value)
     {
-        if (!value)
-            IsBackgroundLayerVisible = false;
+        IsBackgroundLayerVisible = value;
     }
 
     partial void OnIsNavigationExpandChanged(bool value)

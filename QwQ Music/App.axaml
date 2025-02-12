@@ -56,8 +56,6 @@
         <conver:StringToSecondsConverter x:Key="StringToSecondsConverter" />
         <conver:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
 
-
-
         <FontFamily x:Key="VivoSans">/Assets/Fonts#VivoSans</FontFamily>
         <FontFamily x:Key="Consolab">/Assets/Fonts#Consola</FontFamily>
 

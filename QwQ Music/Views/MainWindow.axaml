@@ -206,7 +206,6 @@
                     <Style.Animations>
                         <Animation Easing="QuadraticEaseOut"
                                    FillMode="Forward"
-                                   IterationCount="1"
                                    Duration="0:0:0.5">
                             <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
                                 <Setter Property="TranslateTransform.X" Value="{Binding MusicPlayListXaxisOffset}" />
@@ -224,7 +223,6 @@
                     <Style.Animations>
                         <Animation Easing="QuadraticEaseIn"
                                    FillMode="Forward"
-                                   IterationCount="1"
                                    Duration="0:0:0.5">
                             <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
                                 <Setter Property="TranslateTransform.X" Value="{Binding MusicPlayListXaxisOffset}" />

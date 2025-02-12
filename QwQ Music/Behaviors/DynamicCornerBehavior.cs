@@ -9,7 +9,6 @@ namespace QwQ_Music.Behaviors;
 
 public class DynamicCornerBehavior
 {
-
     static DynamicCornerBehavior()
     {
         IsEnabledProperty.Changed.Subscribe(OnIsEnabledChanged);

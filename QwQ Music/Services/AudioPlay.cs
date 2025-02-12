@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
+using System.Timers;
 using Avalonia.Threading;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
 namespace QwQ_Music.Services;
-
 
 public class AudioPlay
 {
@@ -16,6 +16,8 @@ public class AudioPlay
     private FadeInOutSampleProvider? _fadeProvider; // 淡入淡出层
     
     private float _volume = 1.0f;
+    private DateTime _playStartTime; // 记录播放开始的时间
+
     public void SetVolume(float volume)
     {
         _volume = Math.Clamp(volume, 0.0f, 1.0f);
@@ -31,6 +33,7 @@ public class AudioPlay
         
         _progressTimer?.Start();
         _waveOutEvent.Play();
+        _playStartTime = DateTime.Now; // 记录播放开始时间
     }
 
     public void Pause()
@@ -41,8 +44,6 @@ public class AudioPlay
 
     public void Stop()
     {
-        _waveOutEvent?.Stop();
-        _progressTimer?.Stop();
         DisposeCurrentTrack();
     }
 
@@ -58,6 +59,7 @@ public class AudioPlay
     }
 
     public event EventHandler<double>? PositionChanged;
+    public event EventHandler? PlaybackCompleted;
 
     public void SetAudioTrack(string filePath, double startingSeconds, float[] channelGains)
     {
@@ -136,6 +138,19 @@ public class AudioPlay
             // 处理播放异常
             Console.WriteLine($"播放错误: {e.Exception.Message}");
         }
+        else if (_audioFileReader != null)
+        {
+            // 检查是否接近歌曲末尾
+            double currentPosition = _audioFileReader.CurrentTime.TotalSeconds;
+            double totalTime = _audioFileReader.TotalTime.TotalSeconds;
+            double timeElapsedSinceStart = (DateTime.Now - _playStartTime).TotalSeconds;
+
+            // 如果当前位置接近总时长并且已经播放了一段时间，则认为是自然结束
+            if (currentPosition >= totalTime - 0.5 && timeElapsedSinceStart > 0.5)
+            {
+                PlaybackCompleted?.Invoke(this, EventArgs.Empty);
+            }
+        }
     }
     
 
@@ -161,7 +176,7 @@ public class AudioPlay
         _fadeProvider.BeginFadeOut(fadeOutDuration); // ✅ 淡出
 
         // 使用定时器在淡出完成后停止
-        var timer = new System.Timers.Timer(fadeOutDuration)
+        var timer = new Timer(fadeOutDuration)
         {
             AutoReset = false,
         };
@@ -173,3 +188,6 @@ public class AudioPlay
         timer.Start();
     }
 }
+
+
+

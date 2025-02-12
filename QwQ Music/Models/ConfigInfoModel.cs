@@ -9,5 +9,5 @@ public class ConfigInfoModel
 
 public class PlayerConfig
 {
-    public float Volume { get; init; }
+    public int Volume { get; init; }
 }

@@ -38,7 +38,7 @@ public static class MusicExtractor
             Directory.CreateDirectory(Path.GetDirectoryName(imagePath)!);
 
             // 使用临时文件名写入，避免中途被其他进程读取不完整文件
-            string? tempPath = Path.ChangeExtension(imagePath, ".tmp");
+            string tempPath = Path.ChangeExtension(imagePath, ".tmp");
             await Task.Run(() =>
             {
                 using var fs = File.Create(tempPath);
