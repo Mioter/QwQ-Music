@@ -13,6 +13,9 @@ public partial class TitleBarRightContent : UserControl
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
     {
-        Process.Start(new ProcessStartInfo("https://github.com/Mioter/QwQ-Music") { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo("https://github.com/Mioter/QwQ-Music")
+        {
+            UseShellExecute = true,
+        });
     }
 }

@@ -10,13 +10,7 @@ public class ScrollToItemBehavior
 {
     public static readonly AttachedProperty<object> ScrollToItemProperty =
         AvaloniaProperty.RegisterAttached<ScrollToItemBehavior, Control, object>(
-            "ScrollToItem",null!, false, BindingMode.TwoWay);
-    
-    public static void SetScrollToItem(Control element, object value) 
-        => element.SetValue(ScrollToItemProperty, value);
-    
-    public static object GetScrollToItem(Control element) 
-        => element.GetValue(ScrollToItemProperty);
+            "ScrollToItem", null!, false, BindingMode.TwoWay);
 
     static ScrollToItemBehavior()
     {
@@ -38,5 +32,15 @@ public class ScrollToItemBehavior
                     }
             }
         });
+    }
+
+    public static void SetScrollToItem(Control element, object value)
+    {
+        element.SetValue(ScrollToItemProperty, value);
+    }
+
+    public static object GetScrollToItem(Control element)
+    {
+        return element.GetValue(ScrollToItemProperty);
     }
 }

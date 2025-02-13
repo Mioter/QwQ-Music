@@ -26,9 +26,15 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
 
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
 
     [RelayCommand]
-    private void OnVolumeBarPointerWheelChanged( PointerWheelEventArgs? e)
+    private void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs? e)
     {
         if (e == null) return;
         // 阻止事件冒泡到父级元素
@@ -45,7 +51,7 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
                 break;
         }
     }
-    
+
 
     private void MusicPlayerViewModelOnPlaybackStateChanged(object? sender, bool e)
     {
@@ -57,16 +63,10 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
         AlbumCoverRecordAngle = 0;
     }
 
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
     protected virtual void Dispose(bool disposing)
     {
         if (!disposing) return;
-        
+
         MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
         MusicPlayerViewModel.CurrentMusicItemChanged -= AudioPlayOnTrackIndexChanged;
     }

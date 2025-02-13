@@ -75,7 +75,7 @@
 
             <!-- 音乐信息 -->
             <StackPanel Width="80" Grid.Column="1" VerticalAlignment="Center" Spacing="5">
-                
+
                 <TextBlock TextTrimming="CharacterEllipsis"
                            Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Title}"
                            ToolTip.Tip="{Binding RelativeSource={RelativeSource Self},Path=Text}"
@@ -204,9 +204,7 @@
                         Grid.Column="0"
                         Margin="20,0"
                         Maximum="{Binding MusicPlayerViewModel.CurrentMusicItem.TotalDuration,Converter={StaticResource StringToSecondsConverter}}"
-                        Value="{Binding MusicPlayerViewModel.CurrentDurationInSeconds}">
-
-                </Slider>
+                        Value="{Binding MusicPlayerViewModel.CurrentDurationInSeconds}" />
 
                 <!-- 播放时长 / 总时长 -->
                 <StackPanel Margin="0,0,10,0"
@@ -237,7 +235,8 @@
                 <WrapPanel Margin="0,5" Grid.Row="0" Grid.Column="1">
 
                     <Button Name="VolumeButton"
-                            ToolTip.Placement="Bottom"
+                            ToolTip.VerticalOffset="-10"
+                            ToolTip.Placement="Top"
                             Classes="Icon">
 
                         <Panel>
@@ -312,12 +311,12 @@
 
                         <ToolTip.Tip>
                             <Panel>
-                                <TextBlock IsVisible="{Binding MusicPlayerViewModel.VolumePercent}" FontSize="10">
+                                <TextBlock IsVisible="{Binding MusicPlayerViewModel.VolumePercent}" FontSize="12">
                                     <Run Text="当前音量：" />
                                     <Run Text="{Binding MusicPlayerViewModel.VolumePercent}" />
                                     <Run Text="%" />
                                 </TextBlock>
-                                <TextBlock FontSize="10"
+                                <TextBlock FontSize="12"
                                            IsVisible="{Binding !MusicPlayerViewModel.VolumePercent}"
                                            Text="静音" />
                             </Panel>
@@ -331,24 +330,24 @@
                             </EventTriggerBehavior>
 
                         </Interaction.Behaviors>
-                        
+
                     </Button>
-                    
+
                     <Button Classes="Icon"
                             Command="{Binding $parent[Window].((viewModel:MainWindowViewModel)DataContext).ShowMusicPlaylistCommand}">
                         <PathIcon Height="12" Width="12" Data="{StaticResource SemiIconDescend2}" />
                     </Button>
 
                     <WrapPanel.Styles>
-                        
+
                         <Style Selector="Button">
-                            <Setter Property="Height" Value="20"/>
-                            <Setter Property="Width" Value="20"/>
-                            <Setter Property="Margin" Value="5"/>
+                            <Setter Property="Height" Value="20" />
+                            <Setter Property="Width" Value="20" />
+                            <Setter Property="Margin" Value="5" />
                         </Style>
- 
+
                     </WrapPanel.Styles>
-                    
+
                 </WrapPanel>
             </Grid>
 

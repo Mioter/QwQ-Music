@@ -16,21 +16,36 @@
     <Grid Margin="10,0" RowDefinitions="Auto,*">
 
         <Panel Margin="0,5">
-            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                
+
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
+
                 <StackPanel.Styles>
 
-                    <Style Selector="Button">
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="CornerRadius" Value="8"></Setter>
+                    <Style Selector="PathIcon">
+                        <Setter Property="Height" Value="14" />
+                        <Setter Property="Width" Value="14" />
+                        <Setter Property="Margin" Value="5" />
                     </Style>
 
                 </StackPanel.Styles>
 
-                <Button Content="当前音乐" Command="{Binding SelectedCurrentMusicItemCommand}"/>
+                <TextBox Width="200"
+                         Watermark="搜索音乐"
+                         CornerRadius="8"
+                         Classes="clearButton"
+                         Text="{Binding SearchText,Mode=TwoWay}"
+                         HorizontalAlignment="Left" />
 
-                <Button Content="更多">
-      
+                <Button ToolTip.Tip="跳转当前音乐" Classes="Icon" Command="{Binding SelectedCurrentMusicItemCommand}">
+                    <Button Classes="Icon" Command="{Binding SelectedCurrentMusicItemCommand}">
+                        <PathIcon Data="{StaticResource SemiIconAlignCenterVertical}" />
+                    </Button>
+                </Button>
+
+                <Button ToolTip.Tip="更多" Classes="Icon">
+
+                    <PathIcon Data="{StaticResource SemiIconMore}" />
+
                     <Button.Flyout>
                         <Flyout>
                             <StackPanel Spacing="5">
@@ -55,11 +70,35 @@
                   b:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}"
                   Background="Transparent"
                   SelectedItem="{Binding SelectedItem}"
-                  ItemsSource="{Binding  MusicPlayerViewModel.MusicItems}"
+                  ItemsSource="{Binding  AllMusicItems}"
                   DragDrop.AllowDrop="True">
 
             <DataGrid.Styles>
 
+                <Style Selector="DataGridRow">
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="立即播放"
+                                          Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                          CommandParameter="{Binding}">
+                                    <MenuItem.Icon>
+                                        <PathIcon Margin="2" Data="{StaticResource SemiIconPlay}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem
+                                    Header="添加到下一首"
+                                    Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.AddToMusicListNextItemCommand}"
+                                    CommandParameter="{Binding}">
+                                    <MenuItem.Icon>
+                                        <PathIcon Margin="2" Data="{StaticResource SemiIconPlus}" RenderTransform="rotate(180deg)"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+        
                 <Style Selector="DataGrid /template/ DataGridColumnHeader#PART_TopLeftCornerHeader /template/ Border">
                     <Setter Property="Opacity" Value="0" />
                 </Style>
@@ -124,8 +163,8 @@
                                     </Button.Effect>
                                 </userControls:MusicAlbumButton>
 
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Title}" />
+                                <StackPanel VerticalAlignment="Center" Spacing="5">
+                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" />
                                     <TextBlock Classes="Tertiary" Text="{Binding Singer}" FontSize="12" />
                                 </StackPanel>
 
@@ -143,17 +182,33 @@
                                     IsVisible="{Binding ElementName=MoreColumn1,Path=IsChecked}"
                                     Binding="{Binding Genre}" />
 
-                <DataGridTextColumn MinWidth="80"
-                                    Header="时长"
-                                    Binding="{Binding TotalDuration,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter}}" />
+                <DataGridTemplateColumn MinWidth="120"
+                                        Header="时长">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Spacing="5" VerticalAlignment="Center">
+                                <TextBlock
+                                    Text="{Binding TotalDuration,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter}}" />
+
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Classes="Tertiary" FontSize="12"
+                                               Text="已播放到: " />
+                                    <TextBlock Classes="Tertiary" FontSize="12"
+                                               Text="{Binding CurrentDuration,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter}}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
                 <DataGridTextColumn Header="大小"
                                     IsVisible="{Binding IsChecked, ElementName=MoreColumn2}"
                                     Binding="{Binding FileSize}" />
-
+ 
                 <DataGridTextColumn Header="备注"
                                     IsVisible="{Binding IsChecked, ElementName=MoreColumn3}"
                                     Binding="{Binding Remarks}" />
+                
 
             </DataGrid.Columns>
 

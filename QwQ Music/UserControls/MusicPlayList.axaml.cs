@@ -8,6 +8,6 @@ public partial class MusicPlayList : UserControl
     public MusicPlayList()
     {
         InitializeComponent();
-        DataContext = MusicPlayerViewModel.Instance;
+        DataContext = new MusicPlayListViewModel();
     }
 }

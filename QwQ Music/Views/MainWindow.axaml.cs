@@ -20,9 +20,9 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        Closed -= OnClosed;
         PointerWheelChanged -= OnPointerWheelChanged;
         _viewModel.ManualCleaning();
-        Closed -= OnClosed;
     }
 
 

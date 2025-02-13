@@ -2,7 +2,7 @@
     x:Class="QwQ_Music.App"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    x:CompileBindings="True"   
+    x:CompileBindings="True"
     xmlns:conver="clr-namespace:QwQ_Music.Converter"
     xmlns:semi="https://irihi.tech/semi"
 
@@ -25,7 +25,7 @@
         <Style Selector="Image.AlbumCoverNull">
             <Setter Property="Source" Value="/Assets/Images/默认专辑封面.png" />
         </Style>
-        
+
         <Style Selector="Slider /template/ Thumb#thumb">
             <Setter Property="Transitions">
                 <Transitions>
@@ -45,7 +45,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="Assets/Theme/_indexes.axaml" />
-                <ResourceInclude Source="Assets/Icons/_indexes.axaml"/>
+                <ResourceInclude Source="Assets/Icons/_indexes.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace QwQ_Music.Utilities;
 
 /// <summary>
-///     Json 配置类，提供读取和写入 JSON 的方法。
+/// Json 配置类，提供读取和写入 JSON 的方法。
 /// </summary>
 /// <typeparam name="T">要处理的数据类型。</typeparam>
 public class JsonConfig<T>
@@ -15,16 +15,83 @@ public class JsonConfig<T>
     {
         WriteIndented = true,
     };
-    public readonly string FilePath;
 
     /// <summary>
-    ///     构造函数，初始化文件路径。
+    /// 构造函数，初始化文件路径。
     /// </summary>
     /// <param name="filePath">文件路径。</param>
     /// <param name="paths">用于构建文件路径的路径数组。</param>
     public JsonConfig(string filePath, params string[] paths)
     {
         FilePath = Path.Combine(filePath, Path.Combine(paths));
+        ValidateFilePath();
+    }
+
+    /// <summary>
+    /// 文件路径。
+    /// </summary>
+    public string FilePath { get; }
+
+    /// <summary>
+    /// 异步从 JSON 文件加载数据。
+    /// </summary>
+    /// <returns>加载的数据对象。</returns>
+    /// <exception cref="FileNotFoundException">当 JSON 文件不存在时抛出。</exception>
+    public async Task<T?> LoadFromJsonAsync()
+    {
+        return await ReadFileAsync(async fs =>
+        {
+            if (fs.Length == 0) return default;
+            return await JsonSerializer.DeserializeAsync<T>(fs).ConfigureAwait(false);
+        });
+    }
+
+    /// <summary>
+    /// 同步从 JSON 文件加载数据。
+    /// </summary>
+    /// <returns>加载的数据对象。</returns>
+    /// <exception cref="FileNotFoundException">当 JSON 文件不存在时抛出。</exception>
+    public T? LoadFromJson()
+    {
+        return ReadFileSync(() =>
+        {
+            string jsonContent = File.ReadAllText(FilePath);
+            return string.IsNullOrWhiteSpace(jsonContent) ? default : JsonSerializer.Deserialize<T>(jsonContent);
+        });
+    }
+
+    /// <summary>
+    /// 异步保存数据到 JSON 文件。
+    /// </summary>
+    /// <param name="data">要保存的数据对象。</param>
+    public async Task SaveToJsonAsync(T data)
+    {
+        await WriteFileAsync(async fs =>
+        {
+            await JsonSerializer.SerializeAsync(fs, data, _jsonSerializerOptions).ConfigureAwait(false);
+        });
+    }
+
+    /// <summary>
+    /// 同步保存数据到 JSON 文件。
+    /// </summary>
+    /// <param name="data">要保存的数据对象。</param>
+    public void SaveToJson(T data)
+    {
+        WriteFileSync(() =>
+        {
+            string jsonContent = JsonSerializer.Serialize(data, _jsonSerializerOptions);
+            File.WriteAllText(FilePath, jsonContent);
+        });
+    }
+
+    #region Helper Methods
+
+    /// <summary>
+    /// 验证文件路径是否有效。
+    /// </summary>
+    private void ValidateFilePath()
+    {
         if (string.IsNullOrWhiteSpace(FilePath) || !Path.IsPathFullyQualified(FilePath))
         {
             throw new ArgumentException("Invalid file path.");
@@ -32,100 +99,85 @@ public class JsonConfig<T>
     }
 
     /// <summary>
-    ///     异步从 JSON 文件加载数据。
+    /// 异步读取文件并执行操作。
     /// </summary>
-    /// <returns>加载的数据对象。</returns>
-    /// <exception cref="FileNotFoundException">当 JSON 文件不存在时抛出。</exception>
-    public async Task<T?> LoadFromJsonAsync()
+    /// <param name="action">对文件流的操作。</param>
+    /// <returns>操作结果。</returns>
+    private async Task<T?> ReadFileAsync(Func<FileStream, Task<T?>> action)
     {
-        if (!File.Exists(FilePath))
-        {
-            throw new FileNotFoundException("JSON file not found.", FilePath);
-        }
-
+        EnsureFileExists();
         try
         {
             await using var fs = new FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            // 检查文件是否为空
-            if (fs.Length == 0)
-            {
-                return default; // 或者直接返回 null, 取决于 T 是否支持 null。
-            }
-
-            return await JsonSerializer.DeserializeAsync<T>(fs).ConfigureAwait(false);
+            return await action(fs).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            // 处理异常，例如记录日志
-            throw new IOException("Error loading JSON file.", ex);
+            throw new IOException("Error reading JSON file.", ex);
         }
     }
 
     /// <summary>
-    ///     同步从 JSON 文件加载数据。
+    /// 同步读取文件并执行操作。
     /// </summary>
-    /// <returns>加载的数据对象。</returns>
-    /// <exception cref="FileNotFoundException">当 JSON 文件不存在时抛出。</exception>
-    public T? LoadFromJson()
+    /// <param name="action">对文件内容的操作。</param>
+    /// <returns>操作结果。</returns>
+    private T? ReadFileSync(Func<T?> action)
     {
-        if (!File.Exists(FilePath))
-        {
-            throw new FileNotFoundException("JSON file not found.", FilePath);
-        }
-
+        EnsureFileExists();
         try
         {
-            string jsonContent = File.ReadAllText(FilePath);
-
-            // 检查文件内容是否为空
-            return string.IsNullOrWhiteSpace(jsonContent)
-                ? default
-                : // 或者直接返回 null, 取决于 T 是否支持 null。
-                JsonSerializer.Deserialize<T>(jsonContent);
-
+            return action();
         }
         catch (Exception ex)
         {
-            // 处理异常，例如记录日志
-            throw new IOException("Error loading JSON file.", ex);
+            throw new IOException("Error reading JSON file.", ex);
         }
     }
 
-
     /// <summary>
-    ///     异步保存数据到 JSON 文件。
+    /// 异步写入文件并执行操作。
     /// </summary>
-    /// <param name="data">要保存的数据对象。</param>
-    public async Task SaveToJsonAsync(T data)
+    /// <param name="action">对文件流的操作。</param>
+    private async Task WriteFileAsync(Func<FileStream, Task> action)
     {
         try
         {
             await using var fs = new FileStream(FilePath, FileMode.Create, FileAccess.Write, FileShare.None);
-            await JsonSerializer.SerializeAsync(fs, data, _jsonSerializerOptions).ConfigureAwait(false);
+            await action(fs).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            // 处理异常，例如记录日志
-            throw new IOException("Error saving JSON file.", ex);
+            throw new IOException("Error writing JSON file.", ex);
         }
     }
 
     /// <summary>
-    ///     同步保存数据到 JSON 文件。
+    /// 同步写入文件并执行操作。
     /// </summary>
-    /// <param name="data">要保存的数据对象。</param>
-    public void SaveToJson(T data)
+    /// <param name="action">对文件内容的操作。</param>
+    private void WriteFileSync(Action action)
     {
         try
         {
-            string jsonContent = JsonSerializer.Serialize(data, _jsonSerializerOptions);
-            File.WriteAllText(FilePath, jsonContent);
+            action();
         }
         catch (Exception ex)
         {
-            // 处理异常，例如记录日志
-            throw new IOException("Error saving JSON file.", ex);
+            throw new IOException("Error writing JSON file.", ex);
         }
     }
+
+    /// <summary>
+    /// 确保文件存在，否则抛出异常。
+    /// </summary>
+    private void EnsureFileExists()
+    {
+        if (!File.Exists(FilePath))
+        {
+            throw new FileNotFoundException("JSON file not found.", FilePath);
+        }
+    }
+
+    #endregion
 }

@@ -9,10 +9,7 @@ namespace QwQ_Music.Converter;
 
 public class CalcConverter : IValueConverter
 {
-    private static readonly char[] AllOperators =
-    [
-        '+', '-', '*', '/', '%', '(', ')',
-    ];
+    private static readonly char[] AllOperators = ['+', '-', '*', '/', '%', '(', ')'];
     private static readonly Dictionary<char, int> OperatorPrecedence = new()
     {
         {
@@ -35,11 +32,10 @@ public class CalcConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (parameter is not string mathEquation)
-            throw new ArgumentNullException(nameof(parameter));
+            throw new ArgumentNullException(nameof(parameter), "Parameter must be a valid mathematical expression.");
 
-        string equation = mathEquation.Replace(" ", "")
-            .Replace("@VALUE", value?.ToString())
-            .Replace("@value", value?.ToString());
+        // 替换占位符并移除空格
+        string equation = ReplacePlaceholders(mathEquation, value);
 
         try
         {
@@ -47,13 +43,20 @@ public class CalcConverter : IValueConverter
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("表达式计算失败", ex);
+            throw new InvalidOperationException("Failed to evaluate the expression.", ex);
         }
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
+    }
+
+    private static string ReplacePlaceholders(string equation, object? value)
+    {
+        return equation.Replace(" ", "")
+            .Replace("@VALUE", value?.ToString())
+            .Replace("@value", value?.ToString());
     }
 
     private static double EvaluateExpression(string expression)
@@ -64,48 +67,43 @@ public class CalcConverter : IValueConverter
         for (int i = 0; i < expression.Length; i++)
         {
             char currentChar = expression[i];
+
             if (char.IsWhiteSpace(currentChar)) continue;
 
-            if (char.IsDigit(currentChar) || currentChar == '.')
+            if (char.IsDigit(currentChar) || currentChar == '.' || currentChar == '-' && IsUnaryOperator(expression, i))
             {
-                string numStr = ExtractNumber(expression, ref i);
-                values.Push(double.Parse(numStr));
+                string number = ExtractNumber(expression, ref i);
+                values.Push(double.Parse(number, CultureInfo.InvariantCulture));
             }
             else
+            {
                 switch (currentChar)
                 {
                     case '(':
                         operators.Push(currentChar);
                         break;
+
                     case ')':
+                        while (operators.Peek() != '(')
                         {
-                            while (operators.Peek() != '(')
+                            ApplyTopOperator(values, operators);
+                        }
+                        operators.Pop(); // Remove '('
+                        break;
+
+                    default:
+                        if (AllOperators.Contains(currentChar))
+                        {
+                            while (operators.Count > 0 && operators.Peek() != '(' &&
+                                   OperatorPrecedence[operators.Peek()] >= OperatorPrecedence[currentChar])
                             {
                                 ApplyTopOperator(values, operators);
                             }
-                            operators.Pop(); // Remove '('
-                            break;
+                            operators.Push(currentChar);
                         }
-                    default:
-                        {
-                            if (AllOperators.Contains(currentChar))
-                            {
-                                // Handle unary minus
-                                if (currentChar == '-' && IsUnaryOperator(expression, i))
-                                {
-                                    values.Push(0); // Treat unary '-' as 0 - value
-                                }
-
-                                while (operators.Count > 0 && operators.Peek() != '(' &&
-                                       OperatorPrecedence[operators.Peek()] >= OperatorPrecedence[currentChar])
-                                {
-                                    ApplyTopOperator(values, operators);
-                                }
-                                operators.Push(currentChar);
-                            }
-                            break;
-                        }
+                        break;
                 }
+            }
         }
 
         while (operators.Count > 0)
@@ -118,30 +116,26 @@ public class CalcConverter : IValueConverter
 
     private static bool IsUnaryOperator(string expression, int index)
     {
-        // Check if the '-' is a unary operator
-        if (index == 0) return true;
-        char prevChar = expression[index - 1];
-        return prevChar == '(' || AllOperators.Contains(prevChar);
+        return index == 0 || expression[index - 1] == '(' || AllOperators.Contains(expression[index - 1]);
     }
 
     private static void ApplyTopOperator(Stack<double> values, Stack<char> operators)
     {
         char op = operators.Pop();
         double b = values.Pop();
-        double a = values.Count > 0 ? values.Pop() : 0; // Handle case with insufficient values
+        double a = values.Count > 0 ? values.Pop() : 0; // Handle unary operator case
         values.Push(ApplyOperator(op, a, b));
     }
 
     private static string ExtractNumber(string expression, ref int index)
     {
         var numStr = new StringBuilder();
-        while (index < expression.Length && (char.IsDigit(expression[index]) || expression[index] == '.' || expression[index] == '-'))
+
+        while (index < expression.Length && (char.IsDigit(expression[index]) || expression[index] == '.' || expression[index] == '-' && numStr.Length == 0))
         {
-            // Handle negative numbers
-            if (expression[index] == '-' && numStr.Length > 0)
-                break;
             numStr.Append(expression[index++]);
         }
+
         index--; // Adjust index back
         return numStr.ToString();
     }
@@ -155,7 +149,7 @@ public class CalcConverter : IValueConverter
             '*' => a * b,
             '/' => a / b,
             '%' => a % b,
-            _ => throw new ArgumentException("Invalid operator: " + op),
+            _ => throw new ArgumentException($"Invalid operator: {op}"),
         };
     }
 }

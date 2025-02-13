@@ -4,33 +4,35 @@ using System.Timers;
 using Avalonia.Threading;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using QwQ_Music.Services.Effect;
 
-namespace QwQ_Music.Services;
+namespace QwQ_Music.Services.Audio;
 
 public class AudioPlay
 {
     private AudioFileReader? _audioFileReader;
-    private DispatcherTimer? _progressTimer;
-    private WaveOutEvent? _waveOutEvent;
-    private VolumeSampleProvider? _volumeProvider; // 音量控制层
-    private FadeInOutSampleProvider? _fadeProvider; // 淡入淡出层
-    
-    private float _volume = 1.0f;
     private DateTime _playStartTime; // 记录播放开始的时间
+    private DispatcherTimer? _progressTimer;
+
+    private float _volume = 1.0f;
+
+    private WaveOutEvent? _waveOutEvent;
+    private AudioEffectChain? _effectChain;
+    private VolumeEffect? _volumeEffect; // 将音量控制改造为效果
+    private FadeEffect? _fadeEffect; // 将淡入淡出改造为效果
 
     public void SetVolume(float volume)
     {
         _volume = Math.Clamp(volume, 0.0f, 1.0f);
-        if (_volumeProvider != null)
-        {
-            _volumeProvider.Volume = _volume;
-        }
+
+        if (_volumeEffect != null) _volumeEffect.Volume = _volume;
+
     }
-    
+
     public void Play()
     {
         if (_waveOutEvent == null) return;
-        
+
         _progressTimer?.Start();
         _waveOutEvent.Play();
         _playStartTime = DateTime.Now; // 记录播放开始时间
@@ -74,44 +76,57 @@ public class AudioPlay
         }
     }
 
-    private void InitializeNewTrack(string audioFilePath, double startingSeconds, float[] channelGains)
+    private void InitializeNewTrack(string audioFilePath, double startingSeconds, float[] replayGain)
     {
         _audioFileReader = new AudioFileReader(audioFilePath);
-        
-        // 验证增益数组与声道数匹配
+
+        // 验证增益数组（原有逻辑不变）
         int actualChannels = _audioFileReader.WaveFormat.Channels;
-        if (channelGains.Length != actualChannels)
+        if (replayGain.Length != actualChannels)
         {
-            // 安全回退：使用首声道增益或默认值
-            float fallbackGain = channelGains.Length > 0 ? channelGains[0] : 1.0f;
-            channelGains = Enumerable.Repeat(fallbackGain, actualChannels).ToArray();
+            float fallbackGain = replayGain.Length > 0 ? replayGain[0] : 1.0f;
+            replayGain = Enumerable.Repeat(fallbackGain, actualChannels).ToArray();
         }
 
-        var targetTime = TimeSpan.FromSeconds(startingSeconds);
+        // 创建基础Provider
         var offsetProvider = new OffsetSampleProvider(_audioFileReader)
         {
-            SkipOver = targetTime > _audioFileReader.TotalTime ? _audioFileReader.TotalTime : targetTime
+            SkipOver = CalculateSkipOver(startingSeconds, _audioFileReader),
         };
 
-        // 构建处理链：原始音频 → 多声道增益 → 全局音量 → 淡入淡出
-        var gainProvider = new MultiChannelGainSampleProvider(offsetProvider, channelGains);
-        
-        _volumeProvider = new VolumeSampleProvider(gainProvider)
-        {
-            Volume = _volume, // 全局音量控制
-        };
+        // 初始化效果链（重要修改部分）
+        _effectChain = new AudioEffectChain(offsetProvider);
 
-        _fadeProvider = new FadeInOutSampleProvider(_volumeProvider);
-        
+        // 添加默认效果链（按处理顺序添加）
+        _effectChain
+            .AddEffect(new MultiChannelReplayGainEffect(offsetProvider, replayGain)) // 多声道回放增益
+            .AddEffect(new StereoEnhancementEffect(offsetProvider)) // 立体声增强
+            /*.AddEffect(new ReverbEffect(offsetProvider)) // 混响*/
+            .AddEffect(new VolumeEffect(offsetProvider)) // 将原有Volume改造为IAudioEffect
+            .AddEffect(new FadeEffect(offsetProvider)); // 将淡入淡出改造为IAudioEffect
+
+        // 保留原有Volume和Fade的引用以便控制
+        _volumeEffect = _effectChain.GetEffect<VolumeEffect>("音量控制");
+        _fadeEffect = _effectChain.GetEffect<FadeEffect>("淡入淡出");
+
+        // 初始化播放器
         _waveOutEvent = new WaveOutEvent();
         _waveOutEvent.PlaybackStopped += OnPlaybackStopped;
-        _waveOutEvent.Init(_fadeProvider);
+        _waveOutEvent.Init(_effectChain.GetOutput());
 
-        // 初始化定时器
-        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1000) };
+        // 初始化定时器（原有逻辑不变）
+        _progressTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(1000),
+        };
         _progressTimer.Tick += OnProgressTimerTick;
     }
 
+    private static TimeSpan CalculateSkipOver(double startingSeconds, AudioFileReader audioFileReader)
+    {
+        var targetTime = TimeSpan.FromSeconds(startingSeconds);
+        return targetTime > audioFileReader.TotalTime ? audioFileReader.TotalTime : targetTime;
+    }
 
     private void DisposeCurrentTrack()
     {
@@ -121,6 +136,9 @@ public class AudioPlay
 
         _audioFileReader?.Dispose();
         _audioFileReader = null;
+        _effectChain = null;
+        _volumeEffect = null;
+        _fadeEffect = null;
 
         // 停止并释放定时器
         if (_progressTimer != null)
@@ -152,7 +170,7 @@ public class AudioPlay
             }
         }
     }
-    
+
 
     private void OnProgressTimerTick(object? sender, EventArgs e)
     {
@@ -163,31 +181,57 @@ public class AudioPlay
 
     public void PlayWithFade(int fadeInDuration)
     {
-        if (_waveOutEvent == null || _fadeProvider == null) return;
-
-        _fadeProvider.BeginFadeIn(fadeInDuration);
-        Play(); // ✅ 淡入播放
+        _fadeEffect?.BeginFadeIn(fadeInDuration);
+        Play();
     }
 
     public void StopWithFade(int fadeOutDuration)
     {
-        if (_waveOutEvent == null || _fadeProvider == null) return;
-
-        _fadeProvider.BeginFadeOut(fadeOutDuration); // ✅ 淡出
-
-        // 使用定时器在淡出完成后停止
+        if (_fadeEffect == null)
+        {
+            Pause();
+            return;
+        }
+        _fadeEffect.BeginFadeOut(fadeOutDuration);
+        // 自动停止逻辑
         var timer = new Timer(fadeOutDuration)
         {
             AutoReset = false,
         };
-        timer.Elapsed += (_, _) => 
-        {
-            Dispatcher.UIThread.InvokeAsync(Pause);
-            timer.Dispose();
-        };
+        timer.Elapsed += (_, _) => Dispatcher.UIThread.InvokeAsync(Pause);
         timer.Start();
     }
+
+    // 添加新效果
+    public void AddEffect(IAudioEffect effect)
+    {
+        if (_effectChain == null) return;
+
+        _effectChain.AddEffect(effect);
+        RefreshPlayback();
+    }
+
+    // 移除效果
+    public bool RemoveEffect(string effectName)
+    {
+        return _effectChain?.RemoveEffect(effectName) ?? false;
+    }
+
+    // 获取效果实例
+    public T? GetEffect<T>(string name) where T : class, IAudioEffect
+    {
+        return _effectChain?.GetEffect<T>(name);
+    }
+
+    // 刷新播放（切换效果时调用）
+    private void RefreshPlayback()
+    {
+        if (_waveOutEvent == null) return;
+
+        bool wasPlaying = _waveOutEvent.PlaybackState == PlaybackState.Playing;
+        _waveOutEvent.Stop();
+        _waveOutEvent.Init(_effectChain?.GetOutput());
+        if (wasPlaying) _waveOutEvent.Play();
+    }
+    
 }
-
-
-

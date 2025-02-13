@@ -10,17 +10,12 @@ namespace QwQ_Music.Services;
 
 public class ConfigService
 {
-    private enum FileClass
-    {
-        MusicCache,
-        ConfigInfo,
-    }
-    
+    private readonly JsonConfig<ConfigInfoModel?> _configInfoConfig;
+
+    private readonly Dictionary<FileClass, string> _directoryPath;
+
     private readonly JsonConfig<ObservableCollection<MusicItemModel>?> _musicInfoConfig;
     private readonly JsonConfig<MusicListModel?> _musicListConfig;
-    private readonly JsonConfig<ConfigInfoModel?> _configInfoConfig;
-        
-    private readonly Dictionary<FileClass, string> _directoryPath;
 
     // 静态构造函数初始化路径和配置
     public ConfigService()
@@ -41,14 +36,16 @@ public class ConfigService
         _musicInfoConfig = new JsonConfig<ObservableCollection<MusicItemModel>?>(Path.Combine(_directoryPath[FileClass.MusicCache], "music_info.json"));
         _musicListConfig = new JsonConfig<MusicListModel?>(Path.Combine(_directoryPath[FileClass.MusicCache], "music_list.json"));
         _configInfoConfig = new JsonConfig<ConfigInfoModel?>(Path.Combine(_directoryPath[FileClass.ConfigInfo], "config_info.json"));
-        
+
     }
 
     // 确保目录和文件存在
     private async Task EnsureDirectoryAndFilesExistAsync()
     {
         foreach (var directory in _directoryPath.Where(directory => !Directory.Exists(directory.Value)))
+        {
             Directory.CreateDirectory(directory.Value);
+        }
 
         // 确保文件存在
         await EnsureFileExistsAsync(_musicInfoConfig.FilePath);
@@ -91,7 +88,7 @@ public class ConfigService
         await EnsureDirectoryAndFilesExistAsync();
         return await _musicListConfig.LoadFromJsonAsync();
     }
-    
+
     // 保存配置信息到配置文件
     public async Task SaveConfigInfoAsync(ConfigInfoModel configInfo)
     {
@@ -104,5 +101,10 @@ public class ConfigService
     {
         await EnsureDirectoryAndFilesExistAsync();
         return await _configInfoConfig.LoadFromJsonAsync();
+    }
+    private enum FileClass
+    {
+        MusicCache,
+        ConfigInfo,
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace QwQ_Music.Models;
@@ -21,7 +22,7 @@ public partial class MusicItemModel(
     string? samplingRate = null,
     string? bitrate = null,
     string? encodingFormat = null)
-    : ObservableObject
+    : ObservableObject, IEquatable<MusicItemModel>
 {
 
     [ObservableProperty] private string? _album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
@@ -50,6 +51,8 @@ public partial class MusicItemModel(
 
     [ObservableProperty] private string? _remarks;
 
+    [ObservableProperty] private float[]? _replayGain;
+
     [ObservableProperty] private string? _samplingRate = samplingRate;
 
     [ObservableProperty] private string? _singer = string.IsNullOrWhiteSpace(singer) ? "未知歌手" : singer;
@@ -60,7 +63,32 @@ public partial class MusicItemModel(
 
     [ObservableProperty] private string? _trackNumber = trackNumber;
 
-    [ObservableProperty] private float[]? _replayGain ; 
-    
     [ObservableProperty] private string? _year = year;
+
+    public bool Equals(MusicItemModel? other)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (other is null) return false;
+
+        return string.Equals(FilePath, other.FilePath, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(Title, other.Title, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(Singer, other.Singer, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as MusicItemModel);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked // Allow arithmetic overflow, just wrap around
+        {
+            int hash = 17;
+            hash = hash * 23 + (FilePath?.ToLowerInvariant().GetHashCode() ?? 0);
+            hash = hash * 23 + (Title?.ToLowerInvariant().GetHashCode() ?? 0);
+            hash = hash * 23 + (Singer?.ToLowerInvariant().GetHashCode() ?? 0);
+            return hash;
+        }
+    }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,21 +14,66 @@ using QwQ_Music.Utilities;
 
 namespace QwQ_Music.ViewModels;
 
-public partial class MusicPageViewModel : ViewModelBase
+public partial class MusicPageViewModel : ViewModelBase, IDisposable
 {
+
+    [ObservableProperty] private ObservableCollection<MusicItemModel> _allMusicItems;
+
+    [ObservableProperty] private string? _searchText;
 
     [ObservableProperty] private MusicItemModel? _selectedItem;
 
+    private ObservableCollection<MusicItemModel>? _tempCacheMusicItems;
+
+    public MusicPageViewModel()
+    {
+        AllMusicItems = MusicPlayerViewModel.MusicItems;
+        MusicPlayerViewModel.MusicItemsChanged += OnMusicPlayerViewModelOnMusicItemsChanged;
+    }
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+    private void OnMusicPlayerViewModelOnMusicItemsChanged(object? _, ObservableCollection<MusicItemModel> musicItems)
+    {
+        AllMusicItems = musicItems;
+    }
+
+    partial void OnSearchTextChanged(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            // 当搜索框为空时，恢复原始的所有音乐项
+            if (_tempCacheMusicItems == null) return;
+            AllMusicItems = _tempCacheMusicItems;
+            _tempCacheMusicItems = null;
+        }
+        else
+        {
+            // 如果_tempCacheMusicItems为null，则将其设置为当前的AllMusicItems
+            _tempCacheMusicItems ??= AllMusicItems;
+
+            // 使用 Where 进行过滤，并将结果转换为 ObservableCollection。
+            AllMusicItems = new ObservableCollection<MusicItemModel>(
+                MusicPlayerViewModel.MusicItems.Where(musicItem => musicItem.Title!.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+                    musicItem.Singer!.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+                    musicItem.Album!.Contains(value, StringComparison.OrdinalIgnoreCase
+                    )));
+        }
+    }
 
     [RelayCommand]
     private void ToggleMusic()
     {
         if (SelectedItem == null) return;
-        
+
         MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
 
     }
+    
 
     [RelayCommand]
     private void SelectedCurrentMusicItem()
@@ -52,7 +98,7 @@ public partial class MusicPageViewModel : ViewModelBase
 
         foreach (var item in await Task.WhenAll(audioFilePaths.Select(MusicExtractor.ExtractMusicInfoAsync)))
         {
-            if (item != null)
+            if (item != null && !MusicPlayerViewModel.MusicItems.Any(x => x.Equals(item)))
             {
                 MusicPlayerViewModel.MusicItems.Add(item);
             }
@@ -103,5 +149,13 @@ public partial class MusicPageViewModel : ViewModelBase
             }
         }
         return allFilePaths;
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            MusicPlayerViewModel.MusicItemsChanged -= OnMusicPlayerViewModelOnMusicItemsChanged;
+        }
     }
 }

@@ -25,11 +25,11 @@ public partial class MainWindowViewModel : ViewModelBase
         },
     };
 
-    [ObservableProperty] private bool _isBackgroundLayerVisible;
 
     [ObservableProperty] private bool _isMusicPlayerTrayVisible = true;
 
-    [ObservableProperty] private bool _isMusicPlayListVisible;
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(IsBackgroundLayerVisible))]
+    private bool _isMusicPlayListVisible;
 
     [ObservableProperty] private bool _isNavigationExpand = true;
 
@@ -46,6 +46,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private object? _navigationSelectedItem;
 
     [ObservableProperty] private UserControl? _pageContent;
+    
+    public bool IsBackgroundLayerVisible =>
+        /*if(false) // 暂且如此，待后续添加控制逻辑
+                return IsMusicPlayListVisible;*/
+        false;
 
     public MainWindowViewModel()
     {
@@ -54,16 +59,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     partial void OnMusicPlayListXaxisOffsetChanging(double oldValue, double newValue)
     {
-        if (oldValue < newValue || newValue > 0.9 ) return;
-        
+        if (oldValue < newValue || newValue > 0.9) return;
+
         IsMusicPlayListVisible = false;
         IsMusicPlayListVisible = true;
     }
-
-    partial void OnIsMusicPlayListVisibleChanged(bool value)
-    {
-        IsBackgroundLayerVisible = value;
-    }
+    
 
     partial void OnIsNavigationExpandChanged(bool value)
     {
@@ -86,9 +87,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ShowMusicPlaylist()
     {
         IsMusicPlayListVisible = !IsMusicPlayListVisible;
-
-        if (IsMusicPlayListVisible)
-            IsBackgroundLayerVisible = true;
     }
 
     [RelayCommand]
