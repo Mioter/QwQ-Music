@@ -87,6 +87,7 @@ public static class MusicExtractor
             string samplingRate = properties.AudioSampleRate.ToString();
             string bitrate = properties.AudioBitrate.ToString();
             string encodingFormat = properties.Description; // 编码格式
+            string lyrics = tag.Lyrics;
 
             if (tag.Pictures.Length <= 0)
             {

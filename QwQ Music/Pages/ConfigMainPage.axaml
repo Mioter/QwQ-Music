@@ -1,0 +1,14 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModel="using:QwQ_Music.ViewModels"
+             x:Class="QwQ_Music.Pages.ConfigMainPage"
+             x:DataType="viewModel:ConfigPageViewModel"
+             xmlns:page="using:QwQ_Music.Pages">
+    <TabControl>
+        <TabItem Header="{Binding LyricConfigName}">
+            <TabItem.Content>
+                <page:LyricConfigPage/>
+            </TabItem.Content>
+        </TabItem>
+    </TabControl>
+</UserControl>
