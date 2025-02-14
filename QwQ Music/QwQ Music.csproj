@@ -43,6 +43,10 @@
             <DependentUpon>MusicPlayerTray.axaml</DependentUpon>
             <SubType>Code</SubType>
         </Compile>
+        <Compile Update="Views\DesktopLyricsWindow.axaml.cs">
+          <DependentUpon>DesktopLyric.axaml</DependentUpon>
+          <SubType>Code</SubType>
+        </Compile>
     </ItemGroup>
 
 </Project>

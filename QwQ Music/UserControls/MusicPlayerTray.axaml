@@ -243,13 +243,13 @@
                             <Border Background="#20c997"
                                     behaviors:DynamicCornerBehavior.IsEnabled="True"
                                     Margin="7,7,4,7"
-                                    IsVisible="{Binding !MusicPlayerViewModel.IsSilent}" />
+                                    IsVisible="{Binding !MusicPlayerViewModel.IsMute}" />
                             <PathIcon Height="14" Width="14" Data="{StaticResource EmptyVolume}" />
                             <Border Background="#ff6b6b"
                                     Width="3"
                                     CornerRadius="10"
                                     Margin="3"
-                                    IsVisible="{Binding MusicPlayerViewModel.IsSilent}"
+                                    IsVisible="{Binding MusicPlayerViewModel.IsMute}"
                                     RenderTransform="rotate(120deg)" />
                         </Panel>
 
@@ -276,7 +276,7 @@
                                     <Slider Grid.Row="1" HorizontalAlignment="Center" Orientation="Vertical"
                                             Value="{Binding MusicPlayerViewModel.VolumePercent}" Maximum="100" />
 
-                                    <Button Classes.Silent="{Binding MusicPlayerViewModel.IsSilent}"
+                                    <Button Classes.Silent="{Binding MusicPlayerViewModel.IsMute}"
                                             Command="{Binding MusicPlayerViewModel.ToggleSilentModeCommand}"
                                             Grid.Row="2"
                                             Classes="Icon">

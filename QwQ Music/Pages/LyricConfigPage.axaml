@@ -1,0 +1,50 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:u="https://irihi.tech/ursa"
+             xmlns:viewModel="using:QwQ_Music.ViewModels"
+             x:Class="QwQ_Music.Pages.LyricConfigPage"
+             x:DataType="viewModel:LyricConfigPageViewModel"
+             PointerEntered="SetLyricBackground"
+             PointerExited="UnsetLyricBackground">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Text="{Binding OffsetName}" />
+            <u:NumericIntUpDown Value="{Binding LyricOffset,Mode=TwoWay}" InnerRightContent="ms" />
+            <CheckBox Content="{Binding IsEnabledName}" IsChecked="{Binding LyricIsEnabled,Mode=TwoWay}"/>
+            <CheckBox Content="{Binding IsDoubleLineName}" IsChecked="{Binding LyricIsDoubleLine,Mode=TwoWay}" />
+            <CheckBox Content="{Binding IsDualLangName}" IsChecked="{Binding LyricIsDualLang,Mode=TwoWay}" />
+            <CheckBox Content="{Binding IsVerticalName}" IsChecked="{Binding LyricIsVertical,Mode=TwoWay}"/>
+            <TextBlock Text="{Binding PositionXName}" />
+            <u:NumericIntUpDown Value="{Binding LyricPositionX,Mode=TwoWay}" InnerRightContent="px" />
+            <TextBlock Text="{Binding PositionYName}" />
+            <u:NumericIntUpDown Value="{Binding LyricPositionY,Mode=TwoWay}" InnerRightContent="px" />
+            <TextBlock Text="{Binding WidthName}" />
+            <u:NumericIntUpDown Value="{Binding LyricWidth,Mode=TwoWay}" InnerRightContent="px" />
+            <Button IsVisible="{Binding !LyricIsVertical}" Content="{Binding MaximizeName}" Click="MaximizeLyricWidth" />
+            <TextBlock Text="{Binding HeightName}" />
+            <u:NumericIntUpDown Value="{Binding LyricHeight,Mode=TwoWay}" InnerRightContent="px" />
+            <Button IsVisible="{Binding LyricIsVertical}" Content="{Binding MaximizeName}" Click="MaximizeLyricHeight" />
+            <Button IsVisible="{Binding !LyricIsVertical}" Content="{Binding ResetName}" Click="ResetLyricHeight"/>
+            <WrapPanel>
+                <WrapPanel>
+                    <TextBlock Text="{Binding LyricMainTopColorName}" />
+                    <ColorView Color="{Binding LyricMainTopColor}" />
+                    <TextBlock Text="{Binding LyricMainBottomColorName}" />
+                    <ColorView Color="{Binding LyricMainBottomColor}" />
+                    <TextBlock Text="{Binding LyricMainBorderColorName}" />
+                    <ColorView Color="{Binding LyricMainBorderColor}" />
+                </WrapPanel>
+                <WrapPanel>
+                    <TextBlock Text="{Binding LyricAltTopColorName}" />
+                    <ColorView Color="{Binding LyricAltTopColor}" />
+                    <TextBlock Text="{Binding LyricAltBottomColorName}" />
+                    <ColorView Color="{Binding LyricAltBottomColor}" />
+                    <TextBlock Text="{Binding LyricAltBorderColorName}" />
+                    <ColorView Color="{Binding LyricAltBorderColor}" />
+                </WrapPanel>
+            </WrapPanel>
+            
+        </StackPanel>
+
+    </ScrollViewer>
+</UserControl>

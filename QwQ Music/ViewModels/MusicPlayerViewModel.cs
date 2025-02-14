@@ -21,7 +21,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     [ObservableProperty] private MusicItemModel _currentMusicItem = new("听你想听~", "YOU");
     private bool _isAutoChange;
     [ObservableProperty] private bool _isPlaying;
-    [ObservableProperty] private bool _isSilent;
+    [ObservableProperty] private bool _isMute;
     [ObservableProperty] private ObservableCollection<MusicItemModel> _musicItems = [];
     [ObservableProperty] private ObservableCollection<MusicItemModel> _musicPlaylist = [];
 
@@ -40,7 +40,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         get => (int)(Volume * 100);
         set
         {
-            IsSilent = value <= 0;
+            IsMute = value <= 0;
             Volume = Math.Clamp(value / 100f, 0f, 1.0f);
         }
     }
@@ -180,9 +180,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
     [RelayCommand]
     private async Task ToggleSilentModeAsync()
     {
-        IsSilent = !IsSilent;
-        if (IsSilent) SaveConfigInfoAsync();
-        VolumePercent = IsSilent ? 0 : await LoadVolumeConfigAsync();
+        IsMute = !IsMute;
+        if (IsMute) SaveConfigInfoAsync();
+        VolumePercent = IsMute ? 0 : await LoadVolumeConfigAsync();
 
     }
     
