@@ -117,7 +117,7 @@ public class AudioPlay
         // 初始化定时器（原有逻辑不变）
         _progressTimer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromMilliseconds(1000),
+            Interval = TimeSpan.FromMilliseconds(500),
         };
         _progressTimer.Tick += OnProgressTimerTick;
     }
@@ -171,9 +171,10 @@ public class AudioPlay
         }
     }
 
-
-    private void OnProgressTimerTick(object? sender, EventArgs e)
-    {
+    private static bool _dealThisTick = true;
+    private void OnProgressTimerTick(object? sender, EventArgs e) {
+        // ReSharper disable once AssignmentInConditionalExpression
+        if (_dealThisTick = !_dealThisTick) return;
         if (_audioFileReader == null || _waveOutEvent == null) return;
 
         PositionChanged?.Invoke(this, _audioFileReader.CurrentTime.TotalSeconds);

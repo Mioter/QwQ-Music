@@ -100,7 +100,7 @@
 
                 <u:SelectionList Grid.Row="1"
                                  Loaded="SelectionList_Loaded"
-                                 SelectedItem="{Binding NavigationSelectedItem}">
+                                 SelectedIndex="{Binding NavigationSelectedIndex}">
 
                     <u:SelectionList.Indicator>
                         <Border Classes.Expanded="{Binding IsNavigationExpand}"
@@ -154,15 +154,19 @@
 
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconSong}" />
-                        <TextBlock Text="音乐" />
+                        <TextBlock Text="{Binding MusicName}" />
                     </StackPanel>
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconDisc}" />
-                        <TextBlock Text="分类" />
+                        <TextBlock Text="{Binding ClassificationName}" />
                     </StackPanel>
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconKanban}" />
-                        <TextBlock Text="统计" />
+                        <TextBlock Text="{Binding StatisticsName}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <PathIcon Data="{StaticResource SemiIconSetting}" />
+                        <TextBlock Text="{Binding SettingsName}" />
                     </StackPanel>
 
                 </u:SelectionList>

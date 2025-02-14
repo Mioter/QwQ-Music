@@ -4,31 +4,28 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Pages;
+using static QwQ_Music.Models.LanguageModel;
 
 namespace QwQ_Music.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
-{
-    private readonly Dictionary<string, UserControl> _textToPageDictionary = new()
-    {
-        ["音乐"] = new MusicPage
-        {
-            DataContext = new MusicPageViewModel(),
-        },
-        ["分类"] = new ClassifiedPage
-        {
-            DataContext = new ClassifiedPageViewModel(),
-        },
-        ["统计"] = new StatisticsPage
-        {
-            DataContext = new StatisticsPageViewModel(),
-        },
+public partial class MainWindowViewModel : ViewModelBase {
+    private readonly Dictionary<int, UserControl> _textToPageDictionary = new() {
+        [0] = new MusicPage { DataContext = new MusicPageViewModel(), },
+        [1] = new ClassificationPage { DataContext = new ClassificationPageViewModel() },
+        [2] = new StatisticsPage { DataContext = new StatisticsPageViewModel() },
+        [3] = new ConfigMainPage { DataContext = new ConfigPageViewModel() }
     };
 
 
+
+   public static string MusicName => Lang[nameof(MusicName)];
+    public static string ClassificationName => Lang[nameof(ClassificationName)];
+    public static string StatisticsName => Lang[nameof(StatisticsName)];
+    public static string SettingsName => Lang[nameof(SettingsName)];
+
     [ObservableProperty] private bool _isMusicPlayerTrayVisible = true;
 
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(IsBackgroundLayerVisible))]
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsBackgroundLayerVisible))]
     private bool _isMusicPlayListVisible;
 
     [ObservableProperty] private bool _isNavigationExpand = true;
@@ -43,78 +40,47 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private double _navigationBarWidth;
 
-    [ObservableProperty] private object? _navigationSelectedItem;
+    [ObservableProperty] private int? _navigationSelectedIndex;
 
     [ObservableProperty] private UserControl? _pageContent;
-    
+
     public bool IsBackgroundLayerVisible =>
-        /*if(false) // 暂且如此，待后续添加控制逻辑
-                return IsMusicPlayListVisible;*/
+/*if(false) // 暂且如此，待后续添加控制逻辑
+        return IsMusicPlayListVisible;*/
         false;
 
-    public MainWindowViewModel()
-    {
-        SetNavigationBarWidth();
-    }
+    public MainWindowViewModel() { SetNavigationBarWidth(); }
 
-    partial void OnMusicPlayListXaxisOffsetChanging(double oldValue, double newValue)
-    {
+    partial void OnMusicPlayListXaxisOffsetChanging(double oldValue, double newValue) {
         if (oldValue < newValue || newValue > 0.9) return;
 
         IsMusicPlayListVisible = false;
         IsMusicPlayListVisible = true;
     }
-    
 
-    partial void OnIsNavigationExpandChanged(bool value)
-    {
+    partial void OnIsNavigationExpandChanged(bool value) {
         SetNavigationBarWidth(); // 属性变更后调用方法
     }
 
-    partial void OnMainWindowStateChanged(WindowState value)
-    {
+    partial void OnMainWindowStateChanged(WindowState value) {
         IsWindowMaximizedOrFullScreen = MainWindowState is WindowState.Maximized or WindowState.FullScreen;
         SetNavigationBarWidth();
     }
 
-    partial void OnNavigationSelectedItemChanged(object? value)
-    {
-        if (value == null) return;
-        TogglePage(value);
-    }
+    partial void OnNavigationSelectedIndexChanged(int? value) { PageContent = _textToPageDictionary[value ?? 0]; }
 
-    [RelayCommand]
-    private void ShowMusicPlaylist()
-    {
-        IsMusicPlayListVisible = !IsMusicPlayListVisible;
-    }
+    [RelayCommand] private void ShowMusicPlaylist() { IsMusicPlayListVisible = !IsMusicPlayListVisible; }
 
-    [RelayCommand]
-    private void GlobalButtonClick()
-    {
-        IsMusicPlayListVisible = false;
-    }
+    [RelayCommand] private void GlobalButtonClick() { IsMusicPlayListVisible = false; }
 
-    private void TogglePage(object value)
-    {
-        if (value is not StackPanel stackPanel || stackPanel.Children[1] is not TextBlock { Text: not null } textBlock) return;
 
-        PageContent = _textToPageDictionary[textBlock.Text];
-    }
-
-    private void SetNavigationBarWidth()
-    {
+    private void SetNavigationBarWidth() {
         NavigationBarWidth = IsNavigationExpand ? IsWindowMaximizedOrFullScreen ? 200 : 150 : 75;
     }
 
-    public void ManualCleaning()
-    {
-        foreach (var userControl in _textToPageDictionary.Values)
-        {
-            if (userControl.DataContext is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
+    public void ManualCleaning() {
+        foreach (var userControl in _textToPageDictionary.Values) {
+            if (userControl.DataContext is IDisposable disposable) { disposable.Dispose(); }
         }
     }
 }

@@ -4,16 +4,17 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using QwQ_Music.ViewModels;
 using Ursa.Controls;
-
 namespace QwQ_Music.Views;
 
 public partial class MainWindow : Window
 {
     private readonly MainWindowViewModel _viewModel = new();
+    private readonly Window _desktopLyricsWindow;
     public MainWindow()
     {
         InitializeComponent();
         DataContext = _viewModel;
+        _desktopLyricsWindow = new DesktopLyricsWindow();
         PointerWheelChanged += OnPointerWheelChanged;
         Closed += OnClosed;
     }

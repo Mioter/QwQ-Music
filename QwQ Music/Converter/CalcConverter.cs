@@ -52,8 +52,8 @@ public class CalcConverter : IValueConverter
         throw new NotImplementedException();
     }
 
-    private static string ReplacePlaceholders(string equation, object? value)
-    {
+    private static string ReplacePlaceholders(string equation, object? value) {
+        if(value is bool boolValue) value = boolValue ? 1 : 0; 
         return equation.Replace(" ", "")
             .Replace("@VALUE", value?.ToString())
             .Replace("@value", value?.ToString());
