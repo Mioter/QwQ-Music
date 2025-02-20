@@ -6,12 +6,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:customControls="clr-namespace:QwQ_Music.CustomControls"
              xmlns:behaviors="clr-namespace:QwQ_Music.Behaviors"
-             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="120"
+             xmlns:u="https://irihi.tech/ursa"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="125"
              x:Class="QwQ_Music.UserControls.MusicPlayerTray">
 
     <UserControl.Styles>
-
-        <StyleInclude Source="/Assets/Styles/Button.axaml" />
 
         <Style Selector="Image.AlbumCoverRotate">
             <Style.Animations>
@@ -28,6 +27,13 @@
                 </Animation>
             </Style.Animations>
         </Style>
+        
+        
+        <Style Selector="Image.AlbumCoverBinding">
+            <Setter Property="Source"
+                    Value="{Binding MusicPlayerViewModel.CurrentMusicItem.AlbumImageIndex,Mode=OneWay,Converter={StaticResource AlbumImageConverter}}" />
+        </Style>
+
 
     </UserControl.Styles>
 
@@ -51,6 +57,8 @@
                     <Border ClipToBounds="True" Margin="5">
                         <!-- 专辑封面 Image 控件 -->
                         <Image RenderOptions.BitmapBlendingMode="Source"
+                               MaxHeight="60"
+                               MaxWidth="60"
                                Classes.AlbumCoverNull="{Binding MusicPlayerViewModel.CurrentMusicItem.AlbumImageIndex,Converter={x:Static ObjectConverters.IsNull}}"
                                Classes.AlbumCoverBinding="{Binding MusicPlayerViewModel.CurrentMusicItem.AlbumImageIndex,Converter={x:Static ObjectConverters.IsNotNull}}"
                                Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}">
@@ -58,15 +66,7 @@
                             <Image.RenderTransform>
                                 <RotateTransform Angle="{Binding AlbumCoverCurrentAngle,Mode=OneWayToSource}" />
                             </Image.RenderTransform>
-
-                            <Image.Styles>
-
-                                <Style Selector="Image.AlbumCoverBinding">
-                                    <Setter Property="Source"
-                                            Value="{Binding MusicPlayerViewModel.CurrentMusicItem.AlbumImageIndex,Mode=OneWay,Converter={StaticResource AlbumImageConverter}}" />
-                                </Style>
-
-                            </Image.Styles>
+                            
                         </Image>
                     </Border>
 
@@ -90,21 +90,20 @@
 
             <!-- 播放控制 -->
             <Grid Grid.Column="2"
-                  Margin="0,10"
+                  Margin="0,5,0,10"
                   ColumnDefinitions="*,Auto"
                   RowDefinitions="*,Auto">
 
-                <StackPanel Spacing="10"
+                <StackPanel Spacing="20"
                             HorizontalAlignment="Center"
                             Orientation="Horizontal">
 
                     <!-- 上一首 -->
                     <Button Classes="Icon"
-                            Margin="6"
                             Command="{Binding  MusicPlayerViewModel.TogglePreviousSongCommand}"
                             behaviors:DynamicCornerBehavior.IsEnabled="True"
                             Foreground="{DynamicResource TextBlockDefaultForeground}">
-                        <PathIcon Data="{StaticResource PlayIconData}" RenderTransform="rotate(180deg)" />
+                        <PathIcon Height="30" Data="{StaticResource PlayIconData}" RenderTransform="rotate(180deg)" />
                     </Button>
 
                     <!-- 播放/暂停 按钮 -->
@@ -190,11 +189,16 @@
 
                     <!-- 下一首 -->
                     <Button Classes="Icon"
-                            Margin="6"
                             Command="{Binding MusicPlayerViewModel.ToggleNextSongCommand}"
                             behaviors:DynamicCornerBehavior.IsEnabled="True"
                             Foreground="{DynamicResource TextBlockDefaultForeground}">
-                        <PathIcon Data="{StaticResource PlayIconData}" />
+                        <PathIcon Height="30" Data="{StaticResource PlayIconData}" />
+                    </Button>
+                    
+                    <Button Classes="Icon" Command="{Binding MusicPlayerViewModel.RefreshCurrentMusicItemCommand}"
+                                          behaviors:DynamicCornerBehavior.IsEnabled="True"
+                                          Foreground="{DynamicResource TextBlockDefaultForeground}">
+                        <PathIcon Height="12" Width="12" Margin="5" Data="{StaticResource SemiIconRefresh2}" />
                     </Button>
 
                 </StackPanel>
@@ -215,15 +219,14 @@
                     <TextBlock VerticalAlignment="Center"
                                Text="{Binding MusicPlayerViewModel.CurrentDurationInSeconds,Mode=OneWay,Converter={StaticResource SecondsToStringConverter}}"
                                FontSize="13" />
-
-                    <TextBlock VerticalAlignment="Center" Text="/" FontSize="11" />
+                    
 
                     <TextBlock VerticalAlignment="Center"
-                               Text="{Binding MusicPlayerViewModel.CurrentMusicItem.TotalDuration,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter}}"
+                               Text="{Binding MusicPlayerViewModel.CurrentMusicItem.TotalDuration,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter},StringFormat=' / {0}'}"
                                FontSize="11" />
 
                     <StackPanel.Styles>
-                        <Style Selector="TextBlock">
+                        <Style Selector="StackPanel > TextBlock">
                             <Setter Property="VerticalAlignment" Value="Center" />
                             <Setter Property="FontFamily" Value="{StaticResource Consolab}" />
                         </Style>
@@ -232,10 +235,481 @@
                 </StackPanel>
 
                 <!-- 操作按钮 -->
-                <WrapPanel Margin="0,5" Grid.Row="0" Grid.Column="1">
+                <WrapPanel VerticalAlignment="Center" Grid.Row="0" Grid.Column="1" Width="100">
+                    
+                    <WrapPanel.Resources>
+                        <!-- ReSharper disable once Xaml.RedundantResource -->
+                        <x:Double x:Key="FlyoutMinWidth">30</x:Double>
+                    </WrapPanel.Resources>
 
-                    <Button Name="VolumeButton"
-                            ToolTip.VerticalOffset="-10"
+                    <Button Classes="Icon">
+
+                        <Button.Resources>
+                            <!-- ReSharper disable once Xaml.RedundantResource -->
+                            <CornerRadius x:Key="FlyoutCornerRadius">10</CornerRadius>
+                            <!-- ReSharper disable once Xaml.RedundantResource -->
+                            <Thickness x:Key="FlyoutBorderThickness">1</Thickness>
+                            <!-- ReSharper disable once Xaml.RedundantResource -->
+                            <Thickness x:Key="FlyoutPadding">0</Thickness>
+                        </Button.Resources>
+
+                        <PathIcon Height="13" Width="13" Data="{StaticResource SemiIconSimilarity}" />
+
+                        <Button.Flyout>
+
+                            <Flyout Placement="Top">
+
+                                <Grid ColumnDefinitions="Auto,*">
+
+                                    <ScrollViewer Height="300" Margin="0,15">
+
+                                        <u:SelectionList Name="AudioEffectSelectionList" SelectedIndex="0"
+                                                         Margin="10,0,10,0">
+
+                                            <u:SelectionList.Styles>
+                                                <Style Selector="u|SelectionListItem">
+                                                    <Setter Property="RenderTransform" Value="translateY(-5px)" />
+                                                    <Setter Property="Margin" Value="2"/>
+                                                </Style>
+
+                                            </u:SelectionList.Styles>
+
+                                            <u:SelectionList.Indicator>
+                                                <Border
+                                                    Height="3"
+                                                    Margin="8,0,8,5"
+                                                    VerticalAlignment="Bottom"
+                                                    CornerRadius="3"
+                                                    Background="{DynamicResource SemiBlue5}" />
+                                            </u:SelectionList.Indicator>
+
+                                            <u:SelectionList.Styles>
+                                                <Style Selector="u|SelectionList > StackPanel">
+                                                    <Setter Property="Spacing" Value="5" />
+                                                    <Setter Property="Orientation" Value="Horizontal" />
+                                                </Style>
+
+                                            </u:SelectionList.Styles>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnabledStereoEnhancementEffect}" />
+                                                <TextBlock Text="立体效果" />
+                                            </StackPanel>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnableSpatialEffect}" />
+                                                <TextBlock Text="空间效果" />
+                                            </StackPanel>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnableRotatingEffect}" />
+                                                <TextBlock Text="环绕效果" />
+                                            </StackPanel>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnableReverbEffect}" />
+                                                <TextBlock Text="混响效果" />
+                                            </StackPanel>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnableEchoesEffect}" />
+                                                <TextBlock Text="回声效果" />
+                                            </StackPanel>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnableDistortionEffect}" />
+                                                <TextBlock Text="失真效果" />
+                                            </StackPanel>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnableTremoloEffect}" />
+                                                <TextBlock Text="颤音效果" />
+                                            </StackPanel>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnableCompressorEffect}" />
+                                                <TextBlock Text="压缩器" />
+                                            </StackPanel>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnabledEqualizerEffect}" />
+                                                <TextBlock Text="均衡器" />
+                                            </StackPanel>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnableFadeEffect}" />
+                                                <TextBlock Text="淡入淡出" />
+                                            </StackPanel>
+
+                                            <StackPanel>
+                                                <CheckBox
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnabledMultiChannelReplayGainEffect}" />
+                                                <TextBlock Text="回调增益" />
+                                            </StackPanel>
+
+                                        </u:SelectionList>
+
+                                    </ScrollViewer>
+
+                                    <ScrollViewer Grid.Column="1" Height="300" >
+
+                                        <customControls:IndexControl
+                                            Width="350"
+                                            Margin="10,5,20,5"
+                                            Index="{Binding #AudioEffectSelectionList.SelectedIndex}">
+
+                                            <customControls:IndexControl.PageTransition>
+                                                <CompositePageTransition>
+                                                    <CrossFade Duration="0:0:0.5" />
+                                                    <PageSlide Duration="0:0:0.3" Orientation="Vertical"
+                                                               SlideInEasing="QuadraticEaseIn"
+                                                               SlideOutEasing="QuadraticEaseOut" />
+                                                </CompositePageTransition>
+                                            </customControls:IndexControl.PageTransition>
+
+                                            <customControls:IndexControl.Styles>
+                                                <Style Selector="customControls|IndexControl > StackPanel">
+                                                    <Setter Property="Spacing" Value="10" />
+                                                </Style>
+                                            </customControls:IndexControl.Styles>
+
+                                            <StackPanel>
+
+                                                <TextBlock Text="效果增强" FontWeight="Black" />
+
+                                                <TextBlock
+                                                    HorizontalAlignment="Left"
+                                                    Text="{Binding #StereoEnhancementFactor.Value, StringFormat='增强因子 : {0:F3}'}"
+                                                    FontSize="12" />
+                                                <Slider Name="StereoEnhancementFactor" Minimum="0.5" Maximum="3.0"
+                                                        Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.StereoEnhancementFactor}" />
+
+                                                <TextBlock
+                                                    Text="{Binding #StereoStereoWidth.Value, StringFormat='立体宽度 : {0:F3}'}"
+                                                    FontSize="12" />
+                                                <Slider Name="StereoStereoWidth" Minimum="0.0" Maximum="2.0"
+                                                        Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.StereoStereoWidth}" />
+
+                                                <TextBlock
+                                                    Text="{Binding #StereoHighFrequencyBoost.Value, StringFormat='高频增强 : {0:F3}'}"
+                                                    FontSize="12" />
+                                                <Slider Name="StereoHighFrequencyBoost" Minimum="0.0" Maximum="2.0"
+                                                        Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.StereoHighFrequencyBoost}" />
+
+                                                <TextBlock
+                                                    Text="{Binding #DynamicRangeCompression.Value, StringFormat='动态压缩 : {0:F3}'}"
+                                                    FontSize="12" />
+                                                <Slider Name="DynamicRangeCompression" Minimum="0.0" Maximum="1.0"
+                                                        Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.StereoDynamicRangeCompression}" />
+
+                                                <CheckBox FontSize="12" FontWeight="Black" Content="混合低频信号"
+                                                          IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsBassMixing}" />
+
+                                            </StackPanel>
+
+                                            <Panel>
+
+
+                                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                                            Spacing="5"
+                                                            Classes.Transparent="{Binding !#SpeakerDraggableContainer.IsPointerOver}"
+                                                            Margin="30">
+
+                                                    <StackPanel.Transitions>
+                                                        <Transitions>
+                                                            <DoubleTransition Property="Opacity" Duration="0:0:0.5" />
+                                                        </Transitions>
+                                                    </StackPanel.Transitions>
+
+                                                    <StackPanel.Styles>
+                                                        <Style Selector="StackPanel.Transparent">
+                                                            <Setter Property="Opacity" Value="0" />
+                                                        </Style>
+                                                    </StackPanel.Styles>
+
+                                                    <TextBlock Classes="Tertiary" FontSize="12"
+                                                               Text="{Binding MusicPlayerViewModel.SoundEffectConfigModel.SpatialAngle,StringFormat=' 当前角度 : {0:F3} '}" />
+                                                    <TextBlock Classes="Tertiary" FontSize="12"
+                                                               Text="{Binding MusicPlayerViewModel.SoundEffectConfigModel.SpatialDistance,StringFormat=' 当前距离 : {0:F3} '}" />
+                                                </StackPanel>
+
+                                                <customControls:DraggableContainer
+                                                    Name="SpeakerDraggableContainer"
+                                                    CornerRadius="20"
+                                                    BorderThickness="1"
+                                                    BorderBrush="{DynamicResource BorderCardBorderBrush}">
+                                                    <Image Width="60" Height="60"
+                                                           customControls:DraggableContainer.IsDraggable="False"
+                                                           Source="{StaticResource CatsEars}" />
+
+                                                    <Border
+                                                        BorderBrush="White"
+                                                        BorderThickness="2"
+                                                        Background="Black"
+                                                        BoxShadow="0 0 10 0 DarkGray"
+                                                        behaviors:DynamicCornerBehavior.IsEnabled="True">
+
+                                                        <Border ClipToBounds="True" Margin="3" IsHitTestVisible="False">
+
+                                                            <Image RenderOptions.BitmapBlendingMode="Source"
+                                                                   Width="30" Height="30"
+                                                                   Classes.AlbumCoverNull="{Binding MusicPlayerViewModel.CurrentMusicItem.AlbumImageIndex,Converter={x:Static ObjectConverters.IsNull}}"
+                                                                   Classes.AlbumCoverBinding="{Binding MusicPlayerViewModel.CurrentMusicItem.AlbumImageIndex,Converter={x:Static ObjectConverters.IsNotNull}}"
+                                                                   Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}" />
+                                                        </Border>
+
+                                                    </Border>
+
+
+                                                    <Interaction.Behaviors>
+
+                                                        <EventTriggerBehavior EventName="PositionChanged">
+                                                            <!-- ReSharper disable once Xaml.PossibleNullReferenceException -->
+                                                            <InvokeCommandAction
+                                                                Command="{Binding $parent[UserControl].((viewModel:MusicPlayerTrayViewModel)DataContext).MusicPlayerViewModel.SoundEffectConfigModel.SpeakerPositionChangedCommand}"
+                                                                PassEventArgsToCommand="True" />
+                                                        </EventTriggerBehavior>
+                                                    </Interaction.Behaviors>
+
+                                                </customControls:DraggableContainer>
+
+                                            </Panel>
+
+                                            <StackPanel>
+
+                                                <StackPanel Spacing="5" Orientation="Horizontal">
+
+                                                    <TextBlock Text="旋转方向" FontSize="12"
+                                                               FontWeight="Black" />
+
+                                                    <CheckBox
+                                                        Name="RotationDirectionCheckBox"
+                                                        VerticalAlignment="Center" FontSize="12"
+                                                        IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.RotatingIsClockwise}">
+                                                        <customControls:SwitchControl
+                                                            Condition="{Binding #RotationDirectionCheckBox.IsChecked}">
+                                                            <customControls:SwitchControl.TrueContent>顺时针</customControls:SwitchControl.TrueContent>
+                                                            <customControls:SwitchControl.FalseContent>逆时针</customControls:SwitchControl.FalseContent>
+                                                        </customControls:SwitchControl>
+                                                    </CheckBox>
+
+                                                </StackPanel>
+
+                                                <u:Divider />
+
+                                                <TextBlock
+                                                    Text="{Binding #RotatingRotationSpeed.Value, StringFormat='速度 : {0:F3} 圈/秒'}"
+                                                    FontSize="12" />
+                                                <Slider Name="RotatingRotationSpeed" Minimum="0.0" Maximum="1.0"
+                                                        Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.RotatingRotationSpeed}" />
+
+                                                <TextBlock
+                                                    Text="{Binding #RotatingRadius.Value, StringFormat='半径 : {0:F3}'}"
+                                                    FontSize="12" />
+                                                <Slider Name="RotatingRadius" Minimum="0.0" Maximum="100"
+                                                        Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.RotatingRadius}" />
+
+                                            </StackPanel>
+
+                                            <StackPanel>
+
+                                                <TextBlock Text="基础属性" FontWeight="Black" />
+
+                                                <TextBlock
+                                                    Text="{Binding #ReverbRoomSize.Value, StringFormat='房间大小 : {0:F3}'}"
+                                                    FontSize="12" />
+                                                <Slider Name="ReverbRoomSize" Minimum="0.5" Maximum="2.0"
+                                                        Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.ReverbRoomSize}" />
+
+                                                <TextBlock
+                                                    Text="{Binding #ReverbDryMix.Value, StringFormat='干信号比例 : {0:F3}'}"
+                                                    FontSize="12" />
+                                                <Slider Name="ReverbDryMix" Minimum="0.0" Maximum="1.0"
+                                                        Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.ReverbDryMix}" />
+
+                                                <TextBlock
+                                                    Text="{Binding #ReverbWetMix.Value, StringFormat='湿信号比例 : {0:F3}'}"
+                                                    FontSize="12" />
+                                                <Slider Name="ReverbWetMix" Minimum="0.0" Maximum="1.0"
+                                                        Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.ReverbWetMix}" />
+
+                                                <TextBlock Text="扩展属性" FontWeight="Black" />
+
+                                                <TextBlock
+                                                    Text="{Binding #ReverbHighCutFrequency.Value,StringFormat='高频衰减 : {0:F3}'}"
+                                                    FontSize="12" />
+                                                <Slider Name="ReverbHighCutFrequency"
+                                                                    Minimum="0"
+                                                                    Maximum="1"
+                                                                    Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.ReverbDampening}" />
+                                                
+                                                <!--
+                                                <TextBlock
+                                                    Text="{Binding #ReverbTime.Value,StringFormat='衰减时间 : {0:F3} 秒'}"
+                                                    FontSize="12" />
+                                                <Slider Name="ReverbTime"
+                                                                    Minimum="0"
+                                                                    Maximum="10"
+                                                                    Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.ReverbDecayTime}" />
+                                                                    -->
+                                                
+                                                <TextBlock
+                                                    Text="{Binding #ReverbPreDelayMs.Value, StringFormat='预延迟 : {0:F3} 毫秒'}"
+                                                    FontSize="12" />
+                                                <Slider Name="ReverbPreDelayMs"
+                                                                    Minimum="0"
+                                                                    Maximum="200"
+                                                                    Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.ReverbPreDelayMs}" />
+                                                
+                                                
+                                            </StackPanel>
+
+                                            <StackPanel />
+
+                                            <StackPanel />
+
+                                            <StackPanel />
+
+                                            <StackPanel />
+
+                                            <Grid RowDefinitions="Auto,*">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Content="恢复默认" FontSize="12" CornerRadius="8"
+                                                            Command="{Binding MusicPlayerViewModel.SoundEffectConfigModel.RestoreDefaultEqualizerVolumeCommand}" />
+                                                </StackPanel>
+
+                                                <Border Grid.Row="1" BorderThickness="1"
+                                                        BorderBrush="{DynamicResource BorderCardBorderBrush}"
+                                                        CornerRadius="10" Margin="0,10,0,0">
+
+                                                    <ItemsControl HorizontalAlignment="Center"
+                                                                  ItemsSource="{Binding MusicPlayerViewModel.SoundEffectConfigModel.EqualizerConfigs}"
+                                                                  Margin="0,20,0,10">
+
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Grid Width="32" RowDefinitions="*,Auto">
+
+                                                                    <Slider HorizontalAlignment="Center"
+                                                                            Minimum="-12"
+                                                                            Value="{Binding GainValue}"
+                                                                            Maximum="12"
+                                                                            Orientation="Vertical">
+
+                                                                        <Interaction.Behaviors>
+
+                                                                            <EventTriggerBehavior
+                                                                                EventName="ValueChanged">
+                                                                                <!-- ReSharper disable once Xaml.PossibleNullReferenceException -->
+                                                                                <InvokeCommandAction
+                                                                                    Command="{Binding $parent[UserControl].((viewModel:MusicPlayerTrayViewModel)DataContext).MusicPlayerViewModel.SoundEffectConfigModel.EqualizerVolumeChangedCommand}" />
+                                                                            </EventTriggerBehavior>
+                                                                        </Interaction.Behaviors>
+
+                                                                    </Slider>
+                                                                    <TextBlock Grid.Row="1" FontSize="10"
+                                                                               Text="{Binding GainValue, StringFormat=' {0:F1} '}"
+                                                                               Margin="0,5"
+                                                                               HorizontalAlignment="Center"
+                                                                               FontFamily="{StaticResource VivoSans}" />
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+
+                                                    </ItemsControl>
+
+                                                </Border>
+                                            </Grid>
+
+                                            <StackPanel>
+
+                                                <u:Divider
+                                                    Content="{Binding #FadeInMilliseconds.Value, StringFormat='淡入时长 : {0} 毫秒'}"
+                                                    FontSize="12" />
+                                                <u:NumericIntUpDown Name="FadeInMilliseconds"
+                                                                    EmptyInputValue="1"
+                                                                    Step="200"
+                                                                    Minimum="0"
+                                                                    Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.FadeInMilliseconds}" />
+                                                <u:Divider
+                                                    Content="{Binding #FadeOutMilliseconds.Value, StringFormat='淡出时长 : {0} 毫秒'}"
+                                                    FontSize="12" />
+
+                                                <u:NumericIntUpDown Name="FadeOutMilliseconds"
+                                                                    EmptyInputValue="1"
+                                                                    Step="200"
+                                                                    Minimum="0"
+                                                                    Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.FadeOutMilliseconds}" />
+
+                                            </StackPanel>
+
+                                            <StackPanel>
+
+                                                <StackPanel.Resources>
+
+                                                    <!-- ReSharper disable once Xaml.RedundantResource -->
+                                                    <x:Double x:Key="BannerTitleFontSize">14</x:Double>
+
+                                                </StackPanel.Resources>
+
+                                                <u:Banner Header="什么是回调增益"
+                                                          Content="我也不知道"
+                                                          HorizontalContentAlignment="Stretch"
+                                                          CornerRadius="8"
+                                                          Classes="Bordered"
+                                                          FontSize="12" />
+
+                                                <StackPanel Orientation="Horizontal">
+
+                                                    <StackPanel.Styles>
+                                                        <Style Selector="StackPanel > TextBlock">
+                                                            <Setter Property="FontSize" Value="12" />
+                                                        </Style>
+                                                    </StackPanel.Styles>
+
+                                                    <TextBlock Text="{Binding StringFormat='已计算增益 : '}" />
+
+                                                    <TextBlock
+                                                        Text="{Binding MusicPlayerViewModel.MusicItems.Count,StringFormat='/ {0}'}" />
+
+                                                </StackPanel>
+
+
+                                                <ProgressBar Value="12"
+                                                             Maximum="{Binding MusicPlayerViewModel.MusicItems.Count}" />
+
+                                                <Button Content="计算增益" FontSize="12" CornerRadius="8" />
+
+                                            </StackPanel>
+
+                                        </customControls:IndexControl>
+
+                                    </ScrollViewer>
+
+                                </Grid>
+                            </Flyout>
+
+                        </Button.Flyout>
+                        
+                    </Button>
+                    
+                    <Button ToolTip.VerticalOffset="-10"
                             ToolTip.Placement="Top"
                             Classes="Icon">
 
@@ -255,13 +729,9 @@
 
                         <Button.Resources>
                             <!-- ReSharper disable once Xaml.RedundantResource -->
-                            <x:Double x:Key="FlyoutMinWidth">30</x:Double>
-                            <!-- ReSharper disable once Xaml.RedundantResource -->
-                            <x:Double x:Key="FlyoutMaxHeight">200</x:Double>
+                            <Thickness x:Key="FlyoutPadding">0</Thickness>  
                             <!-- ReSharper disable once Xaml.RedundantResource -->
                             <x:Double x:Key="FlyoutMinHeight">160</x:Double>
-                            <!-- ReSharper disable once Xaml.RedundantResource -->
-                            <Thickness x:Key="FlyoutPadding">0</Thickness>
                         </Button.Resources>
 
                         <Button.Flyout>
@@ -279,6 +749,9 @@
                                     <Button Classes.Silent="{Binding MusicPlayerViewModel.IsSilent}"
                                             Command="{Binding MusicPlayerViewModel.ToggleSilentModeCommand}"
                                             Grid.Row="2"
+                                            Margin="5"
+                                            Height="20" 
+                                            Width="20" 
                                             Classes="Icon">
 
                                         <PathIcon Data="{StaticResource Prohibit}" />
@@ -340,10 +813,11 @@
 
                     <WrapPanel.Styles>
 
-                        <Style Selector="Button">
+                        <Style Selector="WrapPanel > Button">
                             <Setter Property="Height" Value="20" />
                             <Setter Property="Width" Value="20" />
-                            <Setter Property="Margin" Value="5" />
+                            <Setter Property="CornerRadius" Value="5"/>
+                            <Setter Property="Margin" Value="0,0,10,0" />
                         </Style>
 
                     </WrapPanel.Styles>

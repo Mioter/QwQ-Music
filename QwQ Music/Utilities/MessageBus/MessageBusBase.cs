@@ -48,7 +48,7 @@ public abstract class MessageBusBase : IDisposable
         ArgumentNullException.ThrowIfNull(handler);
         var messageType = typeof(TMessage);
         var entry = _subscriptions.GetOrAdd(messageType, _ => new SubscriptionEntry());
-        var subscription = CreateSubscription(handler);
+        object? subscription = CreateSubscription(handler);
         lock (entry.Lock)
         {
             entry.Subscribers.Add(subscription);

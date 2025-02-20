@@ -15,6 +15,7 @@ public partial class MusicPlayListViewModel : ViewModelBase
     {
         if (SelectedItem == null) return;
 
+        MusicPlayerViewModel.IsPlaying = false;
         MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
 
     }

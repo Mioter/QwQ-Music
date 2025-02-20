@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -56,6 +55,7 @@ public class DynamicCornerBehavior
         var cornerRadius = CalculateCornerRadius(control, width, height);
 
         if (!TryGetCornerRadiusProperty(control, out var property)) return;
+
         if (property != null) control.SetValue(property, cornerRadius);
     }
 
@@ -87,30 +87,31 @@ public class DynamicCornerBehavior
 
     private static bool TryGetCornerRadiusProperty(Control control, out AvaloniaProperty<CornerRadius>? property)
     {
-        property = control switch
+        switch (control)
         {
-            Border => Border.CornerRadiusProperty,
-            Button => TemplatedControl.CornerRadiusProperty,
-            ContentControl => TemplatedControl.CornerRadiusProperty,
-            _ => FindCornerRadiusPropertyByReflection(control),
-        };
-        return property != null;
-    }
+            // 使用静态映射和类型检查代替反射
+            case Border:
+                property = Border.CornerRadiusProperty;
+                return true;
+            // 检查控件是否继承自 TemplatedControl
+            case TemplatedControl:
+                property = TemplatedControl.CornerRadiusProperty;
+                return true;
+            default:
+                // 如果类型不匹配，则返回 null
+                property = null;
+                return false;
+        }
 
-    private static AvaloniaProperty<CornerRadius>? FindCornerRadiusPropertyByReflection(Control control)
-    {
-        // 使用缓存机制提升性能
-        return control.GetType().GetField("CornerRadiusProperty",
-                BindingFlags.Static |
-                BindingFlags.Public)?
-            .GetValue(null) as AvaloniaProperty<CornerRadius>;
     }
 
     private static void ResetCornerRadius(Control control)
     {
         if (!TryGetCornerRadiusProperty(control, out var property)) return;
+
         if (property != null) control.ClearValue(property);
     }
+
     #region 附加属性
 
     // 启用行为
@@ -170,6 +171,7 @@ public class DynamicCornerBehavior
 
     #endregion
 }
+
 public enum ShapeMode
 {
     /// <summary> 正圆形（短边直径） </summary>

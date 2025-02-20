@@ -10,7 +10,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
-using QwQ_Music.Utilities;
 
 namespace QwQ_Music.ViewModels;
 
@@ -22,9 +21,7 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string? _searchText;
 
     [ObservableProperty] private MusicItemModel? _selectedItem;
-
-    private ObservableCollection<MusicItemModel>? _tempCacheMusicItems;
-
+    
     public MusicPageViewModel()
     {
         AllMusicItems = MusicPlayerViewModel.MusicItems;
@@ -37,6 +34,7 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable
         Dispose(true);
         GC.SuppressFinalize(this);
     }
+    
     private void OnMusicPlayerViewModelOnMusicItemsChanged(object? _, ObservableCollection<MusicItemModel> musicItems)
     {
         AllMusicItems = musicItems;
@@ -46,16 +44,10 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable
     {
         if (string.IsNullOrEmpty(value))
         {
-            // 当搜索框为空时，恢复原始的所有音乐项
-            if (_tempCacheMusicItems == null) return;
-            AllMusicItems = _tempCacheMusicItems;
-            _tempCacheMusicItems = null;
+            AllMusicItems = MusicPlayerViewModel.MusicItems;
         }
         else
         {
-            // 如果_tempCacheMusicItems为null，则将其设置为当前的AllMusicItems
-            _tempCacheMusicItems ??= AllMusicItems;
-
             // 使用 Where 进行过滤，并将结果转换为 ObservableCollection。
             AllMusicItems = new ObservableCollection<MusicItemModel>(
                 MusicPlayerViewModel.MusicItems.Where(musicItem => musicItem.Title!.Contains(value, StringComparison.OrdinalIgnoreCase) ||
@@ -70,10 +62,9 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable
     {
         if (SelectedItem == null) return;
 
+        MusicPlayerViewModel.IsPlaying = false;
         MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
-
     }
-    
 
     [RelayCommand]
     private void SelectedCurrentMusicItem()

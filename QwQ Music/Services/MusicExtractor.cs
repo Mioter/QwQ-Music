@@ -73,7 +73,7 @@ public static class MusicExtractor
 
             long fileSizeBytes = new FileInfo(filePath).Length;
             string fileSize = FormatFileSize(fileSizeBytes);
-            string title = tag.Title;
+            string title = tag.Title ?? Path.GetFileNameWithoutExtension(filePath);
             string singer = string.Join(", ", tag.Performers);
             string album = tag.Album;
             string genre = string.Join(", ", tag.Genres);

@@ -13,7 +13,7 @@
     </Design.DataContext>
 
     <Grid>
-        <u:Skeleton
+        <u:Skeleton 
             HorizontalAlignment="Left" VerticalAlignment="Top"
             IsActive="True"
             IsLoading="True">
@@ -21,4 +21,5 @@
         </u:Skeleton>
 
     </Grid>
+    
 </UserControl>

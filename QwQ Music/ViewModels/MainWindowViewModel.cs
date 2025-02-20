@@ -9,21 +9,24 @@ namespace QwQ_Music.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private readonly Dictionary<string, UserControl> _textToPageDictionary = new()
-    {
-        ["音乐"] = new MusicPage
+    private readonly List<UserControl> _indexToPageList =
+    [
+        new MusicPage
         {
             DataContext = new MusicPageViewModel(),
         },
-        ["分类"] = new ClassifiedPage
+
+        new ClassifiedPage
         {
             DataContext = new ClassifiedPageViewModel(),
         },
-        ["统计"] = new StatisticsPage
+
+        new StatisticsPage
         {
             DataContext = new StatisticsPageViewModel(),
         },
-    };
+
+    ];
 
 
     [ObservableProperty] private bool _isMusicPlayerTrayVisible = true;
@@ -97,11 +100,37 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void TogglePage(object value)
     {
-        if (value is not StackPanel stackPanel || stackPanel.Children[1] is not TextBlock { Text: not null } textBlock) return;
-
-        PageContent = _textToPageDictionary[textBlock.Text];
+        if (value is StackPanel { Children.Count: > 1 } stackPanel
+         && stackPanel.Children[1] is TextBlock { Tag: { } tag } && SafeConvertToInt(tag) >= 0)
+        {
+            PageContent = _indexToPageList[SafeConvertToInt(tag)];
+        }
     }
 
+    private static int SafeConvertToInt(object? obj)
+    {
+        return obj switch
+        {
+            null => 0,
+            int intValue => intValue,
+            IConvertible convertible => TryConvertToInt(convertible),
+            _ => 0,
+        };
+
+        static int TryConvertToInt(IConvertible convertible)
+        {
+            try
+            {
+                return convertible.ToInt32(null);
+            }
+            catch
+            {
+                // 忽略转换异常，返回默认值
+                return 0;
+            }
+        }
+    }
+    
     private void SetNavigationBarWidth()
     {
         NavigationBarWidth = IsNavigationExpand ? IsWindowMaximizedOrFullScreen ? 200 : 150 : 75;
@@ -109,7 +138,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void ManualCleaning()
     {
-        foreach (var userControl in _textToPageDictionary.Values)
+        foreach (var userControl in _indexToPageList)
         {
             if (userControl.DataContext is IDisposable disposable)
             {

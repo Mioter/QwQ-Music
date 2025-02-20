@@ -154,15 +154,17 @@
 
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconSong}" />
-                        <TextBlock Text="音乐" />
+                        <TextBlock Text="音乐" Tag="0"/>
                     </StackPanel>
+                    
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconDisc}" />
-                        <TextBlock Text="分类" />
+                        <TextBlock Text="分类" Tag="1"/>
                     </StackPanel>
+                    
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconKanban}" />
-                        <TextBlock Text="统计" />
+                        <TextBlock Text="统计" Tag="2"/>
                     </StackPanel>
 
                 </u:SelectionList>
@@ -247,7 +249,7 @@
         </Panel>
 
         <Panel Name="MusicPlayerTrayPanel"
-               Height="120"
+               Height="125"
                Width="600"
                VerticalAlignment="Bottom"
                Grid.Row="1"
