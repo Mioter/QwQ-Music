@@ -2,15 +2,14 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:customControls="clr-namespace:QwQ_Music.CustomControls">
     <!-- Add Resources Here -->
-
-    <ControlTheme x:Key="{x:Type customControls:IndexControl}" TargetType="customControls:IndexControl">
+    <ControlTheme x:Key="{x:Type customControls:ChoiceControl}" TargetType="customControls:ChoiceControl">
         <Setter Property="Template">
             <ControlTemplate>
+                <!-- 定义控件模板 -->
                 <TransitioningContentControl Name="PART_TransitioningContent"
                                              HorizontalAlignment="Stretch"
                                              VerticalAlignment="Stretch" />
             </ControlTemplate>
         </Setter>
     </ControlTheme>
-
 </ResourceDictionary>

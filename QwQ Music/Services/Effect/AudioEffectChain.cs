@@ -10,8 +10,10 @@ namespace QwQ_Music.Services.Effect;
 /// </summary>
 public class AudioEffectChain(ISampleProvider baseSource)
 {
-    private ISampleProvider _source = baseSource; // 当前链的输出源
-    private readonly List<IAudioEffect> _effects = []; // 效果列表
+    // 添加字段声明
+    private readonly ISampleProvider _originalSource = baseSource ?? throw new ArgumentNullException(nameof(baseSource));
+    private ISampleProvider _currentSource = baseSource;
+    private readonly List<IAudioEffect> _effects = [];
 
     /// <summary>
     /// 添加效果到处理链末尾
@@ -20,13 +22,14 @@ public class AudioEffectChain(ISampleProvider baseSource)
     /// <returns>当前处理链实例（支持链式调用）</returns>
     public AudioEffectChain AddEffect(IAudioEffect effect)
     {
-        if (effect == null) throw new ArgumentNullException(nameof(effect));
-
-        effect.Source = _source;
-        _source = effect;
+        ArgumentNullException.ThrowIfNull(effect);
+        
+        effect.Initialize(_currentSource);
+        _currentSource = effect; // 更新当前链末端
         _effects.Add(effect);
         return this;
     }
+    
 
     /// <summary>
     /// 在指定位置插入效果
@@ -36,44 +39,32 @@ public class AudioEffectChain(ISampleProvider baseSource)
     /// <returns>当前处理链实例（支持链式调用）</returns>
     public AudioEffectChain InsertEffect(int index, IAudioEffect effect)
     {
-        if (effect == null) throw new ArgumentNullException(nameof(effect));
+        ArgumentNullException.ThrowIfNull(effect);
         if (index < 0 || index > _effects.Count)
-            throw new ArgumentOutOfRangeException(nameof(index), "索引超出范围");
+            throw new ArgumentOutOfRangeException(nameof(index));
 
-        // 插入效果并调整链式结构
         if (_effects.Count == 0)
         {
-            // 如果链为空，直接添加效果
-            AddEffect(effect);
+            return AddEffect(effect);
         }
-        else
+
+        // 查找插入位置的前驱节点
+        var predecessor = index > 0 ? _effects[index - 1] : _originalSource;
+        
+        // 初始化新效果
+        effect.Initialize(predecessor as IAudioEffect ?? predecessor);
+
+        // 更新后继节点
+        if (index < _effects.Count)
         {
-            // 获取插入位置的前一个效果和后一个效果
-            var previousEffect = index > 0 ? _effects[index - 1] : null;
-            var nextEffect = index < _effects.Count ? _effects[index] : null;
-
-            // 设置新效果的 Source
-            effect.Source = previousEffect?.Source ?? _source;
-
-            // 更新前一个效果的 Source（如果有）
-            if (previousEffect != null)
-            {
-                previousEffect.Source = effect;
-            }
-
-            // 更新后一个效果的 Source（如果有）
-            if (nextEffect != null)
-            {
-                nextEffect.Source = effect;
-            }
-
-            // 插入效果到列表
-            _effects.Insert(index, effect);
-
-            // 更新当前输出源
-            _source = _effects.Last();
+            var successor = _effects[index];
+            successor.Initialize(effect); // 重新初始化后继
         }
 
+        _effects.Insert(index, effect);
+        
+        // 重建链式关系
+        RebuildChain();
         return this;
     }
 
@@ -84,38 +75,104 @@ public class AudioEffectChain(ISampleProvider baseSource)
     /// <returns>是否成功移除</returns>
     public bool RemoveEffect(string effectName)
     {
-        var effectToRemove = _effects.LastOrDefault(e => e.Name == effectName);
+        var effectToRemove = _effects.FirstOrDefault(e => e.Name == effectName);
         if (effectToRemove == null) return false;
 
-        // 移除效果并调整链式结构
-        _effects.Remove(effectToRemove);
+        int index = _effects.IndexOf(effectToRemove);
+        _effects.RemoveAt(index);
 
-        // 如果移除的是第一个效果，则需要重新设置基础源
-        if (_effects.Count == 0)
+        // 重建受影响部分的链
+        if (index > 0 && index < _effects.Count)
         {
-            _source = _source; // 恢复为初始源
-        }
-        else
-        {
-            // 找到被移除效果的前一个效果
-            var previousEffect = _effects.LastOrDefault(e => e.Source == effectToRemove.Source);
-            if (previousEffect != null)
-            {
-                previousEffect.Source = effectToRemove.Source;
-            }
-
-            // 更新当前输出源
-            _source = _effects.Last();
+            var prevEffect = _effects[index - 1];
+            var nextEffect = _effects[index];
+            nextEffect.Initialize(prevEffect);
         }
 
+        RebuildChain();
         return true;
+    }
+    
+    /// <summary>
+    /// 移除指定类型的所有效果
+    /// </summary>
+    /// <typeparam name="T">要移除的效果类型</typeparam>
+    /// <returns>实际移除的效果数量</returns>
+    public int RemoveEffects<T>() where T : IAudioEffect
+    {
+        // 找出所有匹配类型的索引（逆序避免索引错位）
+        var indices = _effects
+            .Select((eff, i) => (eff, i))
+            .Where(x => x.eff is T)
+            .OrderByDescending(x => x.i)
+            .ToList();
+
+        // 逆序移除以保证索引正确
+        foreach (var item in indices)
+        {
+            _effects.RemoveAt(item.i);
+        }
+
+        if (indices.Count > 0)
+        {
+            RebuildChain();
+        }
+        
+        return indices.Count;
+    }
+
+    /// <summary>
+    /// 移除指定类型的第一个匹配效果
+    /// </summary>
+    /// <typeparam name="T">要移除的效果类型</typeparam>
+    /// <returns>是否成功移除</returns>
+    public bool RemoveFirstEffect<T>() where T : IAudioEffect
+    {
+        for (int i = 0; i < _effects.Count; i++)
+        {
+            if (_effects[i] is not T) continue;
+            _effects.RemoveAt(i);
+            RebuildChain();
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 移除指定类型的最后一个匹配效果
+    /// </summary>
+    /// <typeparam name="T">要移除的效果类型</typeparam>
+    /// <returns>是否成功移除</returns>
+    public bool RemoveLastEffect<T>() where T : IAudioEffect
+    {
+        for (int i = _effects.Count - 1; i >= 0; i--)
+        {
+            if (_effects[i] is not T) continue;
+            _effects.RemoveAt(i);
+            RebuildChain();
+            return true;
+        }
+        return false;
+    }
+    
+    /// <summary>
+    /// 链式关系重建方法
+    /// </summary>
+    private void RebuildChain()
+    {
+        _currentSource = _originalSource;
+        foreach (var effect in _effects)
+        {
+            effect.Initialize(_currentSource);
+            _currentSource = effect;
+        }
     }
 
     /// <summary>
     /// 获取处理链的最终输出源
     /// </summary>
     /// <returns>最终输出源</returns>
-    public ISampleProvider GetOutput() => _source;
+    public ISampleProvider GetOutput() => _currentSource;
 
     /// <summary>
     /// 获取指定名称的效果（支持类型过滤）
@@ -126,5 +183,14 @@ public class AudioEffectChain(ISampleProvider baseSource)
     public T? GetEffect<T>(string name) where T : class, IAudioEffect
     {
         return _effects.OfType<T>().FirstOrDefault(e => e.Name == name);
+    }
+
+    /// <summary>
+    /// 获取全部效果
+    /// </summary>
+    /// <returns></returns>
+    public List<IAudioEffect> GetEffects()
+    {
+        return _effects;
     }
 }

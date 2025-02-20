@@ -18,27 +18,19 @@
 
         <StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
 
-        <StyleInclude Source="Assets/Styles/_indexes.axaml" />
         <!-- <StyleInclude Source="avares://Semi.Avalonia.TreeDataGrid/Index.axaml" />-->
         <StyleInclude Source="Assets/Animations/PopupAnimations.axaml" />
 
+        <StyleInclude Source="Assets/Styles/_indexes.axaml" />
+        
         <Style Selector="Image.AlbumCoverNull">
             <Setter Property="Source" Value="/Assets/Images/默认专辑封面.png" />
         </Style>
-
-        <Style Selector="Slider /template/ Thumb#thumb">
-            <Setter Property="Transitions">
-                <Transitions>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
-                </Transitions>
-            </Setter>
-            <Setter Property="RenderTransform" Value="scale(0.5)" />
+        
+        <Style Selector="CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-
-        <Style Selector="Slider:pointerover /template/ Thumb#thumb">
-            <Setter Property="RenderTransform" Value="scale(0.8)" />
-        </Style>
-
+        
     </Application.Styles>
 
     <Application.Resources>

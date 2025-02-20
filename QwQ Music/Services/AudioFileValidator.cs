@@ -6,7 +6,7 @@ using NAudio.Wave;
 using TagLib;
 using File = System.IO.File;
 
-namespace QwQ_Music.Utilities;
+namespace QwQ_Music.Services;
 
 public static class AudioFileValidator
 {
@@ -24,7 +24,7 @@ public static class AudioFileValidator
         ".opus",
     };
 
-    // ReSharper disable once MemberCanBePrivate.Global
+
     public static bool IsAudioFile(string filePath)
     {
         if (!File.Exists(filePath) || !SupportedExtensions.Contains(Path.GetExtension(filePath)))

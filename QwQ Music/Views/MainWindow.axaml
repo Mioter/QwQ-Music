@@ -156,10 +156,12 @@
                         <PathIcon Data="{StaticResource SemiIconSong}" />
                         <TextBlock Text="{Binding MusicName}" />
                     </StackPanel>
+                    
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconDisc}" />
                         <TextBlock Text="{Binding ClassificationName}" />
                     </StackPanel>
+                    
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconKanban}" />
                         <TextBlock Text="{Binding StatisticsName}" />
@@ -251,7 +253,7 @@
         </Panel>
 
         <Panel Name="MusicPlayerTrayPanel"
-               Height="120"
+               Height="125"
                Width="600"
                VerticalAlignment="Bottom"
                Grid.Row="1"
