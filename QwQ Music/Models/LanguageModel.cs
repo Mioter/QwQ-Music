@@ -29,7 +29,7 @@ public static partial class LanguageModel {
         ["LyricAltTopColorName"] = "备选歌词顶部",
         ["LyricAltBottomColorName"] = "备选歌词底部",
         ["LyricAltBorderColorName"] = "备选歌词描边",
-        ["Waiting For Music..."] = "正在等待歌曲"
+        ["Loading..."] = "加载中..."
     };
 
     private class UnfinishedFunctionException(string msg) : InvalidOperationException(msg);

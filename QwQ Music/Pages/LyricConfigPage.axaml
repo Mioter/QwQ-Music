@@ -21,6 +21,7 @@
             <TextBlock Text="{Binding WidthName}" />
             <u:NumericIntUpDown Value="{Binding LyricWidth,Mode=TwoWay}" InnerRightContent="px" />
             <Button IsVisible="{Binding !LyricIsVertical}" Content="{Binding MaximizeName}" Click="MaximizeLyricWidth" />
+            <Button IsVisible="{Binding LyricIsVertical}" Content="{Binding ResetName}" Click="ResetLyricWidth"/>
             <TextBlock Text="{Binding HeightName}" />
             <u:NumericIntUpDown Value="{Binding LyricHeight,Mode=TwoWay}" InnerRightContent="px" />
             <Button IsVisible="{Binding LyricIsVertical}" Content="{Binding MaximizeName}" Click="MaximizeLyricHeight" />

@@ -1,6 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
-using Config = QwQ_Music.Models.DesktopLyricConfig;
+using QwQ_Music.Models;
 using static QwQ_Music.Services.MousePenetrateService;
 using static QwQ_Music.Models.LanguageModel;
 
@@ -8,24 +8,24 @@ namespace QwQ_Music.Views;
 
 public partial class DesktopLyricsWindow : Window {
     public DesktopLyricsWindow() {
-        if (!Config.IsEnabled) { return; }
+        if (!DesktopLyricConfig.IsEnabled) { return; }
 
         InitializeComponent();
-        if (Config.IsVertical) {
+        if (DesktopLyricConfig.IsVertical) {
             MainLyric.RenderTransform = new RotateTransform(90);
             AltLyric.RenderTransform = new RotateTransform(90);
         }
 
-        MainLyric.Text = Lang["Waiting For Music..."];
-        if (!Config.IsDoubleLine && !Config.IsDualLang) {
+        MainLyric.Text = Lang["Loading..."];
+        if (!DesktopLyricConfig.IsDoubleLine && !DesktopLyricConfig.IsDualLang) {
             AltLyric.IsVisible = false;
             Grid.SetRowSpan(MainLyric, 2);
         } else
-            AltLyric.Text = Lang["Waiting For Music..."];
+            AltLyric.Text = Lang["Loading..."];
 
-        Width = Config.Size.Width;
-        Height = Config.Size.Height;
-        Position = Config.Position; Show();
-        SetPenetrate(TryGetPlatformHandle().Handle);
+        Width = DesktopLyricConfig.Size.Width;
+        Height = DesktopLyricConfig.Size.Height;
+        Position = DesktopLyricConfig.Position; base.Show();
+        SetPenetrate(TryGetPlatformHandle()!.Handle);
     }
 }

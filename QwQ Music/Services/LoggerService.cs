@@ -54,15 +54,15 @@ public static class LoggerService {
             await writer.WriteLineAsync(
                 $"{DateTime.Today.TimeOfDay:HH:MM:SS.FF} [{status}] <{function}> at {filename}, line {line}: {data}");
         } catch (IOException ex) {
-            //TODO
+            if (!retry) LoggerBaseAsync(status, data, line, function, filename, true);
         } catch (ObjectDisposedException ex) {
             _fileStream?.DisposeAsync();
             _fileStream = null;
             if (!retry) LoggerBaseAsync(status, data, line, function, filename, true);
         } catch (InvalidOperationException ex) {
-            //TODO
+            if (!retry) LoggerBaseAsync(status, data, line, function, filename, true);
         } catch (Exception) {
-            //TODO
+            if (!retry) LoggerBaseAsync(status, data, line, function, filename, true);
         }
     }
 

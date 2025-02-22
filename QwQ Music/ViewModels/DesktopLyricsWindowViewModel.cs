@@ -1,24 +1,24 @@
 ﻿using System.Collections.Generic;
 using Avalonia.Layout;
 using Avalonia.Media;
+using QwQ_Music.Models;
 using static QwQ_Music.Models.LanguageModel;
-using Config = QwQ_Music.Models.DesktopLyricConfig;
 
 namespace QwQ_Music.ViewModels;
 
 public static class DesktopLyricsWindowViewModel {
     public static Dictionary<int, string[]>? Lyrics { get; set; }
 
-    public static int LyricMainFontSize => Config.MainFontSize;
-    public static int LyricAltFontSize => Config.AltFontSize;
-    public static Orientation LyricOrientation => Config.IsVertical ? Orientation.Vertical : Orientation.Horizontal;
-    public static Color LyricBackground => Config.BackgroundColor;
-    public static Color LyricMainTopColor => Config.MainTopColor;
-    public static Color LyricMainBottomColor => Config.MainBottomColor;
-    public static Color LyricMainBorderColor => Config.MainBorderColor;
-    public static Color LyricAltTopColor => Config.AltTopColor;
-    public static Color LyricAltBottomColor => Config.AltBottomColor;
-    public static Color LyricAltBorderColor => Config.AltBorderColor;
+    public static int LyricMainFontSize => DesktopLyricConfig.MainFontSize;
+    public static int LyricAltFontSize => DesktopLyricConfig.AltFontSize;
+    public static Orientation LyricOrientation => DesktopLyricConfig.IsVertical ? Orientation.Vertical : Orientation.Horizontal;
+    public static Color LyricBackground => DesktopLyricConfig.BackgroundColor;
+    public static Color LyricMainTopColor => DesktopLyricConfig.MainTopColor;
+    public static Color LyricMainBottomColor => DesktopLyricConfig.MainBottomColor;
+    public static Color LyricMainBorderColor => DesktopLyricConfig.MainBorderColor;
+    public static Color LyricAltTopColor => DesktopLyricConfig.AltTopColor;
+    public static Color LyricAltBottomColor => DesktopLyricConfig.AltBottomColor;
+    public static Color LyricAltBorderColor => DesktopLyricConfig.AltBorderColor;
 
     public static void UpdateLyrics() { }
 
