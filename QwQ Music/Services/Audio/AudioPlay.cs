@@ -180,13 +180,13 @@ public class AudioPlay
         PositionChanged?.Invoke(this, _audioFileReader.CurrentTime.TotalSeconds);
     }
 
-    public void PlayWithFade(int fadeInDuration)
+    public void PlayWithFade(ulong fadeInDuration)
     {
         _fadeEffect?.BeginFadeIn(fadeInDuration);
         Play();
     }
 
-    public void StopWithFade(int fadeOutDuration)
+    public void StopWithFade(ulong fadeOutDuration)
     {
         if (_fadeEffect == null)
         {

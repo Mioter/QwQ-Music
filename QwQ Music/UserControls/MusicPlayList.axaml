@@ -53,7 +53,7 @@
                      SelectedItem="{Binding SelectedItem}"
                      Margin="0,5"
                      behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}"
-                     ItemsSource="{Binding  MusicPlayerViewModel.MusicPlaylist}">
+                     ItemsSource="{Binding  MusicPlayerViewModel.PlaylistProperty}">
 
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -76,8 +76,8 @@
                                 </userControls:MusicAlbumButton>
 
                                 <StackPanel VerticalAlignment="Center" Spacing="5">
-                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" />
-                                    <TextBlock Classes="Tertiary" Text="{Binding Singer}" FontSize="12" />
+                                    <TextBlock Text="{Binding TitleProperty}" FontWeight="Bold" />
+                                    <TextBlock Classes="Tertiary" Text="{Binding ArtistsProperty}" FontSize="12" />
                                 </StackPanel>
 
                             </StackPanel>

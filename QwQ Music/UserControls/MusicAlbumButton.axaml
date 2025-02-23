@@ -16,8 +16,8 @@
             ClipToBounds="True">
         <Panel>
             <Image
-                Classes.AlbumCoverNull="{Binding AlbumImageIndex,Converter={x:Static ObjectConverters.IsNull}}"
-                Classes.AlbumCoverBinding="{Binding AlbumImageIndex,Converter={x:Static ObjectConverters.IsNotNull}}" />
+                Classes.AlbumCoverNull="{Binding CoverPathProperty,Converter={x:Static ObjectConverters.IsNull}}"
+                Classes.AlbumCoverBinding="{Binding CoverPathProperty,Converter={x:Static ObjectConverters.IsNotNull}}" />
             <Border Background="#33000000" IsHitTestVisible="False">
                 <Border.IsVisible>
                     <MultiBinding
@@ -150,7 +150,7 @@
 
                 <Style Selector="Image.AlbumCoverBinding">
                     <Setter Property="Source"
-                            Value="{Binding AlbumImageIndex,Converter={StaticResource AlbumImageConverter}}" />
+                            Value="{Binding CoverPathProperty,Converter={StaticResource AlbumImageConverter}}" />
                 </Style>
 
             </Panel.Styles>

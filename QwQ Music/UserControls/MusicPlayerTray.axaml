@@ -51,8 +51,8 @@
                     <Border ClipToBounds="True" Margin="5">
                         <!-- 专辑封面 Image 控件 -->
                         <Image RenderOptions.BitmapBlendingMode="Source"
-                               Classes.AlbumCoverNull="{Binding MusicPlayerViewModel.CurrentMusicItem.AlbumImageIndex,Converter={x:Static ObjectConverters.IsNull}}"
-                               Classes.AlbumCoverBinding="{Binding MusicPlayerViewModel.CurrentMusicItem.AlbumImageIndex,Converter={x:Static ObjectConverters.IsNotNull}}"
+                               Classes.AlbumCoverNull="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Converter={x:Static ObjectConverters.IsNull}}"
+                               Classes.AlbumCoverBinding="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Converter={x:Static ObjectConverters.IsNotNull}}"
                                Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}">
 
                             <Image.RenderTransform>
@@ -63,7 +63,7 @@
 
                                 <Style Selector="Image.AlbumCoverBinding">
                                     <Setter Property="Source"
-                                            Value="{Binding MusicPlayerViewModel.CurrentMusicItem.AlbumImageIndex,Mode=OneWay,Converter={StaticResource AlbumImageConverter}}" />
+                                            Value="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Mode=OneWay,Converter={StaticResource AlbumImageConverter}}" />
                                 </Style>
 
                             </Image.Styles>
@@ -77,11 +77,11 @@
             <StackPanel Width="80" Grid.Column="1" VerticalAlignment="Center" Spacing="5">
 
                 <TextBlock TextTrimming="CharacterEllipsis"
-                           Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Title}"
+                           Text="{Binding MusicPlayerViewModel.CurrentMusicItem.TitleProperty}"
                            ToolTip.Tip="{Binding RelativeSource={RelativeSource Self},Path=Text}"
                            FontWeight="DemiBold" />
                 <TextBlock Classes="Tertiary"
-                           Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Singer}"
+                           Text="{Binding MusicPlayerViewModel.CurrentMusicItem.ArtistsProperty}"
                            TextTrimming="CharacterEllipsis"
                            ToolTip.Tip="{Binding RelativeSource={RelativeSource Self},Path=Text}"
                            FontSize="12" />
@@ -203,7 +203,7 @@
                 <Slider Grid.Row="1"
                         Grid.Column="0"
                         Margin="20,0"
-                        Maximum="{Binding MusicPlayerViewModel.CurrentMusicItem.TotalDuration,Converter={StaticResource StringToSecondsConverter}}"
+                        Maximum="{Binding MusicPlayerViewModel.CurrentMusicItem.DurationProperty,Converter={StaticResource StringToSecondsConverter}}"
                         Value="{Binding MusicPlayerViewModel.CurrentDurationInSeconds}" />
 
                 <!-- 播放时长 / 总时长 -->
@@ -219,7 +219,7 @@
                     <TextBlock VerticalAlignment="Center" Text="/" FontSize="11" />
 
                     <TextBlock VerticalAlignment="Center"
-                               Text="{Binding MusicPlayerViewModel.CurrentMusicItem.TotalDuration,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter}}"
+                               Text="{Binding MusicPlayerViewModel.CurrentMusicItem.DurationProperty,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter}}"
                                FontSize="11" />
 
                     <StackPanel.Styles>
@@ -243,13 +243,13 @@
                             <Border Background="#20c997"
                                     behaviors:DynamicCornerBehavior.IsEnabled="True"
                                     Margin="7,7,4,7"
-                                    IsVisible="{Binding !MusicPlayerViewModel.IsMute}" />
+                                    IsVisible="{Binding !MusicPlayerViewModel.IsMuted}" />
                             <PathIcon Height="14" Width="14" Data="{StaticResource EmptyVolume}" />
                             <Border Background="#ff6b6b"
                                     Width="3"
                                     CornerRadius="10"
                                     Margin="3"
-                                    IsVisible="{Binding MusicPlayerViewModel.IsMute}"
+                                    IsVisible="{Binding MusicPlayerViewModel.IsMuted}"
                                     RenderTransform="rotate(120deg)" />
                         </Panel>
 
@@ -276,8 +276,8 @@
                                     <Slider Grid.Row="1" HorizontalAlignment="Center" Orientation="Vertical"
                                             Value="{Binding MusicPlayerViewModel.VolumePercent}" Maximum="100" />
 
-                                    <Button Classes.Silent="{Binding MusicPlayerViewModel.IsMute}"
-                                            Command="{Binding MusicPlayerViewModel.ToggleSilentModeCommand}"
+                                    <Button Classes.Silent="{Binding MusicPlayerViewModel.IsMuted}"
+                                            Command="{Binding MusicPlayerViewModel.ToggleMuteModeCommand}"
                                             Grid.Row="2"
                                             Classes="Icon">
 

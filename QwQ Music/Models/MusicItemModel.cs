@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.Data.Sqlite;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Services;
+using QwQ_Music.Utilities;
 using Log = QwQ_Music.Services.LoggerService;
 
 namespace QwQ_Music.Models;
@@ -74,100 +76,86 @@ public partial class MusicItemModel(
     TimeSpan? current = null,
     TimeSpan duration = default,
     string encodingFormat = "",
-    string? comment = null) : ObservableObject, IEquatable<MusicItemModel>, IConfigBase<MusicItemModel> {
-    public string FileName =>
-        Title.Length > 20 ?
-            Title[..20] :
-            Title +
-            (string.Join(";", Artists).Length > 20 ?
-                string.Join(";", Artists)[..20] :
-                string.Join(";", Artists)); //TODO
-
+    string? comment = null) : ObservableObject, IEquatable<MusicItemModel>, IModelBase<MusicItemModel> {
     public bool IsInitialized { get; private set; }
     public bool IsError { get; private set; }
-    public string Title { get; private set; } = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
-    public string[] Artists { get; private set; } = artists ?? ["未知歌手"];
-    public string Album { get; private set; } = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
-    public string? CoverPath { get; private set; } = coverPath;
-
+    public string Title = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
+    public string TitleProperty => Title;
+    public string[] Artists = artists ?? ["未知歌手"];
+    public string ArtistsProperty => string.Join(',', Artists);
+    public string Album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
+    public string AlbumProperty => Album;
+    public string? CoverPath = coverPath;
+    public string? CoverPathProperty => CoverPath;
     [ObservableProperty] private TimeSpan _current = current ?? TimeSpan.Zero;
-    public TimeSpan Duration { get; private set; } = duration;
-    public string? FilePath { get; private set; } = filePath;
-    public string FileSize { get; private set; } = fileSize;
-    public double Gain { get; private set; } = gain;
-    public string EncodingFormat { get; private set; } = encodingFormat;
-    public string? Comment { get; private set; } = comment;
-
+    public TimeSpan Duration = duration;
+    public TimeSpan DurationProperty => Duration;
+    public string? FilePath = filePath;
+    public string? FilePathProperty => FilePath;
+    public string FileSize = fileSize;
+    public string FileSizeProperty => FileSize;
+    public double Gain = gain;
+    public double GainProperty => Gain;
+    public string EncodingFormat = encodingFormat;
+    public string EncodingFormatProperty => EncodingFormat;
+    public string? Comment = comment;
+    public string? CommentProperty => Comment;
     [ObservableProperty] private string? _remarks;
 
-    public readonly Lazy<Task<MusicTagExtensions>> Extensions = new(
-        () => MusicExtractor.ExtractMusicInfoExtensionsAsync(filePath));
+    public readonly Lazy<MusicTagExtensions> Extensions = new(
+        () => MusicExtractor.ExtractMusicInfoExtensionsAsync(filePath).ConfigureAwait(false).GetAwaiter().GetResult());
+
+    public MusicTagExtensions ExtensionsProperty => Extensions.Value;
 
     public readonly Lazy<Task<LyricsModel>> Lyrics = new(() => MusicExtractor.ExtractMusicLyricsAsync(filePath));
 
     public bool Equals(MusicItemModel? other) => other is not null && string.Equals(FilePath, other.FilePath);
     public override bool Equals(object? obj) => obj is MusicItemModel other && Equals(other);
-    public override int GetHashCode() => FileName.GetHashCode();
 
-    public static MusicItemModel Parse(SqliteDataReader config) {
+    // ReSharper disable NonReadonlyMemberInGetHashCode
+    public override int GetHashCode() => (Title + string.Join(',', Artists)).GetHashCode();
+    // ReSharper restore NonReadonlyMemberInGetHashCode
+
+    public static MusicItemModel Parse(in SqliteDataReader config) {
+#pragma warning disable MVVMTK0034
         MusicItemModel result = new();
-        try {
-            result.Title = config.GetString(config.GetOrdinal(nameof(Title)));
-            result.Artists = config.GetFieldValue<string[]>(config.GetOrdinal(nameof(Artists)));
-            result.Album = config.GetString(config.GetOrdinal(nameof(Album)));
-            result.CoverPath = config.GetString(config.GetOrdinal(nameof(CoverPath)));
-            result.Current = config.GetTimeSpan(config.GetOrdinal(nameof(Title)));
-            result.Duration = config.GetTimeSpan(config.GetOrdinal(nameof(Duration)));
-            result.FilePath = config.GetString(config.GetOrdinal(nameof(FilePath)));
-            result.FileSize = config.GetString(config.GetOrdinal(nameof(FileSize)));
-            result.Gain = config.GetDouble(config.GetOrdinal(nameof(Gain)));
-            result.EncodingFormat = config.GetString(config.GetOrdinal(nameof(EncodingFormat)));
-            result.Comment = config.GetString(config.GetOrdinal(nameof(Comment)));
-            result.Remarks = config.GetString(config.GetOrdinal(nameof(Remarks)));
-            result.IsInitialized = true;
-            result.IsError = false;
-            return result;
-        } catch (NullReferenceException) {
-            Log.Error(
-                $"Cannot Load {nameof(MusicItemModel)}. Config file broken or version inconsistent? (file version {
-                    config.GetString(config.GetOrdinal(nameof(ConfigInfoModel.Version)))}, app version {
-                        ConfigInfoModel.Version})");
-            result.IsInitialized = true;
-            result.IsError = true;
-            return result;
-        }
+        result.IsError = ConfigIO.TryParse(config, nameof(Title), ref result.Title) |
+                         ConfigIO.TryParse(
+                             config,
+                             nameof(Artists),
+                             ref result.Artists,
+                             (string data) => data.Split("\n")) |
+                         ConfigIO.TryParse(config, nameof(Album), ref result.Album) |
+                         ConfigIO.TryParse(config, nameof(CoverPath), ref result.CoverPath) |
+                         ConfigIO.TryParse(config, nameof(Current), ref result._current) |
+                         ConfigIO.TryParse(config, nameof(Duration), ref result.Duration) |
+                         ConfigIO.TryParse(config, nameof(FilePath), ref result.FilePath) |
+                         ConfigIO.TryParse(config, nameof(FileSize), ref result.FileSize) |
+                         ConfigIO.TryParse(config, nameof(Gain), ref result.Gain) |
+                         ConfigIO.TryParse(config, nameof(EncodingFormat), ref result.EncodingFormat) |
+                         ConfigIO.TryParse(config, nameof(Comment), ref result.Comment) |
+                         ConfigIO.TryParse(config, nameof(Remarks), ref result._remarks);
+#pragma warning restore MVVMTK0034
+        result.IsInitialized = true;
+        return result;
     }
 
-    public string Dump() =>
-        $"""
-         ({nameof(ConfigInfoModel.Version)},
-         {nameof(Title)},
-         {nameof(Artists)},
-         {nameof(Album)},
-         {nameof(CoverPath)},
-         {nameof(Current)},
-         {nameof(Duration)},
-         {nameof(FilePath)},
-         {nameof(FileSize)},
-         {nameof(Gain)},
-         {nameof(EncodingFormat)},
-         {nameof(Comment)},
-         {nameof(Remarks)}) 
-         VALUES(
-         {ConfigInfoModel.Version},
-         {Title},
-         {Artists},
-         {Album},
-         {CoverPath},
-         {Current},
-         {Duration},
-         {FilePath},
-         {FileSize},
-         {Gain},
-         {EncodingFormat},
-         {Comment},
-         {Remarks})
-         """;
+    public Dictionary<string, string> Dump() =>
+        new() {
+            [nameof(ConfigInfoModel.Version)] = ConfigInfoModel.Version,
+            [nameof(Title)] = Title,
+            [nameof(Artists)] = string.Join("\n", Artists),
+            [nameof(Album)] = Album,
+            [nameof(CoverPath)] = CoverPath ?? "",
+            [nameof(Current)] = Current.ToString(),
+            [nameof(Duration)] = Duration.ToString(),
+            [nameof(FilePath)] = FilePath ?? "",
+            [nameof(FileSize)] = FileSize,
+            [nameof(Gain)] = Gain.ToString("G"),
+            [nameof(EncodingFormat)] = EncodingFormat,
+            [nameof(Comment)] = Comment ?? "",
+            [nameof(Remarks)] = Remarks ?? ""
+        };
 }
 
 public readonly record struct MusicTagExtensions(
