@@ -16,25 +16,8 @@ public partial class MainWindow : Window
         DataContext = _viewModel;
         _desktopLyricsWindow = new DesktopLyricsWindow();
         PointerWheelChanged += OnPointerWheelChanged;
-        Closed += OnClosed;
     }
-
-    private void OnClosed(object? sender, EventArgs e)
-    {
-        Closed -= OnClosed;
-        PointerWheelChanged -= OnPointerWheelChanged;
-        _viewModel.ManualCleaning();
-    }
-
-
-    private void SelectionList_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is SelectionList selectionList)
-        {
-            selectionList.SelectedIndex = 0;
-        }
-    }
-
+    
     private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
         _viewModel.IsMusicPlayerTrayVisible = e.Delta.Y switch

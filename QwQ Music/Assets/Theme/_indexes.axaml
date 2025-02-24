@@ -3,6 +3,8 @@
     <!-- Add Resources Here -->
     <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="IndexControl.axaml" />
+        <ResourceInclude Source="ChoiceControl.axaml"/>
         <ResourceInclude Source="DataGrid.axaml" />
+        <ResourceInclude Source="DraggableContainer.axaml"/>
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

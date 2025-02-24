@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <TargetFramework>net9.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,12 +13,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.2.3"/>
-        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.3"/>
-        <PackageReference Include="Avalonia.Desktop" Version="11.2.3"/>
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3"/>
+        <PackageReference Include="Avalonia" Version="11.2.4" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.4" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.2.4" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.4" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.2.3">
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.2.4">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
@@ -27,6 +27,8 @@
         <PackageReference Include="Irihi.Ursa" Version="1.8.0"/>
         <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.8.0"/>
         <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.2" />
+        <PackageReference Include="Irihi.Ursa" Version="1.8.1" />
+        <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.8.1" />
         <PackageReference Include="Semi.Avalonia" Version="11.2.1.4"/>
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.4"/>
         <PackageReference Include="Semi.Avalonia.TreeDataGrid" Version="11.0.10.1"/>
@@ -42,6 +44,20 @@
     <ItemGroup>
         <Compile Update="UserControl\MusicPlayerTray.axaml.cs">
             <DependentUpon>MusicPlayerTray.axaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Views\DesktopLyricsWindow.axaml.cs">
+          <DependentUpon>DesktopLyric.axaml</DependentUpon>
+          <SubType>Code</SubType>
+        <TargetFramework>net9.0</TargetFramework>
+        <PackageReference Include="Avalonia" Version="11.2.4" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.4" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.2.4" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.4" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.2.4"/>
+        <PackageReference Include="Irihi.Ursa" Version="1.8.1" />
+        <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.8.1" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.2" />
             <SubType>Code</SubType>
         </Compile>
         <Compile Update="Views\DesktopLyricsWindow.axaml.cs">

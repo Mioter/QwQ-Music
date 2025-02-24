@@ -79,7 +79,7 @@ public static class MusicExtractor {
             var properties = file.Properties;
             long fileSizeBytes = new FileInfo(filePath).Length;
             string fileSize = FormatFileSize(fileSizeBytes);
-            string title = tag.Title;
+            string title = tag.Title ?? Path.GetFileNameWithoutExtension(filePath);
             string[] artists = tag.Performers;
             string album = tag.Album;
             TimeSpan duration = properties.Duration;

@@ -2,5 +2,6 @@
        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- Add Resources Here -->
     <StyleInclude Source="Button.axaml" />
+    <StyleInclude Source="Slider.axaml"/>
     <StyleInclude Source="ToggleButton.axaml" />
 </Style>

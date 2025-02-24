@@ -25,6 +25,7 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
     }
 
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
+    
 
     public void Dispose()
     {
@@ -63,7 +64,7 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
         AlbumCoverRecordAngle = 0;
     }
 
-    protected virtual void Dispose(bool disposing)
+    public void Dispose(bool disposing)
     {
         if (!disposing) return;
 

@@ -8,21 +8,9 @@ using static QwQ_Music.Models.LanguageModel;
 
 namespace QwQ_Music.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase {
-    private readonly Dictionary<int, UserControl> _textToPageDictionary = new() {
-        [0] = new MusicPage { DataContext = new MusicPageViewModel(), },
-        [1] = new ClassificationPage { DataContext = new ClassificationPageViewModel() },
-        [2] = new StatisticsPage { DataContext = new StatisticsPageViewModel() },
-        [3] = new ConfigMainPage { DataContext = new ConfigPageViewModel() }
-    };
-
-
-
-   public static string MusicName => Lang[nameof(MusicName)];
-    public static string ClassificationName => Lang[nameof(ClassificationName)];
-    public static string StatisticsName => Lang[nameof(StatisticsName)];
-    public static string SettingsName => Lang[nameof(SettingsName)];
-
+public partial class MainWindowViewModel : ViewModelBase
+{
+    
     [ObservableProperty] private bool _isMusicPlayerTrayVisible = true;
 
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsBackgroundLayerVisible))]
@@ -39,8 +27,7 @@ public partial class MainWindowViewModel : ViewModelBase {
     [ObservableProperty] private double _musicPlayListXaxisOffset;
 
     [ObservableProperty] private double _navigationBarWidth;
-
-    [ObservableProperty] private int? _navigationSelectedIndex;
+    
 
     [ObservableProperty] private UserControl? _pageContent;
 
@@ -66,21 +53,46 @@ public partial class MainWindowViewModel : ViewModelBase {
         IsWindowMaximizedOrFullScreen = MainWindowState is WindowState.Maximized or WindowState.FullScreen;
         SetNavigationBarWidth();
     }
-
-    partial void OnNavigationSelectedIndexChanged(int? value) { PageContent = _textToPageDictionary[value ?? 0]; }
-
-    [RelayCommand] private void ShowMusicPlaylist() { IsMusicPlayListVisible = !IsMusicPlayListVisible; }
-
-    [RelayCommand] private void GlobalButtonClick() { IsMusicPlayListVisible = false; }
-
-
-    private void SetNavigationBarWidth() {
-        NavigationBarWidth = IsNavigationExpand ? IsWindowMaximizedOrFullScreen ? 200 : 150 : 75;
+    
+    [RelayCommand]
+    private void ShowMusicPlaylist()
+    {
+        IsMusicPlayListVisible = !IsMusicPlayListVisible;
     }
 
-    public void ManualCleaning() {
-        foreach (var userControl in _textToPageDictionary.Values) {
-            if (userControl.DataContext is IDisposable disposable) { disposable.Dispose(); }
+    [RelayCommand]
+    private void GlobalButtonClick()
+    {
+        IsMusicPlayListVisible = false;
+    }
+    
+
+    private static int SafeConvertToInt(object? obj)
+    {
+        return obj switch
+        {
+            null => 0,
+            int intValue => intValue,
+            IConvertible convertible => TryConvertToInt(convertible),
+            _ => 0,
+        };
+
+        static int TryConvertToInt(IConvertible convertible)
+        {
+            try
+            {
+                return convertible.ToInt32(null);
+            }
+            catch
+            {
+                // 忽略转换异常，返回默认值
+                return 0;
+            }
         }
+    }
+    
+    private void SetNavigationBarWidth()
+    {
+        NavigationBarWidth = IsNavigationExpand ? IsWindowMaximizedOrFullScreen ? 200 : 150 : 75;
     }
 }

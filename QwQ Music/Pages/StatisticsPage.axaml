@@ -8,5 +8,7 @@
     <Design.DataContext>
         <viewModels:StatisticsPageViewModel />
     </Design.DataContext>
-
+    <Grid>
+        <Button Content="点我" Click="Button_OnClick"/>
+    </Grid>
 </UserControl>
