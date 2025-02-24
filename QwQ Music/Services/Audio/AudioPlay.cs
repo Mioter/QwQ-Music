@@ -106,7 +106,7 @@ public class AudioPlay : IDisposable
     /// <summary>
     /// 设置音频文件并初始化效果链
     /// </summary>
-    public void SetAudioTrack(string filePath, double startingSeconds, float[] channelGains)
+    public void SetAudioTrack(string filePath, double startingSeconds, double channelGains)
     {
         lock (_lock)
         {
@@ -126,17 +126,9 @@ public class AudioPlay : IDisposable
     /// <summary>
     /// 初始化新音轨
     /// </summary>
-    private void InitializeNewTrack(string audioFilePath, double startingSeconds, float[] replayGain)
+    private void InitializeNewTrack(string audioFilePath, double startingSeconds, double replayGain)
     {
         _audioFileReader = new AudioFileReader(audioFilePath);
-
-        // 验证增益数组
-        int actualChannels = _audioFileReader.WaveFormat.Channels;
-        if (replayGain.Length != actualChannels)
-        {
-            float fallbackGain = replayGain.Length > 0 ? replayGain[0] : 1.0f;
-            replayGain = Enumerable.Repeat(fallbackGain, actualChannels).ToArray();
-        }
 
         // 创建基础 Provider
         var offsetProvider = new OffsetSampleProvider(_audioFileReader)
@@ -161,7 +153,7 @@ public class AudioPlay : IDisposable
         // 初始化进度定时器
         _progressTimer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromMilliseconds(1000),
+            Interval = TimeSpan.FromMilliseconds(500),
         };
         _progressTimer.Tick += OnProgressTimerTick;
     }
@@ -169,7 +161,7 @@ public class AudioPlay : IDisposable
     /// <summary>
     /// 添加默认效果器
     /// </summary>
-    private void AddDefaultEffects(float[] replayGain)
+    private void AddDefaultEffects(double replayGain)
     {
         if (_effectChain == null) return;
 
@@ -181,7 +173,7 @@ public class AudioPlay : IDisposable
             (4000f, 0), (8000f, 0), (16000f, 0), // 高频段
         };
 
-        _effectChain.AddEffect(new MultiChannelReplayGainEffect(replayGain)) // 多声道回放增益
+        _effectChain.AddEffect(new GlobalReplayGainEffect(replayGain)) // 多声道回放增益
             .AddEffect(new StereoEnhancementEffect()) // 立体声增强
             .AddEffect(new DistortionEffect()) // 失真
             .AddEffect(new ReverbEffect()) // 混响

@@ -9,9 +9,9 @@ public class AlbumImageConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is string albumImageIndex)
+        if (value is string coverPath)
         {
-            return MusicExtractor.LoadCompressedBitmapFromCache(albumImageIndex);
+            return MusicExtractor.LoadCompressedBitmapFromCache(coverPath);
         }
 
         return null;

@@ -156,17 +156,21 @@
 
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconSong}" />
-                        <TextBlock Text="音乐" Tag="0"/>
+                        <TextBlock Text="{Binding MusicName}" />
                     </StackPanel>
                     
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconDisc}" />
-                        <TextBlock Text="分类" Tag="1"/>
+                        <TextBlock Text="{Binding ClassificationName}" />
                     </StackPanel>
                     
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconKanban}" />
-                        <TextBlock Text="统计" Tag="2"/>
+                        <TextBlock Text="{Binding StatisticsName}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <PathIcon Data="{StaticResource SemiIconSetting}" />
+                        <TextBlock Text="{Binding SettingsName}" />
                     </StackPanel>
 
                 </u:SelectionList>
@@ -182,7 +186,7 @@
                 </customControls:IndexControl.PageTransition>
                 
                 <pages:MusicPage/>
-                <pages:ClassifiedPage/>
+                <pages:ClassificationPage/>
                 <pages:StatisticsPage/>
             </customControls:IndexControl>
 

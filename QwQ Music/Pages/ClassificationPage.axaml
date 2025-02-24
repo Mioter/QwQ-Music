@@ -6,10 +6,10 @@
              xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
              x:DataType="viewModels:MusicPageViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="QwQ_Music.Pages.ClassifiedPage">
+             x:Class="QwQ_Music.Pages.ClassificationPage">
 
     <Design.DataContext>
-        <viewModels:ClassifiedPageViewModel />
+        <viewModels:ClassificationPageViewModel />
     </Design.DataContext>
 
     <Grid>

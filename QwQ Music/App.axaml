@@ -45,7 +45,6 @@
         <conver:AlbumImageConverter x:Key="AlbumImageConverter" />
         <conver:TruncateDecimalConverter x:Key="TruncateDecimalConverter" />
         <conver:SecondsToStringConverter x:Key="SecondsToStringConverter" />
-        <conver:StringToSecondsConverter x:Key="StringToSecondsConverter" />
         <conver:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
 
         <FontFamily x:Key="VivoSans">/Assets/Fonts#VivoSans</FontFamily>
