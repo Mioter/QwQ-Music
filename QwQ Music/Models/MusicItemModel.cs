@@ -103,7 +103,7 @@ public partial class MusicItemModel(
     [ObservableProperty] private string? _remarks;
 
     public readonly Lazy<MusicTagExtensions> Extensions = new(
-        () => MusicExtractor.ExtractMusicInfoExtensionsAsync(filePath).ConfigureAwait(false).GetAwaiter().GetResult());
+        () => MusicExtractor.ExtractMusicInfoExtensions(filePath));
 
     public MusicTagExtensions ExtensionsProperty => Extensions.Value;
 

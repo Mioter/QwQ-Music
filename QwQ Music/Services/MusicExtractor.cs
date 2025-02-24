@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Logging;
 using Avalonia.Media.Imaging;
 using QwQ_Music.Models;
+using QwQ_Music.Utilities;
 using TagLib;
 using File = System.IO.File;
 
@@ -27,14 +30,15 @@ public static class MusicExtractor {
 
         try {
             await Task.Run(
-                async () => {
-                    await using var fs = new FileStream(
-                        PlayerConfig.CoverSavePath,
-                        FileMode.Create,
-                        FileAccess.Write,
-                        FileShare.None);
-                    cover.Value.Save(fs);
-                }).ConfigureAwait(false);
+                    async () => {
+                        await using var fs = new FileStream(
+                            PlayerConfig.CoverSavePath,
+                            FileMode.Create,
+                            FileAccess.Write,
+                            FileShare.None);
+                        cover.Value.Save(fs);
+                    })
+                .ConfigureAwait(false);
             return true;
         } catch (Exception ex) {
             LoggerService.Error(
@@ -52,19 +56,34 @@ public static class MusicExtractor {
     public static async Task<MusicTagExtensions> ExtractMusicInfoExtensionsAsync(string filePath) {
         return await Task.Run(
             () => {
-                using var file = TagLib.File.Create(filePath, ReadStyle.PictureLazy);
+                using var file = TagLib.File.Create(filePath);
                 var tag = file.Tag;
                 var properties = file.Properties;
-                string genre = string.Join(", ", tag.Genres);
-                uint year = tag.Year;
-                string[] composers = tag.Composers;
-                string copyright = tag.Copyright;
-                uint disc = tag.Disc;
-                uint track = tag.Track;
-                int samplingRate = properties.AudioSampleRate;
-                int bitrate = properties.AudioBitrate;
-                return new MusicTagExtensions(genre, year, composers, copyright, disc, track, samplingRate, bitrate);
+                return new MusicTagExtensions(
+                    string.Join(", ", tag.Genres),
+                    tag.Year,
+                    tag.Composers,
+                    tag.Copyright,
+                    tag.Disc,
+                    tag.Track,
+                    properties.AudioSampleRate,
+                    properties.AudioBitrate);
             });
+    }
+
+    public static MusicTagExtensions ExtractMusicInfoExtensions(string filePath) {
+        using var file = TagLib.File.Create(filePath);
+        var tag = file.Tag;
+        var properties = file.Properties;
+        return new MusicTagExtensions(
+            string.Join(", ", tag.Genres),
+            tag.Year,
+            tag.Composers,
+            tag.Copyright,
+            tag.Disc,
+            tag.Track,
+            properties.AudioSampleRate,
+            properties.AudioBitrate);
     }
 
     /// <summary>
@@ -74,7 +93,7 @@ public static class MusicExtractor {
     /// <returns>包含音乐信息的模型。</returns>
     public static async Task<MusicItemModel?> ExtractMusicInfoAsync(string filePath) {
         try {
-            using var file = TagLib.File.Create(filePath, ReadStyle.PictureLazy);
+            using var file = TagLib.File.Create(filePath);
             var tag = file.Tag;
             var properties = file.Properties;
             long fileSizeBytes = new FileInfo(filePath).Length;
@@ -88,16 +107,14 @@ public static class MusicExtractor {
             double gain = tag.ReplayGainTrackGain;
             string lyrics = tag.Lyrics;
             string allArtists = string.Join(",", artists);
-            string fileNameBase = CleanFileName(
+            string coverFileName = CleanFileName(
                 $"{(allArtists.Length > 20 ? allArtists[..20] : allArtists)}-{(album.Length > 20 ? album[..20] : album)
-                }");
-            string coverFileName = fileNameBase + ".jpg";
+                }.jpg");
 
             await SaveCoverAsync(
                     new Lazy<Bitmap>(new Bitmap(new MemoryStream(tag.Pictures[0].Data.Data))),
                     coverFileName)
                 .ConfigureAwait(false);
-
             return new MusicItemModel(
                 title,
                 artists,
@@ -127,6 +144,7 @@ public static class MusicExtractor {
             return cachedImage;
         }
 
+        if (!File.Exists(coverPath)) return null;
         using var stream = new FileStream(coverPath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
         try {

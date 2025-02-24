@@ -18,21 +18,28 @@ public static class ConfigIO {
     #region StaticConfig JsonReadWrite
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new() { WriteIndented = true };
-    private static readonly string ConfigDefaultPath = Path.Join(Directory.GetCurrentDirectory(), "config");
+
+    private static readonly string ConfigDefaultPath =
+        EnsureExists.Path(Path.Combine(Directory.GetCurrentDirectory(), "config"));
 
 
     /// <summary>
     /// 异步从 JSON 文件加载数据。
     /// </summary>
     public static async Task<bool> LoadFromJsonAsync<TConfig>(string? configPath = null) where TConfig : IConfigBase {
-        if (!File.Exists(TConfig.FileName)) {
-            Log.Error($"Config file {configPath ?? ConfigDefaultPath}/{TConfig.FileName}.QwQConf not found");
+        if (!File.Exists(configPath??ConfigDefaultPath)) {
+            Log.Error(
+                $"Config file {Path.Combine(configPath ?? ConfigDefaultPath, TConfig.FileName + ".QwQConf")
+                } not found");
+
+            EnsureExists.File(Path.Combine(configPath ?? ConfigDefaultPath, TConfig.FileName + ".QwQConf"));
+            TConfig.Parse(null);
             return false;
         }
 
         try {
             await using var fileStream = new FileStream(
-                Path.Join(configPath ?? ConfigDefaultPath, $"{TConfig.FileName}.QwQConf"),
+                Path.Combine(configPath ?? ConfigDefaultPath, TConfig.FileName + ".QwQConf"),
                 FileMode.Open,
                 FileAccess.Read,
                 FileShare.Read);
@@ -47,15 +54,18 @@ public static class ConfigIO {
     /// 同步从 JSON 文件加载数据。
     /// </summary>
     public static bool LoadFromJson<TConfig>(string? configPath = null) where TConfig : IConfigBase {
-        if (!File.Exists(Path.Join(configPath ?? ConfigDefaultPath, $"{TConfig.FileName}.QwQConf"))) {
+        if (!File.Exists(Path.Combine(configPath ?? ConfigDefaultPath, TConfig.FileName + ".QwQConf"))) {
             Log.Error(
-                $"Config file {Path.Join(configPath ?? ConfigDefaultPath, $"{TConfig.FileName}.QwQConf")} not found");
+                $"Config file {Path.Combine(configPath ?? ConfigDefaultPath, TConfig.FileName + ".QwQConf")
+                } not found");
+            EnsureExists.File(Path.Combine(configPath ?? ConfigDefaultPath, TConfig.FileName + ".QwQConf"));
+            TConfig.Parse(null);
             return false;
         }
 
         try {
             using var fileStream = new FileStream(
-                Path.Join(configPath ?? ConfigDefaultPath, $"{TConfig.FileName}.QwQConf"),
+                Path.Combine(configPath ?? ConfigDefaultPath, TConfig.FileName + ".QwQConf"),
                 FileMode.Open,
                 FileAccess.Read,
                 FileShare.Read);
@@ -73,7 +83,7 @@ public static class ConfigIO {
         try {
             await new StreamWriter(
                     new FileStream(
-                        Path.Join(configPath ?? ConfigDefaultPath, $"{TConfig.FileName}.QwQConf"),
+                        Path.Combine(configPath ?? ConfigDefaultPath, TConfig.FileName + ".QwQConf"),
                         FileMode.Create,
                         FileAccess.Write,
                         FileShare.Read)).WriteAsync(TConfig.Dump().ToJsonString(JsonSerializerOptions))
@@ -92,7 +102,7 @@ public static class ConfigIO {
         try {
             new StreamWriter(
                 new FileStream(
-                    Path.Join(configPath ?? ConfigDefaultPath, $"{TConfig.FileName}.QwQConf"),
+                    Path.Combine(configPath ?? ConfigDefaultPath, TConfig.FileName + ".QwQConf"),
                     FileMode.Create,
                     FileAccess.Write,
                     FileShare.Read)).Write(TConfig.Dump().ToJsonString(JsonSerializerOptions));
@@ -139,7 +149,7 @@ public static class ConfigIO {
 
     // ReSharper disable once InconsistentNaming
     private static readonly SqliteConnection Database = new(
-        "data source=" + MainConfig.DatabaseSavePath + ";Version=3;Foreign Keys=True;");
+        "data source=" + MainConfig.DatabaseSavePath + ";Foreign Keys=True;");
 
     private static SqliteCommand Command {
         get {

@@ -177,7 +177,7 @@ public partial class MusicPlayerViewModel : ViewModelBase {
     }
 
     private async Task LoadSoundEffectConfigAsync() {
-        SoundEffectConfigModel = ConfigInfoModel.SoundEffectConfig ?? new SoundEffectConfigModel();
+        SoundEffectConfigModel = new SoundEffectConfigModel();//ConfigInfoModel.SoundEffectConfig ?? 
         SoundEffectConfigModel.SetAudioPlay(_audioPlay);
         SoundEffectConfigModel.UpdateAllEffectsConfig();
     }
@@ -205,7 +205,7 @@ public partial class MusicPlayerViewModel : ViewModelBase {
         }
 
         CurrentMusicItemChanged?.Invoke(this, musicItem);
-        AudioPlay.SetAudioTrack(musicItem.FilePath, CurrentDurationInSeconds, musicItem.Gain);
+        _audioPlay.SetAudioTrack(musicItem.FilePath, CurrentDurationInSeconds, musicItem.Gain);
     }
 
     private int GetNextIndex(int current) { return (current + 1) % Playlist.Count; }

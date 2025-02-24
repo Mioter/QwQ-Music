@@ -19,9 +19,9 @@ public abstract class PlayerConfig : IConfigBase {
     public static bool IsError { get; private set; }
     public static int Volume;
     public static bool IsMuted;
-    public static string ConfigSavePath = Path.Combine(Directory.GetCurrentDirectory(), "config");
-    public static string CoverSavePath = Path.Combine(Directory.GetCurrentDirectory(), "cache", "cover");
-    public static string LyricsSavePath = Path.Combine(Directory.GetCurrentDirectory(), "cache", "lyrics");
+    public static string ConfigSavePath = EnsureExists.Path(Path.Combine(Directory.GetCurrentDirectory(), "config"));
+    public static string CoverSavePath = EnsureExists.Path(Path.Combine(Directory.GetCurrentDirectory(), "cache", "cover"));
+    public static string LyricsSavePath = EnsureExists.Path(Path.Combine(Directory.GetCurrentDirectory(), "cache", "lyrics"));
     public static ulong FadeInTime = 1000;
     public static ulong FadeOutTime = 1000;
     public static string LatestPlayListName = "";
@@ -45,7 +45,7 @@ public abstract class PlayerConfig : IConfigBase {
                   ConfigIO.TryParse(config, nameof(FadeInTime), ref FadeInTime) |
                   ConfigIO.TryParse(config, nameof(FadeOutTime), ref FadeOutTime) |
                   ConfigIO.TryParse(config, nameof(LatestPlayListName), ref LatestPlayListName);
-        
+
         IsInitialized = true;
         return !IsError;
     }
@@ -71,7 +71,8 @@ public abstract class MainConfig : IConfigBase {
 
     public static string? Skin;
     public static bool FollowSystemTheme;
-    public static string DatabaseSavePath = Path.Combine(Directory.GetCurrentDirectory(), "data.db");
+
+    public static string DatabaseSavePath = Path.Combine(Directory.GetCurrentDirectory(), "config", "data.db");
 
     public static async Task<bool> Load() => await ConfigIO.LoadFromJsonAsync<MainConfig>().ConfigureAwait(false);
 
@@ -187,5 +188,5 @@ public interface IModelBase<out TConfig> where TConfig : IModelBase<TConfig> {
     bool IsInitialized { get; }
     bool IsError { get; }
     static abstract TConfig Parse(in SqliteDataReader config);
-    Dictionary<string,string> Dump();
+    Dictionary<string, string> Dump();
 }

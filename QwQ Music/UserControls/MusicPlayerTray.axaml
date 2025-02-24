@@ -207,7 +207,7 @@
                 <Slider Grid.Row="1"
                         Grid.Column="0"
                         Margin="20,0"
-                        Maximum="{Binding MusicPlayerViewModel.CurrentMusicItem.DurationProperty,Converter={StaticResource StringToSecondsConverter}}"
+                        Maximum="{Binding MusicPlayerViewModel.CurrentMusicItem.DurationProperty}"
                         Value="{Binding MusicPlayerViewModel.CurrentDurationInSeconds}" />
 
                 <!-- 播放时长 / 总时长 -->

@@ -10,7 +10,11 @@ namespace QwQ_Music.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    
+    public static string MusicName => Lang[nameof(MusicName)];
+    public static string ClassificationName => Lang[nameof(ClassificationName)];
+    public static string StatisticsName => Lang[nameof(StatisticsName)];
+    public static string SettingsName => Lang[nameof(SettingsName)];
+ 
     [ObservableProperty] private bool _isMusicPlayerTrayVisible = true;
 
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsBackgroundLayerVisible))]

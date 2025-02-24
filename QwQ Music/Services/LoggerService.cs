@@ -5,11 +5,14 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Services;
 
 public static class LoggerService {
-    public static readonly string SavePath = Environment.CurrentDirectory + "Logs";
+    public static readonly string SavePath = EnsureExists.Path(Path.Combine(Environment.CurrentDirectory , "log"));
+
+
     public static bool IsKeepOpen = false;
 
     public enum LogLevel {
@@ -27,7 +30,7 @@ public static class LoggerService {
     private static FileStream? _fileStream;
 
     private static DateTime _currentDay = DateTime.Today;
-    private static readonly string LogFile = $"{SavePath}/{_currentDay:MM-DD}.QwQLog";
+    private static readonly string LogFile = $"{SavePath}/{_currentDay:MM-dd}.QwQLog";
 
     private static FileStream LogStream =>
         _fileStream ??= File.Exists(LogFile) ?
