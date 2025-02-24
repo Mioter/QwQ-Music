@@ -141,6 +141,8 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable
         }
         return allFilePaths;
     }
+    
+    ~MusicPageViewModel() => Dispose(false);
 
     protected virtual void Dispose(bool disposing)
     {

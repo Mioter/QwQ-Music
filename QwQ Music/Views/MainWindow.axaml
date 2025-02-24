@@ -10,6 +10,8 @@
     WindowState="{Binding MainWindowState ,Mode=OneWayToSource}"
     xmlns:userControls="clr-namespace:QwQ_Music.UserControls"
     xmlns:behaviors="clr-namespace:QwQ_Music.Behaviors"
+    xmlns:customControls="clr-namespace:QwQ_Music.CustomControls"
+    xmlns:pages="clr-namespace:QwQ_Music.Pages"
     x:DataType="viewModels:MainWindowViewModel"
     ExtendClientAreaTitleBarHeightHint="40"
     ExtendClientAreaToDecorationsHint="True">
@@ -99,8 +101,8 @@
                 </ToggleButton>
 
                 <u:SelectionList Grid.Row="1"
-                                 Loaded="SelectionList_Loaded"
-                                 SelectedItem="{Binding NavigationSelectedItem}">
+                                 Name="MainNavBarSelectionList"
+                                 SelectedIndex="0">
 
                     <u:SelectionList.Indicator>
                         <Border Classes.Expanded="{Binding IsNavigationExpand}"
@@ -170,15 +172,19 @@
                 </u:SelectionList>
             </Grid>
 
-            <TransitioningContentControl Grid.Column="1" Content="{Binding PageContent}">
-                <TransitioningContentControl.PageTransition>
+            <customControls:IndexControl Grid.Column="1" Index="{Binding #MainNavBarSelectionList.SelectedIndex}">
+                <customControls:IndexControl.PageTransition>
                     <CompositePageTransition>
                         <CrossFade Duration="0:0:0.5" />
                         <PageSlide Duration="0:0:0.3" Orientation="Vertical" SlideInEasing="QuadraticEaseIn"
                                    SlideOutEasing="QuadraticEaseOut" />
                     </CompositePageTransition>
-                </TransitioningContentControl.PageTransition>
-            </TransitioningContentControl>
+                </customControls:IndexControl.PageTransition>
+                
+                <pages:MusicPage/>
+                <pages:ClassifiedPage/>
+                <pages:StatisticsPage/>
+            </customControls:IndexControl>
 
         </Grid>
 

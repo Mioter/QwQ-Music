@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using QwQ_Music.Amusing;
+using QwQ_Music.ViewModels;
 
 namespace QwQ_Music.Pages;
 
@@ -9,6 +10,7 @@ public partial class StatisticsPage : UserControl
     public StatisticsPage()
     {
         InitializeComponent();
+        DataContext = new StatisticsPageViewModel();
     }
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
