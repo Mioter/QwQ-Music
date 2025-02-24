@@ -42,14 +42,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Update="UserControl\MusicPlayerTray.axaml.cs">
-            <DependentUpon>MusicPlayerTray.axaml</DependentUpon>
-            <SubType>Code</SubType>
-        </Compile>
-        <Compile Update="Views\DesktopLyricsWindow.axaml.cs">
-          <DependentUpon>DesktopLyric.axaml</DependentUpon>
-          <SubType>Code</SubType>
-        <TargetFramework>net9.0</TargetFramework>
         <PackageReference Include="Avalonia" Version="11.2.4" />
         <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.4" />
         <PackageReference Include="Avalonia.Desktop" Version="11.2.4" />
@@ -58,7 +50,13 @@
         <PackageReference Include="Irihi.Ursa" Version="1.8.1" />
         <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.8.1" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.2" />
+        <Compile Update="UserControl\MusicPlayerTray.axaml.cs">
+            <DependentUpon>MusicPlayerTray.axaml</DependentUpon>
             <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Views\DesktopLyricsWindow.axaml.cs">
+          <DependentUpon>DesktopLyric.axaml</DependentUpon>
+          <SubType>Code</SubType>
         </Compile>
         <Compile Update="Views\DesktopLyricsWindow.axaml.cs">
           <DependentUpon>DesktopLyric.axaml</DependentUpon>
