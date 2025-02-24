@@ -206,7 +206,6 @@
                                     <TextBlock Classes="Tertiary" FontSize="12"
                                                Text="{Binding Current,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter},StringFormat='已播放到 : {0}'}" />
                                 </StackPanel>
-                            </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

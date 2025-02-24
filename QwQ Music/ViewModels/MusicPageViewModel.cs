@@ -19,9 +19,8 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable {
     [ObservableProperty] private string? _searchText;
 
     [ObservableProperty] private MusicItemModel? _selectedItem;
-    
-    public MusicPageViewModel()
-    {
+
+    public MusicPageViewModel() {
         AllMusicItems = MusicPlayerViewModel.MusicItems;
         MusicPlayerViewModel.MusicItemsChanged += OnMusicPlayerViewModelOnMusicItemsChanged;
     }
@@ -32,20 +31,13 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
-    
-    private void OnMusicPlayerViewModelOnMusicItemsChanged(object? _, ObservableCollection<MusicItemModel> musicItems)
-    {
+
+    private void OnMusicPlayerViewModelOnMusicItemsChanged(object? _, ObservableCollection<MusicItemModel> musicItems) {
         AllMusicItems = musicItems;
     }
 
-    partial void OnSearchTextChanged(string? value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            AllMusicItems = MusicPlayerViewModel.MusicItems;
-        }
-        else
-        {
+    partial void OnSearchTextChanged(string? value) {
+        if (string.IsNullOrEmpty(value)) { AllMusicItems = MusicPlayerViewModel.MusicItems; } else {
             // 使用 Where 进行过滤，并将结果转换为 ObservableCollection。
             AllMusicItems = new ObservableCollection<MusicItemModel>(
                 MusicPlayerViewModel.MusicItems.Where(
@@ -113,13 +105,10 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable {
 
         return allFilePaths;
     }
-    
+
     ~MusicPageViewModel() => Dispose(false);
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            MusicPlayerViewModel.MusicItemsChanged -= OnMusicPlayerViewModelOnMusicItemsChanged;
+    protected virtual void Dispose(bool disposing) {
+        if (disposing) { MusicPlayerViewModel.MusicItemsChanged -= OnMusicPlayerViewModelOnMusicItemsChanged; }
     }
 }

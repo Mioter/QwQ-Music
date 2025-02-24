@@ -186,7 +186,7 @@
                 </customControls:IndexControl.PageTransition>
                 
                 <pages:MusicPage/>
-                <pages:ClassifiedPage/>
+                <pages:ClassificationPage/>
                 <pages:StatisticsPage/>
             </customControls:IndexControl>
 

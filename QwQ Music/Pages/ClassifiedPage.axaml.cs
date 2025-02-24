@@ -8,6 +8,6 @@ public partial class ClassificationPage : UserControl
     public ClassificationPage()
     {
         InitializeComponent();
-        DataContext = new ClassifiedPageViewModel();
+        DataContext = new ClassificationPageViewModel();
     }
 }
