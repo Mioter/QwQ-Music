@@ -11,6 +11,7 @@
 
 <br>
 如果你看不到，可能需要更好的网络~  
+<br><br>
 
 ![主界面](https://github.com/Mioter/QwQ.Docs/blob/Mioter/QwQ-Music/UI%E5%B1%95%E7%A4%BA1.png "这是主界面")
 
