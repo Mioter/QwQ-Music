@@ -1,16 +1,24 @@
 # <div align='center'> QwQ Music </div>
 
-## 🎐 也许是介绍
+## 🎐 这是个什么
+
+### 🍀 也许是介绍
+<br>
+这是一款简单的本地音乐播放器，具有较高的性能占用，勉强能看的界面，不算反人类的交互设计...的特点
+<br><br>
+
+### 🎏 好吧是展示
 
 <br>
-此项目尚处开发早期解决，仅能完成简单播放任务，且存在大量bug。  
-请勿日常使用！！！
-<br><br>
+如果你看不到，可能需要更好的网络~  
+
+![主界面](https://github.com/Mioter/QwQ.Docs/blob/Mioter/QwQ-Music/UI%E5%B1%95%E7%A4%BA1.png "这是主界面")
 
 ## ✨ 值得注意的
 
 <br>
-没有~
+此项目尚处开发早期阶段，仅能完成简单播放任务，且存在大量bug。<br>
+请勿日常使用！！！
 <br><br>
 
 ## 🎀 听我说谢谢  
@@ -35,7 +43,9 @@
 
 🔺 好用的界面 [Avalonia](https://avaloniaui.net/) 
 <br><br>
-🔺 好看的主题 [Semi](https://github.com/irihitech/Semi.Avalonia "兔基吧什么的...最好吃了！") 
+🔺 好看的主题 [Semi](https://github.com/irihitech/Semi.Avalonia) 
 <br><br>
 🔺 好用的控件 [Ursa](https://github.com/irihitech/Ursa.Avalonia)
+<br><br>
+🔺 好壮的兔基 [Dong Bin](https://github.com/rabbitism "兔基吧什么的...最好吃了！")
 <br><br>
