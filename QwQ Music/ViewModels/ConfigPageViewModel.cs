@@ -1,6 +1,6 @@
 ﻿namespace QwQ_Music.ViewModels;
 
-using static QwQ_Music.Models.LanguageModel;
+using static Models.LanguageModel;
 
 public partial class ConfigPageViewModel : ViewModelBase
 {

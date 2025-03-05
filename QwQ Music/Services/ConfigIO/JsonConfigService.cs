@@ -35,7 +35,7 @@ namespace QwQ_Music.Services.ConfigIO;
 public static class JsonConfigService
 {
     // 静态配置项
-    public static string SavePath { get; set; } = Directory.GetCurrentDirectory();
+    public static string SavePath { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "config");
     public static string FileExtension { get; set; } = ".json";
 
     /// <summary>
@@ -165,6 +165,6 @@ public static class JsonConfigService
     /// </summary>
     private static string GetFullPath(string fileName)
     {
-        return Path.Combine(SavePath, "config", $"{fileName}{FileExtension}");
+        return Path.Combine(SavePath, $"{fileName}{FileExtension}");
     }
 }
