@@ -6,124 +6,144 @@ using Microsoft.CodeAnalysis.Text;
 namespace QwQ.Generators;
 
 [Generator]
-#pragma warning disable RS1036
 public class JsonSerializerContextGenerator : IIncrementalGenerator
-#pragma warning restore RS1036
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // 注册一个语法接收器，用于收集所有类声明
+        // 添加生成器初始化标记 <button class="citation-flag" data-index="5">
+        context.RegisterPostInitializationOutput(ctx => 
+            ctx.AddSource("GeneratorDebugInfo.g.cs", "// Generator Initialized"));
+
         var classDeclarations = context.SyntaxProvider
             .CreateSyntaxProvider(
-                static (node, _) => node is ClassDeclarationSyntax, // 筛选类声明
-                static (context, _) => context.Node as ClassDeclarationSyntax) // 提取类声明
-            .Where(static syntax => syntax != null); // 过滤掉空值
+                static (node, _) => node is ClassDeclarationSyntax,
+                static (ctx, _) => (ClassDeclarationSyntax)ctx.Node)
+            .Where(static syntax => syntax != null);
 
-        // 合并语法树与编译上下文
         var compilationAndClasses = context.CompilationProvider.Combine(classDeclarations.Collect());
 
-        // 注册执行逻辑
         context.RegisterSourceOutput(compilationAndClasses, static (spc, source) =>
         {
-            var (compilation, classes) = source;
-
-            // 获取关键符号
-            var jsonOptionsAttributeSymbol = compilation.GetTypeByMetadataName(
-                "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute");
-
-            var jsonSerializableAttributeSymbol = compilation.GetTypeByMetadataName(
-                "System.Text.Json.Serialization.JsonSerializableAttribute");
-
-            if (jsonOptionsAttributeSymbol == null || jsonSerializableAttributeSymbol == null)
+            try
             {
-                spc.ReportDiagnostic(Diagnostic.Create(
-                    new DiagnosticDescriptor(
-                        "JSCG001",
-                        "缺少依赖",
-                        "目标项目未引用 System.Text.Json 或版本低于 6.0",
-                        "JsonSerializerContextGenerator",
-                        DiagnosticSeverity.Error,
-                        true),
-                    Location.None));
-                return;
-            }
+                var (compilation, classes) = source;
+                var jsonOptionsAttributeSymbol = compilation.GetTypeByMetadataName(
+                    "System.Text.Json.Serialization.JsonSourceGenerationOptionsAttribute");
+                var jsonSerializableAttributeSymbol = compilation.GetTypeByMetadataName(
+                    "System.Text.Json.Serialization.JsonSerializableAttribute");
 
-            var typesToGenerate = new List<(INamedTypeSymbol Type, string OptionsCode)>();
-
-            foreach (var classDecl in classes)
-            {
-                if (classDecl != null)
+                // 验证依赖和版本 <button class="citation-flag" data-index="1"><button class="citation-flag" data-index="8">
+                var jsonAssembly = compilation.ReferencedAssemblyNames
+                    .FirstOrDefault(a => a.Name == "System.Text.Json");
+                if (jsonOptionsAttributeSymbol == null || jsonSerializableAttributeSymbol == null || 
+                    jsonAssembly?.Version < new Version(6, 0, 0))
                 {
+                    spc.ReportDiagnostic(Diagnostic.Create(
+                        new DiagnosticDescriptor("JSCG001", "Missing Dependency",
+                            "System.Text.Json >= 6.0 is required", "Generator",
+                            DiagnosticSeverity.Error, true),
+                        Location.None));
+                    return;
+                }
+
+                var typesToGenerate = new List<(INamedTypeSymbol Type, string OptionsCode)>();
+
+                foreach (var classDecl in classes)
+                {
+                    if (classDecl is null) continue;
+
                     var semanticModel = compilation.GetSemanticModel(classDecl.SyntaxTree);
                     if (semanticModel.GetDeclaredSymbol(classDecl) is not INamedTypeSymbol typeSymbol) continue;
+                    
                     var generateAttribute = typeSymbol.GetAttributes()
                         .FirstOrDefault(attr => attr.AttributeClass?.Name == "GenerateJsonSerializerContextAttribute");
 
-                    if (generateAttribute == null) continue;
+                    if (generateAttribute is null) continue;
 
-                    // 解析选项参数
-                    string optionsCode = "WriteIndented = true"; // 默认值
-                    foreach (var arg in generateAttribute.NamedArguments)
+                    string optionsCode = "WriteIndented = true";
+                    // 处理构造函数参数 <button class="citation-flag" data-index="4">
+                    foreach (var ctorArg in generateAttribute.ConstructorArguments)
                     {
-                        if (arg is { Key: "Options", Value.Value: AttributeData optionsAttr })
+                        if (ctorArg.Type?.Equals(jsonOptionsAttributeSymbol, SymbolEqualityComparer.Default) == true &&
+                            ctorArg.Value is AttributeData ctorOptions)
                         {
-                            optionsCode = ParseOptionsAttribute(optionsAttr);
+                            optionsCode = ParseOptions(ctorOptions);
                         }
                     }
 
-                    foreach (var ctorArg in generateAttribute.ConstructorArguments.Where(ctorArg => ctorArg.Type != null && ctorArg.Type.Equals(jsonOptionsAttributeSymbol, SymbolEqualityComparer.Default)))
+                    // 处理命名参数 <button class="citation-flag" data-index="3">
+                    foreach (var arg in generateAttribute.NamedArguments)
                     {
-                        optionsCode = ParseOptionsAttribute(ctorArg.Value as AttributeData);
+                        if (arg is { Key: "Options", Value.Value: AttributeData namedOptions })
+                        {
+                            optionsCode = ParseOptions(namedOptions);
+                        }
                     }
 
                     typesToGenerate.Add((typeSymbol, optionsCode));
                 }
 
-            }
+                if (!typesToGenerate.Any()) return;
 
-            if (!typesToGenerate.Any()) return;
-            string sourceCode = GenerateJsonSerializerContextClass(typesToGenerate);
-            spc.AddSource("AutoGeneratedJsonSerializerContext.g.cs", SourceText.From(sourceCode, Encoding.UTF8));
+                // 生成最终代码 <button class="citation-flag" data-index="7">
+                string generatedCode = GenerateContextClasses(typesToGenerate);
+                spc.AddSource("GeneratedJsonSerializerContexts.g.cs", SourceText.From(generatedCode, Encoding.UTF8));
+
+                foreach (var type in typesToGenerate)
+                {
+                    spc.ReportDiagnostic(Diagnostic.Create(
+                        new DiagnosticDescriptor("JSCG002", "Code Generated",
+                            $"Generated JsonSerializerContext for {type.Type.Name}", "Generator",
+                            DiagnosticSeverity.Info, true),
+                        Location.None));
+                }
+            }
+            catch (Exception ex)
+            {
+                spc.ReportDiagnostic(Diagnostic.Create(
+                    new DiagnosticDescriptor("JSCG003", "Generator Error",
+                        $"Error generating code: {ex.Message}", "Generator",
+                        DiagnosticSeverity.Error, true),
+                    Location.None));
+            }
         });
     }
 
-    private static string ParseOptionsAttribute(AttributeData? optionsAttr)
+    private static string ParseOptions(AttributeData optionsAttr)
     {
-        if (optionsAttr == null) return "WriteIndented = true";
-
         var sb = new StringBuilder();
-        foreach (var arg in optionsAttr.ConstructorArguments)
+        foreach (var arg in optionsAttr.NamedArguments)
         {
-            sb.Append(arg.Type is { SpecialType: SpecialType.System_Boolean } ? $"{arg.Type.Name} = {arg.Value?.ToString()?.ToLower()}, " : $"{arg.Type?.Name} = {arg.Value}, ");
+            string? value = arg.Value.Value switch
+            {
+                bool b => b.ToString().ToLower(),
+                string s => $"\"{s}\"",
+                Enum e => $"JsonSourceGenerationOptionsAttribute.{e.ToString()}",
+                _ => arg.Value.Value?.ToString(),
+            };
+            sb.Append($"{arg.Key} = {value}, ");
         }
-
-        return sb.ToString().TrimEnd(',', ' ');
+        return sb.ToString().TrimEnd(' ', ',');
     }
 
-    private static string GenerateJsonSerializerContextClass(
-        List<(INamedTypeSymbol Type, string OptionsCode)> types
-        )
+    private static string GenerateContextClasses(List<(INamedTypeSymbol Type, string OptionsCode)> types)
     {
         var sb = new StringBuilder();
         sb.AppendLine("using System.Text.Json.Serialization;");
-        sb.AppendLine("using System.Text.Json.Serialization.Metadata;");
-        sb.AppendLine();
 
-        // 应用全局配置
-        string firstOptions = types.First().OptionsCode;
-        sb.AppendLine($"[JsonSourceGenerationOptions({firstOptions})]");
-
-        // 标记所有需要序列化的类型
-        foreach (var type in types)
+        foreach ((var type, string options) in types)
         {
-            sb.AppendLine($"[JsonSerializable(typeof({type.Type.ToDisplayString()}))]");
-        }
+            // 添加分部类声明 <button class="citation-flag" data-index="4">
+            sb.AppendLine($$"""
 
-        // 生成上下文类
-        sb.AppendLine("internal partial class AutoGeneratedJsonSerializerContext : JsonSerializerContext");
-        sb.AppendLine("{");
-        sb.AppendLine("    // 自动生成的代码");
-        sb.AppendLine("}");
+                            [JsonSourceGenerationOptions({{options}})]
+                            [JsonSerializable(typeof({{type.ToDisplayString()}}))]
+                            internal partial class {{type.Name}}_JsonSerializerContext : JsonSerializerContext
+                            {
+                                // 无需手动实现，由System.Text.Json源生成器填充
+                            }
+                            """);
+        }
 
         return sb.ToString();
     }

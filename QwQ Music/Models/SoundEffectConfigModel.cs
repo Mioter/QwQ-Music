@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using QwQ_Music.Attributes;
 using QwQ_Music.CustomControls;
 using QwQ_Music.Services.Audio.Play;
 
 namespace QwQ_Music.Models;
+
 
 public partial class SoundEffectConfigModel : ObservableObject
 {
@@ -633,3 +636,8 @@ public class EqualizerConfigModel : ObservableObject
         set => SetProperty(ref _gainValue, value);
     }
 }
+
+
+[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(QwQ_Music.Models.SoundEffectConfigModel))]
+internal partial class SoundEffectConfigModelJsonSerializerContext : JsonSerializerContext;

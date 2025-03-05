@@ -19,15 +19,12 @@ namespace QwQ_Music.Services.ConfigIO;
 ///         public int Value { get; set; } = 42;
 ///     }
 ///     </code>
-///     解决源生成器预先生成格式化内容，避免动态查找
+///     源生成器预先生成格式化内容，避免动态查找
 ///     <code>
 ///     // 配置 JsonSourceGenerationOptions
 ///     [JsonSourceGenerationOptions(WriteIndented = true)]
 ///     [JsonSerializable(typeof(MyCustomType))]
-///     internal partial class MyJsonContext : JsonSerializerContext
-///     {
-///         // 自动生成的代码
-///     }
+///     internal partial class MyJsonContext : JsonSerializerContext;
 ///     </code>
 ///     使用示例
 ///     <code>
@@ -92,7 +89,7 @@ public static class JsonConfigService
     /// <summary>
     /// 同步读取方法
     /// </summary>
-    public static T Load<T>(string fileName, JsonSerializerContext jsonSerializerContext)
+    public static T? Load<T>(string fileName, JsonSerializerContext jsonSerializerContext)
     {
         string fullPath = GetFullPath(fileName);
         if (!File.Exists(fullPath))
@@ -106,7 +103,7 @@ public static class JsonConfigService
             // 使用调用者提供的 JsonSerializerContext 进行反序列化
             string json = File.ReadAllText(fullPath);
             var jsonTypeInfo = (JsonTypeInfo<T>)jsonSerializerContext.GetTypeInfo(typeof(T))!;
-            return JsonSerializer.Deserialize(json, jsonTypeInfo)!;
+            return JsonSerializer.Deserialize(json, jsonTypeInfo);
         }
         catch (Exception ex)
         {
@@ -118,7 +115,7 @@ public static class JsonConfigService
     /// <summary>
     /// 异步读取方法
     /// </summary>
-    public async static Task<T> LoadAsync<T>(string fileName, JsonSerializerContext jsonSerializerContext)
+    public async static Task<T?> LoadAsync<T>(string fileName, JsonSerializerContext jsonSerializerContext)
     {
         string fullPath = GetFullPath(fileName);
         if (!File.Exists(fullPath))
@@ -132,7 +129,7 @@ public static class JsonConfigService
             // 使用调用者提供的 JsonSerializerContext 进行反序列化
             string json = await File.ReadAllTextAsync(fullPath);
             var jsonTypeInfo = (JsonTypeInfo<T>)jsonSerializerContext.GetTypeInfo(typeof(T))!;
-            return JsonSerializer.Deserialize(json, jsonTypeInfo)!;
+            return JsonSerializer.Deserialize(json, jsonTypeInfo);
         }
         catch (Exception ex)
         {
@@ -168,6 +165,6 @@ public static class JsonConfigService
     /// </summary>
     private static string GetFullPath(string fileName)
     {
-        return Path.Combine(SavePath, $"{fileName}{FileExtension}");
+        return Path.Combine(SavePath, "config", $"{fileName}{FileExtension}");
     }
 }

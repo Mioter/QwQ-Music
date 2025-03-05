@@ -1,6 +1,5 @@
 <userControls:MusicAlbumButton xmlns="https://github.com/avaloniaui"
                                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                               xmlns:customControls="clr-namespace:QwQ_Music.CustomControls"
                                xmlns:models="clr-namespace:QwQ_Music.Models"
                                xmlns:userControls="clr-namespace:QwQ_Music.UserControls"
                                xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"

@@ -10,7 +10,6 @@
     WindowState="{Binding MainWindowState ,Mode=OneWayToSource}"
     xmlns:userControls="clr-namespace:QwQ_Music.UserControls"
     xmlns:behaviors="clr-namespace:QwQ_Music.Behaviors"
-    xmlns:customControls="clr-namespace:QwQ_Music.CustomControls"
     xmlns:pages="clr-namespace:QwQ_Music.Pages"
     xmlns:converter="clr-namespace:QwQ_Music.Converter"
     xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"

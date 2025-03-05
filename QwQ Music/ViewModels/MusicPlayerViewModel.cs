@@ -72,6 +72,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         if (!PlayerConfig.IsInitialized)
             JsonService.LoadFromJsonAsync<PlayerConfig>().ConfigureAwait(false);
         InitializeMusicItemAsync().ConfigureAwait(false);
+
+        LoadSoundEffectConfigAsync().ConfigureAwait(false);
     }
 
     private async Task InitializeMusicItemAsync()
@@ -247,12 +249,16 @@ public partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
-    private Task LoadSoundEffectConfigAsync()
+    private async Task LoadSoundEffectConfigAsync()
     {
-        SoundEffectConfigModel = new SoundEffectConfigModel(); //ConfigInfoModel.SoundEffectConfig ??
+        SoundEffectConfigModel = await JsonConfigService.LoadAsync<SoundEffectConfigModel>("SoundEffectConfig", SoundEffectConfigModelJsonSerializerContext.Default) ?? new SoundEffectConfigModel();
         SoundEffectConfigModel.SetAudioPlay(_audioPlay);
         SoundEffectConfigModel.UpdateAllEffectsConfig();
-        return Task.CompletedTask;
+    }
+
+    private void SaveSoundEffectConfig()
+    {
+        JsonConfigService.SaveAsync(SoundEffectConfigModel, "SoundEffectConfig",SoundEffectConfigModelJsonSerializerContext.Default).ConfigureAwait(false);
     }
 
     private static void SaveMusicInfo(ObservableCollection<MusicItemModel> musicItems)
@@ -268,6 +274,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _audioPlay.PositionChanged -= OnPositionChanged;
 
         SaveMusicInfo(MusicItems);
+        SaveSoundEffectConfig();
     }
 
     public void SetCurrentMusicItem(MusicItemModel musicItem, bool restart = false)

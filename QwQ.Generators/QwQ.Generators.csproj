@@ -8,6 +8,10 @@
         <LangVersion>latest</LangVersion>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <RootNamespace>QwQ.Generators</RootNamespace>
+
+        <IncludeCompilerGeneratedFiles>true</IncludeCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>$(IntermediateOutputPath)\generated</CompilerGeneratedFilesOutputPath>
+
     </PropertyGroup>
 
     <ItemGroup>

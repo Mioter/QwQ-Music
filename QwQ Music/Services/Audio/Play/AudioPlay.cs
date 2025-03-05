@@ -141,12 +141,12 @@ public class AudioPlay : IDisposable
         _effectChain = new AudioEffectChain(offsetProvider);
 
         // 添加默认效果器
-        // AddDefaultEffects(replayGain); // 暂时禁用
+        AddDefaultEffects(replayGain);
 
         // 初始化播放器
         _waveOutEvent = new WaveOutEvent
         {
-            DesiredLatency = 50, // 设置较低的延迟以提高响应速度
+            DesiredLatency = 100, // 设置较低的延迟以提高响应速度
         };
         _waveOutEvent.PlaybackStopped += OnPlaybackStopped;
         _waveOutEvent.Init(_effectChain.GetOutput());
