@@ -9,14 +9,17 @@ namespace QwQ_Music.ViewModels;
 
 public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
 {
+    [ObservableProperty]
+    private double _albumCoverCurrentAngle;
 
-    [ObservableProperty] private double _albumCoverCurrentAngle;
+    [ObservableProperty]
+    private double _albumCoverRecordAngle;
 
-    [ObservableProperty] private double _albumCoverRecordAngle;
+    [ObservableProperty]
+    private double _playButtonAngle;
 
-    [ObservableProperty] private double _playButtonAngle;
-
-    [ObservableProperty] private Thickness _playButtonPadding;
+    [ObservableProperty]
+    private Thickness _playButtonPadding;
 
     public MusicPlayerTrayViewModel()
     {
@@ -25,7 +28,8 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
     }
 
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
-    
+
+    ~MusicPlayerTrayViewModel() => Dispose(false);
 
     public void Dispose()
     {
@@ -33,11 +37,11 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
         GC.SuppressFinalize(this);
     }
 
-
     [RelayCommand]
     private void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs? e)
     {
-        if (e == null) return;
+        if (e == null)
+            return;
         // 阻止事件冒泡到父级元素
         e.Handled = true;
 
@@ -53,10 +57,10 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
         }
     }
 
-
     private void MusicPlayerViewModelOnPlaybackStateChanged(object? sender, bool e)
     {
-        if (!e) AlbumCoverRecordAngle = AlbumCoverCurrentAngle;
+        if (!e)
+            AlbumCoverRecordAngle = AlbumCoverCurrentAngle;
     }
 
     private void AudioPlayOnTrackIndexChanged(object? sender, MusicItemModel musicItemModel)
@@ -64,9 +68,10 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
         AlbumCoverRecordAngle = 0;
     }
 
-    public void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
-        if (!disposing) return;
+        if (!disposing)
+            return;
 
         MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
         MusicPlayerViewModel.CurrentMusicItemChanged -= AudioPlayOnTrackIndexChanged;

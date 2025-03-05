@@ -1,7 +1,8 @@
 using System;
 using System.Threading;
+using QwQ_Music.Services.Audio.Effect.Base;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
 /// 压缩器效果器

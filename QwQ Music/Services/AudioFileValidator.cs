@@ -24,7 +24,6 @@ public static class AudioFileValidator
         ".opus",
     };
 
-
     public static bool IsAudioFile(string filePath)
     {
         if (!File.Exists(filePath) || !SupportedExtensions.Contains(Path.GetExtension(filePath)))
@@ -61,8 +60,6 @@ public static class AudioFileValidator
 
     public static List<string>? FilterAudioFiles(List<string>? items)
     {
-        return items?
-            .Where(IsAudioFile)
-            .ToList();
+        return items?.Where(IsAudioFile).ToList();
     }
 }

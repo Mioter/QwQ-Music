@@ -7,7 +7,6 @@ namespace QwQ_Music.Converter;
 
 public class InstanceEqualityMultiConverter : IMultiValueConverter
 {
-
     public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
         if (values.Count != 2 || values[0] == null || values[1] == null)

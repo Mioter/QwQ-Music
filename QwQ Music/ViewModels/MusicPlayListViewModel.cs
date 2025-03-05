@@ -6,18 +6,18 @@ namespace QwQ_Music.ViewModels;
 
 public partial class MusicPlayListViewModel : ViewModelBase
 {
-
-    [ObservableProperty] private MusicItemModel? _selectedItem;
+    [ObservableProperty]
+    private MusicItemModel? _selectedItem;
     public MusicPlayerViewModel MusicPlayerViewModel => MusicPlayerViewModel.Instance;
 
     [RelayCommand]
     private void ToggleMusic()
     {
-        if (SelectedItem == null) return;
+        if (SelectedItem == null)
+            return;
 
         MusicPlayerViewModel.IsPlaying = false;
         MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
-
     }
 
     [RelayCommand]

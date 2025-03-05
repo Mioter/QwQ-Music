@@ -16,7 +16,7 @@ public static class TimeConverter
         this double totalSeconds,
         int decimalPlaces = 3,
         bool forceDecimalPadding = false
-        )
+    )
     {
         if (decimalPlaces < 0)
             throw new ArgumentOutOfRangeException(nameof(decimalPlaces), "Decimal places must be non-negative.");
@@ -29,16 +29,13 @@ public static class TimeConverter
         double seconds = totalSeconds % 60;
 
         // 构建秒数格式字符串
-        string secondsFormat = decimalPlaces > 0
-            ? $"00.{new string(forceDecimalPadding ? '0' : '#', decimalPlaces)}"
-            : "00";
+        string secondsFormat =
+            decimalPlaces > 0 ? $"00.{new string(forceDecimalPadding ? '0' : '#', decimalPlaces)}" : "00";
 
         string formattedSeconds = seconds.ToString(secondsFormat);
 
         // 返回格式化结果
-        return hours > 0
-            ? $"{hours:D2}:{minutes:D2}:{formattedSeconds}"
-            : $"{minutes:D2}:{formattedSeconds}";
+        return hours > 0 ? $"{hours:D2}:{minutes:D2}:{formattedSeconds}" : $"{minutes:D2}:{formattedSeconds}";
     }
 
     /// <summary>
@@ -71,17 +68,16 @@ public static class TimeConverter
     private static double ParseSecondsFromMinutesAndSeconds(string timeString)
     {
         string[] parts = timeString.Split(':');
-        return parts.Length == 2 &&
-            double.TryParse(parts[0], out double minutes) &&
-            double.TryParse(parts[1], out double seconds)
-                ? minutes * 60 + seconds
-                : 0;
+        return
+            parts.Length == 2
+            && double.TryParse(parts[0], out double minutes)
+            && double.TryParse(parts[1], out double seconds)
+            ? minutes * 60 + seconds
+            : 0;
     }
 
     private static double ParseSecondsFromTimeSpan(string timeString)
     {
-        return TimeSpan.TryParse(timeString, out var timeSpan)
-            ? timeSpan.TotalSeconds
-            : 0;
+        return TimeSpan.TryParse(timeString, out var timeSpan) ? timeSpan.TotalSeconds : 0;
     }
 }

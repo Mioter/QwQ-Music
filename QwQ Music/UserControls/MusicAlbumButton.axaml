@@ -3,6 +3,7 @@
                                xmlns:customControls="clr-namespace:QwQ_Music.CustomControls"
                                xmlns:models="clr-namespace:QwQ_Music.Models"
                                xmlns:userControls="clr-namespace:QwQ_Music.UserControls"
+                               xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
                                x:DataType="models:MusicItemModel"
                                Margin="10"
                                Height="50"
@@ -15,9 +16,7 @@
     <Border CornerRadius="8"
             ClipToBounds="True">
         <Panel>
-            <Image
-                Classes.AlbumCoverNull="{Binding CoverPathProperty,Converter={x:Static ObjectConverters.IsNull}}"
-                Classes.AlbumCoverBinding="{Binding CoverPathProperty,Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <Image Source="{Binding CoverPathProperty,Converter={StaticResource AlbumImageConverter}}"/>
             <Border Background="#33000000" IsHitTestVisible="False">
                 <Border.IsVisible>
                     <MultiBinding
@@ -27,35 +26,35 @@
                     </MultiBinding>
                 </Border.IsVisible>
 
-                <customControls:SwitchControl x:Name="QuickPlaySwitchControl"
+                <control:SwitchControl x:Name="QuickPlaySwitchControl"
                                               Foreground="White" Margin="6">
 
-                    <customControls:SwitchControl.Condition>
+                    <control:SwitchControl.Condition>
                         <MultiBinding
                             Converter="{StaticResource InstanceEqualityMultiConverter}">
                             <Binding
                                 Path="$parent[userControls:MusicAlbumButton].CurrentMusicItem" />
                             <Binding />
                         </MultiBinding>
-                    </customControls:SwitchControl.Condition>
+                    </control:SwitchControl.Condition>
 
-                    <customControls:SwitchControl.TrueContent>
+                    <control:SwitchControl.TrueContent>
 
-                        <customControls:SwitchControl
+                        <control:SwitchControl
                             Condition="{Binding $parent[userControls:MusicAlbumButton].IsPlaying}">
 
-                            <customControls:SwitchControl.TrueContent>
+                            <control:SwitchControl.TrueContent>
 
-                                <customControls:SwitchControl
+                                <control:SwitchControl
 
                                     Condition="{Binding $parent[userControls:MusicAlbumButton].IsPointerOver}">
 
-                                    <customControls:SwitchControl.TrueContent>
+                                    <control:SwitchControl.TrueContent>
                                         <PathIcon
                                             Data="{StaticResource PauseIconData}" />
-                                    </customControls:SwitchControl.TrueContent>
+                                    </control:SwitchControl.TrueContent>
 
-                                    <customControls:SwitchControl.FalseContent>
+                                    <control:SwitchControl.FalseContent>
                                         <StackPanel HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
                                                     Orientation="Horizontal" Spacing="4">
@@ -129,31 +128,23 @@
 
                                             </StackPanel.Styles>
                                         </StackPanel>
-                                    </customControls:SwitchControl.FalseContent>
-                                </customControls:SwitchControl>
+                                    </control:SwitchControl.FalseContent>
+                                </control:SwitchControl>
 
-                            </customControls:SwitchControl.TrueContent>
+                            </control:SwitchControl.TrueContent>
 
-                        </customControls:SwitchControl>
-                    </customControls:SwitchControl.TrueContent>
+                        </control:SwitchControl>
+                    </control:SwitchControl.TrueContent>
 
-                    <customControls:SwitchControl.FalseContent>
+                    <control:SwitchControl.FalseContent>
                         <PathIcon
                             Data="{StaticResource PlayIconData}" />
-                    </customControls:SwitchControl.FalseContent>
+                    </control:SwitchControl.FalseContent>
 
-                </customControls:SwitchControl>
+                </control:SwitchControl>
 
             </Border>
-
-            <Panel.Styles>
-
-                <Style Selector="Image.AlbumCoverBinding">
-                    <Setter Property="Source"
-                            Value="{Binding CoverPathProperty,Converter={StaticResource AlbumImageConverter}}" />
-                </Style>
-
-            </Panel.Styles>
+            
         </Panel>
     </Border>
 </userControls:MusicAlbumButton>

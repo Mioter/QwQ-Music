@@ -11,8 +11,10 @@ namespace QwQ_Music.CustomControls;
 public class DraggableContainer : TemplatedControl
 {
     // 定义附加属性 IsDraggable
-    public static readonly AttachedProperty<bool> IsDraggableProperty =
-        AvaloniaProperty.RegisterAttached<Control, bool>("IsDraggable", typeof(DraggableContainer), true);
+    public static readonly AttachedProperty<bool> IsDraggableProperty = AvaloniaProperty.RegisterAttached<
+        Control,
+        bool
+    >("IsDraggable", typeof(DraggableContainer), true);
 
     public static bool GetIsDraggable(Control control)
     {
@@ -23,20 +25,23 @@ public class DraggableContainer : TemplatedControl
     {
         control.SetValue(IsDraggableProperty, value);
     }
-    
+
     // 允许叠放的属性
-    public static readonly StyledProperty<bool> AllowOverlapProperty =
-        AvaloniaProperty.Register<DraggableContainer, bool>(nameof(AllowOverlap), defaultValue: true);
+    public static readonly StyledProperty<bool> AllowOverlapProperty = AvaloniaProperty.Register<
+        DraggableContainer,
+        bool
+    >(nameof(AllowOverlap), defaultValue: true);
 
     public bool AllowOverlap
     {
         get => GetValue(AllowOverlapProperty);
         set => SetValue(AllowOverlapProperty, value);
     }
-    
+
     // 内容属性（用于管理子控件）
     [Content]
     public Controls Children => _children ??= [];
+
     // 中心点属性
     public Point CenterPoint { get; private set; }
 
@@ -45,10 +50,10 @@ public class DraggableContainer : TemplatedControl
     private Control? _draggedControl;
     private Point _dragStart;
     private Point _controlStartPosition;
-    
+
     // 添加事件，当子控件位置变化时触发
     public event EventHandler<PositionChangedEventArgs>? PositionChanged;
-    
+
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
@@ -56,10 +61,11 @@ public class DraggableContainer : TemplatedControl
         _innerCanvas = e.NameScope.Find<Canvas>("PART_InnerCanvas");
 
         // 将内容属性中的子控件添加到内部 Canvas
-        if (_innerCanvas == null || _children == null) return;
+        if (_innerCanvas == null || _children == null)
+            return;
 
         foreach (var child in _children)
-        {      
+        {
             _innerCanvas.Children.Add(child);
         }
 
@@ -70,18 +76,17 @@ public class DraggableContainer : TemplatedControl
     private void OnUnloaded(object? sender, RoutedEventArgs e)
     {
         Unloaded -= OnUnloaded;
-        if (_innerCanvas != null) _innerCanvas.Loaded -= PositionChildAtCenter;
+        if (_innerCanvas != null)
+            _innerCanvas.Loaded -= PositionChildAtCenter;
     }
 
     private void PositionChildAtCenter(object? o, RoutedEventArgs e)
     {
-        if (_innerCanvas == null || _children == null) return;
-    
+        if (_innerCanvas == null || _children == null)
+            return;
+
         // 更新容器中心点
-        CenterPoint = new Point(
-            _innerCanvas.Bounds.Width.NaNToZero() / 2,
-            _innerCanvas.Bounds.Height.NaNToZero() / 2
-        );
+        CenterPoint = new Point(_innerCanvas.Bounds.Width.NaNToZero() / 2, _innerCanvas.Bounds.Height.NaNToZero() / 2);
 
         foreach (var child in _children)
         {
@@ -110,19 +115,24 @@ public class DraggableContainer : TemplatedControl
             double centerY = isTopSet ? Canvas.GetTop(child) : CenterPoint.Y - childHeight / 2;
 
             // 应用坐标
-            if (!isLeftSet) Canvas.SetLeft(child, centerX);
-            if (!isTopSet) Canvas.SetTop(child, centerY);
+            if (!isLeftSet)
+                Canvas.SetLeft(child, centerX);
+            if (!isTopSet)
+                Canvas.SetTop(child, centerY);
         }
     }
-    
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
 
         var point = e.GetCurrentPoint(this);
-        if (e.Source is not Control control ||
-            _innerCanvas?.Children.Contains(control) != true ||
-            !point.Properties.IsLeftButtonPressed) return;
+        if (
+            e.Source is not Control control
+            || _innerCanvas?.Children.Contains(control) != true
+            || !point.Properties.IsLeftButtonPressed
+        )
+            return;
 
         // 检查控件是否可拖动
         if (!GetIsDraggable(control))
@@ -138,9 +148,7 @@ public class DraggableContainer : TemplatedControl
     {
         _draggedControl = control;
         _dragStart = e.GetPosition(_innerCanvas);
-        _controlStartPosition = new Point(
-            Canvas.GetLeft(control).NaNToZero(),
-            Canvas.GetTop(control).NaNToZero());
+        _controlStartPosition = new Point(Canvas.GetLeft(control).NaNToZero(), Canvas.GetTop(control).NaNToZero());
 
         /*// 将拖动的控件置顶
         if (_innerCanvas != null && _innerCanvas.Children.Contains(control))
@@ -156,7 +164,8 @@ public class DraggableContainer : TemplatedControl
     {
         base.OnPointerMoved(e);
 
-        if (_draggedControl == null || _innerCanvas == null) return;
+        if (_draggedControl == null || _innerCanvas == null)
+            return;
 
         // 检查控件是否可拖动
         if (!GetIsDraggable(_draggedControl))
@@ -192,14 +201,14 @@ public class DraggableContainer : TemplatedControl
         // 应用新坐标
         Canvas.SetLeft(_draggedControl, newX);
         Canvas.SetTop(_draggedControl, newY);
-        
+
         // 计算相对中心点的角度和距离
-        var (angle, distance) = CalculateSpatialParameters(currentPosition);
-            
+        (double angle, double distance) = CalculateSpatialParameters(currentPosition);
+
         // 触发事件
         PositionChanged?.Invoke(this, new PositionChangedEventArgs(angle, distance));
     }
-    
+
     // 计算角度和距离
     private (double Angle, double Distance) CalculateSpatialParameters(Point controlPosition)
     {
@@ -208,10 +217,8 @@ public class DraggableContainer : TemplatedControl
         double dy = controlPosition.Y - CenterPoint.Y;
 
         // 计算距离（保持原有逻辑）
-        double maxDistance = Math.Sqrt(
-            Math.Pow(_innerCanvas!.Bounds.Width, 2) + 
-            Math.Pow(_innerCanvas.Bounds.Height, 2)
-        ) / 2;
+        double maxDistance =
+            Math.Sqrt(Math.Pow(_innerCanvas!.Bounds.Width, 2) + Math.Pow(_innerCanvas.Bounds.Height, 2)) / 2;
         double distance = Math.Sqrt(dx * dx + dy * dy) / maxDistance * 100;
 
         // 关键修正：增加 90 度偏移补偿
@@ -220,12 +227,14 @@ public class DraggableContainer : TemplatedControl
 
         // 规范化到 [-180, 180]
         angleDegrees = angleDegrees % 360;
-        if (angleDegrees > 180) angleDegrees -= 360;
-        else if (angleDegrees < -180) angleDegrees += 360;
+        if (angleDegrees > 180)
+            angleDegrees -= 360;
+        else if (angleDegrees < -180)
+            angleDegrees += 360;
 
         return (angleDegrees, distance);
     }
-    
+
     // 避免与其他子控件重叠
     private (double X, double Y) AvoidOverlap(double newX, double newY)
     {
@@ -279,9 +288,7 @@ public class DraggableContainer : TemplatedControl
                 newY += dy * overlap;
 
                 // 更新拖动控件的中心点
-                draggedCenter = new Point(
-                    newX + draggedBounds.Width / 2,
-                    newY + draggedBounds.Height / 2);
+                draggedCenter = new Point(newX + draggedBounds.Width / 2, newY + draggedBounds.Height / 2);
 
                 // 确保调整后不会超出容器边界
                 (newX, newY) = ClampToBounds(newX, newY, containerWidth, containerHeight, cornerRadiusX, cornerRadiusY);
@@ -296,7 +303,14 @@ public class DraggableContainer : TemplatedControl
         return Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
     }
 
-    private (double X, double Y) ClampToBounds(double x, double y, double width, double height, double cornerRadiusX, double cornerRadiusY)
+    private (double X, double Y) ClampToBounds(
+        double x,
+        double y,
+        double width,
+        double height,
+        double cornerRadiusX,
+        double cornerRadiusY
+    )
     {
         // 子控件的尺寸
         double childWidth = _draggedControl?.Bounds.Width ?? 0;
@@ -353,7 +367,10 @@ public class DraggableContainer : TemplatedControl
             double distance = Distance(childBounds.Right, childBounds.Bottom, bottomRightCenterX, bottomRightCenterY);
             if (distance > cornerRadiusX)
             {
-                double angle = Math.Atan2(childBounds.Bottom - bottomRightCenterY, childBounds.Right - bottomRightCenterX);
+                double angle = Math.Atan2(
+                    childBounds.Bottom - bottomRightCenterY,
+                    childBounds.Right - bottomRightCenterX
+                );
                 x = bottomRightCenterX + cornerRadiusX * Math.Cos(angle) - childWidth;
                 y = bottomRightCenterY + cornerRadiusX * Math.Sin(angle) - childHeight;
             }
@@ -389,5 +406,4 @@ public class PositionChangedEventArgs(double angle, double distance) : EventArgs
 {
     public double Angle { get; } = angle;
     public double Distance { get; } = distance;
-
 }

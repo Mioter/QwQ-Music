@@ -12,6 +12,8 @@
     xmlns:behaviors="clr-namespace:QwQ_Music.Behaviors"
     xmlns:customControls="clr-namespace:QwQ_Music.CustomControls"
     xmlns:pages="clr-namespace:QwQ_Music.Pages"
+    xmlns:converter="clr-namespace:QwQ_Music.Converter"
+    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
     x:DataType="viewModels:MainWindowViewModel"
     ExtendClientAreaTitleBarHeightHint="40"
     ExtendClientAreaToDecorationsHint="True">
@@ -81,9 +83,16 @@
 
         <Grid ColumnDefinitions="Auto,*" Grid.Row="1">
 
-            <Grid Width="{Binding NavigationBarWidth}"
+            <Grid
                   HorizontalAlignment="Left"
                   RowDefinitions="Auto,Auto,120">
+                <Grid.Width>
+                    <MultiBinding Converter="{x:Static converter:UiStateConverter.PriorityBool}" ConverterParameter="75,150,200">
+                        <Binding Path="!IsNavigationExpand"/>
+                        <Binding Path="IsNavigationExpand"/>
+                        <Binding Path="IsWindowMaximizedOrFullScreen"/>
+                    </MultiBinding>
+                </Grid.Width>
 
                 <Grid.Transitions>
                     <Transitions>
@@ -176,19 +185,20 @@
                 </u:SelectionList>
             </Grid>
 
-            <customControls:IndexControl Grid.Column="1" Index="{Binding #MainNavBarSelectionList.SelectedIndex}">
-                <customControls:IndexControl.PageTransition>
+            <control:IndexControl Grid.Column="1" Index="{Binding #MainNavBarSelectionList.SelectedIndex}">
+                <control:IndexControl.PageTransition>
                     <CompositePageTransition>
                         <CrossFade Duration="0:0:0.5" />
                         <PageSlide Duration="0:0:0.3" Orientation="Vertical" SlideInEasing="QuadraticEaseIn"
                                    SlideOutEasing="QuadraticEaseOut" />
                     </CompositePageTransition>
-                </customControls:IndexControl.PageTransition>
+                </control:IndexControl.PageTransition>
                 
                 <pages:MusicPage/>
                 <pages:ClassificationPage/>
                 <pages:StatisticsPage/>
-            </customControls:IndexControl>
+                <pages:ConfigMainPage/>
+            </control:IndexControl>
 
         </Grid>
 
@@ -198,6 +208,64 @@
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch" />
         </Border>
+
+        <Panel Name="MusicPlayerTrayPanel"
+               Height="125"
+               Width="600"
+               VerticalAlignment="Bottom"
+               Grid.Row="1"
+               Classes.Visible="{Binding IsMusicPlayerTrayVisible}"
+               Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"
+               behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
+               behaviors:SizeAdjuster.ScaleFactor="1.2,1">
+            <Panel.RenderTransform>
+                <TranslateTransform Y="{Binding MusicPlayerTrayYaxisOffset,Mode=OneWayToSource}" />
+            </Panel.RenderTransform>
+
+            <Panel.Styles>
+                <Style Selector="Panel#MusicPlayerTrayPanel.Hide">
+                    <Style.Animations>
+                        <Animation Easing="QuadraticEaseOut"
+                                   FillMode="Forward"
+                                   Duration="0:0:0.5">
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
+                            </KeyFrame>
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding #MusicPlayerTrayPanel.Height}" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+            </Panel.Styles>
+
+            <Panel.Styles>
+                <Style Selector="Panel#MusicPlayerTrayPanel.Visible">
+                    <Style.Animations>
+                        <Animation Easing="QuadraticEaseIn"
+                                   FillMode="Forward"
+                                   Duration="0:0:0.5">
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
+                            </KeyFrame>
+                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
+                                <Setter Property="TranslateTransform.Y" Value="0" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+            </Panel.Styles>
+
+            <Panel.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Height" Duration="0:0:0.5" Easing="CircularEaseOut" />
+                    <DoubleTransition Property="Width" Duration="0:0:0.5" Easing="CircularEaseOut" />
+                </Transitions>
+            </Panel.Transitions>
+
+            <userControls:MusicPlayerTray />
+
+        </Panel>
 
         <Panel Name="MusicPlayListPanel"
                Grid.Row="1"
@@ -255,64 +323,6 @@
             </Panel.Transitions>
 
             <userControls:MusicPlayList />
-
-        </Panel>
-
-        <Panel Name="MusicPlayerTrayPanel"
-               Height="125"
-               Width="600"
-               VerticalAlignment="Bottom"
-               Grid.Row="1"
-               Classes.Visible="{Binding IsMusicPlayerTrayVisible}"
-               Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"
-               behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
-               behaviors:SizeAdjuster.ScaleFactor="1.2,1">
-            <Panel.RenderTransform>
-                <TranslateTransform Y="{Binding MusicPlayerTrayYaxisOffset,Mode=OneWayToSource}" />
-            </Panel.RenderTransform>
-
-            <Panel.Styles>
-                <Style Selector="Panel#MusicPlayerTrayPanel.Hide">
-                    <Style.Animations>
-                        <Animation Easing="QuadraticEaseOut"
-                                   FillMode="Forward"
-                                   Duration="0:0:0.5">
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
-                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
-                            </KeyFrame>
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
-                                <Setter Property="TranslateTransform.Y" Value="{Binding #MusicPlayerTrayPanel.Height}" />
-                            </KeyFrame>
-                        </Animation>
-                    </Style.Animations>
-                </Style>
-            </Panel.Styles>
-
-            <Panel.Styles>
-                <Style Selector="Panel#MusicPlayerTrayPanel.Visible">
-                    <Style.Animations>
-                        <Animation Easing="QuadraticEaseIn"
-                                   FillMode="Forward"
-                                   Duration="0:0:0.5">
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
-                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
-                            </KeyFrame>
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
-                                <Setter Property="TranslateTransform.Y" Value="0" />
-                            </KeyFrame>
-                        </Animation>
-                    </Style.Animations>
-                </Style>
-            </Panel.Styles>
-
-            <Panel.Transitions>
-                <Transitions>
-                    <DoubleTransition Property="Height" Duration="0:0:0.5" Easing="CircularEaseOut" />
-                    <DoubleTransition Property="Width" Duration="0:0:0.5" Easing="CircularEaseOut" />
-                </Transitions>
-            </Panel.Transitions>
-
-            <userControls:MusicPlayerTray />
 
         </Panel>
 

@@ -190,10 +190,10 @@
                                     Header="专辑"
                                     Binding="{Binding AlbumProperty}" />
 
-                <DataGridTextColumn Header="类别"
+                <!--<DataGridTextColumn Header="类别"
                                     MinWidth="100"
                                     IsVisible="{Binding ElementName=MoreColumn1,Path=IsChecked}"
-                                    Binding="{Binding ExtensionsProperty.Genre}" />
+                                    Binding="{Binding ExtensionsProperty.Genre}" />-->
 
                 <DataGridTemplateColumn MinWidth="120"
                                         Header="时长">

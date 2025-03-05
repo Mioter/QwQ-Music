@@ -12,21 +12,11 @@ public class CalcConverter : IValueConverter
     private static readonly char[] AllOperators = ['+', '-', '*', '/', '%', '(', ')'];
     private static readonly Dictionary<char, int> OperatorPrecedence = new()
     {
-        {
-            '+', 1
-        },
-        {
-            '-', 1
-        },
-        {
-            '*', 2
-        },
-        {
-            '/', 2
-        },
-        {
-            '%', 2
-        },
+        { '+', 1 },
+        { '-', 1 },
+        { '*', 2 },
+        { '/', 2 },
+        { '%', 2 },
     };
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -52,11 +42,11 @@ public class CalcConverter : IValueConverter
         throw new NotImplementedException();
     }
 
-    private static string ReplacePlaceholders(string equation, object? value) {
-        if(value is bool boolValue) value = boolValue ? 1 : 0; 
-        return equation.Replace(" ", "")
-            .Replace("@VALUE", value?.ToString())
-            .Replace("@value", value?.ToString());
+    private static string ReplacePlaceholders(string equation, object? value)
+    {
+        if (value is bool boolValue)
+            value = boolValue ? 1 : 0;
+        return equation.Replace(" ", "").Replace("@VALUE", value?.ToString()).Replace("@value", value?.ToString());
     }
 
     private static double EvaluateExpression(string expression)
@@ -68,7 +58,8 @@ public class CalcConverter : IValueConverter
         {
             char currentChar = expression[i];
 
-            if (char.IsWhiteSpace(currentChar)) continue;
+            if (char.IsWhiteSpace(currentChar))
+                continue;
 
             if (char.IsDigit(currentChar) || currentChar == '.' || currentChar == '-' && IsUnaryOperator(expression, i))
             {
@@ -94,8 +85,11 @@ public class CalcConverter : IValueConverter
                     default:
                         if (AllOperators.Contains(currentChar))
                         {
-                            while (operators.Count > 0 && operators.Peek() != '(' &&
-                                   OperatorPrecedence[operators.Peek()] >= OperatorPrecedence[currentChar])
+                            while (
+                                operators.Count > 0
+                                && operators.Peek() != '('
+                                && OperatorPrecedence[operators.Peek()] >= OperatorPrecedence[currentChar]
+                            )
                             {
                                 ApplyTopOperator(values, operators);
                             }
@@ -131,7 +125,14 @@ public class CalcConverter : IValueConverter
     {
         var numStr = new StringBuilder();
 
-        while (index < expression.Length && (char.IsDigit(expression[index]) || expression[index] == '.' || expression[index] == '-' && numStr.Length == 0))
+        while (
+            index < expression.Length
+            && (
+                char.IsDigit(expression[index])
+                || expression[index] == '.'
+                || expression[index] == '-' && numStr.Length == 0
+            )
+        )
         {
             numStr.Append(expression[index++]);
         }

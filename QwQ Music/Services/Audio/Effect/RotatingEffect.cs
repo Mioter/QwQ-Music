@@ -1,24 +1,25 @@
 using System;
 using System.Linq;
 using System.Threading;
+using QwQ_Music.Services.Audio.Effect.Base;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
 /// 环绕效果器
 /// </summary>
 public sealed class RotatingEffect : AudioEffectBase
 {
-    private float _rotationSpeed;      // 旋转速度（圈/秒）
-    private bool _isClockwise;         // 是否顺时针旋转
-    private float _radius;             // 旋转半径（0 到 100 米）
-    private float _currentAngle;       // 当前角度
+    private float _rotationSpeed; // 旋转速度（圈/秒）
+    private bool _isClockwise; // 是否顺时针旋转
+    private float _radius; // 旋转半径（0 到 100 米）
+    private float _currentAngle; // 当前角度
     private float[] _channelWeights = null!; // 声道权重
     private readonly Lock _lock = new(); // 线程安全锁
-    private float[] _filterStates = null!;     // 滤波器状态
-    private float _cutoffFrequency;    // 当前滤波频率
+    private float[] _filterStates = null!; // 滤波器状态
+    private float _cutoffFrequency; // 当前滤波频率
     private const float MaxCutoff = 20000f; // 最大截止频率（0米时）
-    private const float MinCutoff = 1000f;  // 最小截止频率（100米时）
+    private const float MinCutoff = 1000f; // 最小截止频率（100米时）
 
     public override string Name => "Rotating";
 
@@ -111,8 +112,10 @@ public sealed class RotatingEffect : AudioEffectBase
     /// </summary>
     private static float NormalizeAngle(float angle)
     {
-        while (angle > 180) angle -= 360;
-        while (angle < -180) angle += 360;
+        while (angle > 180)
+            angle -= 360;
+        while (angle < -180)
+            angle += 360;
         return angle;
     }
 
@@ -121,7 +124,8 @@ public sealed class RotatingEffect : AudioEffectBase
     /// </summary>
     public override int Read(float[] buffer, int offset, int count)
     {
-        if (!Enabled) return Source.Read(buffer, offset, count);
+        if (!Enabled)
+            return Source.Read(buffer, offset, count);
 
         int samplesRead = Source.Read(buffer, offset, count);
 

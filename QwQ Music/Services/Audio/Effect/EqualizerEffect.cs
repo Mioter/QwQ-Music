@@ -2,8 +2,9 @@ using System;
 using System.Linq;
 using System.Threading;
 using NAudio.Dsp;
+using QwQ_Music.Services.Audio.Effect.Base;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
 /// 均衡器效果器
@@ -30,9 +31,9 @@ public class EqualizerEffect : AudioEffectBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        _filters = _bands.Select(band =>
-            BiQuadFilter.PeakingEQ(WaveFormat.SampleRate, band.frequency, 1.0f, band.gain)
-        ).ToArray();
+        _filters = _bands
+            .Select(band => BiQuadFilter.PeakingEQ(WaveFormat.SampleRate, band.frequency, 1.0f, band.gain))
+            .ToArray();
     }
 
     /// <summary>
@@ -44,7 +45,7 @@ public class EqualizerEffect : AudioEffectBase
         {
             return Source.Read(buffer, offset, count);
         }
-        
+
         int samplesRead = Source.Read(buffer, offset, count);
 
         lock (_lock)
@@ -65,11 +66,7 @@ public class EqualizerEffect : AudioEffectBase
     /// </summary>
     public override IAudioEffect Clone()
     {
-        var clone = new EqualizerEffect(_bands)
-        {
-            Enabled = Enabled,
-            Priority = Priority,
-        }; // 使用保存的频段配置
+        var clone = new EqualizerEffect(_bands) { Enabled = Enabled, Priority = Priority }; // 使用保存的频段配置
         return clone;
     }
 
@@ -88,9 +85,11 @@ public class EqualizerEffect : AudioEffectBase
                     if (value is (float frequency, float gain)[] bands)
                     {
                         _bands = bands;
-                        _filters = bands.Select(band =>
-                            BiQuadFilter.PeakingEQ(WaveFormat.SampleRate, band.frequency, 1.0f, band.gain)
-                        ).ToArray();
+                        _filters = bands
+                            .Select(band =>
+                                BiQuadFilter.PeakingEQ(WaveFormat.SampleRate, band.frequency, 1.0f, band.gain)
+                            )
+                            .ToArray();
                     }
                     break;
             }

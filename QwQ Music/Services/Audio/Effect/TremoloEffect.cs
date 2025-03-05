@@ -1,28 +1,30 @@
 using System;
 using System.Threading;
+using QwQ_Music.Services.Audio.Effect.Base;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
-/// 失真效果器
+/// 颤音效果器
 /// </summary>
-public class DistortionEffect : AudioEffectBase
+public sealed class TremoloEffect : AudioEffectBase
 {
-    private float _drive;
-    private float _mix;
+    private float _frequencyHz;
+    private float _depth;
+    private double _phase;
     private readonly Lock _lock = new(); // 确保线程安全
 
-    public override string Name => "Distortion";
+    public override string Name => "Tremolo";
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        SetParameter("Drive", 10f); // 默认驱动强度
-        SetParameter("Mix", 0.5f); // 默认混音比例
+        SetParameter("FrequencyHz", 5f); // 默认调制频率
+        SetParameter("Depth", 0.5f); // 默认调制深度
     }
 
     /// <summary>
-    /// 读取音频数据并应用失真效果
+    /// 读取音频数据并应用颤音效果
     /// </summary>
     public override int Read(float[] buffer, int offset, int count)
     {
@@ -37,10 +39,12 @@ public class DistortionEffect : AudioEffectBase
         {
             for (int i = 0; i < samplesRead; i++)
             {
-                float sample = buffer[offset + i];
-                float distorted = MathF.Tanh(sample * _drive);
-                sample = sample * (1 - _mix) + distorted * _mix;
-                buffer[offset + i] = sample;
+                float modulation = 1 - _depth + _depth * (float)Math.Sin(_phase);
+                buffer[offset + i] *= modulation;
+
+                _phase += 2 * Math.PI * _frequencyHz / WaveFormat.SampleRate;
+                if (_phase > 2 * Math.PI)
+                    _phase -= 2 * Math.PI;
             }
         }
 
@@ -52,9 +56,9 @@ public class DistortionEffect : AudioEffectBase
     /// </summary>
     public override IAudioEffect Clone()
     {
-        var clone = new DistortionEffect();
-        clone.SetParameter("Drive", _drive);
-        clone.SetParameter("Mix", _mix);
+        var clone = new TremoloEffect();
+        clone.SetParameter("FrequencyHz", _frequencyHz);
+        clone.SetParameter("Depth", _depth);
         clone.Enabled = Enabled;
         clone.Priority = Priority;
         return clone;
@@ -63,7 +67,7 @@ public class DistortionEffect : AudioEffectBase
     /// <summary>
     /// 设置效果器的配置参数
     /// </summary>
-    public override sealed void SetParameter<T>(string key, T value)
+    public override void SetParameter<T>(string key, T value)
     {
         base.SetParameter(key, value);
 
@@ -71,11 +75,11 @@ public class DistortionEffect : AudioEffectBase
         {
             switch (key.ToLower())
             {
-                case "drive":
-                    _drive = Convert.ToSingle(value);
+                case "frequencyhz":
+                    _frequencyHz = Convert.ToSingle(value);
                     break;
-                case "mix":
-                    _mix = Convert.ToSingle(value);
+                case "depth":
+                    _depth = Convert.ToSingle(value);
                     break;
             }
         }
@@ -90,10 +94,10 @@ public class DistortionEffect : AudioEffectBase
         {
             switch (key.ToLower())
             {
-                case "drive":
-                    return (T)(object)_drive;
-                case "mix":
-                    return (T)(object)_mix;
+                case "frequencyhz":
+                    return (T)(object)_frequencyHz;
+                case "depth":
+                    return (T)(object)_depth;
                 default:
                     return base.GetParameter<T>(key);
             }

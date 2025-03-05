@@ -7,17 +7,29 @@ namespace QwQ_Music.Behaviors;
 public class SizeAdjuster
 {
     // 定义附加属性
-    public static readonly AttachedProperty<bool> IsAdjustedProperty =
-        AvaloniaProperty.RegisterAttached<SizeAdjuster, Control, bool>("IsAdjusted");
+    public static readonly AttachedProperty<bool> IsAdjustedProperty = AvaloniaProperty.RegisterAttached<
+        SizeAdjuster,
+        Control,
+        bool
+    >("IsAdjusted");
 
-    public static readonly AttachedProperty<string> ScaleFactorProperty =
-        AvaloniaProperty.RegisterAttached<SizeAdjuster, Control, string>("ScaleFactor", "1");
+    public static readonly AttachedProperty<string> ScaleFactorProperty = AvaloniaProperty.RegisterAttached<
+        SizeAdjuster,
+        Control,
+        string
+    >("ScaleFactor", "1");
 
-    public static readonly AttachedProperty<bool> CanAdjustProperty =
-        AvaloniaProperty.RegisterAttached<SizeAdjuster, Control, bool>("CanAdjust", true);
+    public static readonly AttachedProperty<bool> CanAdjustProperty = AvaloniaProperty.RegisterAttached<
+        SizeAdjuster,
+        Control,
+        bool
+    >("CanAdjust", true);
 
-    public static readonly AttachedProperty<Size?> OriginalSizeProperty =
-        AvaloniaProperty.RegisterAttached<SizeAdjuster, Control, Size?>("OriginalSize");
+    public static readonly AttachedProperty<Size?> OriginalSizeProperty = AvaloniaProperty.RegisterAttached<
+        SizeAdjuster,
+        Control,
+        Size?
+    >("OriginalSize");
 
     static SizeAdjuster()
     {
@@ -69,7 +81,8 @@ public class SizeAdjuster
     // 属性更改事件处理
     private static void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Sender is not Control control || !GetCanAdjust(control)) return;
+        if (e.Sender is not Control control || !GetCanAdjust(control))
+            return;
 
         if (GetIsAdjusted(control))
         {
@@ -95,7 +108,8 @@ public class SizeAdjuster
     private static void RestoreOriginalSize(Control control)
     {
         var originalSize = GetOriginalSize(control);
-        if (originalSize == null) return;
+        if (originalSize == null)
+            return;
 
         control.Width = originalSize.Value.Width;
         control.Height = originalSize.Value.Height;
@@ -113,7 +127,9 @@ public class SizeAdjuster
             {
                 1 => (double.Parse(parts[0]), double.Parse(parts[0])),
                 2 => (double.Parse(parts[0]), double.Parse(parts[1])),
-                _ => throw new ArgumentException("Invalid format for ScaleFactor. Expected a single number or two numbers separated by a comma."),
+                _ => throw new ArgumentException(
+                    "Invalid format for ScaleFactor. Expected a single number or two numbers separated by a comma."
+                ),
             };
         }
         catch (Exception ex)

@@ -35,11 +35,12 @@ public class WeakMessageBus : MessageBusBase
     protected override List<Action<TMessage>> GetValidHandlers<TMessage>()
     {
         var messageType = typeof(TMessage);
-        if (!_subscriptions.TryGetValue(messageType, out var entry)) return [];
+        if (!Subscriptions.TryGetValue(messageType, out var entry))
+            return [];
         lock (entry.Lock)
         {
-            var validHandlers = entry.Subscribers
-                .OfType<WeakReference>()
+            var validHandlers = entry
+                .Subscribers.OfType<WeakReference>()
                 .Where(weakRef => weakRef.IsAlive)
                 .Select(weakRef => weakRef.Target as Action<TMessage>)
                 .Where(handler => handler != null)

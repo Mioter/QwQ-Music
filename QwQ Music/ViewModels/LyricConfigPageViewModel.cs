@@ -4,7 +4,8 @@ using static QwQ_Music.Models.LanguageModel;
 
 namespace QwQ_Music.ViewModels;
 
-public class LyricConfigPageViewModel : ViewModelBase {
+public class LyricConfigPageViewModel : ViewModelBase
+{
     public static string OffsetName => Lang[nameof(OffsetName)];
     public static string IsEnabledName => Lang[nameof(IsEnabledName)];
     public static string IsDoubleLineName => Lang[nameof(IsDoubleLineName)];
@@ -23,78 +24,92 @@ public class LyricConfigPageViewModel : ViewModelBase {
     public static string LyricAltBottomColorName => Lang[nameof(LyricAltBottomColorName)];
     public static string LyricAltBorderColorName => Lang[nameof(LyricAltBorderColorName)];
 
-    public bool LyricIsEnabled {
+    public bool LyricIsEnabled
+    {
         get => DesktopLyricConfig.IsEnabled;
         set => SetProperty(ref DesktopLyricConfig.IsEnabled, value);
     }
 
-    public int LyricOffset {
+    public int LyricOffset
+    {
         get => DesktopLyricConfig.Offset;
         set => SetProperty(ref DesktopLyricConfig.Offset, value);
     }
 
-    public bool LyricIsDoubleLine {
+    public bool LyricIsDoubleLine
+    {
         get => DesktopLyricConfig.IsDoubleLine;
         set => SetProperty(ref DesktopLyricConfig.IsDoubleLine, value);
     }
 
-    public bool LyricIsDualLang {
+    public bool LyricIsDualLang
+    {
         get => DesktopLyricConfig.IsDualLang;
         set => SetProperty(ref DesktopLyricConfig.IsDualLang, value);
     }
 
-    public bool LyricIsVertical {
+    public bool LyricIsVertical
+    {
         get => DesktopLyricConfig.IsVertical;
         set => SetProperty(ref DesktopLyricConfig.IsVertical, value);
     }
 
-    public int LyricPositionX {
+    public int LyricPositionX
+    {
         get => DesktopLyricConfig.Position.X;
         set => SetProperty(ref DesktopLyricConfig.Position, new(value, DesktopLyricConfig.Position.Y));
     }
 
-    public int LyricPositionY {
+    public int LyricPositionY
+    {
         get => DesktopLyricConfig.Position.Y;
         set => SetProperty(ref DesktopLyricConfig.Position, new(DesktopLyricConfig.Position.X, value));
     }
 
-    public int LyricWidth {
+    public int LyricWidth
+    {
         get => (int)DesktopLyricConfig.Size.Width;
         set => SetProperty(ref DesktopLyricConfig.Size, new(value, DesktopLyricConfig.Size.Height));
     }
 
-    public int LyricHeight {
+    public int LyricHeight
+    {
         get => (int)DesktopLyricConfig.Size.Height;
         set => SetProperty(ref DesktopLyricConfig.Size, new(DesktopLyricConfig.Size.Width, value));
     }
 
-
-    public Color LyricMainTopColor {
+    public Color LyricMainTopColor
+    {
         get => DesktopLyricConfig.MainTopColor;
         set => SetProperty(ref DesktopLyricConfig.MainTopColor, value);
     }
 
-    public Color LyricMainBottomColor {
+    public Color LyricMainBottomColor
+    {
         get => DesktopLyricConfig.MainBottomColor;
         set => SetProperty(ref DesktopLyricConfig.MainBottomColor, value);
     }
 
-    public Color LyricMainBorderColor {
+    public Color LyricMainBorderColor
+    {
         get => DesktopLyricConfig.MainBorderColor;
         set => SetProperty(ref DesktopLyricConfig.MainBorderColor, value);
     }
 
-    public Color LyricAltTopColor {
+    public Color LyricAltTopColor
+    {
         get => DesktopLyricConfig.AltTopColor;
         set => SetProperty(ref DesktopLyricConfig.AltTopColor, value);
     }
 
-    public Color LyricAltBottomColor {
+    public Color LyricAltBottomColor
+    {
         get => DesktopLyricConfig.AltBottomColor;
         set => SetProperty(ref DesktopLyricConfig.AltBottomColor, value);
     }
 
-    public Color LyricAltBorderColor {
+    public Color LyricAltBorderColor
+    {
         get => DesktopLyricConfig.AltBorderColor;
         set => SetProperty(ref DesktopLyricConfig.AltBorderColor, value);
     }

@@ -12,38 +12,59 @@ namespace QwQ_Music.Amusing;
 
 public class Love
 {
-    
     private readonly Color[] _colors =
     [
-        Colors.Red, Colors.Pink, Colors.Orange, 
-        Colors.White, Colors.Purple, Colors.Gold,
-        Colors.LimeGreen, Colors.DeepSkyBlue,
+        Colors.Red,
+        Colors.Pink,
+        Colors.Orange,
+        Colors.White,
+        Colors.Purple,
+        Colors.Gold,
+        Colors.LimeGreen,
+        Colors.DeepSkyBlue,
     ];
 
     private readonly string[] _contents =
     [
-        "❤️", "🎵", "🌟", "☀️", "🌈", "🌺",
-        "🎉", "✨", "💖", "🎶", "💫", "🌸",
-        "🎸", "🎹", "🥁", "🎧", "🎼", "📯",
+        "❤️",
+        "🎵",
+        "🌟",
+        "☀️",
+        "🌈",
+        "🌺",
+        "🎉",
+        "✨",
+        "💖",
+        "🎶",
+        "💫",
+        "🌸",
+        "🎸",
+        "🎹",
+        "🥁",
+        "🎧",
+        "🎼",
+        "📯",
     ];
-    
+
     private IEnumerable<PixelPoint> GenerateHeartPoints()
     {
         var points = new List<PixelPoint>();
 
         var mainWindow = GetMainWindow();
-        if (mainWindow == null) return points;
+        if (mainWindow == null)
+            return points;
         var screen = mainWindow.Screens.Primary;
-        if (screen == null) return points;
+        if (screen == null)
+            return points;
 
         var bounds = screen.Bounds;
         double centerX = bounds.Width / 2.0;
         double centerY = bounds.Height / 2.0 - bounds.Height * 0.1; // 上移 10%
 
-        const int totalPoints = 80;         // 总点数
-        const double scale = 60;            // 缩放系数
-        const double verticalScale = 0.85;  // 垂直方向比例系数
-        const double minSpacing = 70;       // 最小窗口间距
+        const int totalPoints = 80; // 总点数
+        const double scale = 60; // 缩放系数
+        const double verticalScale = 0.85; // 垂直方向比例系数
+        const double minSpacing = 70; // 最小窗口间距
 
         for (int i = 0; i < totalPoints; i++)
         {
@@ -51,8 +72,7 @@ public class Love
 
             // 标准爱心方程
             double x = 16 * Math.Pow(Math.Sin(t), 3);
-            double y = 13 * Math.Cos(t) - 5 * Math.Cos(2 * t)
-                     - 2 * Math.Cos(3 * t) - Math.Cos(4 * t);
+            double y = 13 * Math.Cos(t) - 5 * Math.Cos(2 * t) - 2 * Math.Cos(3 * t) - Math.Cos(4 * t);
 
             // 坐标变换
             double scaledX = x * scale;
@@ -64,7 +84,11 @@ public class Love
             );
 
             // 检查与已有点的最小间距
-            bool isValid = points.Select(existingPoint => Math.Sqrt(Math.Pow(point.X - existingPoint.X, 2) + Math.Pow(point.Y - existingPoint.Y, 2))).All(distance => !(distance < minSpacing));
+            bool isValid = points
+                .Select(existingPoint =>
+                    Math.Sqrt(Math.Pow(point.X - existingPoint.X, 2) + Math.Pow(point.Y - existingPoint.Y, 2))
+                )
+                .All(distance => !(distance < minSpacing));
 
             if (isValid)
             {
@@ -80,8 +104,7 @@ public class Love
 
     private static Window? GetMainWindow()
     {
-        return (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?
-            .MainWindow;
+        return (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
     }
 
     public async Task GenerateHeart()
@@ -89,12 +112,18 @@ public class Love
         var random = new Random();
         var points = GenerateHeartPoints().ToList();
         int lastIndex = points.Count - 1;
-        if (lastIndex < 0) return;
+        if (lastIndex < 0)
+            return;
 
         var centerPoint = points[lastIndex];
 
         // 创建中心窗口
-        var centerWindow = new LoveWindow(centerPoint, _colors[random.Next(_colors.Length)], _contents[random.Next(_contents.Length)], isCenter: true);
+        var centerWindow = new LoveWindow(
+            centerPoint,
+            _colors[random.Next(_colors.Length)],
+            _contents[random.Next(_contents.Length)],
+            isCenter: true
+        );
 
         // 创建小窗口并异步显示
         foreach (var position in points.Take(lastIndex))
@@ -103,17 +132,14 @@ public class Love
             int dy = position.Y - centerPoint.Y;
             var color = _colors[random.Next(_colors.Length)];
             string content = _contents[random.Next(_contents.Length)];
-            
+
             await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    new LoveWindow(position, color, content, dx, dy, centerWindow).Show();
-                    return Task.CompletedTask;
-                }
-            );
-        } 
-        
-        centerWindow.Show();// 最后显示中心窗口
+            {
+                new LoveWindow(position, color, content, dx, dy, centerWindow).Show();
+                return Task.CompletedTask;
+            });
+        }
+
+        centerWindow.Show(); // 最后显示中心窗口
     }
 }
-
-

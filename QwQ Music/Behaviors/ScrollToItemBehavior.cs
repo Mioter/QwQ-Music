@@ -8,9 +8,11 @@ namespace QwQ_Music.Behaviors;
 
 public class ScrollToItemBehavior
 {
-    public static readonly AttachedProperty<object> ScrollToItemProperty =
-        AvaloniaProperty.RegisterAttached<ScrollToItemBehavior, Control, object>(
-            "ScrollToItem", null!, false, BindingMode.TwoWay);
+    public static readonly AttachedProperty<object> ScrollToItemProperty = AvaloniaProperty.RegisterAttached<
+        ScrollToItemBehavior,
+        Control,
+        object
+    >("ScrollToItem", null!, false, BindingMode.TwoWay);
 
     static ScrollToItemBehavior()
     {
@@ -19,17 +21,17 @@ public class ScrollToItemBehavior
             switch (args.Sender)
             {
                 case DataGrid dataGrid:
-                    {
-                        object item = args.NewValue.Value;
-                        Dispatcher.UIThread.Post(() => dataGrid.ScrollIntoView(item, null));
-                        break;
-                    }
+                {
+                    object item = args.NewValue.Value;
+                    Dispatcher.UIThread.Post(() => dataGrid.ScrollIntoView(item, null));
+                    break;
+                }
                 case ListBox listBox:
-                    {
-                        object item = args.NewValue.Value;
-                        Dispatcher.UIThread.Post(() => listBox.ScrollIntoView(item));
-                        break;
-                    }
+                {
+                    object item = args.NewValue.Value;
+                    Dispatcher.UIThread.Post(() => listBox.ScrollIntoView(item));
+                    break;
+                }
             }
         });
     }

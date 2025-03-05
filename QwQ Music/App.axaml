@@ -12,6 +12,7 @@
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Styles>
+        
         <semi:SemiTheme Locale="zh-CN" />
         <u-Semi:SemiTheme Locale="zh-CN" />
         <!--<sukiUi:SukiTheme ThemeColor="Blue"  />-->
@@ -23,12 +24,41 @@
 
         <StyleInclude Source="Assets/Styles/_indexes.axaml" />
         
-        <Style Selector="Image.AlbumCoverNull">
-            <Setter Property="Source" Value="/Assets/Images/默认专辑封面.png" />
-        </Style>
-        
         <Style Selector="CheckBox">
             <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="FlyoutPresenter">
+            <Setter Property="Template">
+                <ControlTemplate TargetType="FlyoutPresenter">
+                    <Border
+                        Name="LayoutRoot"
+                        Margin="4"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        BoxShadow="{DynamicResource FlyoutBorderBoxShadow}"
+                        ClipToBounds="False"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        UseLayoutRounding="False">
+                        <Panel>
+                            <Panel Effect="blur(10)"
+                                   Background="{TemplateBinding Background}" />
+                            <ScrollViewer
+                                HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+                                <ContentPresenter
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </ScrollViewer>
+                        </Panel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
         </Style>
         
     </Application.Styles>
@@ -36,8 +66,9 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="Assets/Theme/_indexes.axaml" />
+                <ResourceInclude Source="Assets/Theme/_indexes.axaml"/>
                 <ResourceInclude Source="Assets/Icons/_indexes.axaml" />
+                <ResourceInclude Source="avares://QwQ.Avalonia.Control/Theme/_indexes.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
 

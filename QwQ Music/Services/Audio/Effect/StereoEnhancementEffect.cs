@@ -1,47 +1,47 @@
 using System;
 using System.Text;
 using System.Threading;
+using QwQ_Music.Services.Audio.Effect.Base;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
 /// 立体声增强效果器
 /// </summary>
 public class StereoEnhancementEffect : AudioEffectBase
-{    
+{
     private readonly Lock _lock = new(); // 确保线程安全
-    
+
     /// <summary>
     /// 增强因子（范围：0.5 到 3.0）
     /// </summary>
-    private float _enhancementFactor = 1.5f; 
-   
+    private float _enhancementFactor = 1.5f;
+
     /// <summary>
     /// 立体声宽度（范围：0.0 到 2.0）
     /// </summary>
-    private float _stereoWidth = 1.0f;  
-    
+    private float _stereoWidth = 1.0f;
+
     /// <summary>
     /// 高频增强因子（范围：0.0 到 2.0）
     /// </summary>
-    private float _highFrequencyBoost = 1.0f; 
-    
+    private float _highFrequencyBoost = 1.0f;
+
     /// <summary>
     /// 动态范围压缩（范围：0.0 到 1.0）
     /// </summary>
     private float _dynamicRangeCompression = 0.0f;
-        
+
     /// <summary>
     /// 是否混合低频信号
     /// </summary>
     private bool _bassMixing = false;
-    
+
     // 低通滤波器状态
     private readonly float[] _bassFilterStates = new float[2];
-    
+
     public override string Name => "Stereo Enhancement";
 
-    
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -107,7 +107,7 @@ public class StereoEnhancementEffect : AudioEffectBase
                 // 高频增强
                 buffer[leftIndex] *= highFrequencyBoost;
                 buffer[rightIndex] *= highFrequencyBoost;
-                
+
                 // 动态范围压缩
                 float maxAmplitude = Math.Max(Math.Abs(buffer[leftIndex]), Math.Abs(buffer[rightIndex]));
                 if (maxAmplitude > 1.0f)
@@ -116,7 +116,7 @@ public class StereoEnhancementEffect : AudioEffectBase
                     buffer[leftIndex] *= compressionFactor;
                     buffer[rightIndex] *= compressionFactor;
                 }
-                
+
                 // 软限幅
                 buffer[leftIndex] = SoftClip(buffer[leftIndex]);
                 buffer[rightIndex] = SoftClip(buffer[rightIndex]);
@@ -125,7 +125,7 @@ public class StereoEnhancementEffect : AudioEffectBase
 
         return samplesRead;
     }
-    
+
     /// <summary>
     /// 应用低通滤波器提取低频信号
     /// </summary>
@@ -138,7 +138,7 @@ public class StereoEnhancementEffect : AudioEffectBase
         _bassFilterStates[channelIndex] = a * input + (1 - a) * _bassFilterStates[channelIndex];
         return _bassFilterStates[channelIndex];
     }
-    
+
     /// <summary>
     /// 软限幅函数
     /// </summary>
@@ -146,7 +146,8 @@ public class StereoEnhancementEffect : AudioEffectBase
     {
         if (Math.Abs(sample) <= threshold)
             return sample;
-        return Math.Sign(sample) * (threshold + (1 - threshold) * MathF.Tanh((Math.Abs(sample) - threshold) / (1 - threshold)));
+        return Math.Sign(sample)
+            * (threshold + (1 - threshold) * MathF.Tanh((Math.Abs(sample) - threshold) / (1 - threshold)));
     }
 
     /// <summary>

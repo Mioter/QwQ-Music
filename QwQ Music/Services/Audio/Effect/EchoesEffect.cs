@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading;
 using NAudio.Dsp;
 using NAudio.Wave;
+using QwQ_Music.Services.Audio.Effect.Base;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
 /// 回声效果器
@@ -91,9 +92,9 @@ public sealed class EchoesEffect : AudioEffectBase
     /// </summary>
     private void InitializeFilters()
     {
-        _feedbackFilters = _delaySamples.Select(_ =>
-            BiQuadFilter.LowPassFilter(Source.WaveFormat.SampleRate, 2000, 1.0f)
-        ).ToArray();
+        _feedbackFilters = _delaySamples
+            .Select(_ => BiQuadFilter.LowPassFilter(Source.WaveFormat.SampleRate, 2000, 1.0f))
+            .ToArray();
     }
 
     /// <summary>
@@ -137,15 +138,12 @@ public sealed class EchoesEffect : AudioEffectBase
 
             // 累加延迟信号（左右声道）
             outputL += delayBuffer[readPos];
-            outputR += channels == 2
-                ? delayBuffer[readPos + 1]
-                : delayBuffer[readPos];
+            outputR += channels == 2 ? delayBuffer[readPos + 1] : delayBuffer[readPos];
 
             // 应用反馈滤波器
             float feedbackSampleL = filter?.Transform(delayBuffer[readPos] * _feedbacks[i]) ?? 0;
-            float feedbackSampleR = channels == 2
-                ? filter?.Transform(delayBuffer[readPos + 1] * _feedbacks[i]) ?? 0
-                : feedbackSampleL;
+            float feedbackSampleR =
+                channels == 2 ? filter?.Transform(delayBuffer[readPos + 1] * _feedbacks[i]) ?? 0 : feedbackSampleL;
 
             // 将当前信号写入延迟缓冲区
             delayBuffer[_bufferIndex] = buffer[index] + feedbackSampleL;
@@ -171,11 +169,7 @@ public sealed class EchoesEffect : AudioEffectBase
     /// </summary>
     public override IAudioEffect Clone()
     {
-        var clone = new EchoesEffect
-        {
-            Enabled = Enabled,
-            Priority = Priority,
-        };
+        var clone = new EchoesEffect { Enabled = Enabled, Priority = Priority };
         clone.SetParameter("DelayTimesMs", GetParameter<float[]>("DelayTimesMs"));
         clone.SetParameter("Feedbacks", GetParameter<float[]>("Feedbacks"));
         return clone;
@@ -219,7 +213,11 @@ public sealed class EchoesEffect : AudioEffectBase
         switch (key.ToLower())
         {
             case "delaytimesms":
-                return (T)(object)_delaySamples.Select(sample => sample / Source.WaveFormat.SampleRate * 1000 / Source.WaveFormat.Channels).ToArray();
+                return (T)
+                    (object)
+                        _delaySamples
+                            .Select(sample => sample / Source.WaveFormat.SampleRate * 1000 / Source.WaveFormat.Channels)
+                            .ToArray();
             case "feedbacks":
                 return (T)(object)_feedbacks;
             default:

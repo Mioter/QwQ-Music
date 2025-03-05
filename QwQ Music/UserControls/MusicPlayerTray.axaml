@@ -7,6 +7,7 @@
              xmlns:customControls="clr-namespace:QwQ_Music.CustomControls"
              xmlns:behaviors="clr-namespace:QwQ_Music.Behaviors"
              xmlns:u="https://irihi.tech/ursa"
+             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="125"
              x:Class="QwQ_Music.UserControls.MusicPlayerTray">
 
@@ -27,13 +28,6 @@
                 </Animation>
             </Style.Animations>
         </Style>
-        
-        
-        <Style Selector="Image.AlbumCoverBinding">
-            <Setter Property="Source"
-                    Value="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Mode=OneWay,Converter={StaticResource AlbumImageConverter}}" />
-        </Style>
-
 
     </UserControl.Styles>
 
@@ -59,8 +53,7 @@
                         <Image RenderOptions.BitmapBlendingMode="Source"
                                MaxHeight="60"
                                MaxWidth="60"
-                               Classes.AlbumCoverNull="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Converter={x:Static ObjectConverters.IsNull}}"
-                               Classes.AlbumCoverBinding="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Converter={x:Static ObjectConverters.IsNotNull}}"
+                               Source="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Converter={StaticResource AlbumImageConverter}}"
                                Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}">
 
                             <Image.RenderTransform>
@@ -166,23 +159,23 @@
 
                             </Border>
 
-                            <customControls:SwitchControl Height="30"
+                            <control:SwitchControl Height="30"
                                                           Width="30"
                                                           Condition="{Binding MusicPlayerViewModel.IsPlaying}">
 
-                                <customControls:SwitchControl.TrueContent>
+                                <control:SwitchControl.TrueContent>
                                     <PathIcon
                                         Foreground="White"
                                         Data="{StaticResource PauseIconData}" />
-                                </customControls:SwitchControl.TrueContent>
+                                </control:SwitchControl.TrueContent>
 
-                                <customControls:SwitchControl.FalseContent>
+                                <control:SwitchControl.FalseContent>
                                     <PathIcon
                                         Foreground="White"
                                         Data="{StaticResource PlayIconData}" />
-                                </customControls:SwitchControl.FalseContent>
+                                </control:SwitchControl.FalseContent>
 
-                            </customControls:SwitchControl>
+                            </control:SwitchControl>
 
                         </Panel>
                     </Button>
@@ -252,7 +245,7 @@
                             <!-- ReSharper disable once Xaml.RedundantResource -->
                             <Thickness x:Key="FlyoutPadding">0</Thickness>
                         </Button.Resources>
-
+                        
                         <PathIcon Height="13" Width="13" Data="{StaticResource SemiIconSimilarity}" />
 
                         <Button.Flyout>
@@ -353,7 +346,7 @@
 
                                             <StackPanel>
                                                 <CheckBox
-                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnabledMultiChannelReplayGainEffect}" />
+                                                    IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.IsEnabledReplayGainEffect}" />
                                                 <TextBlock Text="回调增益" />
                                             </StackPanel>
 
@@ -363,25 +356,25 @@
 
                                     <ScrollViewer Grid.Column="1" Height="300" >
 
-                                        <customControls:IndexControl
+                                        <control:IndexControl
                                             Width="350"
                                             Margin="10,5,20,5"
                                             Index="{Binding #AudioEffectSelectionList.SelectedIndex}">
 
-                                            <customControls:IndexControl.PageTransition>
+                                            <control:IndexControl.PageTransition>
                                                 <CompositePageTransition>
                                                     <CrossFade Duration="0:0:0.5" />
                                                     <PageSlide Duration="0:0:0.3" Orientation="Vertical"
                                                                SlideInEasing="QuadraticEaseIn"
                                                                SlideOutEasing="QuadraticEaseOut" />
                                                 </CompositePageTransition>
-                                            </customControls:IndexControl.PageTransition>
+                                            </control:IndexControl.PageTransition>
 
-                                            <customControls:IndexControl.Styles>
-                                                <Style Selector="customControls|IndexControl > StackPanel">
+                                            <control:IndexControl.Styles>
+                                                <Style Selector="control|IndexControl > StackPanel">
                                                     <Setter Property="Spacing" Value="10" />
                                                 </Style>
-                                            </customControls:IndexControl.Styles>
+                                            </control:IndexControl.Styles>
 
                                             <StackPanel>
 
@@ -463,8 +456,7 @@
 
                                                             <Image RenderOptions.BitmapBlendingMode="Source"
                                                                    Width="30" Height="30"
-                                                                   Classes.AlbumCoverNull="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Converter={x:Static ObjectConverters.IsNull}}"
-                                                                   Classes.AlbumCoverBinding="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Converter={x:Static ObjectConverters.IsNotNull}}"
+                                                                   Source="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Converter={StaticResource AlbumImageConverter}}"
                                                                    Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}" />
                                                         </Border>
 
@@ -496,11 +488,11 @@
                                                         Name="RotationDirectionCheckBox"
                                                         VerticalAlignment="Center" FontSize="12"
                                                         IsChecked="{Binding MusicPlayerViewModel.SoundEffectConfigModel.RotatingIsClockwise}">
-                                                        <customControls:SwitchControl
+                                                        <control:SwitchControl
                                                             Condition="{Binding #RotationDirectionCheckBox.IsChecked}">
-                                                            <customControls:SwitchControl.TrueContent>顺时针</customControls:SwitchControl.TrueContent>
-                                                            <customControls:SwitchControl.FalseContent>逆时针</customControls:SwitchControl.FalseContent>
-                                                        </customControls:SwitchControl>
+                                                            <control:SwitchControl.TrueContent>顺时针</control:SwitchControl.TrueContent>
+                                                            <control:SwitchControl.FalseContent>逆时针</control:SwitchControl.FalseContent>
+                                                        </control:SwitchControl>
                                                     </CheckBox>
 
                                                 </StackPanel>
@@ -553,7 +545,6 @@
                                                                     Maximum="1"
                                                                     Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.ReverbDampening}" />
                                                 
-                                                <!--
                                                 <TextBlock
                                                     Text="{Binding #ReverbTime.Value,StringFormat='衰减时间 : {0:F3} 秒'}"
                                                     FontSize="12" />
@@ -561,13 +552,12 @@
                                                                     Minimum="0"
                                                                     Maximum="10"
                                                                     Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.ReverbDecayTime}" />
-                                                                    -->
                                                 
                                                 <TextBlock
                                                     Text="{Binding #ReverbPreDelayMs.Value, StringFormat='预延迟 : {0:F3} 毫秒'}"
                                                     FontSize="12" />
                                                 <Slider Name="ReverbPreDelayMs"
-                                                                    Minimum="0"
+                                                                    Minimum="50"
                                                                     Maximum="200"
                                                                     Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.ReverbPreDelayMs}" />
                                                 
@@ -698,7 +688,7 @@
 
                                             </StackPanel>
 
-                                        </customControls:IndexControl>
+                                        </control:IndexControl>
 
                                     </ScrollViewer>
 

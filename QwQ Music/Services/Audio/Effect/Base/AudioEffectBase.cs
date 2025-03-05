@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NAudio.Wave;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect.Base;
 
 /// <summary>
 /// 基础装饰器实现
@@ -32,7 +32,8 @@ public abstract class AudioEffectBase : IAudioEffect
         get => _enabled;
         set
         {
-            if (_enabled == value) return;
+            if (_enabled == value)
+                return;
             _enabled = value;
             OnEnabledChanged();
         }
@@ -76,7 +77,8 @@ public abstract class AudioEffectBase : IAudioEffect
     /// <param name="value">参数值</param>
     public virtual void SetParameter<T>(string key, T value)
     {
-        if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("参数名称不能为空", nameof(key));
+        if (string.IsNullOrWhiteSpace(key))
+            throw new ArgumentException("参数名称不能为空", nameof(key));
         _parameters[key] = value;
         OnParameterChanged(key, value);
     }
@@ -88,7 +90,8 @@ public abstract class AudioEffectBase : IAudioEffect
     /// <returns>参数值</returns>
     public object? GetParameter(string key)
     {
-        if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("参数名称不能为空", nameof(key));
+        if (string.IsNullOrWhiteSpace(key))
+            throw new ArgumentException("参数名称不能为空", nameof(key));
         return _parameters.GetValueOrDefault(key);
     }
 
@@ -102,7 +105,8 @@ public abstract class AudioEffectBase : IAudioEffect
     public virtual T GetParameter<T>(string key)
     {
         object? value = GetParameter(key);
-        if (value is T typedValue) return typedValue;
+        if (value is T typedValue)
+            return typedValue;
         throw new InvalidCastException($"参数 {key} 类型错误，预期：{typeof(T)}");
     }
 

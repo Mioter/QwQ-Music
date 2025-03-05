@@ -1,19 +1,28 @@
 using System;
 using System.Threading;
+using QwQ_Music.Services.Audio.Effect.Base;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
 /// 淡入淡出效果器
 /// </summary>
 public class FadeEffect : AudioEffectBase
 {
-    private enum FadeState { None, FadingIn, FadingOut }
+    private enum FadeState
+    {
+        None,
+        FadingIn,
+        FadingOut,
+    }
+
     private FadeState _currentState = FadeState.None;
     private int _fadeSamplePosition;
     private int _fadeSampleCount;
     private double _startVolume;
     private double _endVolume;
+    private double _fadeInMilliseconds;
+    private double _fadeOutMilliseconds;
     private readonly Lock _lock = new();
 
     /// <summary>
@@ -21,7 +30,7 @@ public class FadeEffect : AudioEffectBase
     /// </summary>
     public enum FadeCurveMode
     {
-        Linear,  // 线性渐变
+        Linear, // 线性渐变
         Exponential, // 指数渐变
         Sine, // 正弦渐变
     }
@@ -34,8 +43,8 @@ public class FadeEffect : AudioEffectBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        SetParameter("FadeInMilliseconds",1000);
-        SetParameter("FadeOutMilliseconds",1000);
+        SetParameter("FadeInMilliseconds", 1000);
+        SetParameter("FadeOutMilliseconds", 1000);
     }
 
     /// <summary>
@@ -43,7 +52,8 @@ public class FadeEffect : AudioEffectBase
     /// </summary>
     public void BeginFadeIn()
     {
-        if (!Enabled) return;
+        if (!Enabled)
+            return;
         StartFade(Volume, 1, GetParameter<double>("FadeInMilliseconds"));
     }
 
@@ -52,7 +62,8 @@ public class FadeEffect : AudioEffectBase
     /// </summary>
     public void BeginFadeOut()
     {
-        if (!Enabled) return;
+        if (!Enabled)
+            return;
         StartFade(Volume, 0, GetParameter<double>("FadeOutMilliseconds"));
     }
 
@@ -168,13 +179,13 @@ public class FadeEffect : AudioEffectBase
         {
             lock (_lock)
             {
-                return $"Name: {Name}\n" +
-                       $"Enabled: {Enabled}\n" +
-                       $"Priority: {Priority}\n" +
-                       $"Current State: {_currentState}\n" +
-                       $"Volume: {Volume:F2}\n" +
-                       $"Fade Progress: {_fadeSamplePosition}/{_fadeSampleCount}\n" +
-                       $"Fade Curve Mode: {_fadeCurveMode}";
+                return $"Name: {Name}\n"
+                    + $"Enabled: {Enabled}\n"
+                    + $"Priority: {Priority}\n"
+                    + $"Current State: {_currentState}\n"
+                    + $"Volume: {Volume:F2}\n"
+                    + $"Fade Progress: {_fadeSamplePosition}/{_fadeSampleCount}\n"
+                    + $"Fade Curve Mode: {_fadeCurveMode}";
             }
         }
     }
@@ -188,11 +199,11 @@ public class FadeEffect : AudioEffectBase
 
         switch (key.ToLower())
         {
-            case "startvolume":
-                _startVolume = Convert.ToDouble(value);
+            case "fadeinmilliseconds":
+                _fadeInMilliseconds = Convert.ToDouble(value);
                 break;
-            case "endvolume":
-                _endVolume = Convert.ToDouble(value);
+            case "fadeoutmilliseconds":
+                _fadeOutMilliseconds = Convert.ToDouble(value);
                 break;
             case "fadeduration":
                 double fadeDurationMs = Convert.ToDouble(value);
@@ -214,10 +225,10 @@ public class FadeEffect : AudioEffectBase
     {
         switch (key.ToLower())
         {
-            case "startvolume":
-                return (T)(object)_startVolume;
-            case "endvolume":
-                return (T)(object)_endVolume;
+            case "fadeinmilliseconds":
+                return (T)(object)_fadeInMilliseconds;
+            case "fadeoutmilliseconds":
+                return (T)(object)_fadeOutMilliseconds;
             case "fadeduration":
                 return (T)(object)(_fadeSampleCount * 1000.0 / WaveFormat.SampleRate);
             case "fadecurvemode":

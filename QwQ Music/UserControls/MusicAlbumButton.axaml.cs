@@ -5,15 +5,20 @@ namespace QwQ_Music.UserControls;
 
 public partial class MusicAlbumButton : Button
 {
+    public static readonly StyledProperty<bool> ExternalMouseTouchProperty = AvaloniaProperty.Register<
+        MusicAlbumButton,
+        bool
+    >(nameof(ExternalMouseTouch));
 
-    public static readonly StyledProperty<bool> ExternalMouseTouchProperty =
-        AvaloniaProperty.Register<MusicAlbumButton, bool>(nameof(ExternalMouseTouch));
+    public static readonly StyledProperty<object> CurrentMusicItemProperty = AvaloniaProperty.Register<
+        MusicAlbumButton,
+        object
+    >(nameof(CurrentMusicItem));
 
-    public static readonly StyledProperty<object> CurrentMusicItemProperty =
-        AvaloniaProperty.Register<MusicAlbumButton, object>(nameof(CurrentMusicItem));
+    public static readonly StyledProperty<bool> IsPlayingProperty = AvaloniaProperty.Register<MusicAlbumButton, bool>(
+        nameof(IsPlaying)
+    );
 
-    public static readonly StyledProperty<bool> IsPlayingProperty =
-        AvaloniaProperty.Register<MusicAlbumButton, bool>(nameof(IsPlaying));
     public MusicAlbumButton()
     {
         InitializeComponent();

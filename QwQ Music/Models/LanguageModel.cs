@@ -3,10 +3,16 @@ using System.Collections.Generic;
 
 namespace QwQ_Music.Models;
 
-public static partial class LanguageModel {
-    public enum Language { en_US, zh_CN }
+public static partial class LanguageModel
+{
+    public enum Language
+    {
+        en_US,
+        zh_CN,
+    }
 
-    public static Dictionary<string, string> Lang = new() {
+    public static Dictionary<string, string> Lang = new()
+    {
         ["MusicName"] = "音乐",
         ["ClassificationName"] = "分类",
         ["StatisticsName"] = "统计",
@@ -29,10 +35,13 @@ public static partial class LanguageModel {
         ["LyricAltTopColorName"] = "备选歌词顶部",
         ["LyricAltBottomColorName"] = "备选歌词底部",
         ["LyricAltBorderColorName"] = "备选歌词描边",
-        ["Loading..."] = "加载中..."
+        ["Loading..."] = "加载中...",
     };
 
     private class UnfinishedFunctionException(string msg) : InvalidOperationException(msg);
 
-    public static void LoadLanguage(Language language) { throw new UnfinishedFunctionException(nameof(LoadLanguage)); }
+    public static void LoadLanguage(Language language)
+    {
+        throw new UnfinishedFunctionException(nameof(LoadLanguage));
+    }
 }

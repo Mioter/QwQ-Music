@@ -14,7 +14,7 @@ public abstract class MessageBusBase : IDisposable
     /// <summary>
     /// 存储所有消息类型及其对应订阅项的字典。
     /// </summary>
-    protected readonly ConcurrentDictionary<Type, SubscriptionEntry> _subscriptions = new();
+    protected readonly ConcurrentDictionary<Type, SubscriptionEntry> Subscriptions = new();
 
     /// <summary>
     /// 当发生异常时触发的事件。
@@ -26,14 +26,14 @@ public abstract class MessageBusBase : IDisposable
     /// </summary>
     public void Dispose()
     {
-        foreach (var entry in _subscriptions.Values)
+        foreach (var entry in Subscriptions.Values)
         {
             lock (entry.Lock)
             {
                 entry.Subscribers.Clear();
             }
         }
-        _subscriptions.Clear();
+        Subscriptions.Clear();
         GC.SuppressFinalize(this);
     }
 
@@ -47,8 +47,8 @@ public abstract class MessageBusBase : IDisposable
     {
         ArgumentNullException.ThrowIfNull(handler);
         var messageType = typeof(TMessage);
-        var entry = _subscriptions.GetOrAdd(messageType, _ => new SubscriptionEntry());
-        object? subscription = CreateSubscription(handler);
+        var entry = Subscriptions.GetOrAdd(messageType, _ => new SubscriptionEntry());
+        object subscription = CreateSubscription(handler);
         lock (entry.Lock)
         {
             entry.Subscribers.Add(subscription);
@@ -135,7 +135,8 @@ public abstract class MessageBusBase : IDisposable
     /// </summary>
     private class SubscriptionToken(Action unsubscribeAction) : IDisposable
     {
-        private readonly Action _unsubscribeAction = unsubscribeAction ?? throw new ArgumentNullException(nameof(unsubscribeAction));
+        private readonly Action _unsubscribeAction =
+            unsubscribeAction ?? throw new ArgumentNullException(nameof(unsubscribeAction));
 
         public void Dispose()
         {

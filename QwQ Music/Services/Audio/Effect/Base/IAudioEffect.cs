@@ -1,8 +1,8 @@
-using NAudio.Wave;
 using System;
 using System.Threading.Tasks;
+using NAudio.Wave;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect.Base;
 
 /// <summary>
 /// 所有音频处理节点的统一接口。
@@ -82,5 +82,4 @@ public class ParameterChangedEventArgs(string key, object? value) : EventArgs
 {
     public string Key { get; } = key;
     public object? Value { get; } = value;
-
 }

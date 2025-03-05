@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NAudio.Wave;
+using QwQ_Music.Services.Audio.Effect.Base;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
 /// 音频效果处理链构建器
@@ -11,7 +12,8 @@ namespace QwQ_Music.Services.Effect;
 public class AudioEffectChain(ISampleProvider baseSource)
 {
     // 添加字段声明
-    private readonly ISampleProvider _originalSource = baseSource ?? throw new ArgumentNullException(nameof(baseSource));
+    private readonly ISampleProvider _originalSource =
+        baseSource ?? throw new ArgumentNullException(nameof(baseSource));
     private ISampleProvider _currentSource = baseSource;
     private readonly List<IAudioEffect> _effects = [];
 
@@ -23,13 +25,12 @@ public class AudioEffectChain(ISampleProvider baseSource)
     public AudioEffectChain AddEffect(IAudioEffect effect)
     {
         ArgumentNullException.ThrowIfNull(effect);
-        
+
         effect.Initialize(_currentSource);
         _currentSource = effect; // 更新当前链末端
         _effects.Add(effect);
         return this;
     }
-    
 
     /// <summary>
     /// 在指定位置插入效果
@@ -50,7 +51,7 @@ public class AudioEffectChain(ISampleProvider baseSource)
 
         // 查找插入位置的前驱节点
         var predecessor = index > 0 ? _effects[index - 1] : _originalSource;
-        
+
         // 初始化新效果
         effect.Initialize(predecessor as IAudioEffect ?? predecessor);
 
@@ -62,7 +63,7 @@ public class AudioEffectChain(ISampleProvider baseSource)
         }
 
         _effects.Insert(index, effect);
-        
+
         // 重建链式关系
         RebuildChain();
         return this;
@@ -76,7 +77,8 @@ public class AudioEffectChain(ISampleProvider baseSource)
     public bool RemoveEffect(string effectName)
     {
         var effectToRemove = _effects.FirstOrDefault(e => e.Name == effectName);
-        if (effectToRemove == null) return false;
+        if (effectToRemove == null)
+            return false;
 
         int index = _effects.IndexOf(effectToRemove);
         _effects.RemoveAt(index);
@@ -92,20 +94,17 @@ public class AudioEffectChain(ISampleProvider baseSource)
         RebuildChain();
         return true;
     }
-    
+
     /// <summary>
     /// 移除指定类型的所有效果
     /// </summary>
     /// <typeparam name="T">要移除的效果类型</typeparam>
     /// <returns>实际移除的效果数量</returns>
-    public int RemoveEffects<T>() where T : IAudioEffect
+    public int RemoveEffects<T>()
+        where T : IAudioEffect
     {
         // 找出所有匹配类型的索引（逆序避免索引错位）
-        var indices = _effects
-            .Select((eff, i) => (eff, i))
-            .Where(x => x.eff is T)
-            .OrderByDescending(x => x.i)
-            .ToList();
+        var indices = _effects.Select((eff, i) => (eff, i)).Where(x => x.eff is T).OrderByDescending(x => x.i).ToList();
 
         // 逆序移除以保证索引正确
         foreach (var item in indices)
@@ -117,7 +116,7 @@ public class AudioEffectChain(ISampleProvider baseSource)
         {
             RebuildChain();
         }
-        
+
         return indices.Count;
     }
 
@@ -126,11 +125,13 @@ public class AudioEffectChain(ISampleProvider baseSource)
     /// </summary>
     /// <typeparam name="T">要移除的效果类型</typeparam>
     /// <returns>是否成功移除</returns>
-    public bool RemoveFirstEffect<T>() where T : IAudioEffect
+    public bool RemoveFirstEffect<T>()
+        where T : IAudioEffect
     {
         for (int i = 0; i < _effects.Count; i++)
         {
-            if (_effects[i] is not T) continue;
+            if (_effects[i] is not T)
+                continue;
             _effects.RemoveAt(i);
             RebuildChain();
             return true;
@@ -143,18 +144,20 @@ public class AudioEffectChain(ISampleProvider baseSource)
     /// </summary>
     /// <typeparam name="T">要移除的效果类型</typeparam>
     /// <returns>是否成功移除</returns>
-    public bool RemoveLastEffect<T>() where T : IAudioEffect
+    public bool RemoveLastEffect<T>()
+        where T : IAudioEffect
     {
         for (int i = _effects.Count - 1; i >= 0; i--)
         {
-            if (_effects[i] is not T) continue;
+            if (_effects[i] is not T)
+                continue;
             _effects.RemoveAt(i);
             RebuildChain();
             return true;
         }
         return false;
     }
-    
+
     /// <summary>
     /// 链式关系重建方法
     /// </summary>
@@ -180,7 +183,8 @@ public class AudioEffectChain(ISampleProvider baseSource)
     /// <typeparam name="T">效果类型</typeparam>
     /// <param name="name">效果名称</param>
     /// <returns>匹配的效果实例，或 null</returns>
-    public T? GetEffect<T>(string name) where T : class, IAudioEffect
+    public T? GetEffect<T>(string name)
+        where T : class, IAudioEffect
     {
         return _effects.OfType<T>().FirstOrDefault(e => e.Name == name);
     }

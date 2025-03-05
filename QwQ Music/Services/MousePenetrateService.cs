@@ -3,7 +3,8 @@ using System.Runtime.InteropServices;
 
 namespace QwQ_Music.Services;
 
-public static class MousePenetrateService {
+public static class MousePenetrateService
+{
     private const uint WS_EX_LAYERED = 0x80000;
     private const int WS_EX_TRANSPARENT = 0x20;
     private const int GWL_STYLE = (-16);
@@ -24,7 +25,8 @@ public static class MousePenetrateService {
     /// </summary>
     /// <param name="handle">Window Handle</param>
     /// <param name="flag">true穿透，false不穿透</param>
-    public static void SetPenetrate(IntPtr handle,bool flag = true) {
+    public static void SetPenetrate(IntPtr handle, bool flag = true)
+    {
         uint style = GetWindowLong(handle, GWL_EXSTYLE);
         if (flag)
             SetWindowLong(handle, GWL_EXSTYLE, style | WS_EX_TRANSPARENT | WS_EX_LAYERED);

@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Timers;
 using Avalonia.Threading;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using QwQ_Music.Services.Effect;
+using QwQ_Music.Services.Audio.Effect;
+using QwQ_Music.Services.Audio.Effect.Base;
 using Timer = System.Timers.Timer;
 
-namespace QwQ_Music.Services.Audio;
+namespace QwQ_Music.Services.Audio.Play;
 
 public class AudioPlay : IDisposable
 {
@@ -23,8 +23,7 @@ public class AudioPlay : IDisposable
     private VolumeEffect? _volumeEffect; // 音量控制效果
     private FadeEffect? _fadeEffect; // 淡入淡出效果
 
-
-    private readonly Dictionary<string, EffectConfig> _userConfigs = new();   // 用户配置存储
+    private readonly Dictionary<string, EffectConfig> _userConfigs = new(); // 用户配置存储
     private readonly Lock _lock = new(); // 确保线程安全
 
     /// <summary>
@@ -33,7 +32,8 @@ public class AudioPlay : IDisposable
     public void SetVolume(float volume)
     {
         _volume = Math.Clamp(volume, 0.0f, 1.0f);
-        if (_volumeEffect != null) _volumeEffect.Volume = _volume; // 使用动态参数设置音量
+        if (_volumeEffect != null)
+            _volumeEffect.Volume = _volume; // 使用动态参数设置音量
     }
 
     /// <summary>
@@ -43,7 +43,8 @@ public class AudioPlay : IDisposable
     {
         lock (_lock)
         {
-            if (_waveOutEvent == null) return;
+            if (_waveOutEvent == null)
+                return;
 
             // 停止并释放之前的淡出定时器
             StopFadeOutTimer();
@@ -84,12 +85,12 @@ public class AudioPlay : IDisposable
     {
         lock (_lock)
         {
-            if (_audioFileReader == null || _waveOutEvent == null) return;
+            if (_audioFileReader == null || _waveOutEvent == null)
+                return;
 
             var targetTime = TimeSpan.FromSeconds(positionInSeconds);
-            _audioFileReader.CurrentTime = targetTime > _audioFileReader.TotalTime
-                ? _audioFileReader.TotalTime
-                : targetTime;
+            _audioFileReader.CurrentTime =
+                targetTime > _audioFileReader.TotalTime ? _audioFileReader.TotalTime : targetTime;
         }
     }
 
@@ -140,21 +141,18 @@ public class AudioPlay : IDisposable
         _effectChain = new AudioEffectChain(offsetProvider);
 
         // 添加默认效果器
-        AddDefaultEffects(replayGain);
+        // AddDefaultEffects(replayGain); // 暂时禁用
 
         // 初始化播放器
         _waveOutEvent = new WaveOutEvent
         {
-            DesiredLatency = 100, // 设置较低的延迟以提高响应速度
+            DesiredLatency = 50, // 设置较低的延迟以提高响应速度
         };
         _waveOutEvent.PlaybackStopped += OnPlaybackStopped;
         _waveOutEvent.Init(_effectChain.GetOutput());
 
         // 初始化进度定时器
-        _progressTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(500),
-        };
+        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _progressTimer.Tick += OnProgressTimerTick;
     }
 
@@ -163,24 +161,33 @@ public class AudioPlay : IDisposable
     /// </summary>
     private void AddDefaultEffects(double replayGain)
     {
-        if (_effectChain == null) return;
+        if (_effectChain == null)
+            return;
 
         // 定义均衡器的频段配置（中心频率和增益）
         var bands = new (float frequency, float gain)[]
         {
-            (31.25f, 0), (62.5f, 0), (125f, 0), // 低频段
-            (250f, 0), (500f, 0), (1000f, 0), (2000f, 0), // 中频段
-            (4000f, 0), (8000f, 0), (16000f, 0), // 高频段
+            (31.25f, 0),
+            (62.5f, 0),
+            (125f, 0), // 低频段
+            (250f, 0),
+            (500f, 0),
+            (1000f, 0),
+            (2000f, 0), // 中频段
+            (4000f, 0),
+            (8000f, 0),
+            (16000f, 0), // 高频段
         };
 
-        _effectChain.AddEffect(new GlobalReplayGainEffect(replayGain)) // 多声道回放增益
+        _effectChain
+            .AddEffect(new ReplayGainEffect(replayGain)) // 多声道回放增益
             .AddEffect(new StereoEnhancementEffect()) // 立体声增强
             .AddEffect(new DistortionEffect()) // 失真
             .AddEffect(new ReverbEffect()) // 混响
             .AddEffect(new CompressorEffect()) // 压缩器
-            .AddEffect(new EqualizerEffect(bands))  // 均衡器
+            .AddEffect(new EqualizerEffect(bands)) // 均衡器
             .AddEffect(new TremoloEffect()) // 颤音
-            .AddEffect(new EchoesEffect()) // 延迟
+            .AddEffect(new EchoesEffect()) // 回声
             .AddEffect(new SpatialEffect()) // 空间
             .AddEffect(new RotatingEffect()) // 环绕
             .AddEffect(new FadeEffect()) // 淡入淡出
@@ -190,7 +197,8 @@ public class AudioPlay : IDisposable
         _volumeEffect = _effectChain.GetEffect<VolumeEffect>("Volume");
         _fadeEffect = _effectChain.GetEffect<FadeEffect>("Fade");
 
-        if (_volumeEffect != null) _volumeEffect.Volume = _volume;
+        if (_volumeEffect != null)
+            _volumeEffect.Volume = _volume;
     }
 
     /// <summary>
@@ -218,9 +226,10 @@ public class AudioPlay : IDisposable
         lock (_lock)
         {
             _userConfigs[effectName] = effectConfig; // 保存用户配置
-            
+
             var effect = _effectChain?.GetEffect<IAudioEffect>(effectName);
-            if (effect == null) return;
+            if (effect == null)
+                return;
             // 更新启用状态
             effect.Enabled = effectConfig.Enabled;
 
@@ -231,7 +240,6 @@ public class AudioPlay : IDisposable
             }
         }
     }
-    
 
     /// <summary>
     /// 刷新播放（变动效果链时调用）
@@ -240,12 +248,14 @@ public class AudioPlay : IDisposable
     {
         lock (_lock)
         {
-            if (_waveOutEvent == null) return;
+            if (_waveOutEvent == null)
+                return;
 
             bool wasPlaying = _waveOutEvent.PlaybackState == PlaybackState.Playing;
             _waveOutEvent.Stop();
             _waveOutEvent.Init(_effectChain?.GetOutput());
-            if (wasPlaying) _waveOutEvent.Play();
+            if (wasPlaying)
+                _waveOutEvent.Play();
         }
     }
 
@@ -289,7 +299,8 @@ public class AudioPlay : IDisposable
     {
         lock (_lock)
         {
-            if (_progressTimer == null) return;
+            if (_progressTimer == null)
+                return;
 
             _progressTimer.Stop();
             _progressTimer.Tick -= OnProgressTimerTick;
@@ -304,7 +315,8 @@ public class AudioPlay : IDisposable
     {
         lock (_lock)
         {
-            if (_fadeOutTimer == null) return;
+            if (_fadeOutTimer == null)
+                return;
 
             _fadeOutTimer.Stop();
             _fadeOutTimer.Elapsed -= OnFadeOutTimerElapsed;
@@ -346,7 +358,8 @@ public class AudioPlay : IDisposable
     {
         lock (_lock)
         {
-            if (_audioFileReader == null || _waveOutEvent == null) return;
+            if (_audioFileReader == null || _waveOutEvent == null)
+                return;
             PositionChanged?.Invoke(this, _audioFileReader.CurrentTime.TotalSeconds);
         }
     }
@@ -378,10 +391,7 @@ public class AudioPlay : IDisposable
 
             _fadeEffect.BeginFadeOut();
 
-            _fadeOutTimer = new Timer(_fadeEffect.GetParameter<double>("FadeOutMilliseconds"))
-            {
-                AutoReset = false,
-            };
+            _fadeOutTimer = new Timer(_fadeEffect.GetParameter<double>("FadeOutMilliseconds")) { AutoReset = false };
             _fadeOutTimer.Elapsed += OnFadeOutTimerElapsed;
             _fadeOutTimer.Start();
         }
@@ -401,7 +411,8 @@ public class AudioPlay : IDisposable
     {
         lock (_lock)
         {
-            if (_effectChain == null) return;
+            if (_effectChain == null)
+                return;
             _effectChain.AddEffect(effect);
             RefreshPlayback();
         }
@@ -410,12 +421,13 @@ public class AudioPlay : IDisposable
     /// <summary>
     /// 插入新效果（受限版本）
     /// </summary>
-    [Obsolete("此方法是不受支持的方法，请使用 AddEffect 方法。他会自动根据优先级管理顺序。",true)]
+    [Obsolete("此方法是不受支持的方法，请使用 AddEffect 方法。他会自动根据优先级管理顺序。", true)]
     public void InsertEffect(int index, IAudioEffect effect)
     {
         lock (_lock)
         {
-            if (_effectChain == null) return;
+            if (_effectChain == null)
+                return;
 
             // 检查优先级是否符合插入位置的要求
             var effects = _effectChain.GetEffects();
@@ -432,7 +444,7 @@ public class AudioPlay : IDisposable
             RefreshPlayback();
         }
     }
-    
+
     /// <summary>
     /// 移除效果
     /// </summary>
@@ -441,7 +453,8 @@ public class AudioPlay : IDisposable
     {
         lock (_lock)
         {
-            if (!(_effectChain?.RemoveEffect(effectName) ?? false)) return false;
+            if (!(_effectChain?.RemoveEffect(effectName) ?? false))
+                return false;
             RefreshPlayback();
             return true;
         }
@@ -450,7 +463,8 @@ public class AudioPlay : IDisposable
     /// <summary>
     /// 获取效果实例
     /// </summary>
-    public T? GetEffect<T>(string name) where T : class, IAudioEffect
+    public T? GetEffect<T>(string name)
+        where T : class, IAudioEffect
     {
         lock (_lock)
         {

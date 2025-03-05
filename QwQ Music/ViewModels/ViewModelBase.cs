@@ -2,6 +2,4 @@
 
 namespace QwQ_Music.ViewModels;
 
-public class ViewModelBase : ObservableObject
-{
-}
+public class ViewModelBase : ObservableObject { }

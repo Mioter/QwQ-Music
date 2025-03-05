@@ -15,7 +15,15 @@ public class LoveWindow : Window
     private readonly int _dy;
     private readonly LoveWindow? _centerWindow;
 
-    public LoveWindow(PixelPoint position, Color color, string content, int dx = 0, int dy = 0, LoveWindow? centerWindow = null, bool isCenter = false)
+    public LoveWindow(
+        PixelPoint position,
+        Color color,
+        string content,
+        int dx = 0,
+        int dy = 0,
+        LoveWindow? centerWindow = null,
+        bool isCenter = false
+    )
     {
         AllWindows.Add(this);
         Closed += OnWindowClosed;
@@ -89,10 +97,8 @@ public class LoveWindow : Window
     {
         dragControl.PointerPressed += (_, e) => BeginMoveDrag(e);
         dragControl.DoubleTapped += (_, _) => Close();
-        dragControl.PointerEntered += (_, _) =>
-            RenderTransform = new ScaleTransform(1.05, 1.05);
-        dragControl.PointerExited += (_, _) =>
-            RenderTransform = null;
+        dragControl.PointerEntered += (_, _) => RenderTransform = new ScaleTransform(1.05, 1.05);
+        dragControl.PointerExited += (_, _) => RenderTransform = null;
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)

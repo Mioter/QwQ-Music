@@ -1,107 +1,177 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Services;
 
-public static class LoggerService {
-    public static readonly string SavePath = EnsureExists.Path(Path.Combine(Environment.CurrentDirectory , "log"));
+public static class LoggerService
+{
+    // 配置项
+    public static readonly string SavePath = EnsureExists.Path(Path.Combine(Environment.CurrentDirectory, "log"));
+    public static bool IsKeepOpen { get; set; } = false;
+    public static LogLevel Level { get; set; } = LogLevel.Debug;
+    public static int RetryCount { get; set; } = 3;
 
-
-    public static bool IsKeepOpen = false;
-
-    public enum LogLevel {
+    // 日志级别枚举
+    public enum LogLevel
+    {
         Off = -1,
         Debug,
         Info,
         Warning,
         Error,
-        Fatal
+        Fatal,
     }
 
-    public static LogLevel Level = LogLevel.Debug;
-
-    // 当IsKeepFileOpen为true时，在此处保存文件流. false时暂存当前文件流
-    private static FileStream? _fileStream;
-
+    // 内部状态
     private static DateTime _currentDay = DateTime.Today;
-    private static readonly string LogFile = $"{SavePath}/{_currentDay:MM-dd}.QwQLog";
+    private static string LogFile => Path.Combine(SavePath, $"{_currentDay:yyyy-MM-dd}.QwQ.log");
+    private static FileStream? _fileStream;
+    private static readonly SemaphoreSlim AsyncLock = new(1, 1);
 
-    private static FileStream LogStream =>
-        _fileStream ??= File.Exists(LogFile) ?
-            new FileStream(LogFile, FileMode.Append, FileAccess.Write, FileShare.Read) :
-            new FileStream(LogFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+    /// <summary>
+    /// 获取或创建日志文件流
+    /// </summary>
+    private static FileStream GetLogFile()
+    {
+        if (_fileStream is { CanWrite: true })
+            return _fileStream;
 
-    private static async void LoggerBaseAsync(
-        string status,
-        string data,
-        int? line,
-        string? function,
-        string? filename,
-        bool retry = false) {
-        try {
-            await using var writer = new StreamWriter(
-                IsKeepOpen ? LogStream :
-                File.Exists(LogFile) ? new FileStream(LogFile, FileMode.Append, FileAccess.Write, FileShare.Read) :
-                new FileStream(LogFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read));
-            if (line is null || function is null || filename is null) {
-                await writer.WriteLineAsync(
-                    $"Error:Line Number '{line}' or Function '{function}' or Filename '{filename}' is null.");
+        _fileStream?.Dispose();
+        _fileStream = new FileStream(LogFile, FileMode.Append, FileAccess.Write, FileShare.Read);
+        return _fileStream;
+    }
+
+    /// <summary>
+    /// 格式化日志消息
+    /// </summary>
+    private static string FormatLogMessage(string status, string message, int line, string? function, string? filename)
+    {
+        string lineInfo = line > 0 ? $"line {line}" : "unknown line";
+        string functionInfo = !string.IsNullOrEmpty(function) ? $"<{function}>" : "<unknown>";
+        string fileInfo = !string.IsNullOrEmpty(filename) ? Path.GetFileName(filename) : "unknown";
+
+        return $"{DateTime.Now:HH:mm:ss.fff} [{status}] {functionInfo} at {fileInfo}, {lineInfo}: {message}";
+    }
+
+    /// <summary>
+    /// 异步写入日志，支持重试机制
+    /// </summary>
+    private async static Task WriteLogAsync(string logMessage)
+    {
+        await AsyncLock.WaitAsync();
+        try
+        {
+            // 检查是否需要切换日志文件
+            var today = DateTime.Today;
+            if (today != _currentDay)
+            {
+                _currentDay = today;
+                await (_fileStream?.DisposeAsync() ?? ValueTask.CompletedTask); // 修复 CA2012
+                _fileStream = null;
             }
-
-            await writer.WriteLineAsync(
-                $"{DateTime.Today.TimeOfDay:HH:MM:SS.FF} [{status}] <{function}> at {filename}, line {line}: {data}");
-        } catch (IOException ex) {
-            if (!retry) LoggerBaseAsync(status, data, line, function, filename, true);
-        } catch (ObjectDisposedException ex) {
-            _fileStream?.DisposeAsync();
-            _fileStream = null;
-            if (!retry) LoggerBaseAsync(status, data, line, function, filename, true);
-        } catch (InvalidOperationException ex) {
-            if (!retry) LoggerBaseAsync(status, data, line, function, filename, true);
-        } catch (Exception) {
-            if (!retry) LoggerBaseAsync(status, data, line, function, filename, true);
+            await AttemptWriteWithRetry(logMessage);
+        }
+        finally
+        {
+            AsyncLock.Release();
         }
     }
 
+    /// <summary>
+    /// 尝试写入日志，支持重试机制
+    /// </summary>
+    private async static Task AttemptWriteWithRetry(string logMessage)
+    {
+        int attempts = 0;
+        while (attempts < RetryCount)
+        {
+            try
+            {
+                await using var writer = CreateStreamWriter();
+                await writer.WriteLineAsync(logMessage);
+                return;
+            }
+            catch
+            {
+                attempts++;
+                if (attempts >= RetryCount)
+                    throw;
+                await Task.Delay(100);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 创建 StreamWriter
+    /// </summary>
+    private static StreamWriter CreateStreamWriter()
+    {
+        var stream = IsKeepOpen
+            ? GetLogFile()
+            : new FileStream(LogFile, FileMode.Append, FileAccess.Write, FileShare.Read);
+        return new StreamWriter(stream, Encoding.UTF8, leaveOpen: IsKeepOpen);
+    }
+
+    /// <summary>
+    /// 记录日志
+    /// </summary>
+    private static void Log(LogLevel level, string status, string message, int line, string? function, string? filename)
+    {
+        if (level < Level)
+            return;
+
+        string logMessage = FormatLogMessage(status, message, line, function, filename);
+        _ = WriteLogAsync(logMessage);
+    }
+
+    /// <summary>
+    /// 关闭日志服务，释放资源
+    /// </summary>
+    public static void Shutdown()
+    {
+        _fileStream?.Dispose();
+        _fileStream = null;
+    }
+
+    // 公共日志方法
     public static void Info(
         string message,
-        [CallerLineNumber] int? line = null,
+        [CallerLineNumber] int line = 0,
         [CallerMemberName] string? function = null,
-        [CallerFilePath] string? filename = null) =>
-        LoggerBaseAsync("INFO", message, line, function, filename);
+        [CallerFilePath] string? filename = null
+    ) => Log(LogLevel.Info, "INFO", message, line, function, filename);
 
     public static void Warning(
         string message,
-        [CallerLineNumber] int? line = null,
+        [CallerLineNumber] int line = 0,
         [CallerMemberName] string? function = null,
-        [CallerFilePath] string? filename = null) =>
-        LoggerBaseAsync("WARNING", message, line, function, filename);
+        [CallerFilePath] string? filename = null
+    ) => Log(LogLevel.Warning, "WARN", message, line, function, filename);
 
     public static void Error(
         string message,
-        [CallerLineNumber] int? line = null,
+        [CallerLineNumber] int line = 0,
         [CallerMemberName] string? function = null,
-        [CallerFilePath] string? filename = null) =>
-        LoggerBaseAsync("ERROR", message, line, function, filename);
+        [CallerFilePath] string? filename = null
+    ) => Log(LogLevel.Error, "ERROR", message, line, function, filename);
 
     public static void Fatal(
         string message,
-        [CallerLineNumber] int? line = null,
+        [CallerLineNumber] int line = 0,
         [CallerMemberName] string? function = null,
-        [CallerFilePath] string? filename = null) =>
-        LoggerBaseAsync("FATAL", message, line, function, filename);
+        [CallerFilePath] string? filename = null
+    ) => Log(LogLevel.Fatal, "FATAL", message, line, function, filename);
 
     public static void Custom(
-        string status,
         string message,
-        [CallerLineNumber] int? line = null,
+        string status,
+        [CallerLineNumber] int line = 0,
         [CallerMemberName] string? function = null,
-        [CallerFilePath] string? filename = null) =>
-        LoggerBaseAsync(status.ToUpper(), message, line, function, filename);
+        [CallerFilePath] string? filename = null
+    ) => Log(LogLevel.Fatal, status.ToUpper(), message, line, function, filename);
 }

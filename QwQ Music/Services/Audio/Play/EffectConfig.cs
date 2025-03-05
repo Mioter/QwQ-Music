@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace QwQ_Music.Services.Audio;
+namespace QwQ_Music.Services.Audio.Play;
 
 /// <summary>
 /// 效果器配置类

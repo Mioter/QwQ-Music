@@ -35,7 +35,8 @@ public class StrongMessageBus : MessageBusBase
     protected override List<Action<TMessage>> GetValidHandlers<TMessage>()
     {
         var messageType = typeof(TMessage);
-        if (!_subscriptions.TryGetValue(messageType, out var entry)) return [];
+        if (!Subscriptions.TryGetValue(messageType, out var entry))
+            return [];
         lock (entry.Lock)
         {
             return entry.Subscribers.Cast<Action<TMessage>>().ToList();

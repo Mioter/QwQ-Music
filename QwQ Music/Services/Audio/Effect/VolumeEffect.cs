@@ -1,41 +1,42 @@
 using System;
 using System.Text;
 using System.Threading;
+using QwQ_Music.Services.Audio.Effect.Base;
 
-namespace QwQ_Music.Services.Effect;
+namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
-/// 整体回放增益效果器
+/// 音量控制效果器
 /// </summary>
-public class GlobalReplayGainEffect : AudioEffectBase
+public class VolumeEffect : AudioEffectBase
 {
-    private double _globalGain; // 整体增益值
-    private int _channels;     // 声道数
+    private float _volume = 1.0f; // 音量值
     private readonly Lock _lock = new(); // 确保线程安全
 
+    public override string Name => "Volume";
+
     /// <summary>
-    /// 构造函数（支持整体增益值）
+    /// 音量（范围：0.0 到 1.0）
     /// </summary>
-    /// <param name="gain">整体增益值</param>
-    public GlobalReplayGainEffect(double gain)
+    public float Volume
     {
-        base.SetParameter("GlobalGain", gain);
+        get => _volume;
+        set => _volume = Math.Clamp(value, 0.0f, 1.0f);
     }
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
+
         lock (_lock)
         {
-            _channels = Source.WaveFormat.Channels;
-            _globalGain = base.GetParameter<double>("GlobalGain");
+            if (Source.WaveFormat.Channels > 2)
+                throw new NotSupportedException("只支持单声道/立体声");
         }
     }
 
-    public override string Name => "Global Replay Gain";
-
     /// <summary>
-    /// 读取音频数据并应用增益
+    /// 读取音频数据并应用音量控制
     /// </summary>
     /// <param name="buffer">音频缓冲区</param>
     /// <param name="offset">起始偏移量</param>
@@ -49,19 +50,17 @@ public class GlobalReplayGainEffect : AudioEffectBase
         }
 
         int samplesRead = Source.Read(buffer, offset, count);
+
         lock (_lock)
         {
-            if (_channels <= 0)
-                return samplesRead;
+            float volume = _volume; // 获取当前音量
 
-            // 遍历样本并应用整体增益
-            for (int n = 0; n < samplesRead; n++)
+            for (int i = 0; i < samplesRead; i++)
             {
-                int index = offset + n;
-                if (index >= buffer.Length) continue;
-                buffer[index] *= (float)_globalGain; // 应用整体增益
+                buffer[offset + i] *= volume;
             }
         }
+
         return samplesRead;
     }
 
@@ -70,8 +69,9 @@ public class GlobalReplayGainEffect : AudioEffectBase
     /// </summary>
     public override IAudioEffect Clone()
     {
-        var clone = new GlobalReplayGainEffect(GetParameter<double>("GlobalGain"))
+        var clone = new VolumeEffect
         {
+            Volume = _volume,
             Enabled = Enabled,
             Priority = Priority,
         };
@@ -91,8 +91,8 @@ public class GlobalReplayGainEffect : AudioEffectBase
                 sb.AppendLine($"Name: {Name}");
                 sb.AppendLine($"Enabled: {Enabled}");
                 sb.AppendLine($"Priority: {Priority}");
-                sb.AppendLine($"Channels: {_channels}");
-                sb.AppendLine($"Global Gain: {_globalGain:F2}");
+                sb.AppendLine($"Volume: {_volume:F2}");
+                sb.AppendLine($"Channels: {Source.WaveFormat.Channels}");
                 return sb.ToString();
             }
         }
@@ -104,14 +104,15 @@ public class GlobalReplayGainEffect : AudioEffectBase
     public override void SetParameter<T>(string key, T value)
     {
         base.SetParameter(key, value);
+
         switch (key.ToLower())
         {
-            case "globalgain":
-                if (value is double gain)
+            case "volume":
+                if (value is float volume)
                 {
                     lock (_lock)
                     {
-                        _globalGain = gain;
+                        _volume = Math.Clamp(volume, 0.0f, 1.0f);
                     }
                 }
                 break;
@@ -123,13 +124,9 @@ public class GlobalReplayGainEffect : AudioEffectBase
     /// </summary>
     public override T GetParameter<T>(string key)
     {
-        if (typeof(T) != typeof(double))
-        {
-            throw new ArgumentException($"Unsupported type for parameter '{key}'. Expected double.");
-        }
         return key.ToLower() switch
         {
-            "globalgain" => (T)(object)_globalGain,
+            "volume" => (T)(object)_volume,
             _ => base.GetParameter<T>(key),
         };
     }
