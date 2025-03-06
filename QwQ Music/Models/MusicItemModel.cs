@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Data.Sqlite;
+using QwQ_Music.Models.ModelBase;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 

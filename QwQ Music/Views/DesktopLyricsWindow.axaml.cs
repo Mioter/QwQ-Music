@@ -1,6 +1,7 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
-using QwQ_Music.Models;
+using static QwQ_Music.Models.ConfigInfoModel;
 using static QwQ_Music.Models.LanguageModel;
 using static QwQ_Music.Services.MousePenetrateService;
 
@@ -10,20 +11,21 @@ public partial class DesktopLyricsWindow : Window
 {
     public DesktopLyricsWindow()
     {
-        if (!DesktopLyricConfig.IsEnabled)
+        if (!DesktopLyricConfig.LyricIsEnabled)
         {
             return;
         }
 
         InitializeComponent();
-        if (DesktopLyricConfig.IsVertical)
+
+        if (DesktopLyricConfig.LyricIsVertical)
         {
             MainLyric.RenderTransform = new RotateTransform(90);
             AltLyric.RenderTransform = new RotateTransform(90);
         }
 
         MainLyric.Text = Lang["Loading..."];
-        if (!DesktopLyricConfig.IsDoubleLine && !DesktopLyricConfig.IsDualLang)
+        if (DesktopLyricConfig is { LyricIsDoubleLine: false, LyricIsDualLang: false })
         {
             AltLyric.IsVisible = false;
             Grid.SetRowSpan(MainLyric, 2);
@@ -33,7 +35,7 @@ public partial class DesktopLyricsWindow : Window
 
         Width = DesktopLyricConfig.Size.Width;
         Height = DesktopLyricConfig.Size.Height;
-        Position = DesktopLyricConfig.Position;
+        Position = new PixelPoint(DesktopLyricConfig.LyricPositionX, DesktopLyricConfig.LyricPositionY);
         base.Show();
         SetPenetrate(TryGetPlatformHandle()!.Handle);
     }

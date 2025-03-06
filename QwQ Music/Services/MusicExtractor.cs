@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using QwQ_Music.Models;
 using QwQ_Music.Services.Audio.Play;
+using static QwQ_Music.Models.ConfigInfoModel;
 using File = System.IO.File;
+using PlayerConfig = QwQ_Music.Models.ConfigModel.PlayerConfig;
 
 namespace QwQ_Music.Services;
 
@@ -21,11 +23,8 @@ public static class MusicExtractor
     /// <param name="coverName">专辑封面索引。</param>
     private async static Task<bool> SaveCoverAsync(Lazy<Bitmap> cover, string coverName)
     {
-        if (!PlayerConfig.IsInitialized)
-            await PlayerConfig.LoadAsync();
-
         // 构造完整文件路径
-        string filePath = Path.Combine(PlayerConfig.CoverSavePath, coverName);
+        string filePath = Path.Combine(Models.ConfigModel.PlayerConfig.CoverSavePath, coverName);
 
         // 确保目录存在
         Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
@@ -55,10 +54,10 @@ public static class MusicExtractor
         }
     }
 
-    public async static Task<LyricsModel> ExtractMusicLyricsAsync(string filePath) =>
+    public static async Task<LyricsModel> ExtractMusicLyricsAsync(string filePath) =>
         await Task.Run(() => LyricsModel.ParseAsync(TagLib.File.Create(filePath).Tag.Lyrics));
 
-    public async static Task<MusicTagExtensions> ExtractMusicInfoExtensionsAsync(string filePath)
+    public static async Task<MusicTagExtensions> ExtractMusicInfoExtensionsAsync(string filePath)
     {
         return await Task.Run(() =>
         {

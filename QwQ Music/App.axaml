@@ -5,60 +5,21 @@
     x:CompileBindings="True"
     xmlns:conver="clr-namespace:QwQ_Music.Converter"
     xmlns:semi="https://irihi.tech/semi"
-
     xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
     RequestedThemeVariant="Default">
-    <!--xmlns:sukiUi="clr-namespace:SukiUI;assembly=SukiUI"-->
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Styles>
         
         <semi:SemiTheme Locale="zh-CN" />
         <u-Semi:SemiTheme Locale="zh-CN" />
-        <!--<sukiUi:SukiTheme ThemeColor="Blue"  />-->
-
         <StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
-
-        <!-- <StyleInclude Source="avares://Semi.Avalonia.TreeDataGrid/Index.axaml" />-->
-        <StyleInclude Source="Assets/Animations/PopupAnimations.axaml" />
-
+        
+        <StyleInclude Source="Assets/Animations/_indexes.axaml" />
         <StyleInclude Source="Assets/Styles/_indexes.axaml" />
         
         <Style Selector="CheckBox">
             <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-
-        <Style Selector="FlyoutPresenter">
-            <Setter Property="Template">
-                <ControlTemplate TargetType="FlyoutPresenter">
-                    <Border
-                        Name="LayoutRoot"
-                        Margin="4"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        BoxShadow="{DynamicResource FlyoutBorderBoxShadow}"
-                        ClipToBounds="False"
-                        CornerRadius="{TemplateBinding CornerRadius}"
-                        UseLayoutRounding="False">
-                        <Panel>
-                            <Panel Effect="blur(10)"
-                                   Background="{TemplateBinding Background}" />
-                            <ScrollViewer
-                                HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
-                                VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
-                                <ContentPresenter
-                                    Margin="{TemplateBinding Padding}"
-                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                    HorizontalContentAlignment="Stretch"
-                                    VerticalContentAlignment="Stretch"
-                                    Content="{TemplateBinding Content}"
-                                    ContentTemplate="{TemplateBinding ContentTemplate}" />
-                            </ScrollViewer>
-                        </Panel>
-                    </Border>
-                </ControlTemplate>
-            </Setter>
         </Style>
         
     </Application.Styles>

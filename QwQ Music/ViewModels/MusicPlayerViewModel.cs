@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 using QwQ_Music.Services.Audio.Play;
 using QwQ_Music.Services.ConfigIO;
+using static QwQ_Music.Models.ConfigInfoModel;
 using Log = QwQ_Music.Services.LoggerService;
 
 namespace QwQ_Music.ViewModels;
@@ -34,8 +35,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<MusicItemModel> _musicItems = [];
 
-    public readonly PlaylistModel Playlist = new(PlayerConfig.LatestPlayListName);
-    public PlaylistModel PlaylistProperty => Playlist;
+    public static PlaylistModel Playlist => new(Models.ConfigModel.PlayerConfig.LatestPlayListName);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(VolumePercent))]
@@ -69,10 +69,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private void InitializeAsync()
     {
-        if (!PlayerConfig.IsInitialized)
-            JsonService.LoadFromJsonAsync<PlayerConfig>().ConfigureAwait(false);
         InitializeMusicItemAsync().ConfigureAwait(false);
-
         LoadSoundEffectConfigAsync().ConfigureAwait(false);
     }
 
@@ -201,10 +198,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void RemoveInMusicList(MusicItemModel musicItem)
-    {
-        Playlist.MusicItems.Remove(musicItem);
-    }
+    private static void RemoveInMusicList(MusicItemModel musicItem) => Playlist.MusicItems.Remove(musicItem);
 
     [RelayCommand]
     private void ClearMusicItemCurrentDuration(MusicItemModel musicItem)
@@ -251,14 +245,21 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private async Task LoadSoundEffectConfigAsync()
     {
-        SoundEffectConfigModel = await JsonConfigService.LoadAsync<SoundEffectConfigModel>("SoundEffectConfig", SoundEffectConfigModelJsonSerializerContext.Default) ?? new SoundEffectConfigModel();
+        SoundEffectConfigModel =
+            await JsonConfigService.LoadAsync<SoundEffectConfigModel>(
+                "SoundEffectConfig",
+                SoundEffectConfigModelJsonSerializerContext.Default
+            ) ?? new SoundEffectConfigModel();
+        
         SoundEffectConfigModel.SetAudioPlay(_audioPlay);
         SoundEffectConfigModel.UpdateAllEffectsConfig();
     }
 
     private void SaveSoundEffectConfig()
     {
-        JsonConfigService.SaveAsync(SoundEffectConfigModel, "SoundEffectConfig",SoundEffectConfigModelJsonSerializerContext.Default).ConfigureAwait(false);
+        JsonConfigService
+            .SaveAsync(SoundEffectConfigModel, "SoundEffectConfig", SoundEffectConfigModelJsonSerializerContext.Default)
+            .ConfigureAwait(false);
     }
 
     private static void SaveMusicInfo(ObservableCollection<MusicItemModel> musicItems)
@@ -304,7 +305,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _audioPlay.SetAudioTrack(musicItem.FilePath, CurrentDurationInSeconds, musicItem.Gain);
     }
 
-    private int GetNextIndex(int current) => (current + 1) % Playlist.Count;
+    private static int GetNextIndex(int current) => (current + 1) % Playlist.Count;
 
-    private int GetPreviousIndex(int current) => (current - 1 + Playlist.Count) % Playlist.Count;
+    private static int GetPreviousIndex(int current) => (current - 1 + Playlist.Count) % Playlist.Count;
 }

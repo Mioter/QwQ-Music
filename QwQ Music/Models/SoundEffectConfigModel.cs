@@ -9,7 +9,6 @@ using QwQ_Music.Services.Audio.Play;
 
 namespace QwQ_Music.Models;
 
-
 public partial class SoundEffectConfigModel : ObservableObject
 {
     #region 立体效果
@@ -635,7 +634,6 @@ public class EqualizerConfigModel : ObservableObject
         set => SetProperty(ref _gainValue, value);
     }
 }
-
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(SoundEffectConfigModel))]

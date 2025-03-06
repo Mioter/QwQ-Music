@@ -36,7 +36,7 @@ public static class JsonConfigService
 {
     // 静态配置项
     public static string SavePath { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "config");
-    public static string FileExtension { get; set; } = ".json";
+    public static string FileExtension { get; set; } = ".QwQ.json";
 
     /// <summary>
     /// 同步保存方法
@@ -146,7 +146,8 @@ public static class JsonConfigService
         try
         {
             string? directory = Path.GetDirectoryName(path);
-            if (string.IsNullOrEmpty(directory)) return false;
+            if (string.IsNullOrEmpty(directory))
+                return false;
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);

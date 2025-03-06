@@ -3,12 +3,45 @@
              xmlns:viewModel="using:QwQ_Music.ViewModels"
              x:Class="QwQ_Music.Pages.ConfigMainPage"
              x:DataType="viewModel:ConfigPageViewModel"
-             xmlns:page="using:QwQ_Music.Pages">
-    <TabControl>
-        <TabItem Header="{Binding LyricConfigName}">
-            <TabItem.Content>
-                <page:LyricConfigPage/>
-            </TabItem.Content>
-        </TabItem>
-    </TabControl>
+             xmlns:page="using:QwQ_Music.Pages"
+             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+             xmlns:u="https://irihi.tech/ursa">
+
+    <Grid RowDefinitions="Auto,*" Margin="20,0">
+        <u:SelectionList Name="ConfigNavBarSelectionList"
+                         HorizontalAlignment="Left"
+                         SelectedIndex="0">
+
+            <u:SelectionList.TemplatedParent>
+         
+            </u:SelectionList.TemplatedParent>
+            
+            <u:SelectionList.Indicator>
+                <Border
+                    Height="3"
+                    VerticalAlignment="Bottom"
+                    CornerRadius="3"
+                    Background="{DynamicResource SemiBlue5}" />
+            </u:SelectionList.Indicator>
+
+            <TextBlock Text="歌词"/>
+
+        </u:SelectionList>
+
+        <control:IndexControl Grid.Row="1" Margin="0,10">
+
+            <control:IndexControl.PageTransition>
+                <CompositePageTransition>
+                    <CrossFade Duration="0:0:0.5" />
+                    <PageSlide Duration="0:0:0.3" Orientation="Vertical" SlideInEasing="QuadraticEaseIn"
+                               SlideOutEasing="QuadraticEaseOut" />
+                </CompositePageTransition>
+            </control:IndexControl.PageTransition>
+
+
+            <page:LyricConfigPage />
+
+        </control:IndexControl>
+    </Grid>
+ 
 </UserControl>

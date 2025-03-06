@@ -23,7 +23,7 @@ public record struct LyricsModel(IReadOnlyList<uint> Indexes, IReadOnlyList<IRea
 
     public static readonly LyricsModel Empty = new([], []);
 
-    public async static Task<LyricsModel> ParseAsync(string lyrics)
+    public static async Task<LyricsModel> ParseAsync(string lyrics)
     {
         return await Task.Run(() =>
             {

@@ -6,7 +6,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using QwQ_Music.Models;
+using QwQ_Music.Models.ModelBase;
+using static QwQ_Music.Models.ConfigInfoModel;
 using Log = QwQ_Music.Services.LoggerService;
+using MainConfig = QwQ_Music.Models.ConfigModel.MainConfig;
 
 namespace QwQ_Music.Services.ConfigIO;
 
@@ -14,7 +17,7 @@ public static class DataBaseService
 {
     // ReSharper disable once InconsistentNaming
     private static readonly SqliteConnection Database = new(
-        "data source=" + MainConfig.DatabaseSavePath + ";Foreign Keys=True;"
+        "data source=" + Models.ConfigModel.MainConfig.DatabaseSavePath + ";Foreign Keys=True;"
     );
 
     private static SqliteCommand Command
@@ -45,7 +48,7 @@ public static class DataBaseService
 
     private async static Task EnsureTableExistsAsync()
     {
-        if (!File.Exists(MainConfig.DatabaseSavePath))
+        if (!File.Exists(Models.ConfigModel.MainConfig.DatabaseSavePath))
             _ = new FileStream(MainConfig.DatabaseSavePath, FileMode.Create, FileAccess.Write, FileShare.None);
         await using var music = Command;
         await using var playlist = Command;
@@ -316,7 +319,7 @@ public static class DataBaseService
         }
     }
 
-    public async static Task<List<TResult>> LoadFromDataBaseAsync<TResult>(
+    public static async Task<List<TResult>> LoadFromDataBaseAsync<TResult>(
         Table table,
         string[] ordinals,
         Func<SqliteDataReader, TResult> converter,

@@ -270,7 +270,7 @@
                                             <u:SelectionList.Indicator>
                                                 <Border
                                                     Height="3"
-                                                    Margin="8,0,8,5"
+                                                    Margin="8,0,5,5"
                                                     VerticalAlignment="Bottom"
                                                     CornerRadius="3"
                                                     Background="{DynamicResource SemiBlue5}" />
@@ -560,7 +560,6 @@
                                                                     Minimum="50"
                                                                     Maximum="200"
                                                                     Value="{Binding MusicPlayerViewModel.SoundEffectConfigModel.ReverbPreDelayMs}" />
-                                                
                                                 
                                             </StackPanel>
 

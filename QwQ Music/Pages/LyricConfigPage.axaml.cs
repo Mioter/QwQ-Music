@@ -3,8 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using QwQ_Music.Models;
 using QwQ_Music.ViewModels;
+using static QwQ_Music.Models.ConfigInfoModel;
 
 namespace QwQ_Music.Pages;
 
@@ -34,11 +34,11 @@ public partial class LyricConfigPage : UserControl
 
     private void SetLyricBackground(object? sender, PointerEventArgs e)
     {
-        DesktopLyricConfig.BackgroundColor = Color.Parse("#80000000");
+        DesktopLyricConfig.LyricBackground = Color.Parse("#80000000");
     }
 
     private void UnsetLyricBackground(object? sender, PointerEventArgs e)
     {
-        DesktopLyricConfig.BackgroundColor = Colors.Transparent;
+        DesktopLyricConfig.LyricBackground = Colors.Transparent;
     }
 }

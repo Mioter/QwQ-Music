@@ -45,8 +45,4 @@
         </Compile>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Models\ModelBase\" />
-    </ItemGroup>
-
 </Project>

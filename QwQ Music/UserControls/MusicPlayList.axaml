@@ -59,7 +59,7 @@
                      SelectedItem="{Binding SelectedItem}"
                      Margin="0,5"
                      behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}"
-                     ItemsSource="{Binding  MusicPlayerViewModel.PlaylistProperty}">
+                     ItemsSource="{Binding  MusicPlayerViewModel.Playlist}">
 
                 <ListBox.ItemTemplate>
                     <DataTemplate>
