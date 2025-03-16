@@ -2,7 +2,7 @@
 
 using static Models.LanguageModel;
 
-public partial class ConfigPageViewModel : ViewModelBase
+public class ConfigPageViewModel() : NavigationViewModel("设置")
 {
     public static string LyricConfigName => Lang[nameof(LyricConfigName)];
 }

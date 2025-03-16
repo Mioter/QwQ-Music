@@ -16,32 +16,43 @@
         Padding="0"
         IsHitTestVisible="False"
         Focusable="False">
+    
     <StackPanel Orientation="{Binding LyricOrientation}" IsHitTestVisible="False">
+        
         <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" VerticalAlignment="Stretch" x:Name="MainLyric"
                    FontSize="{Binding Config.LyricMainFontSize}" IsHitTestVisible="False"
                    TextWrapping="NoWrap" Text="{Binding CurrentMainLyric}">
+            
             <TextBlock.Foreground>
                 <LinearGradientBrush StartPoint="0% 50%" EndPoint="100% 50%">
                     <GradientStop Color="{Binding Config.LyricMainTopColor}" Offset="0" />
                     <GradientStop Color="{Binding Config.LyricMainBottomColor}" Offset="1" />
                 </LinearGradientBrush>
             </TextBlock.Foreground>
+            
             <TextBlock.Effect>
                 <DropShadowEffect Color="{Binding Config.LyricMainBorderColor}" />
             </TextBlock.Effect>
+            
         </TextBlock>
+        
         <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" VerticalAlignment="Stretch" x:Name="AltLyric"
                    FontSize="{Binding Config.LyricAltFontSize}" IsHitTestVisible="False"
                    TextWrapping="NoWrap" Text="{Binding CurrentAltLyric}">
+            
             <TextBlock.Foreground>
                 <LinearGradientBrush StartPoint="0% 50%" EndPoint="100% 50%">
                     <GradientStop Color="{Binding Config.LyricAltTopColor}" Offset="0" />
                     <GradientStop Color="{Binding Config.LyricAltBottomColor}" Offset="1" />
                 </LinearGradientBrush>
             </TextBlock.Foreground>
+            
             <TextBlock.Effect>
                 <DropShadowEffect Color="{Binding Config.LyricAltBorderColor}" />
             </TextBlock.Effect>
+            
         </TextBlock>
+        
     </StackPanel>
+    
 </Window>

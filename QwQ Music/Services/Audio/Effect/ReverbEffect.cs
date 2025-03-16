@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using NAudio.Dsp;
 using QwQ_Music.Services.Audio.Effect.Base;
@@ -9,359 +8,290 @@ namespace QwQ_Music.Services.Audio.Effect;
 
 public class ReverbEffect : AudioEffectBase
 {
-    // 内部类：预延迟缓冲区
-    private class PreDelayBuffer
+    #region 内部缓冲区实现
+
+    /// <summary>
+    /// 环形缓冲区基类，提供基础的延迟处理能力
+    /// </summary>
+    /// <param name="capacity">缓冲区容量</param>
+    private abstract class RingBuffer(int capacity)
     {
-        private readonly float[] _buffer;
-        private int _bufferIndex;
+        protected float[] Buffer = new float[capacity];
+        protected int Index;
 
-        public PreDelayBuffer(int delayMs, int sampleRate)
+        // 移动缓冲区索引指针
+        protected void Step()
         {
-            int bufferSize = (int)(delayMs * sampleRate / 1000.0f);
-            _buffer = new float[bufferSize];
-            _bufferIndex = 0;
-        }
-
-        public float Process(float input)
-        {
-            // 读取延迟样本
-            float delayed = _buffer[_bufferIndex];
-
-            // 写入新值到延迟缓冲区
-            _buffer[_bufferIndex] = input;
-
-            // 移动缓冲区索引
-            _bufferIndex = (_bufferIndex + 1) % _buffer.Length;
-
-            return delayed;
+            Index = (Index + 1) % Buffer.Length;
         }
     }
 
-    // 内部类：梳状滤波器
-    private class CombFilter
+    /// <summary>
+    /// 创建预延迟缓冲区
+    /// </summary>
+    /// <param name="delayMs">延迟时间（毫秒）</param>
+    /// <param name="sampleRate">采样率</param>
+    private class PreDelayBuffer(int delayMs, int sampleRate) : RingBuffer((int)(delayMs * sampleRate / 1000f))
     {
-        private float[] _delayBuffer;
-        private int _bufferIndex;
-        private readonly float _feedback;
-        private BiQuadFilter _lowPassFilter;
-
-        // 保存滤波器初始化参数
-        private readonly int _sampleRate;
-        private readonly float _cutoffFrequency;
-        private readonly float _bandwidth;
-
-        public CombFilter(int maxDelayMs, int sampleRate, float feedback, float dampening)
+        public float Process(float input)
         {
-            int delaySamples = (int)(maxDelayMs * sampleRate / 1000.0f);
-            _delayBuffer = new float[delaySamples];
-            _bufferIndex = 0;
-            _feedback = feedback;
-
-            // 保存参数到字段
-            _sampleRate = sampleRate;
-            _cutoffFrequency = 5000 * dampening; // 计算实际使用的截止频率
-            _bandwidth = 1.0f;
-
-            // 初始化低通滤波器
-            _lowPassFilter = BiQuadFilter.LowPassFilter(sampleRate, _cutoffFrequency, _bandwidth);
+            float output = Buffer[Index];
+            Buffer[Index] = input;
+            Step();
+            return output;
         }
+    }
+
+    /// <summary>
+    /// 梳状滤波器，生成基础回声效果
+    /// </summary>
+    /// <param name="delayMs">延迟时间（毫秒）</param>
+    /// <param name="sampleRate">采样率</param>
+    /// <param name="feedback">反馈增益</param>
+    /// <param name="dampening">高频衰减系数</param>
+    private class CombFilter(int delayMs, int sampleRate, float feedback, float dampening)
+        : RingBuffer((int)(delayMs * sampleRate / 1000f))
+    {
+        private BiQuadFilter _lowPass = BiQuadFilter.LowPassFilter(sampleRate, 5000 * dampening, 1f);
 
         public float Process(float input)
         {
-            // 读取延迟样本并应用低通滤波
-            float output = _lowPassFilter.Transform(_delayBuffer[_bufferIndex]);
-
-            // 计算新输入值（当前输入 + 反馈）
-            float newInput = input + output * _feedback;
-
-            // 写入新值到延迟缓冲区
-            _delayBuffer[_bufferIndex] = newInput;
-
-            // 移动缓冲区索引
-            _bufferIndex = (_bufferIndex + 1) % _delayBuffer.Length;
-
+            float output = _lowPass.Transform(Buffer[Index]);
+            float newInput = input + output * feedback;
+            Buffer[Index] = newInput;
+            Step();
             return output;
         }
 
         public CombFilter Clone()
         {
-            var clone = (CombFilter)MemberwiseClone();
-            clone._delayBuffer = (float[])_delayBuffer.Clone();
-
-            // 使用保存的参数重新创建低通滤波器
-            clone._lowPassFilter = BiQuadFilter.LowPassFilter(
-                _sampleRate, // 使用保存的 sampleRate
-                _cutoffFrequency, // 使用保存的 cutoffFrequency
-                _bandwidth
-            ); // 使用保存的 bandwidth
-
-            return clone;
+            return new CombFilter(Buffer.Length, 1, feedback, 0)
+            {
+                Buffer = (float[])Buffer.Clone(),
+                _lowPass = BiQuadFilter.LowPassFilter(1, 1, 1),
+            };
         }
     }
 
-    // 内部类：全通滤波器
-    private class AllPassFilter
+    /// <summary>
+    /// 全通滤波器，用于扩散回声效果
+    /// </summary>
+    private class AllPassFilter(float delayMs, int sampleRate, float gain)
+        : RingBuffer((int)(delayMs * sampleRate / 1000f))
     {
-        private float[] _delayBuffer;
-        private int _bufferIndex;
-        private readonly float _gain;
-
-        public AllPassFilter(float delayMs, int sampleRate, float gain)
-        {
-            int delaySamples = (int)(delayMs * sampleRate / 1000.0f);
-            _delayBuffer = new float[delaySamples];
-            _gain = gain;
-        }
-
         public float Process(float input)
         {
-            // 读取延迟样本
-            float delayed = _delayBuffer[_bufferIndex];
-
-            // 计算输出
-            float output = -_gain * input + delayed;
-
-            // 写入新值到延迟缓冲区
-            _delayBuffer[_bufferIndex] = input + _gain * delayed;
-
-            // 移动缓冲区索引
-            _bufferIndex = (_bufferIndex + 1) % _delayBuffer.Length;
-
+            float output = -gain * input + Buffer[Index];
+            Buffer[Index] = input + gain * Buffer[Index];
+            Step();
             return output;
         }
 
         public AllPassFilter Clone()
         {
-            var clone = (AllPassFilter)MemberwiseClone();
-            clone._delayBuffer = (float[])_delayBuffer.Clone();
-            return clone;
+            return new AllPassFilter(Buffer.Length, 1, gain) { Buffer = (float[])Buffer.Clone() };
         }
     }
 
-    // 字段定义
-    private readonly Lock _lock = new();
+    #endregion
+
+    #region 字段与属性
+
+    /// <summary>原子化参数存储</summary>
+    private volatile ReverbParameters _currentParams = new();
+    private ReverbParameters _nextParams = new();
+
+    private PreDelayBuffer _preDelay = null!;
     private CombFilter[] _combFilters = [];
     private AllPassFilter[] _allPassFilters = [];
-    private PreDelayBuffer _preDelayBuffer = null!;
-
-    private float _roomSize = 1.0f; // 房间大小 (0.5-2.0)
-    private float _decayTime = 1.0f; // 衰减时间 (0.1-10.0)
-    private float _dampening = 0.5f; // 高频衰减 (0.0-1.0)
-    private float _dryMix = 0.5f; // 干信号比例
-    private float _wetMix = 0.5f; // 湿信号比例
-    private float _preDelay = 50.0f; // 预延迟（毫秒）
 
     public override string Name => "Reverb";
 
-    // 初始化方法
+    #endregion
+
+    #region 初始化逻辑
+
+    /// <inheritdoc />
     protected override void OnInitialized()
     {
         base.OnInitialized();
         InitializeFilters();
-
-        // 初始化预延迟缓冲区
-        int sampleRate = Source.WaveFormat.SampleRate;
-        _preDelayBuffer = new PreDelayBuffer((int)_preDelay, sampleRate);
+        InitializePreDelay();
     }
 
+    /// <summary>
+    /// 初始化预延迟缓冲区
+    /// </summary>
+    private void InitializePreDelay()
+    {
+        _preDelay = new PreDelayBuffer((int)_currentParams.PreDelay, WaveFormat.SampleRate);
+    }
+
+    /// <summary>
+    /// 初始化滤波器组
+    /// </summary>
     private void InitializeFilters()
     {
-        lock (_lock)
-        {
-            int sampleRate = Source.WaveFormat.SampleRate;
+        int sampleRate = WaveFormat.SampleRate;
+        float baseDelay = _currentParams.RoomSize * 30f;
 
-            // 根据房间大小调整基础延迟时间
-            float baseDelay = _roomSize * 30.0f;
+        _combFilters =
+        [
+            new CombFilter((int)(baseDelay * 0.8f), sampleRate, GetDecayFeedback(), _currentParams.Dampening),
+            new CombFilter((int)(baseDelay * 1.2f), sampleRate, GetDecayFeedback(), _currentParams.Dampening),
+            new CombFilter((int)(baseDelay * 1.5f), sampleRate, GetDecayFeedback(), _currentParams.Dampening),
+            new CombFilter((int)(baseDelay * 1.8f), sampleRate, GetDecayFeedback(), _currentParams.Dampening),
+        ];
 
-            // 初始化梳状滤波器
-            _combFilters =
-            [
-                new CombFilter((int)(baseDelay * 0.8f), sampleRate, GetDecayFeedback(), _dampening),
-                new CombFilter((int)(baseDelay * 1.2f), sampleRate, GetDecayFeedback(), _dampening),
-                new CombFilter((int)(baseDelay * 1.5f), sampleRate, GetDecayFeedback(), _dampening),
-                new CombFilter((int)(baseDelay * 1.8f), sampleRate, GetDecayFeedback(), _dampening),
-            ];
-
-            // 初始化全通滤波器
-            _allPassFilters = [new AllPassFilter(5, sampleRate, 0.7f), new AllPassFilter(1.7f, sampleRate, 0.7f)];
-        }
+        _allPassFilters = [new AllPassFilter(5, sampleRate, 0.7f), new AllPassFilter(1.7f, sampleRate, 0.7f)];
     }
 
-    private float GetDecayFeedback()
-    {
-        float maxFeedback = 0.95f - (_decayTime - 2.0f) * 0.05f; // 动态调整最大反馈增益
-        maxFeedback = Math.Clamp(maxFeedback, 0.7f, 0.95f);
+    #endregion
 
-        float feedback = (float)Math.Pow(10.0, -3.0 * _preDelay / (_decayTime * 1000.0));
-        return Math.Min(Math.Max(feedback, 0.01f), maxFeedback);
-    }
+    #region 核心处理逻辑
 
-    // 处理音频样本
+    /// <inheritdoc />
     public override int Read(float[] buffer, int offset, int count)
     {
         if (!Enabled)
             return Source.Read(buffer, offset, count);
 
+        var paramsCopy = _currentParams;
         int samplesRead = Source.Read(buffer, offset, count);
 
-        float dry = _dryMix;
-        float wet = _wetMix;
+        // 优化点3：向量化处理准备
+        float dry = paramsCopy.DryMix;
+        float wet = paramsCopy.WetMix;
+        int channels = WaveFormat.Channels;
 
-        // 获取当前滤波器快照
-        CombFilter[] currentCombs;
-        AllPassFilter[] currentAllPass;
-        lock (_lock)
+        // 并行处理每个音频样本
+        for (int n = 0; n < samplesRead; n += channels)
         {
-            currentCombs = _combFilters.ToArray();
-            currentAllPass = _allPassFilters.ToArray();
-        }
+            int index = offset + n;
+            float inputL = buffer[index];
+            float inputR = channels == 2 ? buffer[index + 1] : inputL;
+            float monoInput = (inputL + inputR) * 0.5f;
 
-        for (int n = 0; n < samplesRead; n += Source.WaveFormat.Channels)
-        {
-            ProcessSample(currentCombs, currentAllPass, buffer, offset + n, dry, wet);
+            // 预延迟处理
+            monoInput = _preDelay.Process(monoInput);
+
+            // 梳状滤波器处理
+            float combSum = _combFilters.Sum(filter => filter.Process(monoInput));
+            combSum *= 0.2f; // 4个滤波器平均
+
+            // 全通滤波器处理
+            float allPassOut = _allPassFilters.Aggregate(combSum, (current, filter) => filter.Process(current));
+
+            // 混合输出
+            buffer[index] = inputL * dry + allPassOut * wet;
+            if (channels == 2)
+                buffer[index + 1] = inputR * dry + allPassOut * wet;
         }
 
         return samplesRead;
     }
 
-    private void ProcessSample(
-        CombFilter[] combs,
-        AllPassFilter[] allPasses,
-        float[] buffer,
-        int index,
-        float dryMix,
-        float wetMix
-    )
-    {
-        int channels = Source.WaveFormat.Channels;
+    #endregion
 
-        // 读取原始信号
-        float inputL = buffer[index];
-        float inputR = channels == 2 ? buffer[index + 1] : inputL;
+    #region 参数管理方法
 
-        // 创建单声道混响输入
-        float monoInput = (inputL + inputR) * 0.5f;
-
-        // 应用预延迟
-        if (_preDelay > 0)
-        {
-            monoInput = _preDelayBuffer.Process(monoInput);
-        }
-
-        // 处理梳状滤波器
-        float combSum = combs.Sum(comb => comb.Process(monoInput)) * 0.25f; // 平均四个梳状滤波器的输出
-        combSum *= 0.8f; // 添加额外的衰减因子
-
-        // 处理全通滤波器
-        float allPassOut = allPasses.Aggregate(combSum, (current, allPass) => allPass.Process(current));
-
-        // 混合干湿信号
-        buffer[index] = inputL * dryMix + allPassOut * wetMix;
-        if (channels == 2)
-        {
-            buffer[index + 1] = inputR * dryMix + allPassOut * wetMix;
-        }
-    }
-
-    // 克隆方法
-    public override IAudioEffect Clone()
-    {
-        var clone = new ReverbEffect
-        {
-            _roomSize = _roomSize,
-            _decayTime = _decayTime,
-            _dampening = _dampening,
-            _dryMix = _dryMix,
-            _wetMix = _wetMix,
-            _preDelay = _preDelay,
-            Enabled = Enabled,
-            Priority = Priority,
-        };
-
-        lock (_lock)
-        {
-            clone._combFilters = _combFilters.Select(c => c.Clone()).ToArray();
-            clone._allPassFilters = _allPassFilters.Select(a => a.Clone()).ToArray();
-        }
-
-        return clone;
-    }
-
-    // 调试信息
-    public override string DebugInfo =>
-        new StringBuilder()
-            .AppendLine($"Name: {Name}")
-            .AppendLine($"Enabled: {Enabled}")
-            .AppendLine($"Room Size: {_roomSize:F2}")
-            .AppendLine($"Decay Time: {_decayTime:F2}s")
-            .AppendLine($"Dampening: {_dampening:F2}")
-            .AppendLine($"Dry/Wet: {_dryMix:F2}/{_wetMix:F2}")
-            .AppendLine($"PreDelay: {_preDelay:F2}ms")
-            .ToString();
-
-    // 设置参数
+    /// <inheritdoc />
     public override void SetParameter<T>(string key, T value)
     {
         base.SetParameter(key, value);
 
-        lock (_lock)
+        _nextParams = _currentParams.Clone();
+        switch (key.ToLower())
         {
-            switch (key.ToLower())
-            {
-                case "roomsize":
-                    if (value is float rs)
-                    {
-                        _roomSize = Math.Clamp(rs, 0.5f, 2.0f);
-                        InitializeFilters();
-                    }
-                    break;
-
-                case "decaytime":
-                    if (value is float dt)
-                    {
-                        _decayTime = Math.Clamp(dt, 0.1f, 10.0f);
-                        InitializeFilters();
-                    }
-                    break;
-
-                case "dampening":
-                    if (value is float dmp)
-                    {
-                        _dampening = Math.Clamp(dmp, 0.0f, 1.0f);
-                        InitializeFilters();
-                    }
-                    break;
-
-                case "drymix":
-                    if (value is float dm)
-                        _dryMix = Math.Clamp(dm, 0.0f, 1.0f);
-                    break;
-
-                case "wetmix":
-                    if (value is float wm)
-                        _wetMix = Math.Clamp(wm, 0.0f, 1.0f);
-                    break;
-
-                case "predelay":
-                    if (value is float pd)
-                        _preDelay = Math.Clamp(pd, 50.0f, 200.0f);
-                    break;
-            }
+            case "roomsize":
+                _nextParams.RoomSize = ValidateRoomSize(Convert.ToSingle(value));
+                break;
+            case "decaytime":
+                _nextParams.DecayTime = ValidateDecayTime(Convert.ToSingle(value));
+                break;
+            case "dampening":
+                _nextParams.Dampening = ValidateDampening(Convert.ToSingle(value));
+                break;
+            case "drymix":
+                _nextParams.DryMix = ValidateMix(Convert.ToSingle(value));
+                break;
+            case "wetmix":
+                _nextParams.WetMix = ValidateMix(Convert.ToSingle(value));
+                break;
+            case "predelay":
+                _nextParams.PreDelay = ValidatePreDelay(Convert.ToSingle(value));
+                break;
         }
+        Interlocked.Exchange(ref _currentParams, _nextParams);
     }
 
-    // 获取参数
-    public override T GetParameter<T>(string key)
+    private static float ValidateRoomSize(float value) => Math.Clamp(value, 0.5f, 2.0f);
+
+    private static float ValidateDecayTime(float value) => Math.Clamp(value, 0.1f, 10.0f);
+
+    private static float ValidateDampening(float value) => Math.Clamp(value, 0.0f, 1.0f);
+
+    private static float ValidateMix(float value) => Math.Clamp(value, 0.0f, 1.0f);
+
+    private static float ValidatePreDelay(float value) => Math.Clamp(value, 50f, 200f);
+
+    #endregion
+
+    #region 辅助方法
+
+    /// <summary>
+    /// 计算反馈系数（动态范围压缩）
+    /// </summary>
+    private float GetDecayFeedback()
     {
-        return key.ToLower() switch
-        {
-            "roomsize" => (T)(object)_roomSize,
-            "decaytime" => (T)(object)_decayTime,
-            "dampening" => (T)(object)_dampening,
-            "drymix" => (T)(object)_dryMix,
-            "wetmix" => (T)(object)_wetMix,
-            "predelay" => (T)(object)_preDelay,
-            _ => base.GetParameter<T>(key),
-        };
+        float maxFeedback = Math.Clamp(0.95f - (_currentParams.DecayTime - 2f) * 0.05f, 0.7f, 0.95f);
+        float feedback = (float)Math.Pow(10.0, -3.0 * _currentParams.PreDelay / (_currentParams.DecayTime * 1000));
+        return Math.Clamp(feedback, 0.01f, maxFeedback);
     }
+
+    /// <inheritdoc />
+    public override IAudioEffect Clone()
+    {
+        var clone = new ReverbEffect
+        {
+            _currentParams = _currentParams.Clone(),
+            _preDelay = _preDelay,
+            _combFilters = _combFilters.Select(f => f.Clone()).ToArray(),
+            _allPassFilters = _allPassFilters.Select(f => f.Clone()).ToArray(),
+        };
+        return clone;
+    }
+
+    #endregion
+
+    #region 参数管理
+
+    /// <summary>
+    /// 混响参数存储结构
+    /// </summary>
+    private class ReverbParameters : ICloneable
+    {
+        public float RoomSize = 1.0f;
+        public float DecayTime = 1.0f;
+        public float Dampening = 0.5f;
+        public float DryMix = 0.5f;
+        public float WetMix = 0.5f;
+        public float PreDelay = 50.0f;
+
+        public ReverbParameters Clone()
+        {
+            return new ReverbParameters
+            {
+                RoomSize = RoomSize,
+                DecayTime = DecayTime,
+                Dampening = Dampening,
+                DryMix = DryMix,
+                WetMix = WetMix,
+                PreDelay = PreDelay,
+            };
+        }
+
+        object ICloneable.Clone() => Clone();
+    }
+    #endregion
 }

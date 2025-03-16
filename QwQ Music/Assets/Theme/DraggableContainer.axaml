@@ -1,6 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:customControls="clr-namespace:QwQ_Music.CustomControls">
+                    xmlns:customControls="clr-namespace:QwQ_Music.Controls">
     <!-- Add Resources Here -->
 
     <ControlTheme x:Key="{x:Type customControls:DraggableContainer}" TargetType="customControls:DraggableContainer">

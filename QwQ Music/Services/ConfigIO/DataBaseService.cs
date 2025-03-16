@@ -6,10 +6,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using QwQ_Music.Models;
+using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Models.ModelBase;
-using static QwQ_Music.Models.ConfigInfoModel;
 using Log = QwQ_Music.Services.LoggerService;
-using MainConfig = QwQ_Music.Models.ConfigModel.MainConfig;
 
 namespace QwQ_Music.Services.ConfigIO;
 
@@ -17,7 +16,7 @@ public static class DataBaseService
 {
     // ReSharper disable once InconsistentNaming
     private static readonly SqliteConnection Database = new(
-        "data source=" + Models.ConfigModel.MainConfig.DatabaseSavePath + ";Foreign Keys=True;"
+        "data source=" + MainConfig.DatabaseSavePath + ";Foreign Keys=True;"
     );
 
     private static SqliteCommand Command
@@ -48,7 +47,7 @@ public static class DataBaseService
 
     private async static Task EnsureTableExistsAsync()
     {
-        if (!File.Exists(Models.ConfigModel.MainConfig.DatabaseSavePath))
+        if (!File.Exists(MainConfig.DatabaseSavePath))
             _ = new FileStream(MainConfig.DatabaseSavePath, FileMode.Create, FileAccess.Write, FileShare.None);
         await using var music = Command;
         await using var playlist = Command;
@@ -57,7 +56,7 @@ public static class DataBaseService
             CREATE TABLE IF NOT EXISTS MUSICS(
             {nameof(ConfigInfoModel.Version)} TEXT NOT NULL,
             {nameof(MusicItemModel.Title)} TEXT NOT NULL PRIMARY KEY,
-            {nameof(MusicItemModel.Artists)} TEXT,
+            {nameof(MusicItemModel.Artists)} TEXT ,
             {nameof(MusicItemModel.Album)} TEXT,
             BASICINFO TEXT NOT NULL UNIQUE,
             {nameof(MusicItemModel.FilePath)} TEXT NOT NULL UNIQUE,
@@ -65,7 +64,8 @@ public static class DataBaseService
             {nameof(MusicItemModel.CoverPath)} TEXT,
             {nameof(MusicItemModel.Current)} BLOB,
             {nameof(MusicItemModel.Duration)} BLOB NOT NULL,
-            {nameof(MusicItemModel.Gain)} REAL NOT NULL,
+            {nameof(MusicItemModel.CoverColors)} TEXT,
+            {nameof(MusicItemModel.Gain)} REAL,
             {nameof(MusicItemModel.EncodingFormat)} TEXT NOT NULL,
             {nameof(MusicItemModel.Comment)} TEXT,
             {nameof(MusicItemModel.Remarks)} TEXT)

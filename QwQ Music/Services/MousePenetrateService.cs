@@ -5,11 +5,11 @@ namespace QwQ_Music.Services;
 
 public static class MousePenetrateService
 {
-    private const uint WS_EX_LAYERED = 0x80000;
-    private const int WS_EX_TRANSPARENT = 0x20;
-    private const int GWL_STYLE = (-16);
-    private const int GWL_EXSTYLE = (-20);
-    private const int LWA_ALPHA = 0x2;
+    private const uint WsExLayered = 0x80000;
+    private const int WsExTransparent = 0x20;
+    private const int GwlStyle = -16;
+    private const int GwlExstyle = -20;
+    private const int LwaAlpha = 0x2;
 
     [DllImport("user32", EntryPoint = "SetWindowLong")]
     private static extern uint SetWindowLong(IntPtr hwnd, int nIndex, uint dwNewLong);
@@ -27,11 +27,11 @@ public static class MousePenetrateService
     /// <param name="flag">true穿透，false不穿透</param>
     public static void SetPenetrate(IntPtr handle, bool flag = true)
     {
-        uint style = GetWindowLong(handle, GWL_EXSTYLE);
+        uint style = GetWindowLong(handle, GwlExstyle);
         if (flag)
-            SetWindowLong(handle, GWL_EXSTYLE, style | WS_EX_TRANSPARENT | WS_EX_LAYERED);
+            SetWindowLong(handle, GwlExstyle, style | WsExTransparent | WsExLayered);
         else
-            SetWindowLong(handle, GWL_EXSTYLE, style & ~(WS_EX_TRANSPARENT | WS_EX_LAYERED));
-        SetLayeredWindowAttributes(handle, 0, 100, LWA_ALPHA);
+            SetWindowLong(handle, GwlExstyle, style & ~(WsExTransparent | WsExLayered));
+        SetLayeredWindowAttributes(handle, 0, 100, LwaAlpha);
     }
 }

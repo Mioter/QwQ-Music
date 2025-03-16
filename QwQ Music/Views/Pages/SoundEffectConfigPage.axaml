@@ -1,0 +1,615 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="clr-namespace:QwQ_Music.ViewModels"
+             xmlns:u="https://irihi.tech/ursa"
+             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+             xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
+             xmlns:controls="clr-namespace:QwQ_Music.Controls"
+             x:DataType="vm:SoundEffectConfigViewModel"
+             x:Class="QwQ_Music.Views.Pages.SoundEffectConfigPage">
+
+    <Grid>
+
+        <Grid ColumnDefinitions="Auto,*" Margin="0,10,10,10">
+
+            <ScrollViewer>
+
+                <u:SelectionList SelectedIndex="{Binding SelectedIndex}" Margin="0,0,10,0">
+
+                    <u:SelectionList.Styles>
+                        <Style Selector="u|SelectionListItem">
+                            <Setter Property="HorizontalAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="20,10,5,10" />
+
+                            <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+                                <Setter Property="HorizontalAlignment" Value="Right" />
+                            </Style>
+                        </Style>
+                        
+                        <Style Selector="u|SelectionList > StackPanel">
+                            <Setter Property="Spacing" Value="10" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                            <Setter Property="Orientation" Value="Horizontal" />
+                        </Style>
+                        
+                        <Style Selector="u|SelectionList CheckBox">
+                            <Setter Property="CornerRadius" Value="10"/>
+                        </Style>
+
+                    </u:SelectionList.Styles>
+
+                    <u:SelectionList.Indicator>
+                        <!--<Border
+                            Width="10" Height="10" 
+                            HorizontalAlignment="Left"
+                            Margin="-5,0,0,20"
+                            Background="{DynamicResource SemiBlue5}"
+                            CornerRadius="5" />-->
+                        
+                        <PathIcon Width="12"
+                                  RenderTransform="rotate(-90deg)"
+                                  HorizontalAlignment="Left"
+                                  Foreground="{DynamicResource SemiBlue5}"
+                                  Data="{StaticResource RoundedTriangle}" />
+                    </u:SelectionList.Indicator>
+                    
+
+                    <StackPanel>
+                        <TextBlock Text="立体效果" />
+                        <CheckBox
+                            IsChecked="{Binding SoundEffectConfig.StereoEnhancement.IsEnabled}" />
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="空间效果" />
+                        <CheckBox
+                            IsChecked="{Binding SoundEffectConfig.Spatial.IsEnabled}" />
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="环绕效果" />
+                        <CheckBox
+                            IsChecked="{Binding SoundEffectConfig.Rotating.IsEnabled}" />
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="混响效果" />
+                        <CheckBox
+                            IsChecked="{Binding  SoundEffectConfig.Reverb.IsEnabled}" />
+
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="延迟效果" />
+                        <CheckBox
+                            IsChecked="{Binding SoundEffectConfig.Delay.IsEnabled}" />
+
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="失真效果" />
+                        <CheckBox
+                            IsChecked="{Binding SoundEffectConfig.Distortion.IsEnabled}" />
+
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="颤音效果" />
+                        <CheckBox
+                            IsChecked="{Binding SoundEffectConfig.Tremolo.IsEnabled}" />
+
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="65,Auto">
+                        <TextBlock Text="压缩器" />
+                        <CheckBox
+                            Grid.Column="1" IsChecked="{Binding SoundEffectConfig.Compressor.IsEnabled}" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="65,Auto">
+                        <TextBlock Text="均衡器" />
+                        <CheckBox
+                            Grid.Column="1" IsChecked="{Binding SoundEffectConfig.Equalizer.IsEnabled}" />
+                    </Grid>
+
+                    <StackPanel>
+                        <TextBlock Text="淡入淡出" />
+                        <CheckBox
+                            IsChecked="{Binding SoundEffectConfig.Fade.IsEnabled}" />
+
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="回放增益" />
+                        <CheckBox
+                            IsChecked="{Binding SoundEffectConfig.ReplayGain.IsEnabled}" />
+
+                    </StackPanel>
+
+                </u:SelectionList>
+
+            </ScrollViewer>
+
+            <ScrollViewer Grid.Column="1">
+
+                <control:IndexControl
+                    Margin="10"
+                    Index="{Binding SelectedIndex}">
+
+                    <control:IndexControl.PageTransition>
+                        <CompositePageTransition>
+                            <CrossFade Duration="0:0:0.5" />
+                            <PageSlide Duration="0:0:0.3" Orientation="Vertical"
+                                       SlideInEasing="QuadraticEaseIn"
+                                       SlideOutEasing="QuadraticEaseOut" />
+                        </CompositePageTransition>
+                    </control:IndexControl.PageTransition>
+
+                    <control:IndexControl.Styles>
+                        <Style Selector="control|IndexControl > StackPanel">
+                            <Setter Property="Spacing" Value="10" />
+                        </Style>
+                    </control:IndexControl.Styles>
+
+                    <StackPanel DataContext="{Binding SoundEffectConfig.StereoEnhancement}">
+
+                        <TextBlock Text="效果增强" FontWeight="Black" />
+
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            Text="{Binding EnhancementFactor, StringFormat='增强因子 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider Minimum="0.5" Maximum="3.0"
+                                Value="{Binding EnhancementFactor}" />
+
+                        <TextBlock
+                            Text="{Binding StereoWidth, StringFormat='立体宽度 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider Minimum="0.0" Maximum="2.0"
+                                Value="{Binding StereoWidth}" />
+
+                        <TextBlock
+                            Text="{Binding HighFrequencyBoost, StringFormat='高频增强 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider Minimum="0.5" Maximum="2.0"
+                                Value="{Binding HighFrequencyBoost}" />
+
+                        <TextBlock
+                            Text="{Binding DynamicRangeCompression, StringFormat='动态压缩 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider Minimum="0.0" Maximum="1.0"
+                                Value="{Binding DynamicRangeCompression}" />
+
+                        <CheckBox FontSize="12" FontWeight="Black" Content="混合低频信号"
+                                  IsChecked="{Binding BassMixing}" />
+
+                    </StackPanel>
+
+                    <Panel Height="500" Width="500"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Top">
+
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                    Spacing="5"
+                                    Classes.Transparent="{Binding !#SpeakerBorder.IsPointerOver}"
+                                    Margin="30">
+
+                            <StackPanel.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.5" />
+                                </Transitions>
+                            </StackPanel.Transitions>
+
+                            <StackPanel.Styles>
+                                <Style Selector="StackPanel.Transparent">
+                                    <Setter Property="Opacity" Value="0" />
+                                </Style>
+                            </StackPanel.Styles>
+
+                            <TextBlock Classes="Tertiary" FontSize="12"
+                                       Text="{Binding SoundEffectConfig.Spatial.Angle,StringFormat=' 当前角度 : {0:F3} '}" />
+                            <TextBlock Classes="Tertiary" FontSize="12"
+                                       Text="{Binding SoundEffectConfig.Spatial.Distance,StringFormat=' 当前距离 : {0:F3} '}" />
+                        </StackPanel>
+
+                        <controls:DraggableContainer
+                            CornerRadius="20"
+                            BorderThickness="1"
+                            BorderBrush="{DynamicResource BorderCardBorderBrush}">
+
+                            <Image Width="60" Height="60"
+                                   controls:DraggableContainer.IsDraggable="False"
+                                   Source="{StaticResource CatsEars}" />
+
+                            <Border
+                                BorderBrush="White"
+                                Name="SpeakerBorder"
+                                BorderThickness="2"
+                                Background="Black"
+                                BoxShadow="0 0 10 0 DarkGray"
+                                behaviors:DynamicCornerBehavior.IsEnabled="True">
+
+                                <Border ClipToBounds="True" Margin="3" IsHitTestVisible="False">
+
+                                    <Image RenderOptions.BitmapBlendingMode="Source"
+                                           Width="30" Height="30"
+                                           Source="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty,Converter={StaticResource AlbumImageConverter}}"
+                                           Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}" />
+                                </Border>
+
+                            </Border>
+
+
+                            <Interaction.Behaviors>
+
+                                <EventTriggerBehavior EventName="PositionChanged">
+                                    <!-- ReSharper disable once Xaml.PossibleNullReferenceException -->
+                                    <InvokeCommandAction
+                                        Command="{Binding $parent[UserControl].((vm:SoundEffectConfigViewModel)DataContext).SoundEffectConfig.Spatial.SpeakerPositionChangedCommand}"
+                                        PassEventArgsToCommand="True" />
+                                </EventTriggerBehavior>
+                            </Interaction.Behaviors>
+
+                        </controls:DraggableContainer>
+
+                    </Panel>
+
+                    <StackPanel DataContext="{Binding SoundEffectConfig.Rotating}">
+
+                        <StackPanel Spacing="5" Orientation="Horizontal">
+
+                            <TextBlock Text="旋转方向" FontSize="12"
+                                       FontWeight="Black" />
+
+                            <CheckBox
+                                Name="RotationDirectionCheckBox"
+                                VerticalAlignment="Center" FontSize="12"
+                                IsChecked="{Binding IsClockwise}">
+                                <control:SwitchControl
+                                    Condition="{Binding IsClockwise}">
+                                    <control:SwitchControl.TrueContent>顺时针</control:SwitchControl.TrueContent>
+                                    <control:SwitchControl.FalseContent>逆时针</control:SwitchControl.FalseContent>
+                                </control:SwitchControl>
+                            </CheckBox>
+
+                        </StackPanel>
+
+                        <u:Divider />
+
+                        <TextBlock
+                            Text="{Binding RotationSpeed, StringFormat='速度 : {0:F3} 圈/秒'}"
+                            FontSize="12" />
+                        <Slider Minimum="0.0" Maximum="1.0"
+                                Value="{Binding RotationSpeed}" />
+
+                        <TextBlock
+                            Text="{Binding Radius, StringFormat='半径 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider Minimum="0.0" Maximum="100"
+                                Value="{Binding Radius}" />
+
+                    </StackPanel>
+
+                    <StackPanel DataContext="{Binding SoundEffectConfig.Reverb}">
+
+                        <TextBlock Text="基础属性" FontWeight="Black" />
+
+                        <TextBlock
+                            Text="{Binding RoomSize, StringFormat='房间大小 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider  Minimum="0.5" Maximum="2.0"
+                                Value="{Binding RoomSize}" />
+
+                        <TextBlock
+                            Text="{Binding DryMix, StringFormat='干信号比例 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider Minimum="0.0" Maximum="1.0"
+                                Value="{Binding DryMix}" />
+
+                        <TextBlock
+                            Text="{Binding WetMix, StringFormat='湿信号比例 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider Minimum="0.0" Maximum="1.0"
+                                Value="{Binding WetMix}" />
+
+                        <TextBlock Text="扩展属性" FontWeight="Black" />
+
+                        <TextBlock
+                            Text="{Binding Dampening,StringFormat='高频衰减 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider 
+                                Minimum="0"
+                                Maximum="1"
+                                Value="{Binding Dampening}" />
+
+                        <TextBlock
+                            Text="{Binding DecayTime,StringFormat='衰减时间 : {0:F3} 秒'}"
+                            FontSize="12" />
+                        <Slider 
+                                Minimum="0"
+                                Maximum="10"
+                                Value="{Binding DecayTime}" />
+
+                        <TextBlock
+                            Text="{Binding PreDelayMs, StringFormat='预延迟 : {0:F3} 毫秒'}"
+                            FontSize="12" />
+                        <Slider Minimum="50"
+                                Maximum="200"
+                                Value="{Binding PreDelayMs}" />
+
+                    </StackPanel>
+
+                    <StackPanel DataContext="{Binding SoundEffectConfig.Delay}">
+
+                        <TextBlock
+                            Text="{Binding DelayMs, StringFormat='延迟时间 : {0:F3} 毫秒'}"
+                            FontSize="12" />
+                        <Slider Minimum="0"
+                                Maximum="5000"
+                                Value="{Binding DelayMs}" />
+                        
+                        <TextBlock
+                            Text="{Binding Feedback, StringFormat='反馈率 : {0:F3} '}"
+                            FontSize="12" />
+                        <Slider Minimum="0"
+                                Maximum="0.707"
+                                Value="{Binding Feedback}" />
+                        
+                        <TextBlock
+                            Text="{Binding Mix, StringFormat='干湿比 : {0:F3} '}"
+                            FontSize="12" />
+                        <Slider Minimum="0"
+                                Maximum="1"
+                                Value="{Binding Mix}" />
+                        
+                    </StackPanel>
+
+                    <StackPanel DataContext="{Binding SoundEffectConfig.Distortion}">
+                        
+                        <u:Divider
+                            Content="{Binding Drive, StringFormat='驱动强度 : {0:F3}'}"
+                            FontSize="12" />
+                        <u:NumericFloatUpDown
+                            Minimum="0"
+                            Step="5"
+                            Value="{Binding Drive}" />
+                        
+                        <TextBlock
+                            Text="{Binding Mix, StringFormat='混音比例 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider
+                            Minimum="0"
+                            Maximum="1"
+                            Value="{Binding Mix}" />
+                        
+                    </StackPanel>
+
+                    <StackPanel DataContext="{Binding SoundEffectConfig.Tremolo}">
+
+                        <TextBlock
+                            Text="{Binding FrequencyHz, StringFormat='调制频率 : {0:F3} DB'}"
+                            FontSize="12" />
+                        <Slider Minimum="0.1"
+                                Maximum="20"
+                                Value="{Binding FrequencyHz}" />
+                        
+                        <TextBlock
+                            Text="{Binding Depth, StringFormat='深度 : {0:F3}'}"
+                            FontSize="12" />
+                        <Slider Minimum="0"
+                                Maximum="1"
+                                Value="{Binding Depth}" />
+                        
+                    </StackPanel>
+
+
+                    <StackPanel DataContext="{Binding SoundEffectConfig.Compressor}">
+                        
+                        <TextBlock
+                            Text="{Binding Threshold, StringFormat='阈值 : {0:F3} Db'}"
+                            FontSize="12" />
+                        <Slider Minimum="-60"
+                                Maximum="0"
+                                Value="{Binding Threshold}" />
+                        
+                        <u:Divider
+                            Content="{Binding Ratio, StringFormat='压缩比 : {0:F3}'}"
+                            FontSize="12" />
+                        <u:NumericFloatUpDown
+                            Minimum="1"
+                            Step="1"
+                            Value="{Binding Ratio}" />
+
+                        <u:Divider
+                            Content="{Binding AttackMs, StringFormat='攻击时间 : {0:F3} ms'}"
+                            FontSize="12" />
+                        <u:NumericFloatUpDown
+                            Minimum="0"
+                            Step="5"
+                            Value="{Binding AttackMs}" />
+                        
+                        <u:Divider
+                            Content="{Binding ReleaseMs, StringFormat='释放时间 : {0:F3} ms'}"
+                            FontSize="12" />
+                        <u:NumericFloatUpDown
+                            Minimum="0"
+                            Step="5"
+                            Value="{Binding ReleaseMs}" />
+
+                    </StackPanel>
+
+                    <Grid RowDefinitions="Auto,*" 
+                          DataContext="{Binding SoundEffectConfig.Equalizer}">
+                        
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="恢复默认"
+                                    FontSize="12" 
+                                    CornerRadius="8"
+                                    Command="{Binding RestoreDefaultEqualizerCommand}" />
+                        </StackPanel>
+
+                        <Border Grid.Row="1"
+                                Height="400" Width="600"
+                                BorderThickness="1"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                BorderBrush="{DynamicResource BorderCardBorderBrush}"
+                                CornerRadius="10" Margin="0,10,0,0">
+
+                            <ItemsControl HorizontalAlignment="Center"
+                                          ItemsSource="{Binding EqualizerConfigs}"
+                                          Margin="0,20,0,10">
+
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Width="57" RowDefinitions="*,Auto">
+
+                                            <Slider HorizontalAlignment="Center"
+                                                    Minimum="-12"
+                                                    TickFrequency="3"
+                                                    TickPlacement="Outside"
+                                                    Value="{Binding GainValue}"
+                                                    Maximum="12"
+                                                    Orientation="Vertical">
+
+                                                <Interaction.Behaviors>
+
+                                                    <EventTriggerBehavior
+                                                        EventName="ValueChanged">
+                                                        <!-- ReSharper disable once Xaml.PossibleNullReferenceException -->
+                                                        <InvokeCommandAction
+                                                            Command="{Binding $parent[UserControl].((vm:SoundEffectConfigViewModel)DataContext).SoundEffectConfig.Equalizer.EqualizerValueChangedCommand}" />
+                                                    </EventTriggerBehavior>
+                                                </Interaction.Behaviors>
+
+                                            </Slider>
+                                            <TextBlock Grid.Row="1" FontSize="10"
+                                                       Text="{Binding GainValue, StringFormat=' {0:F1} '}"
+                                                       Margin="0,5"
+                                                       HorizontalAlignment="Center"
+                                                       FontFamily="{StaticResource VivoSans}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+
+                            </ItemsControl>
+
+                        </Border>
+                    </Grid>
+
+                    <StackPanel DataContext="{Binding SoundEffectConfig.Fade}">
+
+                        <u:Divider
+                            Content="{Binding FadeInTimeMs, StringFormat='淡入时长 : {0} 毫秒'}"
+                            FontSize="12" />
+                        <u:NumericIntUpDown EmptyInputValue="1"
+                                            Step="200"
+                                            Minimum="0"
+                                            Value="{Binding FadeInTimeMs}" />
+                        <u:Divider
+                            Content="{Binding FadeOutTimeMs, StringFormat='淡出时长 : {0} 毫秒'}"
+                            FontSize="12" />
+
+                        <u:NumericIntUpDown EmptyInputValue="1"
+                                            Step="200"
+                                            Minimum="0"
+                                            Value="{Binding FadeOutTimeMs}" />
+
+                    </StackPanel>
+
+                    <StackPanel>
+
+                        <StackPanel.Resources>
+
+                            <!-- ReSharper disable once Xaml.RedundantResource -->
+                            <x:Double x:Key="BannerTitleFontSize">14</x:Double>
+
+                        </StackPanel.Resources>
+
+                        <u:Banner Header="什么是回放增益"
+                                  Content="回放增益是一种用于标准化音频播放音量的技术，旨在解决不同音频文件之间音量差异的问题。通过分析音频文件的内容，计算出一个标准化的响度值，并将该值以元数据的形式存储在文件中，而不会改变原始音频数据本身。"
+                                  Margin="0,5"
+                                  HorizontalContentAlignment="Stretch"
+                                  CornerRadius="8"
+                                  Classes="Bordered"
+                                  FontSize="12" />
+
+                        <StackPanel Orientation="Horizontal">
+
+                            <StackPanel.Styles>
+                                <Style Selector="StackPanel > TextBlock">
+                                    <Setter Property="FontSize" Value="12" />
+                                </Style>
+                            </StackPanel.Styles>
+
+                            <TextBlock FontWeight="Bold" Text="{Binding NumberOfCompletedCalc, StringFormat='已计算增益 : {0}'}" />
+
+                            <TextBlock
+                                Text="{Binding MusicPlayerViewModel.MusicItems.Count,StringFormat=' / {0}'}" />
+
+                        </StackPanel>
+
+
+                        <ProgressBar Value="{Binding NumberOfCompletedCalc}"
+                                     Maximum="{Binding MusicPlayerViewModel.MusicItems.Count}" />
+
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,5">
+                            
+                            <StackPanel Spacing="10" Orientation="Horizontal">
+                                <ComboBox CornerRadius="8"
+                                          MinWidth="130"
+                                          SelectedItem="{Binding SoundEffectConfig.SelectedMusicReplayGainStandard}"
+                                          ItemsSource="{Binding MusicReplayGainStandardList}" />
+
+                                <u:NumericIntUpDown CornerRadius="8"
+                                         Width="100"
+                                         Value="{Binding SoundEffectConfig.CustomMusicReplayGainStandard}"
+                                         IsVisible="{Binding SoundEffectConfig.SelectedMusicReplayGainStandard,Converter={StaticResource StringEqualityConverter},ConverterParameter='Custom'}" />
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="1" Spacing="10" Orientation="Horizontal">
+                                
+                                <Button Classes="Icon" 
+                                        Content="{Binding CalculationButtonText}"
+                                        FontSize="12"
+                                        Padding="8"
+                                        Command="{Binding ToggleCalculationCommand}"
+                                        CornerRadius="8" />
+
+                                <Button Classes="Icon" 
+                                        Content="取消计算" 
+                                        FontSize="12" Padding="8"
+                                        IsEnabled="{Binding TaskHandle,Converter={x:Static ObjectConverters.IsNotNull}}"
+                                        Command="{Binding CancelCalcCallbackGainCommand}"
+                                        CornerRadius="8" />
+
+                                <u:IconButton Classes="Transparent" Content="清空增益"
+                                              FontSize="12"
+                                              IsEnabled="{Binding TaskHandle,Converter={x:Static ObjectConverters.IsNull}}"
+                                              Command="{Binding ClearCallbackGainCommand}"
+                                              CornerRadius="8">
+                                    <u:IconButton.Icon>
+                                        <PathIcon Height="12" Data="{StaticResource SemiIconDelete}" Foreground="#ff6b6b" />
+                                    </u:IconButton.Icon>
+                                </u:IconButton>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                </control:IndexControl>
+
+            </ScrollViewer>
+
+        </Grid>
+
+    </Grid>
+</UserControl>

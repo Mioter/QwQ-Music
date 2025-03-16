@@ -139,6 +139,13 @@ public static class LoggerService
     }
 
     // 公共日志方法
+    public static void Debug(
+        string message,
+        [CallerLineNumber] int line = 0,
+        [CallerMemberName] string? function = null,
+        [CallerFilePath] string? filename = null
+    ) => Log(LogLevel.Debug, "Debug", message, line, function, filename);
+
     public static void Info(
         string message,
         [CallerLineNumber] int line = 0,

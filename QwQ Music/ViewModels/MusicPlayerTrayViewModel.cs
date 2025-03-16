@@ -4,10 +4,11 @@ using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
+using QwQ_Music.Services;
 
 namespace QwQ_Music.ViewModels;
 
-public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
+public partial class MusicPlayerTrayViewModel : ViewModelBase
 {
     [ObservableProperty]
     private double _albumCoverCurrentAngle;
@@ -24,21 +25,27 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
     public MusicPlayerTrayViewModel()
     {
         MusicPlayerViewModel.PlaybackStateChanged += MusicPlayerViewModelOnPlaybackStateChanged;
-        MusicPlayerViewModel.CurrentMusicItemChanged += AudioPlayOnTrackIndexChanged;
+        MusicPlayerViewModel.CurrentMusicItemChanging += AudioPlayOnTrackIndexChanging;
+        ExitReminderService.ExitReminder += ExitReminderServiceOnExitReminder;
     }
 
-    public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
-
-    ~MusicPlayerTrayViewModel() => Dispose(false);
-
-    public void Dispose()
+    private void ExitReminderServiceOnExitReminder(object? sender, EventArgs e)
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
+        ExitReminderService.ExitReminder -= ExitReminderServiceOnExitReminder;
+        MusicPlayerViewModel.CurrentMusicItemChanging -= AudioPlayOnTrackIndexChanging;
+        MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
+    }
+
+    public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
+
+    [RelayCommand]
+    private static void NavigationToSoundEffectView()
+    {
+        NavigateService.NavigateEvent("音效");
     }
 
     [RelayCommand]
-    private void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs? e)
+    private static void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs? e)
     {
         if (e == null)
             return;
@@ -63,17 +70,8 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase, IDisposable
             AlbumCoverRecordAngle = AlbumCoverCurrentAngle;
     }
 
-    private void AudioPlayOnTrackIndexChanged(object? sender, MusicItemModel musicItemModel)
+    private void AudioPlayOnTrackIndexChanging(object? sender, MusicItemModel musicItemModel)
     {
         AlbumCoverRecordAngle = 0;
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (!disposing)
-            return;
-
-        MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
-        MusicPlayerViewModel.CurrentMusicItemChanged -= AudioPlayOnTrackIndexChanged;
     }
 }

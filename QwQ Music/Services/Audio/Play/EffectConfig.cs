@@ -7,6 +7,6 @@ namespace QwQ_Music.Services.Audio.Play;
 /// </summary>
 public record EffectConfig
 {
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; }
     public Dictionary<string, object?> Parameters { get; set; } = new();
 }

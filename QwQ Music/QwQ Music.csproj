@@ -13,6 +13,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="11.2.5" />
+        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.2.5" />
         <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.5" />
         <PackageReference Include="Avalonia.Desktop" Version="11.2.5" />
         <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.5" />
@@ -21,14 +22,17 @@
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.0.12" />
+        <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.0.14" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0"/>
+        <PackageReference Include="DynamicData" Version="9.2.1" />
         <PackageReference Include="Irihi.Ursa" Version="1.9.0" />
         <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.9.0" />
-        <PackageReference Include="QwQ.Avalonia" Version="0.0.4" />
+        <PackageReference Include="QwQ.Avalonia" Version="0.1.1" />
         <PackageReference Include="Semi.Avalonia" Version="11.2.1.5" />
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.5" />
-        <PackageReference Include="Semi.Avalonia.TreeDataGrid" Version="11.0.10.1"/>
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+        <PackageReference Include="SkiaSharp" Version="3.118.0-preview.2.3" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.118.0-preview.2.3" />
         <PackageReference Include="SonicBoom" Version="1.0.9"/>
         <PackageReference Include="TagLibSharp" Version="2.3.0"/>
         <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.1.25081.1" />
@@ -43,6 +47,19 @@
           <DependentUpon>DesktopLyric.axaml</DependentUpon>
           <SubType>Code</SubType>
         </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Views\Pages\ClassificationPage.axaml" />
+      <AdditionalFiles Include="Views\Pages\ConfigMainPage.axaml" />
+      <AdditionalFiles Include="Views\Pages\LyricConfigPage.axaml" />
+      <AdditionalFiles Include="Views\Pages\MusicPage.axaml" />
+      <AdditionalFiles Include="Views\Pages\SoundEffectConfigPage.axaml" />
+      <AdditionalFiles Include="Views\Pages\StatisticsPage.axaml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Services\Shader\" />
     </ItemGroup>
 
 </Project>

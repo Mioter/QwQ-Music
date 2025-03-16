@@ -9,42 +9,51 @@ namespace QwQ_Music.Services.Audio.Effect;
 /// </summary>
 public sealed class TremoloEffect : AudioEffectBase
 {
-    private float _frequencyHz;
-    private float _depth;
+    // 原子参数更新
+    private volatile TremoloParameters _currentParams = new();
+    private TremoloParameters _nextParams = new();
+
+    // 相位状态（线程安全）
     private double _phase;
-    private readonly Lock _lock = new(); // 确保线程安全
+    private readonly Lock _phaseLock = new();
 
     public override string Name => "Tremolo";
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        SetParameter("FrequencyHz", 5f); // 默认调制频率
-        SetParameter("Depth", 0.5f); // 默认调制深度
+
+        _currentParams.SampleRate = WaveFormat.SampleRate;
+
+        SetParameter("FrequencyHz", 5f); // 默认5Hz调制
+        SetParameter("Depth", 0.5f); // 默认50%深度
     }
 
     /// <summary>
-    /// 读取音频数据并应用颤音效果
+    /// 音频处理核心逻辑
     /// </summary>
     public override int Read(float[] buffer, int offset, int count)
     {
-        if (!Enabled) // 如果效果器未启用，直接返回原始数据
-        {
+        if (!Enabled)
             return Source.Read(buffer, offset, count);
-        }
 
+        var paramsCopy = _currentParams;
         int samplesRead = Source.Read(buffer, offset, count);
 
-        lock (_lock)
+        lock (_phaseLock) // 保护相位累加器
         {
             for (int i = 0; i < samplesRead; i++)
             {
-                float modulation = 1 - _depth + _depth * (float)Math.Sin(_phase);
+                // 计算调制信号
+                float modulation = CalculateModulation(paramsCopy);
+
+                // 应用调制
                 buffer[offset + i] *= modulation;
 
-                _phase += 2 * Math.PI * _frequencyHz / WaveFormat.SampleRate;
-                if (_phase > 2 * Math.PI)
-                    _phase -= 2 * Math.PI;
+                // 更新相位
+                _phase += paramsCopy.PhaseIncrement;
+                if (_phase > MathF.PI * 2)
+                    _phase -= MathF.PI * 2;
             }
         }
 
@@ -52,55 +61,76 @@ public sealed class TremoloEffect : AudioEffectBase
     }
 
     /// <summary>
-    /// 克隆当前效果器的配置
+    /// 调制信号计算
     /// </summary>
-    public override IAudioEffect Clone()
+    private float CalculateModulation(TremoloParameters parameters)
     {
-        var clone = new TremoloEffect();
-        clone.SetParameter("FrequencyHz", _frequencyHz);
-        clone.SetParameter("Depth", _depth);
-        clone.Enabled = Enabled;
-        clone.Priority = Priority;
-        return clone;
+        // 预计算的相位增量确保实时性
+        return 1 - parameters.Depth + parameters.Depth * MathF.Sin((float)_phase);
     }
 
     /// <summary>
-    /// 设置效果器的配置参数
+    /// 参数原子更新
     /// </summary>
     public override void SetParameter<T>(string key, T value)
     {
         base.SetParameter(key, value);
 
-        lock (_lock)
+        _nextParams = _currentParams.Clone();
+        _nextParams.SampleRate = WaveFormat.SampleRate;
+        switch (key.ToLower())
         {
-            switch (key.ToLower())
-            {
-                case "frequencyhz":
-                    _frequencyHz = Convert.ToSingle(value);
-                    break;
-                case "depth":
-                    _depth = Convert.ToSingle(value);
-                    break;
-            }
+            case "frequencyhz":
+                _nextParams.FrequencyHz = ValidateFrequency(Convert.ToSingle(value));
+                break;
+            case "depth":
+                _nextParams.Depth = ValidateDepth(Convert.ToSingle(value));
+                break;
         }
+        Interlocked.Exchange(ref _currentParams, _nextParams); // 原子替换
     }
 
     /// <summary>
-    /// 获取效果器的配置参数
+    /// 参数验证
     /// </summary>
-    public override T GetParameter<T>(string key)
+    private static float ValidateFrequency(float value) => Math.Clamp(value, 0.1f, 20f);
+
+    private static float ValidateDepth(float value) => Math.Clamp(value, 0f, 1f);
+
+    /// <summary>
+    /// 深度克隆
+    /// </summary>
+    public override IAudioEffect Clone()
     {
-        lock (_lock)
+        var clone = new TremoloEffect
         {
-            switch (key.ToLower())
-            {
-                case "frequencyhz":
-                    return (T)(object)_frequencyHz;
-                case "depth":
-                    return (T)(object)_depth;
-                default:
-                    return base.GetParameter<T>(key);
-            }
+            _currentParams = _currentParams.Clone(),
+            _nextParams = _nextParams.Clone(),
+            Enabled = Enabled,
+            Priority = Priority,
+        };
+        return clone;
+    }
+
+    /// <summary>
+    /// 参数存储结构
+    /// </summary>
+    [Serializable]
+    private class TremoloParameters : ICloneable
+    {
+        public float FrequencyHz;
+        public float Depth;
+
+        public int SampleRate; // 新增字段
+
+        // 预计算相位增量（优化实时计算）<button class="citation-flag" data-index="4">
+        public float PhaseIncrement => 2 * MathF.PI * FrequencyHz / SampleRate;
+
+        public TremoloParameters Clone()
+        {
+            return new TremoloParameters { FrequencyHz = FrequencyHz, Depth = Depth };
         }
+
+        object ICloneable.Clone() => Clone();
     }
 }

@@ -6,20 +6,17 @@ using QwQ_Music.Services.Audio.Effect.Base;
 namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
-/// 环绕效果器
+/// 空间环绕效果器
 /// </summary>
 public sealed class RotatingEffect : AudioEffectBase
 {
-    private float _rotationSpeed; // 旋转速度（圈/秒）
-    private bool _isClockwise; // 是否顺时针旋转
-    private float _radius; // 旋转半径（0 到 100 米）
-    private float _currentAngle; // 当前角度
-    private float[] _channelWeights = null!; // 声道权重
-    private readonly Lock _lock = new(); // 线程安全锁
-    private float[] _filterStates = null!; // 滤波器状态
-    private float _cutoffFrequency; // 当前滤波频率
-    private const float MaxCutoff = 20000f; // 最大截止频率（0米时）
-    private const float MinCutoff = 1000f; // 最小截止频率（100米时）
+    // 参数存储（原子更新）
+    private volatile RotatingParameters _params = new();
+
+    // 状态变量
+    private float _currentAngle;
+    private float[] _channelWeights = null!;
+    private float[] _filterStates = null!;
 
     public override string Name => "Rotating";
 
@@ -27,84 +24,85 @@ public sealed class RotatingEffect : AudioEffectBase
     {
         base.OnInitialized();
         int channels = Source.WaveFormat.Channels;
-
         _channelWeights = new float[channels];
         _filterStates = new float[channels];
-
-        _currentAngle = 0;
-        _rotationSpeed = 0.5f;
-        _isClockwise = true;
-        _radius = 10;
-        UpdateCutoffFrequency();
+        ResetParameters();
     }
 
     /// <summary>
-    /// 更新截止频率（根据半径）
+    /// 核心音频处理逻辑
     /// </summary>
-    private void UpdateCutoffFrequency()
+    public override int Read(float[] buffer, int offset, int count)
     {
-        _cutoffFrequency = MathF.Max(MinCutoff, MaxCutoff - _radius / 100f * (MaxCutoff - MinCutoff));
-    }
+        if (!Enabled)
+            return Source.Read(buffer, offset, count);
 
-    /// <summary>
-    /// 更新声道权重（考虑半径影响）
-    /// </summary>
-    private void UpdateChannelWeights()
-    {
+        var paramsCopy = _params;
+        int samplesRead = Source.Read(buffer, offset, count);
         int channels = Source.WaveFormat.Channels;
-        float[] targetWeights = new float[channels];
+        int sampleRate = Source.WaveFormat.SampleRate;
+        float dt = 1f / sampleRate;
 
-        // 计算基础权重
-        for (int i = 0; i < channels; i++)
+        // 计算滤波系数
+        float rc = 1f / (2 * MathF.PI * paramsCopy.CutoffFrequency);
+        float a = dt / (rc + dt);
+        float angleIncrement = paramsCopy.RotationSpeed * 360f * dt;
+        if (!paramsCopy.IsClockwise)
+            angleIncrement *= -1;
+
+        for (int n = 0; n < samplesRead; n += channels)
         {
-            float channelAngle = GetChannelAngle(i, channels);
-            float deltaAngle = NormalizeAngle(channelAngle - _currentAngle);
+            _currentAngle = NormalizeAngle(_currentAngle + angleIncrement);
 
-            // 使用高斯分布模拟声场宽度
-            float angleFactor = MathF.Exp(-MathF.Pow(deltaAngle / 45f, 2)); // 高斯分布
-            targetWeights[i] = MathF.Max(0, angleFactor);
-        }
+            CalculateChannelWeights(paramsCopy, channels);
 
-        // 应用半径对声场宽度的影响
-        float widthFactor = 1.0f - _radius / 100f * 0.8f; // 保留最小20%的宽度
-        for (int i = 0; i < channels; i++)
-        {
-            targetWeights[i] = targetWeights[i] * widthFactor + (1 - widthFactor) / channels;
-        }
-
-        // 归一化处理
-        float maxWeight = targetWeights.Max();
-        if (maxWeight > 0)
-        {
-            for (int i = 0; i < channels; i++)
+            for (int c = 0; c < channels; c++)
             {
-                targetWeights[i] /= maxWeight;
+                int index = offset + n + c;
+                float sample = buffer[index];
+
+                // 应用平滑后的权重
+                sample *= _channelWeights[c];
+
+                // 低通滤波
+                _filterStates[c] = a * sample + (1 - a) * _filterStates[c];
+                buffer[index] = _filterStates[c];
             }
         }
 
-        // 平滑过渡
+        return samplesRead;
+    }
+
+    /// <summary>
+    /// 计算声道权重（矢量化优化）
+    /// </summary>
+    private void CalculateChannelWeights(RotatingParameters parameters, int channels)
+    {
+        float widthFactor = 1f - parameters.Radius / 100f * 0.8f;
         const float smooth = 0.2f;
-        for (int i = 0; i < channels; i++)
+
+        for (int c = 0; c < channels; c++)
         {
-            _channelWeights[i] = Lerp(_channelWeights[i], targetWeights[i], smooth);
+            float channelAngle = 360f / channels * c;
+            float delta = NormalizeAngle(_currentAngle - channelAngle);
+
+            // 高斯分布权重
+            float targetWeight = MathF.Exp(-MathF.Pow(delta / 45f, 2));
+            targetWeight = targetWeight * widthFactor + (1 - widthFactor) / channels;
+
+            // 平滑过渡
+            _channelWeights[c] = Lerp(_channelWeights[c], targetWeight, smooth);
         }
-    }
 
-    /// <summary>
-    /// 线性插值（Lerp）
-    /// </summary>
-    private static float Lerp(float start, float end, float amount)
-    {
-        return start + (end - start) * amount;
-    }
-
-    /// <summary>
-    /// 获取声道的角度（基于声道布局）
-    /// </summary>
-    private static float GetChannelAngle(int channelIndex, int totalChannels)
-    {
-        // 假设声道布局为均匀分布的圆周
-        return 360f / totalChannels * channelIndex;
+        // 归一化处理
+        float maxWeight = _channelWeights.Max();
+        if (maxWeight > 0)
+        {
+            for (int c = 0; c < channels; c++)
+            {
+                _channelWeights[c] /= maxWeight;
+            }
+        }
     }
 
     /// <summary>
@@ -120,123 +118,99 @@ public sealed class RotatingEffect : AudioEffectBase
     }
 
     /// <summary>
-    /// 读取音频数据并应用环绕音效
-    /// </summary>
-    public override int Read(float[] buffer, int offset, int count)
-    {
-        if (!Enabled)
-            return Source.Read(buffer, offset, count);
-
-        int samplesRead = Source.Read(buffer, offset, count);
-
-        lock (_lock)
-        {
-            // 更新角度
-            float deltaTime = count / (float)(Source.WaveFormat.SampleRate * Source.WaveFormat.Channels);
-            _currentAngle = NormalizeAngle(_currentAngle + _rotationSpeed * 360f * deltaTime * (_isClockwise ? 1 : -1));
-
-            UpdateCutoffFrequency();
-            UpdateChannelWeights();
-
-            // 计算滤波器参数
-            float rc = 1.0f / (2 * MathF.PI * _cutoffFrequency);
-            float dt = 1.0f / Source.WaveFormat.SampleRate;
-            float a = dt / (rc + dt);
-
-            // 处理每个采样
-            int channels = Source.WaveFormat.Channels;
-            for (int n = 0; n < samplesRead; n += channels)
-            {
-                for (int c = 0; c < channels; c++)
-                {
-                    int index = offset + n + c;
-
-                    // 应用声场权重
-                    buffer[index] *= _channelWeights[c];
-
-                    // 应用低通滤波（模拟距离感）
-                    float input = buffer[index];
-                    _filterStates[c] = a * input + (1 - a) * _filterStates[c];
-                    buffer[index] = _filterStates[c];
-                }
-            }
-        }
-        return samplesRead;
-    }
-
-    /// <summary>
-    /// 克隆当前效果器的配置
-    /// </summary>
-    public override IAudioEffect Clone()
-    {
-        var clone = new RotatingEffect();
-        clone.SetParameter("RotationSpeed", _rotationSpeed);
-        clone.SetParameter("IsClockwise", _isClockwise);
-        clone.SetParameter("Radius", _radius);
-        clone.Enabled = Enabled;
-        clone.Priority = Priority;
-        return clone;
-    }
-
-    /// <summary>
-    /// 设置效果器的配置参数
+    /// 参数更新（原子操作）
     /// </summary>
     public override void SetParameter<T>(string key, T value)
     {
         base.SetParameter(key, value);
+        var newParams = _params.Clone();
+
         switch (key.ToLower())
         {
             case "rotationspeed":
-                if (value is float speed)
-                {
-                    lock (_lock)
-                    {
-                        _rotationSpeed = Math.Clamp(speed, 0f, 1f);
-                    }
-                }
+                newParams.RotationSpeed = ValidateSpeed(Convert.ToSingle(value));
                 break;
-
             case "isclockwise":
-                if (value is bool clockwise)
-                {
-                    lock (_lock)
-                    {
-                        _isClockwise = clockwise;
-                    }
-                }
+                newParams.IsClockwise = Convert.ToBoolean(value);
                 break;
-
             case "radius":
-                if (value is float radius)
-                {
-                    lock (_lock)
-                    {
-                        _radius = Math.Clamp(radius, 0f, 100f);
-                        UpdateCutoffFrequency();
-                    }
-                }
+                newParams.Radius = ValidateRadius(Convert.ToSingle(value));
+                newParams.CutoffFrequency = CalculateCutoff(newParams.Radius);
                 break;
         }
+
+        // 原子更新参数
+        Interlocked.Exchange(ref _params, newParams);
     }
 
     /// <summary>
-    /// 获取效果器的配置参数
+    /// 参数验证
     /// </summary>
-    public override T GetParameter<T>(string key)
+    private float ValidateSpeed(float value) => Math.Clamp(value, 0f, 10f);
+
+    private float ValidateRadius(float value) => Math.Clamp(value, 0f, 100f);
+
+    private float CalculateCutoff(float radius) => Lerp(20000f, 1000f, radius / 100f);
+
+    /// <summary>
+    /// 线性插值（Lerp）
+    /// </summary>
+    private static float Lerp(float start, float end, float amount)
     {
-        switch (key.ToLower())
+        return start + (end - start) * amount;
+    }
+
+    /// <summary>
+    /// 重置参数到默认值
+    /// </summary>
+    private void ResetParameters()
+    {
+        _params = new RotatingParameters
         {
-            case "rotationspeed":
-                return (T)(object)_rotationSpeed;
+            RotationSpeed = 0.5f,
+            IsClockwise = true,
+            Radius = 10f,
+            CutoffFrequency = CalculateCutoff(10f),
+        };
+    }
 
-            case "isclockwise":
-                return (T)(object)_isClockwise;
+    /// <summary>
+    /// 深度克隆
+    /// </summary>
+    public override IAudioEffect Clone()
+    {
+        var clone = new RotatingEffect
+        {
+            _params = _params.Clone(),
+            _currentAngle = _currentAngle,
+            Enabled = Enabled,
+            Priority = Priority,
+        };
+        return clone;
+    }
 
-            case "radius":
-                return (T)(object)_radius;
+    /// <summary>
+    /// 参数存储结构
+    /// </summary>
+    [Serializable]
+    private class RotatingParameters : ICloneable
+    {
+        public float RotationSpeed;
+        public bool IsClockwise;
+        public float Radius;
+        public float CutoffFrequency;
 
-            default:
-                return base.GetParameter<T>(key);
+        public RotatingParameters Clone()
+        {
+            return new RotatingParameters
+            {
+                RotationSpeed = RotationSpeed,
+                IsClockwise = IsClockwise,
+                Radius = Radius,
+                CutoffFrequency = CutoffFrequency,
+            };
         }
+
+        object ICloneable.Clone() => Clone();
     }
 }

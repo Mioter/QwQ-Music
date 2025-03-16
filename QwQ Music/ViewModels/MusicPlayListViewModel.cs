@@ -8,7 +8,7 @@ public partial class MusicPlayListViewModel : ViewModelBase
 {
     [ObservableProperty]
     private MusicItemModel? _selectedItem;
-    public MusicPlayerViewModel MusicPlayerViewModel => MusicPlayerViewModel.Instance;
+    public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     [RelayCommand]
     private void ToggleMusic()
@@ -17,11 +17,11 @@ public partial class MusicPlayListViewModel : ViewModelBase
             return;
 
         MusicPlayerViewModel.IsPlaying = false;
-        MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
+        MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem).ConfigureAwait(false);
     }
 
     [RelayCommand]
-    private void ClearMusicPlayList()
+    private static void ClearMusicPlayList()
     {
         MusicPlayerViewModel.Playlist.MusicItems.Clear();
     }

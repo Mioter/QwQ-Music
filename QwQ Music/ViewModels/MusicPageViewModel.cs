@@ -6,14 +6,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DynamicData;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 
 namespace QwQ_Music.ViewModels;
 
-public partial class MusicPageViewModel : ViewModelBase, IDisposable
+public partial class MusicPageViewModel : ViewModelBase
 {
     [ObservableProperty]
     private ObservableCollection<MusicItemModel> _allMusicItems;
@@ -28,15 +30,16 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable
     {
         AllMusicItems = MusicPlayerViewModel.MusicItems;
         MusicPlayerViewModel.MusicItemsChanged += OnMusicPlayerViewModelOnMusicItemsChanged;
+        ExitReminderService.ExitReminder += ExitReminderServiceOnExitReminder;
+    }
+
+    private void ExitReminderServiceOnExitReminder(object? sender, EventArgs e)
+    {
+        ExitReminderService.ExitReminder -= ExitReminderServiceOnExitReminder;
+        MusicPlayerViewModel.MusicItemsChanged -= OnMusicPlayerViewModelOnMusicItemsChanged;
     }
 
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
 
     private void OnMusicPlayerViewModelOnMusicItemsChanged(object? _, ObservableCollection<MusicItemModel> musicItems)
     {
@@ -69,7 +72,7 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable
             return;
 
         MusicPlayerViewModel.IsPlaying = false;
-        MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
+        MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem).ConfigureAwait(false);
     }
 
     [RelayCommand]
@@ -86,23 +89,45 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable
             return;
 
         var items = e.Data.GetFiles()?.ToList();
-
         if (items == null)
             return;
 
-        var allFilePaths = GetAllFilePaths(items);
-        var audioFilePaths = AudioFileValidator.FilterAudioFiles(allFilePaths);
+        // 预加载现有路径集合
+        var existingPaths = new HashSet<string>(
+            MusicPlayerViewModel.MusicItems.Select(x => x.FilePath),
+            StringComparer.OrdinalIgnoreCase
+        );
+
+        // 获取所有拖入的文件路径
+        var allFilePaths = await Task.Run(() => GetAllFilePaths(items)).ConfigureAwait(false);
+        var audioFilePaths = await Task.Run(() => AudioFileValidator.FilterAudioFiles(allFilePaths))
+            .ConfigureAwait(false);
 
         if (audioFilePaths == null || audioFilePaths.Count == 0)
             return;
 
-        foreach (var item in await Task.WhenAll(audioFilePaths.Select(MusicExtractor.ExtractMusicInfoAsync)))
+        // 过滤掉已存在的路径
+        var newFilePaths = audioFilePaths.Where(path => !existingPaths.Contains(path)).ToList();
+
+        if (newFilePaths.Count == 0)
+            return;
+
+        // 并行提取音乐信息，并过滤掉 null 结果
+        var musicItems = (
+            await Task.WhenAll(
+                newFilePaths.Select(async path =>
+                    await MusicExtractor.ExtractMusicInfoAsync(path).ConfigureAwait(false)
+                )
+            )
+        )
+            .Where(m => m != null)
+            .ToList(); // 过滤 null 值
+
+        // 批量添加到UI集合
+        await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            if (item != null && !MusicPlayerViewModel.MusicItems.Any(x => x.Equals(item)))
-            {
-                MusicPlayerViewModel.MusicItems.Add(item);
-            }
-        }
+            MusicPlayerViewModel.MusicItems!.AddRange(musicItems);
+        });
     }
 
     private static List<string> GetAllFilePaths(List<IStorageItem> items)
@@ -150,15 +175,5 @@ public partial class MusicPageViewModel : ViewModelBase, IDisposable
         }
 
         return allFilePaths;
-    }
-
-    ~MusicPageViewModel() => Dispose(false);
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            MusicPlayerViewModel.MusicItemsChanged -= OnMusicPlayerViewModelOnMusicItemsChanged;
-        }
     }
 }

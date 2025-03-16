@@ -5,8 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using QwQ_Music.Models;
-using QwQ_Music.Services.Audio.Play;
-using static QwQ_Music.Models.ConfigInfoModel;
 using File = System.IO.File;
 using PlayerConfig = QwQ_Music.Models.ConfigModel.PlayerConfig;
 
@@ -24,7 +22,7 @@ public static class MusicExtractor
     private async static Task<bool> SaveCoverAsync(Lazy<Bitmap> cover, string coverName)
     {
         // 构造完整文件路径
-        string filePath = Path.Combine(Models.ConfigModel.PlayerConfig.CoverSavePath, coverName);
+        string filePath = Path.Combine(PlayerConfig.CoverSavePath, coverName);
 
         // 确保目录存在
         Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
@@ -114,8 +112,6 @@ public static class MusicExtractor
             var duration = properties.Duration;
             string comment = tag.Comment;
             string encodingFormat = properties.Description;
-            double gain = ReplayGainCalculator.CalculateGain(filePath);
-            string lyrics = tag.Lyrics;
             string allArtists = string.Join(",", artists);
 
             if (tag.Pictures.Length <= 0)
@@ -127,7 +123,6 @@ public static class MusicExtractor
                     null,
                     filePath,
                     fileSize,
-                    gain,
                     null,
                     duration,
                     encodingFormat,
@@ -135,7 +130,7 @@ public static class MusicExtractor
                 );
             }
             string coverFileName = CleanFileName(
-                $"{(allArtists.Length > 20 ? allArtists[..20] : allArtists)}-{(album.Length > 20 ? album[..20] : album)
+                $"{(allArtists.Length > 20 ? allArtists[..20] : allArtists)}-{(album?.Length > 20 ? album[..20] : album)
                 }.jpg"
             );
 
@@ -151,7 +146,6 @@ public static class MusicExtractor
                 Path.Combine(PlayerConfig.CoverSavePath, coverFileName),
                 filePath,
                 fileSize,
-                gain,
                 null,
                 duration,
                 encodingFormat,
@@ -160,7 +154,30 @@ public static class MusicExtractor
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error reading metadata from {filePath}: {ex.Message}");
+            LoggerService.Error($"Error reading metadata from {filePath}: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 获取文件流。
+    /// </summary>
+    /// <param name="filePath">文件路径。</param>
+    /// <returns>文件流，如果文件不存在则返回 null。</returns>
+    private static FileStream? GetFileStream(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            LoggerService.Warning($"File not found: {filePath}");
+            return null;
+        }
+        try
+        {
+            return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+        catch (Exception ex)
+        {
+            LoggerService.Error($"Failed to open file stream for: {filePath}. Error: {ex.Message}");
             return null;
         }
     }
@@ -172,15 +189,18 @@ public static class MusicExtractor
     /// <returns>压缩后的位图。</returns>
     public static Bitmap? LoadCompressedBitmapFromCache(string coverPath)
     {
+        // 尝试从缓存中加载
         if (ImageCache.TryGetValue(coverPath, out var cachedImage))
         {
-            LoggerService.Info($"Cover successfully loaded from cache: {coverPath}");
             return cachedImage;
         }
 
-        if (!File.Exists(coverPath))
+        // 获取文件流
+        using var stream = GetFileStream(coverPath);
+        if (stream == null)
+        {
             return null;
-        using var stream = new FileStream(coverPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
 
         try
         {
@@ -194,8 +214,35 @@ public static class MusicExtractor
         catch (Exception ex)
         {
             LoggerService.Error(
-                $"Unexpected {ex.GetType()} occurred when loading compressed cover image from cache: {coverPath
-                }. Error: {ex.Message}"
+                $"Unexpected {ex.GetType()} occurred when loading compressed cover image from cache: {coverPath}. Error: {ex.Message}"
+            );
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 加载原始图片。
+    /// </summary>
+    /// <param name="coverPath">专辑封面索引。</param>
+    /// <returns>原始位图。</returns>
+    public static Bitmap? LoadOriginalBitmap(string coverPath)
+    {
+        // 获取文件流
+        using var stream = GetFileStream(coverPath);
+        if (stream == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            // 直接解码图片
+            return new Bitmap(stream);
+        }
+        catch (Exception ex)
+        {
+            LoggerService.Error(
+                $"Unexpected {ex.GetType()} occurred when loading original cover image: {coverPath}. Error: {ex.Message}"
             );
             return null;
         }

@@ -8,18 +8,14 @@
     Width="1200"
     Height="800"
     WindowState="{Binding MainWindowState ,Mode=OneWayToSource}"
-    xmlns:userControls="clr-namespace:QwQ_Music.UserControls"
-    xmlns:behaviors="clr-namespace:QwQ_Music.Behaviors"
-    xmlns:pages="clr-namespace:QwQ_Music.Pages"
-    xmlns:converter="clr-namespace:QwQ_Music.Converter"
     xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+    xmlns:pages="clr-namespace:QwQ_Music.Views.Pages"
+    xmlns:converter="clr-namespace:QwQ_Music.Helper.Converter"
+    xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
+    xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
     x:DataType="viewModels:MainWindowViewModel"
     ExtendClientAreaTitleBarHeightHint="40"
     ExtendClientAreaToDecorationsHint="True">
-
-    <Design.DataContext>
-        <viewModels:MainWindowViewModel />
-    </Design.DataContext>
 
     <!--
         亚克力效果
@@ -109,8 +105,7 @@
                 </ToggleButton>
 
                 <u:SelectionList Grid.Row="1"
-                                 Name="MainNavBarSelectionList"
-                                 SelectedIndex="0">
+                                 SelectedIndex="{Binding SelectedIndex}">
 
                     <u:SelectionList.Indicator>
                         <Border Classes.Expanded="{Binding IsNavigationExpand}"
@@ -184,7 +179,7 @@
                 </u:SelectionList>
             </Grid>
 
-            <control:IndexControl Grid.Column="1" Index="{Binding #MainNavBarSelectionList.SelectedIndex}">
+            <control:IndexControl Grid.Column="1" Index="{Binding SelectedIndex}">
                 <control:IndexControl.PageTransition>
                     <CompositePageTransition>
                         <CrossFade Duration="0:0:0.5" />
@@ -193,10 +188,35 @@
                     </CompositePageTransition>
                 </control:IndexControl.PageTransition>
                 
-                <pages:MusicPage/>
-                <pages:ClassificationPage/>
-                <pages:StatisticsPage/>
-                <pages:ConfigMainPage/>
+                <!--~1~ 定义数据模板集合 @1@
+                <control:IndexControl.DataTemplates>
+                    <DataTemplate DataType="{x:Type viewModels:MusicPageViewModel}">
+                        <pages:MusicPage />
+                    </DataTemplate>
+                </control:IndexControl.DataTemplates>
+                
+                <control:IndexControl.DataTemplates>
+                    <DataTemplate DataType="{x:Type viewModels:ClassificationPageViewModel}">
+                        <pages:ClassificationPage />
+                    </DataTemplate>
+                </control:IndexControl.DataTemplates>
+                
+                <control:IndexControl.DataTemplates>
+                    <DataTemplate DataType="{x:Type viewModels:StatisticsPageViewModel}">
+                        <pages:StatisticsPage />
+                    </DataTemplate>
+                </control:IndexControl.DataTemplates>
+                
+                <control:IndexControl.DataTemplates>
+                    <DataTemplate DataType="{x:Type viewModels:ConfigPageViewModel}">
+                        <pages:ConfigMainPage />
+                    </DataTemplate>
+                </control:IndexControl.DataTemplates>-->
+                
+                <pages:MusicPage />
+                <pages:ClassificationPage />
+                <pages:StatisticsPage />
+                <pages:ConfigMainPage />
             </control:IndexControl>
 
         </Grid>

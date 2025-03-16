@@ -9,6 +9,7 @@ namespace QwQ_Music.Utilities.MessageBus;
 /// </summary>
 public class StrongMessageBus : MessageBusBase
 {
+    // ReSharper disable once InconsistentNaming
     private static readonly Lazy<StrongMessageBus> _instance = new(() => new StrongMessageBus());
 
     /// <summary>

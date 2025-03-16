@@ -16,23 +16,36 @@ public partial class MusicItemModel(
     string? coverPath = null,
     string filePath = "",
     string fileSize = "",
-    double gain = 0f,
     TimeSpan? current = null,
     TimeSpan duration = default,
     string encodingFormat = "",
-    string? comment = null
+    string? comment = null,
+    double gain = -1.0f,
+    string[]? coverColor = null
 ) : ObservableObject, IEquatable<MusicItemModel>, IModelBase<MusicItemModel>
 {
     public bool IsInitialized { get; private set; }
     public bool IsError { get; private set; }
+
     public string Title = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
     public string TitleProperty => Title;
-    public string[] Artists = artists ?? ["未知歌手"];
+
+    public string[] Artists = artists switch
+    {
+        null => ["未知歌手"],
+        _ when string.IsNullOrWhiteSpace(string.Concat(artists)) => ["未知歌手"],
+        _ => artists,
+    };
+
     public string ArtistsProperty => string.Join(',', Artists);
+
     public string Album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
     public string AlbumProperty => Album;
     public string? CoverPath = coverPath;
+
     public string? CoverPathProperty => CoverPath;
+
+    public string[]? CoverColors = coverColor;
 
     [ObservableProperty]
     private TimeSpan _current = current ?? TimeSpan.Zero;
@@ -43,7 +56,7 @@ public partial class MusicItemModel(
     public string FileSize = fileSize;
     public string FileSizeProperty => FileSize;
     public double Gain = gain;
-    public double GainProperty => Gain;
+
     public string EncodingFormat = encodingFormat;
     public string EncodingFormatProperty => EncodingFormat;
     public string? Comment = comment;
@@ -79,6 +92,13 @@ public partial class MusicItemModel(
             | DataBaseService.TryParse(config, nameof(FilePath), ref result.FilePath)
             | DataBaseService.TryParse(config, nameof(FileSize), ref result.FileSize)
             | DataBaseService.TryParse(config, nameof(Gain), ref result.Gain)
+            | DataBaseService.TryParse(
+                config,
+                nameof(CoverColors),
+                ref result.CoverColors,
+                (string data) => data.Split("\n")
+            )
+            | DataBaseService.TryParse(config, nameof(Comment), ref result.Comment)
             | DataBaseService.TryParse(config, nameof(EncodingFormat), ref result.EncodingFormat)
             | DataBaseService.TryParse(config, nameof(Comment), ref result.Comment)
             | DataBaseService.TryParse(config, nameof(Remarks), ref result._remarks);
@@ -97,10 +117,11 @@ public partial class MusicItemModel(
             [nameof(CoverPath)] = CoverPath ?? "",
             [nameof(Current)] = Current.ToString(),
             [nameof(Duration)] = Duration.ToString(),
-            [nameof(FilePath)] = FilePath ?? "",
+            [nameof(FilePath)] = FilePath,
             [nameof(FileSize)] = FileSize,
             ["BASICINFO"] = $"{Title}\n{string.Join("\n", Artists)}\n{Album}",
             [nameof(Gain)] = Gain.ToString("G"),
+            [nameof(CoverColors)] = string.Join("\n", CoverColors ?? [""]),
             [nameof(EncodingFormat)] = EncodingFormat,
             [nameof(Comment)] = Comment ?? "",
             [nameof(Remarks)] = Remarks ?? "",

@@ -1,119 +1,98 @@
-using System.Text;
+using System;
 using System.Threading;
 using QwQ_Music.Services.Audio.Effect.Base;
 
 namespace QwQ_Music.Services.Audio.Effect;
 
 /// <summary>
-/// 整体回放增益效果器
+/// 回放增益效果器
 /// </summary>
-public class ReplayGainEffect(double gain) : AudioEffectBase
+public class ReplayGainEffect : AudioEffectBase
 {
-    private double _globalGain = gain; // 整体增益值
-    private int _channels; // 声道数
-    private readonly Lock _lock = new(); // 确保线程安全
-
-    protected override void OnInitialized()
+    // 参数键定义（强类型化）
+    private static class Parameters
     {
-        base.OnInitialized();
-        lock (_lock)
-        {
-            _channels = Source.WaveFormat.Channels;
-        }
+        public const string GlobalGain = nameof(GlobalGain);
     }
 
-    public override string Name => "Replay Gain";
+    // 线程安全的增益参数
+    private double _globalGain;
+    private readonly Lock _gainLock = new();
 
     /// <summary>
-    /// 读取音频数据并应用增益
+    /// 构造函数
     /// </summary>
-    /// <param name="buffer">音频缓冲区</param>
-    /// <param name="offset">起始偏移量</param>
-    /// <param name="count">要读取的样本数</param>
-    /// <returns>实际读取的样本数</returns>
+    /// <param name="initialGain">初始增益值（dB）</param>
+    public ReplayGainEffect(double initialGain = 0.0)
+    {
+        _globalGain = initialGain;
+        SetParameter(Parameters.GlobalGain, initialGain);
+    }
+
+    public override string Name => "ReplayGain";
+
+    /// <summary>
+    /// 音频处理核心逻辑
+    /// </summary>
     public override int Read(float[] buffer, int offset, int count)
     {
-        if (!Enabled) // 如果效果器未启用，直接返回原始数据
-        {
+        if (!Enabled)
             return Source.Read(buffer, offset, count);
-        }
+
+        // 原子读取最新增益值
+        double currentGain = Volatile.Read(ref _globalGain);
+        float gainFactor = (float)Math.Pow(10, currentGain / 20.0); // dB转线性比例
 
         int samplesRead = Source.Read(buffer, offset, count);
-        lock (_lock)
-        {
-            if (_channels <= 0)
-                return samplesRead;
 
-            // 遍历样本并应用整体增益
-            for (int n = 0; n < samplesRead; n++)
-            {
-                int index = offset + n;
-                if (index >= buffer.Length)
-                    continue;
-                buffer[index] *= (float)_globalGain; // 应用整体增益
-            }
+        // 应用增益（无锁循环）
+        for (int i = 0; i < samplesRead; i++)
+        {
+            buffer[offset + i] *= gainFactor;
         }
+
         return samplesRead;
     }
 
     /// <summary>
-    /// 克隆当前效果器的配置
+    /// 参数设置（线程安全）
     /// </summary>
-    public override IAudioEffect Clone()
+    public override sealed void SetParameter<T>(string key, T value)
     {
-        var clone = new ReplayGainEffect(GetParameter<double>("GlobalGain")) { Enabled = Enabled, Priority = Priority };
-        return clone;
-    }
+        base.SetParameter(key, value);
 
-    /// <summary>
-    /// 返回当前效果器的调试信息
-    /// </summary>
-    public override string DebugInfo
-    {
-        get
+        if (key == Parameters.GlobalGain)
         {
-            lock (_lock)
+            lock (_gainLock)
             {
-                var sb = new StringBuilder();
-                sb.AppendLine($"Name: {Name}");
-                sb.AppendLine($"Enabled: {Enabled}");
-                sb.AppendLine($"Priority: {Priority}");
-                sb.AppendLine($"Channels: {_channels}");
-                sb.AppendLine($"Global Gain: {_globalGain:F2}");
-                return sb.ToString();
+                _globalGain = Convert.ToDouble(value);
             }
         }
     }
 
     /// <summary>
-    /// 设置效果器的配置参数
-    /// </summary>
-    public override sealed void SetParameter<T>(string key, T value)
-    {
-        base.SetParameter(key, value);
-        switch (key.ToLower())
-        {
-            case "globalgain":
-                if (value is double gain)
-                {
-                    lock (_lock)
-                    {
-                        _globalGain = gain;
-                    }
-                }
-                break;
-        }
-    }
-
-    /// <summary>
-    /// 获取效果器的配置参数
+    /// 参数获取（类型安全）
     /// </summary>
     public override T GetParameter<T>(string key)
     {
-        return key.ToLower() switch
+        if (key == Parameters.GlobalGain)
+            return (T)(object)Volatile.Read(ref _globalGain);
+
+        return base.GetParameter<T>(key);
+    }
+
+    /// <summary>
+    /// 深度克隆
+    /// </summary>
+    public override IAudioEffect Clone()
+    {
+        double currentGain;
+        lock (_gainLock)
         {
-            "globalgain" => (T)(object)_globalGain,
-            _ => base.GetParameter<T>(key),
-        };
+            currentGain = _globalGain;
+        }
+
+        var clone = new ReplayGainEffect(currentGain) { Enabled = Enabled, Priority = Priority };
+        return clone;
     }
 }

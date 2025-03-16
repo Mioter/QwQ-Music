@@ -11,7 +11,12 @@ public class PlaylistModel(string name) : ObservableObject, IEnumerable<MusicIte
 {
     public readonly string Name = name;
 
-    public ObservableCollection<MusicItemModel> MusicItems = [];
+    private ObservableCollection<MusicItemModel> _musicItems = [];
+    public ObservableCollection<MusicItemModel> MusicItems
+    {
+        get => _musicItems;
+        set => SetProperty(ref _musicItems, value);
+    }
 
     public string LatestPlayedMusic = "";
 

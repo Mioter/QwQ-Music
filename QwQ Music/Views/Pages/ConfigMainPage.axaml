@@ -1,0 +1,58 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModel="using:QwQ_Music.ViewModels"
+             x:Class="QwQ_Music.Views.Pages.ConfigMainPage"
+             x:DataType="viewModel:ConfigPageViewModel"
+             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+             xmlns:u="https://irihi.tech/ursa"
+             xmlns:pages="clr-namespace:QwQ_Music.Views.Pages">
+
+    <Grid RowDefinitions="Auto,*">
+        
+        <u:SelectionList HorizontalAlignment="Left"
+                         SelectedIndex="{Binding SelectedIndex}">
+
+            <u:SelectionList.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </u:SelectionList.ItemsPanel>
+            
+            <u:SelectionList.Indicator>
+                <Border
+                    Height="2"
+                    VerticalAlignment="Bottom"
+                    CornerRadius="2"
+                    Margin="20,0,5,0"
+                    Background="{DynamicResource SemiBlue5}" />
+            </u:SelectionList.Indicator>
+            
+            <u:SelectionList.Styles>
+
+                <Style Selector="u|SelectionListItem">
+                    <Setter Property="Padding" Value="20,0,5,5" />
+                </Style>
+            </u:SelectionList.Styles>
+
+            <TextBlock Text="歌词"/>
+            <TextBlock Text="音效"/>
+
+        </u:SelectionList>
+
+        <control:IndexControl Grid.Row="1" Index="{Binding SelectedIndex}">
+
+            <control:IndexControl.PageTransition>
+                <CompositePageTransition>
+                    <CrossFade Duration="0:0:0.5" />
+                    <PageSlide Duration="0:0:0.3" Orientation="Horizontal" SlideInEasing="QuadraticEaseIn"
+                               SlideOutEasing="QuadraticEaseOut" />
+                </CompositePageTransition>
+            </control:IndexControl.PageTransition>
+            
+            <pages:LyricConfigPage />
+            <pages:SoundEffectConfigPage/>
+
+        </control:IndexControl>
+    </Grid>
+ 
+</UserControl>

@@ -24,13 +24,6 @@
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="MinWidth" Value="0" />
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Template">
-            <ControlTemplate TargetType="Button">
-                <ContentPresenter Background="{TemplateBinding Background}"
-                                  CornerRadius="{TemplateBinding CornerRadius}"
-                                  Content="{TemplateBinding Content}" />
-            </ControlTemplate>
-        </Setter>
 
         <Style Selector="^:pressed">
             <Setter Property="RenderTransform" Value="scale(0.98)" />

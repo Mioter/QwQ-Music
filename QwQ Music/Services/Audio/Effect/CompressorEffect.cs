@@ -9,60 +9,56 @@ namespace QwQ_Music.Services.Audio.Effect;
 /// </summary>
 public class CompressorEffect : AudioEffectBase
 {
-    private float _threshold;
-    private float _ratio;
-    private float _attackMs;
-    private float _releaseMs;
+    // 预计算参数（原子更新）
+    private volatile CompressorParameters _currentParams = new();
+
+    // 状态变量（线程安全）
     private float _currentLevel;
     private float _gainReduction;
-    private readonly Lock _lock = new(); // 确保线程安全
+    private readonly Lock _stateLock = new();
 
     public override string Name => "Compressor";
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        SetParameter("Threshold", -20f); // 默认阈值
-        SetParameter("Ratio", 4f); // 默认压缩比
-        SetParameter("AttackMs", 10f); // 默认攻击时间
-        SetParameter("ReleaseMs", 100f); // 默认释放时间
+        SetParameter("Threshold", -20f); // dB
+        SetParameter("Ratio", 4f); // 压缩比
+        SetParameter("AttackMs", 10f); // 攻击时间
+        SetParameter("ReleaseMs", 100f); // 释放时间
     }
 
     /// <summary>
-    /// 读取音频数据并应用压缩器效果
+    /// 音频处理核心逻辑
     /// </summary>
     public override int Read(float[] buffer, int offset, int count)
     {
-        if (!Enabled) // 如果效果器未启用，直接返回原始数据
-        {
+        if (!Enabled)
             return Source.Read(buffer, offset, count);
-        }
 
+        var paramsCopy = _currentParams; // 原子读取参数
         int samplesRead = Source.Read(buffer, offset, count);
 
-        lock (_lock)
+        lock (_stateLock)
         {
             for (int i = 0; i < samplesRead; i++)
             {
                 float sample = buffer[offset + i];
+                float absSample = Math.Abs(sample);
 
-                // 计算信号电平（绝对值）
-                _currentLevel = Math.Max(_currentLevel, Math.Abs(sample));
+                // 包络检测（峰值保持）
+                _currentLevel = Math.Max(absSample, _currentLevel * paramsCopy.ReleaseCoeff);
 
-                // 计算增益减少量
-                float dbLevel = 20 * MathF.Log10(_currentLevel + 1e-6f); // 避免除零
-                float overThreshold = dbLevel - _threshold;
-                float gainReductionDb = overThreshold > 0 ? overThreshold * (1 - 1 / _ratio) : 0;
+                // 增益计算
+                float dbLevel = 20f * MathF.Log10(_currentLevel + 1e-6f);
+                float overThreshold = dbLevel - paramsCopy.Threshold;
+                float gainReductionDb = overThreshold > 0 ? overThreshold * (1 - 1 / paramsCopy.Ratio) : 0;
 
-                // 平滑增益减少量
-                _gainReduction = SmoothGainReduction(gainReductionDb, _gainReduction);
+                // 平滑增益变化
+                _gainReduction += (gainReductionDb - _gainReduction) * paramsCopy.AttackCoeff;
 
-                // 应用增益减少
-                sample *= MathF.Pow(10, _gainReduction / 20);
-                buffer[offset + i] = sample;
-
-                // 模拟释放时间
-                _currentLevel *= MathF.Exp(-1 / (_releaseMs * WaveFormat.SampleRate / 1000));
+                // 应用增益补偿
+                buffer[offset + i] = sample * MathF.Pow(10, (_gainReduction + paramsCopy.MakeupGain) / 20f);
             }
         }
 
@@ -70,76 +66,93 @@ public class CompressorEffect : AudioEffectBase
     }
 
     /// <summary>
-    /// 平滑增益减少量
-    /// </summary>
-    private float SmoothGainReduction(float target, float current)
-    {
-        float alpha = MathF.Exp(-1 / (_attackMs * WaveFormat.SampleRate / 1000));
-        return current + (target - current) * (1 - alpha);
-    }
-
-    /// <summary>
-    /// 克隆当前效果器的配置
-    /// </summary>
-    public override IAudioEffect Clone()
-    {
-        var clone = new CompressorEffect();
-        clone.SetParameter("Threshold", _threshold);
-        clone.SetParameter("Ratio", _ratio);
-        clone.SetParameter("AttackMs", _attackMs);
-        clone.SetParameter("ReleaseMs", _releaseMs);
-        clone.Enabled = Enabled;
-        clone.Priority = Priority;
-        return clone;
-    }
-
-    /// <summary>
-    /// 设置效果器的配置参数
+    /// 参数原子更新
     /// </summary>
     public override sealed void SetParameter<T>(string key, T value)
     {
         base.SetParameter(key, value);
 
-        lock (_lock)
+        lock (_stateLock)
         {
+            var newParams = _currentParams.Clone();
             switch (key.ToLower())
             {
                 case "threshold":
-                    _threshold = Convert.ToSingle(value);
+                    newParams.Threshold = ValidateThreshold(Convert.ToSingle(value));
                     break;
                 case "ratio":
-                    _ratio = Convert.ToSingle(value);
+                    newParams.Ratio = ValidateRatio(Convert.ToSingle(value));
                     break;
                 case "attackms":
-                    _attackMs = Convert.ToSingle(value);
+                    newParams.AttackCoeff = CalculateAttackCoeff(Convert.ToSingle(value));
                     break;
                 case "releasems":
-                    _releaseMs = Convert.ToSingle(value);
+                    newParams.ReleaseCoeff = CalculateReleaseCoeff(Convert.ToSingle(value));
                     break;
             }
+            Interlocked.Exchange(ref _currentParams, newParams); // 原子替换
         }
     }
 
     /// <summary>
-    /// 获取效果器的配置参数
+    /// 参数预计算
     /// </summary>
-    public override T GetParameter<T>(string key)
+    private float CalculateAttackCoeff(float attackMs)
     {
-        lock (_lock)
+        float attackSamples = attackMs * WaveFormat.SampleRate / 1000f;
+        return MathF.Exp(-1f / attackSamples);
+    }
+
+    private float CalculateReleaseCoeff(float releaseMs)
+    {
+        float releaseSamples = releaseMs * WaveFormat.SampleRate / 1000f;
+        return MathF.Exp(-1f / releaseSamples);
+    }
+
+    /// <summary>
+    /// 参数验证
+    /// </summary>
+    private static float ValidateThreshold(float value) => Math.Clamp(value, -60f, 0f);
+
+    private static float ValidateRatio(float value) => Math.Max(1f, value);
+
+    /// <summary>
+    /// 深度克隆
+    /// </summary>
+    public override IAudioEffect Clone()
+    {
+        var clone = new CompressorEffect
         {
-            switch (key.ToLower())
+            _currentParams = _currentParams.Clone(),
+            Enabled = Enabled,
+            Priority = Priority,
+        };
+        return clone;
+    }
+
+    /// <summary>
+    /// 参数存储结构
+    /// </summary>
+    [Serializable]
+    private class CompressorParameters : ICloneable
+    {
+        public float Threshold;
+        public float Ratio;
+        public float AttackCoeff;
+        public float ReleaseCoeff;
+        public float MakeupGain => 20f * MathF.Log10(Ratio); // 自动增益补偿
+
+        public CompressorParameters Clone()
+        {
+            return new CompressorParameters
             {
-                case "threshold":
-                    return (T)(object)_threshold;
-                case "ratio":
-                    return (T)(object)_ratio;
-                case "attackms":
-                    return (T)(object)_attackMs;
-                case "releasems":
-                    return (T)(object)_releaseMs;
-                default:
-                    return base.GetParameter<T>(key);
-            }
+                Threshold = Threshold,
+                Ratio = Ratio,
+                AttackCoeff = AttackCoeff,
+                ReleaseCoeff = ReleaseCoeff,
+            };
         }
+
+        object ICloneable.Clone() => Clone();
     }
 }

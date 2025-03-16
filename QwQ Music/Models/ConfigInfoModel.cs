@@ -20,7 +20,7 @@ public static class ConfigInfoModel
             {
                 _mainConfig ??=
                     JsonConfigService.Load<MainConfig>(
-                        nameof(ConfigModel.MainConfig),
+                        nameof(MainConfig).ToLower(),
                         MainConfigJsonSerializerContext.Default
                     ) ?? new MainConfig();
             }
@@ -41,7 +41,7 @@ public static class ConfigInfoModel
             {
                 _playerConfig ??=
                     JsonConfigService.Load<PlayerConfig>(
-                        nameof(ConfigModel.PlayerConfig),
+                        nameof(PlayerConfig).ToLower(),
                         PlayerConfigJsonSerializerContext.Default
                     ) ?? new PlayerConfig();
             }
@@ -62,11 +62,42 @@ public static class ConfigInfoModel
             {
                 _desktopLyricConfig ??=
                     JsonConfigService.Load<DesktopLyricConfig>(
-                        nameof(ConfigModel.DesktopLyricConfig),
+                        nameof(DesktopLyricConfig).ToLower(),
                         DesktopLyricConfigJsonSerializerContext.Default
                     ) ?? new DesktopLyricConfig();
             }
             return _desktopLyricConfig;
         }
+    }
+
+    private static SoundEffectConfig? _soundEffectConfig;
+    public static SoundEffectConfig SoundEffectConfig
+    {
+        get
+        {
+            if (_soundEffectConfig != null)
+                return _soundEffectConfig;
+
+            lock (typeof(ConfigInfoModel))
+            {
+                _soundEffectConfig ??=
+                    JsonConfigService.Load<SoundEffectConfig>(
+                        nameof(SoundEffectConfig).ToLower(),
+                        SoundEffectConfigModelJsonSerializerContext.Default
+                    ) ?? new SoundEffectConfig();
+            }
+            return _soundEffectConfig;
+        }
+    }
+
+    public static void Save()
+    {
+        JsonConfigService
+            .SaveAsync(
+                SoundEffectConfig,
+                nameof(SoundEffectConfig).ToLower(),
+                SoundEffectConfigModelJsonSerializerContext.Default
+            )
+            .ConfigureAwait(false);
     }
 }

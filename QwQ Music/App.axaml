@@ -3,9 +3,10 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     x:CompileBindings="True"
-    xmlns:conver="clr-namespace:QwQ_Music.Converter"
     xmlns:semi="https://irihi.tech/semi"
     xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
+    xmlns:converter="clr-namespace:QwQ_Music.Helper.Converter"
+    xmlns:u="https://irihi.tech/ursa"
     RequestedThemeVariant="Default">
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
@@ -22,6 +23,28 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         
+        <Style Selector="ToolTip /template/ ContentPresenter">
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        
+        <Style Selector="u|IconButton.Transparent">
+            <Setter Property="Background" Value="Transparent" />
+            
+            <Style Selector="^:pressed">
+                <Setter Property="RenderTransform" Value="scale(0.98)" />
+            </Style>
+            
+            <Style Selector="^:pointerover">
+                <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultPointeroverBorderBrush}" />
+                <Setter Property="Background" Value="{DynamicResource ButtonDefaultPointeroverBackground}" />
+            </Style>
+
+            <Style Selector="^:pressed">
+                <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultPressedBorderBrush}" />
+                <Setter Property="Background" Value="{DynamicResource ButtonDefaultPressedBackground}" />
+            </Style>
+        </Style>
+        
     </Application.Styles>
 
     <Application.Resources>
@@ -33,11 +56,12 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
 
-        <conver:CalcConverter x:Key="CalcConverter" />
-        <conver:AlbumImageConverter x:Key="AlbumImageConverter" />
-        <conver:TruncateDecimalConverter x:Key="TruncateDecimalConverter" />
-        <conver:SecondsToStringConverter x:Key="SecondsToStringConverter" />
-        <conver:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
+        <converter:CalcConverter x:Key="CalcConverter" />
+        <converter:AlbumImageConverter x:Key="AlbumImageConverter" />
+        <converter:TruncateDecimalConverter x:Key="TruncateDecimalConverter" />
+        <converter:SecondsToStringConverter x:Key="SecondsToStringConverter" />
+        <converter:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
+        <converter:StringEqualityConverter x:Key="StringEqualityConverter"/>
 
         <FontFamily x:Key="VivoSans">/Assets/Fonts#VivoSans</FontFamily>
         <FontFamily x:Key="Consolab">/Assets/Fonts#Consola</FontFamily>

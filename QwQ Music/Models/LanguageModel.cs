@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace QwQ_Music.Models;
 
-public static partial class LanguageModel
+public static class LanguageModel
 {
     public enum Language
     {
-        en_US,
-        zh_CN,
+        EnUs,
+        ZhCn,
     }
 
     public static Dictionary<string, string> Lang = new()

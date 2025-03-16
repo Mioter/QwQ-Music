@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using System.Threading;
 using QwQ_Music.Services.Audio.Effect.Base;
 
@@ -10,133 +9,91 @@ namespace QwQ_Music.Services.Audio.Effect;
 /// </summary>
 public class StereoEnhancementEffect : AudioEffectBase
 {
-    private readonly Lock _lock = new(); // 确保线程安全
+    // 原子参数更新
+    private volatile StereoParameters _currentParams = new();
+    private StereoParameters _nextParams = new();
 
-    /// <summary>
-    /// 增强因子（范围：0.5 到 3.0）
-    /// </summary>
-    private float _enhancementFactor = 1.5f;
+    // 滤波器状态（线程安全）
+    private float[] _bassFilterStates = new float[2];
 
-    /// <summary>
-    /// 立体声宽度（范围：0.0 到 2.0）
-    /// </summary>
-    private float _stereoWidth = 1.0f;
-
-    /// <summary>
-    /// 高频增强因子（范围：0.0 到 2.0）
-    /// </summary>
-    private float _highFrequencyBoost = 1.0f;
-
-    /// <summary>
-    /// 动态范围压缩（范围：0.0 到 1.0）
-    /// </summary>
-    private float _dynamicRangeCompression = 0.0f;
-
-    /// <summary>
-    /// 是否混合低频信号
-    /// </summary>
-    private bool _bassMixing = false;
-
-    // 低通滤波器状态
-    private readonly float[] _bassFilterStates = new float[2];
+    // 预计算系数
+    private float _sampleTime;
 
     public override string Name => "Stereo Enhancement";
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        lock (_lock)
-        {
-            if (Source.WaveFormat.Channels != 2)
-                throw new InvalidOperationException("只支持立体声音频");
-        }
+        _sampleTime = 1f / WaveFormat.SampleRate;
+
+        // 初始化默认参数
+        SetParameter("EnhancementFactor", 1.5f);
+        SetParameter("StereoWidth", 1.0f);
+        SetParameter("BassMixing", false);
+        SetParameter("HighFrequencyBoost", 1.0f);
+        SetParameter("DynamicRangeCompression", 0.0f);
     }
 
     /// <summary>
-    /// 读取音频数据并应用立体声增强效果
+    /// 音频处理核心逻辑
     /// </summary>
     public override int Read(float[] buffer, int offset, int count)
     {
-        if (!Enabled) // 如果效果器未启用，直接返回原始数据
-        {
+        if (!Enabled)
             return Source.Read(buffer, offset, count);
-        }
 
+        var paramsCopy = _currentParams;
         int samplesRead = Source.Read(buffer, offset, count);
+        int channels = WaveFormat.Channels;
 
-        lock (_lock)
+        for (int n = 0; n < samplesRead; n += channels)
         {
-            int channels = Source.WaveFormat.Channels;
-            float enhancementFactor = _enhancementFactor;
-            float stereoWidth = _stereoWidth;
-            bool bassMixing = _bassMixing;
-            float highFrequencyBoost = _highFrequencyBoost;
-            float dynamicRangeCompression = _dynamicRangeCompression;
+            // 获取左右声道样本
+            int leftIndex = offset + n;
+            int rightIndex = leftIndex + 1;
+            float left = buffer[leftIndex];
+            float right = buffer[rightIndex];
 
-            for (int n = 0; n < samplesRead; n += channels)
+            // 计算中间/侧边信号
+            float mid = (left + right) * 0.5f;
+            float side = (left - right) * paramsCopy.EnhancementFactor;
+
+            // 应用立体声宽度
+            side *= paramsCopy.StereoWidth;
+
+            // 重建左右声道
+            float newLeft = mid + side;
+            float newRight = mid - side;
+
+            // 低频混合处理
+            if (paramsCopy.BassMixing)
             {
-                // 获取左右声道样本
-                int leftIndex = offset + n;
-                int rightIndex = leftIndex + 1;
-                float left = buffer[leftIndex];
-                float right = buffer[rightIndex];
+                float bassLeft = ProcessBassFilter(left, 0, paramsCopy);
+                float bassRight = ProcessBassFilter(right, 1, paramsCopy);
 
-                // 计算中间信号和侧边信号
-                float mid = (left + right) * 0.5f;
-                float side = (left - right) * enhancementFactor;
-
-                // 应用立体声宽度调整
-                side *= stereoWidth;
-
-                // 更新左右声道样本
-                buffer[leftIndex] = mid + side;
-                buffer[rightIndex] = mid - side;
-
-                // 混合低频信号
-                if (bassMixing)
-                {
-                    // 提取低频信号
-                    float bassLeft = ApplyLowPassFilter(left, 0, 200); // 截止频率为 200Hz
-                    float bassRight = ApplyLowPassFilter(right, 1, 200);
-
-                    // 混合低频信号
-                    buffer[leftIndex] = (buffer[leftIndex] + bassLeft) * 0.5f;
-                    buffer[rightIndex] = (buffer[rightIndex] + bassRight) * 0.5f;
-                }
-
-                // 高频增强
-                buffer[leftIndex] *= highFrequencyBoost;
-                buffer[rightIndex] *= highFrequencyBoost;
-
-                // 动态范围压缩
-                float maxAmplitude = Math.Max(Math.Abs(buffer[leftIndex]), Math.Abs(buffer[rightIndex]));
-                if (maxAmplitude > 1.0f)
-                {
-                    float compressionFactor = 1.0f / (1.0f + dynamicRangeCompression * maxAmplitude);
-                    buffer[leftIndex] *= compressionFactor;
-                    buffer[rightIndex] *= compressionFactor;
-                }
-
-                // 软限幅
-                buffer[leftIndex] = SoftClip(buffer[leftIndex]);
-                buffer[rightIndex] = SoftClip(buffer[rightIndex]);
+                newLeft = (newLeft + bassLeft) * 0.5f;
+                newRight = (newRight + bassRight) * 0.5f;
             }
+
+            // 高频增强
+            newLeft *= paramsCopy.HighFrequencyBoost;
+            newRight *= paramsCopy.HighFrequencyBoost;
+
+            // 动态范围压缩
+            float maxAmp = MathF.Max(MathF.Abs(newLeft), MathF.Abs(newRight));
+            if (maxAmp > 1f && paramsCopy.CompressionFactor > 0f)
+            {
+                float comp = 1f / (1f + paramsCopy.CompressionFactor * maxAmp);
+                newLeft *= comp;
+                newRight *= comp;
+            }
+
+            // 软限幅
+            buffer[leftIndex] = SoftClip(newLeft);
+            buffer[rightIndex] = SoftClip(newRight);
         }
 
         return samplesRead;
-    }
-
-    /// <summary>
-    /// 应用低通滤波器提取低频信号
-    /// </summary>
-    private float ApplyLowPassFilter(float input, int channelIndex, float cutoffFrequency)
-    {
-        float rc = 1.0f / (2 * MathF.PI * cutoffFrequency);
-        float dt = 1.0f / Source.WaveFormat.SampleRate;
-        float a = dt / (rc + dt);
-
-        _bassFilterStates[channelIndex] = a * input + (1 - a) * _bassFilterStates[channelIndex];
-        return _bassFilterStates[channelIndex];
     }
 
     /// <summary>
@@ -151,119 +108,97 @@ public class StereoEnhancementEffect : AudioEffectBase
     }
 
     /// <summary>
-    /// 克隆当前效果器的配置
+    /// 低通滤波器处理
     /// </summary>
-    public override IAudioEffect Clone()
+    private float ProcessBassFilter(float input, int channel, StereoParameters paramsCopy)
     {
-        var clone = new StereoEnhancementEffect();
-        clone.SetParameter("EnhancementFactor", _enhancementFactor);
-        clone.SetParameter("StereoWidth", _stereoWidth);
-        clone.SetParameter("BassMixing", _bassMixing);
-        clone.SetParameter("HighFrequencyBoost", _highFrequencyBoost);
-        clone.SetParameter("DynamicRangeCompression", _dynamicRangeCompression);
-        clone.Enabled = Enabled;
-        clone.Priority = Priority;
-        return clone;
+        float alpha = paramsCopy.BassFilterCoeff * _sampleTime;
+        _bassFilterStates[channel] = alpha * input + (1 - alpha) * _bassFilterStates[channel];
+        return _bassFilterStates[channel];
     }
 
     /// <summary>
-    /// 返回当前效果器的调试信息
-    /// </summary>
-    public override string DebugInfo
-    {
-        get
-        {
-            lock (_lock)
-            {
-                var sb = new StringBuilder();
-                sb.AppendLine($"Name: {Name}");
-                sb.AppendLine($"Enabled: {Enabled}");
-                sb.AppendLine($"Priority: {Priority}");
-                sb.AppendLine($"Enhancement Factor: {_enhancementFactor:F2}");
-                sb.AppendLine($"Stereo Width: {_stereoWidth:F2}");
-                sb.AppendLine($"Bass Mixing: {_bassMixing}");
-                sb.AppendLine($"High Frequency Boost: {_highFrequencyBoost:F2}");
-                sb.AppendLine($"Dynamic Range Compression: {_dynamicRangeCompression:F2}");
-                sb.AppendLine($"Channels: {Source.WaveFormat.Channels}");
-                return sb.ToString();
-            }
-        }
-    }
-
-    /// <summary>
-    /// 设置效果器的配置参数
+    /// 参数原子更新
     /// </summary>
     public override void SetParameter<T>(string key, T value)
     {
         base.SetParameter(key, value);
 
+        _nextParams = _currentParams.Clone();
         switch (key.ToLower())
         {
             case "enhancementfactor":
-                if (value is float factor)
-                {
-                    lock (_lock)
-                    {
-                        _enhancementFactor = Math.Clamp(factor, 0.5f, 3.0f);
-                    }
-                }
+                _nextParams.EnhancementFactor = ValidateFactor(Convert.ToSingle(value));
                 break;
-
             case "stereowidth":
-                if (value is float width)
-                {
-                    lock (_lock)
-                    {
-                        _stereoWidth = Math.Clamp(width, 0.0f, 2.0f);
-                    }
-                }
+                _nextParams.StereoWidth = ValidateWidth(Convert.ToSingle(value));
                 break;
-
             case "bassmixing":
-                if (value is bool mixing)
-                {
-                    lock (_lock)
-                    {
-                        _bassMixing = mixing;
-                    }
-                }
+                _nextParams.BassMixing = Convert.ToBoolean(value);
                 break;
-
             case "highfrequencyboost":
-                if (value is float boost)
-                {
-                    lock (_lock)
-                    {
-                        _highFrequencyBoost = Math.Clamp(boost, 0.0f, 2.0f);
-                    }
-                }
+                _nextParams.HighFrequencyBoost = ValidateBoost(Convert.ToSingle(value));
                 break;
-
             case "dynamicrangecompression":
-                if (value is float compression)
-                {
-                    lock (_lock)
-                    {
-                        _dynamicRangeCompression = Math.Clamp(compression, 0.0f, 1.0f);
-                    }
-                }
+                _nextParams.DynamicRangeCompression = ValidateCompression(Convert.ToSingle(value));
                 break;
         }
+        Interlocked.Exchange(ref _currentParams, _nextParams);
     }
 
     /// <summary>
-    /// 获取效果器的配置参数
+    /// 参数验证
     /// </summary>
-    public override T GetParameter<T>(string key)
+    private static float ValidateFactor(float value) => Math.Clamp(value, 0.5f, 3.0f);
+
+    private static float ValidateWidth(float value) => Math.Clamp(value, 0.0f, 2.0f);
+
+    private static float ValidateBoost(float value) => Math.Clamp(value, 0.0f, 2.0f);
+
+    private static float ValidateCompression(float value) => Math.Clamp(value, 0.0f, 1.0f);
+
+    /// <summary>
+    /// 深度克隆
+    /// </summary>
+    public override IAudioEffect Clone()
     {
-        return key.ToLower() switch
+        var clone = new StereoEnhancementEffect
         {
-            "enhancementfactor" => (T)(object)_enhancementFactor,
-            "stereowidth" => (T)(object)_stereoWidth,
-            "bassmixing" => (T)(object)_bassMixing,
-            "highfrequencyboost" => (T)(object)_highFrequencyBoost,
-            "dynamicrangecompression" => (T)(object)_dynamicRangeCompression,
-            _ => base.GetParameter<T>(key),
+            _currentParams = _currentParams.Clone(),
+            _nextParams = _nextParams.Clone(),
+            _bassFilterStates = (float[])_bassFilterStates.Clone(),
+            Enabled = Enabled,
+            Priority = Priority,
         };
+        return clone;
+    }
+
+    /// <summary>
+    /// 参数存储结构
+    /// </summary>
+    [Serializable]
+    private class StereoParameters : ICloneable
+    {
+        public float EnhancementFactor { get; set; }
+        public float StereoWidth { get; set; }
+        public bool BassMixing { get; set; }
+        public float HighFrequencyBoost { get; set; }
+        public float DynamicRangeCompression { get; set; }
+        public float BassFilterCoeff => 2 * MathF.PI * 200f; // 200Hz截止频率
+        public float CompressionFactor => DynamicRangeCompression * 0.5f;
+
+        public StereoParameters Clone()
+        {
+            return new StereoParameters
+            {
+                EnhancementFactor = EnhancementFactor,
+                StereoWidth = StereoWidth,
+                BassMixing = BassMixing,
+                HighFrequencyBoost = HighFrequencyBoost,
+                DynamicRangeCompression = DynamicRangeCompression,
+            };
+        }
+
+        object ICloneable.Clone() => Clone();
     }
 }

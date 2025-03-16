@@ -4,8 +4,8 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using QwQ_Music.Models;
 using QwQ_Music.Services;
-using QwQ_Music.ViewModels;
 using QwQ_Music.Views;
 
 namespace QwQ_Music;
@@ -55,7 +55,8 @@ public class App : Application
             if (_applicationLifetime != null)
                 _applicationLifetime.Exit -= OnExit;
 
-            MusicPlayerViewModel.Instance.CleanupAndRelease();
+            ExitReminderService.Exit();
+            ConfigInfoModel.Save();
         }
         catch (Exception ex)
         {

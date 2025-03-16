@@ -4,5 +4,5 @@
     <StyleInclude Source="Button.axaml" />
     <StyleInclude Source="Slider.axaml"/>
     <StyleInclude Source="ToggleButton.axaml" />
-    <StyleInclude Source="FlyoutPresenter.axaml"/>
+    <!--<StyleInclude Source="FlyoutPresenter.axaml"/>-->
 </Style>
