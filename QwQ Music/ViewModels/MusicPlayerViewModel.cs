@@ -67,7 +67,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         SaveConfig();
     }
 
-    public readonly AudioPlay AudioPlay = new();
+    public readonly IAudioPlay AudioPlay = new SoundFlowAudioPlay();
 
     private int CurrentIndex => Playlist.MusicItems.IndexOf(CurrentMusicItem);
 
@@ -324,10 +324,10 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         await Task.Run(() =>
         {
-            if (musicItem.Gain <= 0f)
+            /*if (musicItem.Gain <= 0f)
             {
                 musicItem.Gain = ReplayGainCalculator.CalculateGain(musicItem.FilePath);
-            }
+            }*/
 
             AudioPlay.SetAudioTrack(musicItem.FilePath, musicItem.Current.TotalSeconds, musicItem.Gain);
         });

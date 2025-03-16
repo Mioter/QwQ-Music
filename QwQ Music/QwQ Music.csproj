@@ -34,6 +34,7 @@
         <PackageReference Include="SkiaSharp" Version="3.118.0-preview.2.3" />
         <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.118.0-preview.2.3" />
         <PackageReference Include="SonicBoom" Version="1.0.9"/>
+        <PackageReference Include="SoundFlow" Version="1.0.3" />
         <PackageReference Include="TagLibSharp" Version="2.3.0"/>
         <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.1.25081.1" />
     </ItemGroup>

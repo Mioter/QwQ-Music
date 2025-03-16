@@ -10,7 +10,7 @@ using Timer = System.Timers.Timer;
 
 namespace QwQ_Music.Services.Audio.Play;
 
-public class AudioPlay : IDisposable
+public class AudioPlay : IAudioPlay
 {
     private MediaFoundationReader? _mediaFoundationReader;
     private DateTime _playStartTime; // 记录播放开始时间
@@ -22,7 +22,7 @@ public class AudioPlay : IDisposable
     private VolumeSampleProvider? _volumeSampleProvider; // 音量控制
     private FadeEffect? _fadeEffect; // 淡入淡出效果
 
-    public Dictionary<string, EffectConfig> UserConfigs = new(); // 用户配置存储
+    public Dictionary<string, EffectConfig> UserConfigs { get;set; } = []; // 用户配置存储
 
     /// <summary>
     /// 设置音量（范围：0.0 到 1.0）

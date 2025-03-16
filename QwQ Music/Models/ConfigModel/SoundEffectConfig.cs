@@ -81,9 +81,9 @@ public class SoundEffectConfig : ObservableObject, IDisposable
         }
     }
 
-    private AudioPlay? _audioPlay;
+    private IAudioPlay? _audioPlay;
 
-    public void Initialization(AudioPlay audioPlay)
+    public void Initialization(IAudioPlay audioPlay)
     {
         _audioPlay = audioPlay;
         _audioPlay.UserConfigs = UserConfigs;
