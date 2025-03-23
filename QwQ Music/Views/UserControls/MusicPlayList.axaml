@@ -1,39 +1,47 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
-             xmlns:u="https://irihi.tech/ursa"
-             xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
-             xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
-             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="800"
-             x:DataType="viewModels:MusicPlayListViewModel"
-             x:Class="QwQ_Music.Views.UserControls.MusicPlayList">
+<UserControl
+    d:DesignHeight="800"
+    d:DesignWidth="300"
+    mc:Ignorable="d"
+    x:Class="QwQ_Music.Views.UserControls.MusicPlayList"
+    x:DataType="viewModels:MusicPlayListViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Border Margin="5,5,10,20"
-            Padding="10"
-            Background="{DynamicResource BorderCardBackground}"
-            BoxShadow="0 0 10 0 LightGray"
-            CornerRadius="10">
+    <Border
+        Background="{DynamicResource BorderCardBackground}"
+        BoxShadow="0 0 10 0 LightGray"
+        CornerRadius="10"
+        Margin="5,5,10,20"
+        Padding="10">
 
         <Grid RowDefinitions="Auto,*">
 
             <Panel>
-                <TextBlock Text="播放列表"
-                           Margin="8"
-                           FontFamily="{StaticResource VivoSans}"
-                           FontSize="15" />
-                
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
-                    
+                <TextBlock
+                    FontFamily="{StaticResource VivoSans}"
+                    FontSize="15"
+                    Margin="8"
+                    Text="播放列表" />
+
+                <StackPanel
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal"
+                    Spacing="8">
+
                     <StackPanel.Styles>
 
-                        <Style Selector="StackPanel > Button > PathIcon">
+                        <Style Selector="StackPanel &gt; Button &gt; PathIcon">
                             <Setter Property="Height" Value="13" />
                             <Setter Property="Width" Value="13" />
                         </Style>
 
-                        <Style Selector="StackPanel > Button">
+                        <Style Selector="StackPanel &gt; Button">
                             <Setter Property="Height" Value="30" />
                             <Setter Property="Width" Value="30" />
                             <Setter Property="CornerRadius" Value="8" />
@@ -41,57 +49,69 @@
                         </Style>
 
                     </StackPanel.Styles>
-                    
-                    <Button Classes="Icon"
-                            ToolTip.Tip="跳转当前音乐"
-                            Command="{Binding SelectedCurrentMusicItemCommand}">
+
+                    <Button
+                        Classes="Icon"
+                        Command="{Binding SelectedCurrentMusicItemCommand}"
+                        ToolTip.Tip="跳转当前音乐">
                         <PathIcon Data="{StaticResource SemiIconAlignCenterVertical}" />
                     </Button>
 
-                    <Button Classes="Icon"
-                            ToolTip.Tip="清空播放列表"
-                            Command="{Binding ClearMusicPlayListCommand}">
-                        <PathIcon Foreground="#ff6b6b" Data="{StaticResource ClearEmpty}" />
+                    <Button
+                        Classes="Icon"
+                        Command="{Binding ClearMusicPlayListCommand}"
+                        ToolTip.Tip="清空播放列表">
+                        <PathIcon Data="{StaticResource ClearEmpty}" Foreground="#ff6b6b" />
                     </Button>
-                    
-                    <Button Classes="Icon"
-                            ToolTip.Tip="隐藏播放列表"
-                            Command="{Binding $parent[Window].((viewModels:MainWindowViewModel)DataContext).ShowMusicPlaylistCommand}">
-                        <PathIcon Height="11" Width="11" Data="{StaticResource SemiIconChevronRightStroked}" />
+
+                    <Button
+                        Classes="Icon"
+                        Command="{Binding $parent[Window].((viewModels:MainWindowViewModel)DataContext).ShowMusicPlaylistCommand}"
+                        ToolTip.Tip="隐藏播放列表">
+                        <PathIcon
+                            Data="{StaticResource SemiIconChevronRightStroked}"
+                            Height="11"
+                            Width="11" />
                     </Button>
                 </StackPanel>
             </Panel>
 
-            <ListBox Grid.Row="1"
-                     u:ScrollTo.Direction="Top"
-                     SelectedItem="{Binding SelectedItem}"
-                     Margin="0,5"
-                     behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}"
-                     ItemsSource="{Binding  MusicPlayerViewModel.Playlist.MusicItems}">
-                
+            <ListBox
+                Grid.Row="1"
+                ItemsSource="{Binding MusicPlayerViewModel.Playlist.MusicItems}"
+                Margin="0,5"
+                SelectedItem="{Binding SelectedItem}"
+                behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}"
+                u:ScrollTo.Direction="Top">
+
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Panel>
                             <StackPanel Orientation="Horizontal">
 
                                 <userControls:MusicAlbumButton
-                                    ExternalMouseTouch="{Binding $parent[ListBoxItem].IsPointerOver}"
-                                    IsPlaying="{ Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.IsPlaying}"
-                                    CurrentMusicItem="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
                                     Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
-                                    CommandParameter="{Binding}">
+                                    CommandParameter="{Binding}"
+                                    CornerRadius="8"
+                                    CurrentMusicItem="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
+                                    ExternalMouseTouch="{Binding $parent[ListBoxItem].IsPointerOver}"
+                                    IsPlaying="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
                                     <Button.Effect>
-                                        <DropShadowEffect OffsetX="0"
-                                                          OffsetY="0"
-                                                          BlurRadius="10"
-                                                          Opacity="0.5"
-                                                          Color="DarkGray" />
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Color="DarkGray"
+                                            OffsetX="0"
+                                            OffsetY="0"
+                                            Opacity="0.5" />
                                     </Button.Effect>
                                 </userControls:MusicAlbumButton>
 
-                                <StackPanel VerticalAlignment="Center" Spacing="5">
-                                    <TextBlock Text="{Binding TitleProperty}" FontWeight="Bold" />
-                                    <TextBlock Classes="Tertiary" Text="{Binding ArtistsProperty}" FontSize="12" />
+                                <StackPanel Spacing="5" VerticalAlignment="Center">
+                                    <TextBlock FontWeight="Bold" Text="{Binding TitleProperty}" />
+                                    <TextBlock
+                                        Classes="Tertiary"
+                                        FontSize="12"
+                                        Text="{Binding ArtistsProperty}" />
                                 </StackPanel>
 
                             </StackPanel>
@@ -107,28 +127,38 @@
                         <Setter Property="CornerRadius" Value="10" />
 
                         <Setter Property="ContextMenu">
-                            
+
                             <Setter.Value>
                                 <ContextMenu>
-                                    <MenuItem Header="立即播放"
-                                              Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
-                                              CommandParameter="{Binding}" >
+                                    <MenuItem
+                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                        CommandParameter="{Binding}"
+                                        Header="立即播放">
                                         <MenuItem.Icon>
-                                            <PathIcon Margin="2" Data="{StaticResource SemiIconPlay}" />
+                                            <PathIcon Data="{StaticResource SemiIconPlay}" Margin="2" />
                                         </MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="添加到下一首"
-                                              Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.AddToMusicListNextItemCommand}"
-                                              CommandParameter="{Binding}">
+                                    <MenuItem
+                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.AddToMusicListNextItemCommand}"
+                                        CommandParameter="{Binding}"
+                                        Header="添加到下一首">
                                         <MenuItem.Icon>
-                                            <PathIcon Margin="2" Data="{StaticResource SemiIconPlus}" RenderTransform="rotate(180deg)"/>
+                                            <PathIcon
+                                                Data="{StaticResource SemiIconPlus}"
+                                                Margin="2"
+                                                RenderTransform="rotate(180deg)" />
                                         </MenuItem.Icon>
                                     </MenuItem>
-                                    <MenuItem Header="移出播放列表"
-                                              Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.RemoveInMusicListCommand}"
-                                              CommandParameter="{Binding}" >
+                                    <MenuItem
+                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.RemoveInMusicListCommand}"
+                                        CommandParameter="{Binding}"
+                                        Header="移出播放列表">
                                         <MenuItem.Icon>
-                                            <PathIcon Foreground="#ff6b6b" Margin="2" Data="{StaticResource SemiIconForward}" RenderTransform="rotate(180deg)"/>
+                                            <PathIcon
+                                                Data="{StaticResource SemiIconForward}"
+                                                Foreground="#ff6b6b"
+                                                Margin="2"
+                                                RenderTransform="rotate(180deg)" />
                                         </MenuItem.Icon>
                                     </MenuItem>
                                 </ContextMenu>

@@ -1,19 +1,20 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors">
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Design.PreviewWith>
         <Border Padding="20">
-            <!-- Add Controls for Previewer Here -->
+            <!--  Add Controls for Previewer Here  -->
         </Border>
     </Design.PreviewWith>
 
-    <!-- Add Styles Here -->
+    <!--  Add Styles Here  -->
     <Style Selector="ToggleButton.Rotate">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="behaviors:DynamicCornerBehavior.IsEnabled" Value="True" />
         <Setter Property="Transitions">
             <Transitions>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+                <TransformOperationsTransition Duration="0:0:0.2" Property="RenderTransform" />
             </Transitions>
         </Setter>
 

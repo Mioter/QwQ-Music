@@ -11,7 +11,8 @@ namespace QwQ_Music.Models;
 
 public partial class MusicItemModel(
     string? title = null,
-    string[]? artists = null,
+    string? artists = null,  
+    string? composer = null,
     string? album = null,
     string? coverPath = null,
     string filePath = "",
@@ -28,15 +29,16 @@ public partial class MusicItemModel(
     public bool IsError { get; private set; }
 
     public string Title = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
+
+
     public string TitleProperty => Title;
 
-    public string[] Artists = artists switch
-    {
-        null => ["未知歌手"],
-        _ when string.IsNullOrWhiteSpace(string.Concat(artists)) => ["未知歌手"],
-        _ => artists,
-    };
 
+    public string Artists = artists ?? "未知歌手";
+    
+    public string Composer = composer ?? string.Empty;
+    public string ComposerProperty => Composer;
+    
     public string ArtistsProperty => string.Join(',', Artists);
 
     public string Album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
@@ -64,12 +66,8 @@ public partial class MusicItemModel(
 
     [ObservableProperty]
     private string? _remarks;
-
-    public readonly Lazy<MusicTagExtensions> Extensions = new(
-        () => MusicExtractor.ExtractMusicInfoExtensions(filePath)
-    );
-
-    public MusicTagExtensions ExtensionsProperty => Extensions.Value;
+    
+    public async Task<MusicTagExtensions> GetExtensionsInfo() => await MusicExtractor.ExtractExtensionsInfoAsync(FilePath);
 
     public readonly Lazy<Task<LyricsModel>> Lyrics = new(() => MusicExtractor.ExtractMusicLyricsAsync(filePath));
 
@@ -84,8 +82,9 @@ public partial class MusicItemModel(
         MusicItemModel result = new();
         result.IsError =
             DataBaseService.TryParse(config, nameof(Title), ref result.Title)
-            | DataBaseService.TryParse(config, nameof(Artists), ref result.Artists, (string data) => data.Split("\n"))
+            | DataBaseService.TryParse(config, nameof(Artists), ref result.Artists)
             | DataBaseService.TryParse(config, nameof(Album), ref result.Album)
+            | DataBaseService.TryParse(config, nameof(Composer), ref result.Composer)
             | DataBaseService.TryParse(config, nameof(CoverPath), ref result.CoverPath)
             | DataBaseService.TryParse(config, nameof(Current), ref result._current)
             | DataBaseService.TryParse(config, nameof(Duration), ref result.Duration)
@@ -112,7 +111,7 @@ public partial class MusicItemModel(
         {
             [nameof(ConfigInfoModel.Version)] = ConfigInfoModel.Version,
             [nameof(Title)] = Title,
-            [nameof(Artists)] = string.Join("\n", Artists),
+            [nameof(Artists)] = Artists,
             [nameof(Album)] = Album,
             [nameof(CoverPath)] = CoverPath ?? "",
             [nameof(Current)] = Current.ToString(),
@@ -130,11 +129,47 @@ public partial class MusicItemModel(
 
 public readonly record struct MusicTagExtensions(
     string Genre,
-    uint Year,
+    int? Year,
     string[] Composers,
     string Copyright,
     uint Disc,
     uint Track,
     int SamplingRate,
-    int Bitrate
+    int Channels,
+    int Bitrate,
+    int BitsPerSample,
+    // 添加更多基本信息
+    string OriginalAlbum,
+    string OriginalArtist,
+    string AlbumArtist,
+    string Publisher,
+    string Description,
+    string Language,
+    // 添加技术信息
+    bool IsVbr,
+    string AudioFormat,
+    string EncoderInfo
 );
+
+// 添加扩展结构体用于获取更多详细信息
+public readonly record struct MusicDetailedInfo(
+    // 发布信息
+    DateTime? ReleaseDate,
+    DateTime? OriginalReleaseDate,
+    DateTime? PublishingDate,
+    // 专业信息
+    string Isrc,
+    string CatalogNumber,
+    string ProductId,
+    // 其他信息
+    float? Bpm,
+    float? Popularity,
+    string SeriesTitle,
+    string SeriesPart,
+    string LongDescription,
+    string Group,
+    // 技术信息
+    long AudioDataOffset,
+    long AudioDataSize
+);
+

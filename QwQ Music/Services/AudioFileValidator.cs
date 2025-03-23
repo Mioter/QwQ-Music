@@ -1,56 +1,24 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using NAudio.Wave;
-using TagLib;
-using File = System.IO.File;
+using ATL;
 
 namespace QwQ_Music.Services;
 
 public static class AudioFileValidator
 {
-    private static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".mp3",
-        ".wav",
-        ".flac",
-        ".aac",
-        ".ogg",
-        ".m4a",
-        ".wma",
-        ".aiff",
-        ".alac",
-        ".opus",
-    };
 
-    public static bool IsAudioFile(string filePath)
+    private static bool IsAudioFile(string filePath)
     {
-        if (!File.Exists(filePath) || !SupportedExtensions.Contains(Path.GetExtension(filePath)))
-            return false;
+        return System.IO.File.Exists(filePath) && ValidateWithTagLib(filePath);
 
-        return ValidateWithTagLib(filePath) && ValidateWithNAudio(filePath);
     }
 
     private static bool ValidateWithTagLib(string path)
     {
         try
         {
-            using var file = TagLib.File.Create(path);
-            return file.Properties.MediaTypes != MediaTypes.None;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static bool ValidateWithNAudio(string path)
-    {
-        try
-        {
-            using var reader = new AudioFileReader(path);
-            return reader.WaveFormat.SampleRate > 0 && reader.TotalTime.TotalSeconds > 0;
+            var track = new Track(path);
+            return track.AudioFormat != Format.UNKNOWN_FORMAT;
         }
         catch
         {

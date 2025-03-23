@@ -43,6 +43,7 @@ public static class NavigateService
                 "环绕效果",
                 "混响效果",
                 "延迟效果",
+                "合唱效果",
                 "失真效果",
                 "颤音效果",
                 "压缩器",

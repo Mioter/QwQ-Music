@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia.Media;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
+using QwQ_Music.Utilities.MessageBus;
 
 namespace QwQ_Music.ViewModels;
 
@@ -15,12 +16,11 @@ public class MusicPlayerPageViewModel : ViewModelBase
     public MusicPlayerPageViewModel()
     {
         MusicPlayerViewModel.CurrentMusicItemChanging += MusicPlayerViewModelOnCurrentMusicItemChanging;
-        ExitReminderService.ExitReminder += ExitReminderServiceOnExitReminder;
+        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
     }
 
-    private void ExitReminderServiceOnExitReminder(object? sender, EventArgs e)
+    private void ExitReminderMessageChanged(ExitReminderMessage message)
     {
-        ExitReminderService.ExitReminder -= ExitReminderServiceOnExitReminder;
         MusicPlayerViewModel.CurrentMusicItemChanging -= MusicPlayerViewModelOnCurrentMusicItemChanging;
     }
 

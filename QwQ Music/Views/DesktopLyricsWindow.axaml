@@ -1,58 +1,71 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:viewModel="using:QwQ_Music.ViewModels"
-        x:DataType="viewModel:DesktopLyricsWindowViewModel"
-        x:Class="QwQ_Music.Views.DesktopLyricsWindow"
-        Topmost="True"
-        WindowStartupLocation="Manual"
-        SystemDecorations="None"
-        TransparencyLevelHint="Transparent"
-        CanResize="False"
-        ShowActivated="False"
-        ShowInTaskbar="False"
-        Background="{Binding Config.LyricBackground}"
-        BorderThickness="0"
-        Margin="0"
-        Padding="0"
-        IsHitTestVisible="False"
-        Focusable="False">
-    
-    <StackPanel Orientation="{Binding LyricOrientation}" IsHitTestVisible="False">
-        
-        <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" VerticalAlignment="Stretch" x:Name="MainLyric"
-                   FontSize="{Binding Config.LyricMainFontSize}" IsHitTestVisible="False"
-                   TextWrapping="NoWrap" Text="{Binding CurrentMainLyric}">
-            
+﻿<Window
+    Background="{Binding Config.LyricBackground}"
+    BorderThickness="0"
+    CanResize="False"
+    Focusable="False"
+    IsHitTestVisible="False"
+    Margin="0"
+    Padding="0"
+    ShowActivated="False"
+    ShowInTaskbar="False"
+    SystemDecorations="None"
+    Topmost="True"
+    TransparencyLevelHint="Transparent"
+    WindowStartupLocation="Manual"
+    x:Class="QwQ_Music.Views.DesktopLyricsWindow"
+    x:DataType="viewModel:DesktopLyricsWindowViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:viewModel="using:QwQ_Music.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel IsHitTestVisible="False" Orientation="{Binding LyricOrientation}">
+
+        <TextBlock
+            FontSize="{Binding Config.LyricMainFontSize}"
+            HorizontalAlignment="Stretch"
+            IsHitTestVisible="False"
+            Text="{Binding CurrentMainLyric}"
+            TextAlignment="Center"
+            TextWrapping="NoWrap"
+            VerticalAlignment="Stretch"
+            x:Name="MainLyric">
+
             <TextBlock.Foreground>
-                <LinearGradientBrush StartPoint="0% 50%" EndPoint="100% 50%">
+                <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
                     <GradientStop Color="{Binding Config.LyricMainTopColor}" Offset="0" />
                     <GradientStop Color="{Binding Config.LyricMainBottomColor}" Offset="1" />
                 </LinearGradientBrush>
             </TextBlock.Foreground>
-            
+
             <TextBlock.Effect>
                 <DropShadowEffect Color="{Binding Config.LyricMainBorderColor}" />
             </TextBlock.Effect>
-            
+
         </TextBlock>
-        
-        <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" VerticalAlignment="Stretch" x:Name="AltLyric"
-                   FontSize="{Binding Config.LyricAltFontSize}" IsHitTestVisible="False"
-                   TextWrapping="NoWrap" Text="{Binding CurrentAltLyric}">
-            
+
+        <TextBlock
+            FontSize="{Binding Config.LyricAltFontSize}"
+            HorizontalAlignment="Stretch"
+            IsHitTestVisible="False"
+            Text="{Binding CurrentAltLyric}"
+            TextAlignment="Center"
+            TextWrapping="NoWrap"
+            VerticalAlignment="Stretch"
+            x:Name="AltLyric">
+
             <TextBlock.Foreground>
-                <LinearGradientBrush StartPoint="0% 50%" EndPoint="100% 50%">
+                <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
                     <GradientStop Color="{Binding Config.LyricAltTopColor}" Offset="0" />
                     <GradientStop Color="{Binding Config.LyricAltBottomColor}" Offset="1" />
                 </LinearGradientBrush>
             </TextBlock.Foreground>
-            
+
             <TextBlock.Effect>
                 <DropShadowEffect Color="{Binding Config.LyricAltBorderColor}" />
             </TextBlock.Effect>
-            
+
         </TextBlock>
-        
+
     </StackPanel>
-    
+
 </Window>

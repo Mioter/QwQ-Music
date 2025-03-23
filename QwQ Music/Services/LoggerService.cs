@@ -28,9 +28,9 @@ public static class LoggerService
     }
 
     // 内部状态
-    private static DateTime _currentDay = DateTime.Today;
-    private static string LogFile => Path.Combine(SavePath, $"{_currentDay:yyyy-MM-dd}.QwQ.log");
-    private static FileStream? _fileStream;
+    private static DateTime _CurrentDay = DateTime.Today;
+    private static string LogFile => Path.Combine(SavePath, $"{_CurrentDay:yyyy-MM-dd}.QwQ.log");
+    private static FileStream? _FileStream;
     private static readonly SemaphoreSlim AsyncLock = new(1, 1);
 
     /// <summary>
@@ -38,12 +38,12 @@ public static class LoggerService
     /// </summary>
     private static FileStream GetLogFile()
     {
-        if (_fileStream is { CanWrite: true })
-            return _fileStream;
+        if (_FileStream is { CanWrite: true })
+            return _FileStream;
 
-        _fileStream?.Dispose();
-        _fileStream = new FileStream(LogFile, FileMode.Append, FileAccess.Write, FileShare.Read);
-        return _fileStream;
+        _FileStream?.Dispose();
+        _FileStream = new FileStream(LogFile, FileMode.Append, FileAccess.Write, FileShare.Read);
+        return _FileStream;
     }
 
     /// <summary>
@@ -68,11 +68,11 @@ public static class LoggerService
         {
             // 检查是否需要切换日志文件
             var today = DateTime.Today;
-            if (today != _currentDay)
+            if (today != _CurrentDay)
             {
-                _currentDay = today;
-                await (_fileStream?.DisposeAsync() ?? ValueTask.CompletedTask); // 修复 CA2012
-                _fileStream = null;
+                _CurrentDay = today;
+                await (_FileStream?.DisposeAsync() ?? ValueTask.CompletedTask); // 修复 CA2012
+                _FileStream = null;
             }
             await AttemptWriteWithRetry(logMessage);
         }
@@ -134,8 +134,8 @@ public static class LoggerService
     /// </summary>
     public static void Shutdown()
     {
-        _fileStream?.Dispose();
-        _fileStream = null;
+        _FileStream?.Dispose();
+        _FileStream = null;
     }
 
     // 公共日志方法

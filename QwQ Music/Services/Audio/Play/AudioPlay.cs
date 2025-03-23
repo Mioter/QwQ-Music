@@ -1,28 +1,53 @@
 using System;
-using System.Collections.Generic;
-using System.Timers;
+using System.IO;
 using Avalonia.Threading;
-using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
-using QwQ_Music.Services.Audio.Effect;
-using QwQ_Music.Services.Audio.Effect.Base;
-using Timer = System.Timers.Timer;
+using QwQ_Music.Models;
+using QwQ_Music.Models.ConfigModel;
+using SoundFlow.Backends.MiniAudio;
+using SoundFlow.Components;
+using SoundFlow.Enums;
+using SoundFlow.Providers;
 
 namespace QwQ_Music.Services.Audio.Play;
 
+/// <summary>
+/// 基于SoundFlow实现的音频播放器
+/// </summary>
 public class AudioPlay : IAudioPlay
 {
-    private MediaFoundationReader? _mediaFoundationReader;
-    private DateTime _playStartTime; // 记录播放开始时间
+    private readonly MiniAudioEngine _audioEngine;
+    private SoundPlayer? _soundPlayer;
     private DispatcherTimer? _progressTimer;
-    private Timer? _fadeOutTimer; // 用于跟踪淡出定时器
+    private DispatcherTimer? _fadeOutTimer; // 添加一个字段来跟踪当前的淡出定时器
     private float _volume = 1.0f;
-    private WaveOutEvent? _waveOutEvent;
-    private AudioEffectChain? _effectChain;
-    private VolumeSampleProvider? _volumeSampleProvider; // 音量控制
-    private FadeEffect? _fadeEffect; // 淡入淡出效果
 
-    public Dictionary<string, EffectConfig> UserConfigs { get;set; } = []; // 用户配置存储
+    private readonly SoundEffectConfig _soundEffectConfig;
+
+    /// <inheritdoc />
+    public event EventHandler<double>? PositionChanged;
+
+    /// <inheritdoc />
+    public event EventHandler? PlaybackCompleted;
+
+    /// <inheritdoc />
+    public bool IsMute
+    {
+        get => _soundPlayer?.Mute ?? false;
+        set
+        {
+            if (_soundPlayer != null) _soundPlayer.Mute = value;
+        }
+    }
+
+    /// <summary>
+    /// 构造函数，初始化SoundFlow音频引擎
+    /// </summary>
+    public AudioPlay()
+    {
+        // 初始化SoundFlow音频引擎，使用44.1kHz采样率，仅支持播放功能
+        _audioEngine = new MiniAudioEngine(44100, Capability.Playback);
+        _soundEffectConfig = ConfigInfoModel.SoundEffectConfig;
+    }
 
     /// <summary>
     /// 设置音量（范围：0.0 到 1.0）
@@ -30,8 +55,10 @@ public class AudioPlay : IAudioPlay
     public void SetVolume(float volume)
     {
         _volume = Math.Clamp(volume, 0.0f, 1.0f);
-        if (_volumeSampleProvider != null)
-            _volumeSampleProvider.Volume = _volume;
+        if (_soundPlayer != null)
+        {
+            _soundPlayer.Volume = _volume;
+        }
     }
 
     /// <summary>
@@ -39,24 +66,90 @@ public class AudioPlay : IAudioPlay
     /// </summary>
     public void Play()
     {
-        if (_waveOutEvent == null)
+        if (_soundPlayer == null)
             return;
 
-        // 停止并释放之前的淡出定时器
-        StopFadeOutTimer();
+        if (_fadeOutTimer != null)
+        {
+            // 停止并清理定时器
+            _fadeOutTimer.Stop();
+            _fadeOutTimer.Tick -= FadeOutTimer_Tick;
+            _fadeOutTimer = null;
+        }
+        
+        // 检查淡入效果器是否启用
+        if (_soundEffectConfig.FadeModifier.Enabled)
+        {
+            // 应用淡入效果
+            _soundEffectConfig.FadeModifier.BeginFadeIn();
+        }
 
-        _progressTimer?.Start();
-        _waveOutEvent.Play();
-        _playStartTime = DateTime.Now; // 记录播放开始时间
+        _soundPlayer.Play();
+
+        // 启动进度定时器
+        StartProgressTimer();
     }
 
+
+    
     /// <summary>
     /// 暂停播放
     /// </summary>
     public void Pause()
     {
-        _waveOutEvent?.Pause();
-        _progressTimer?.Stop();
+        if (_soundPlayer is not { State: PlaybackState.Playing })
+            return;
+
+        // 如果已经有一个淡出定时器在运行，先取消它
+        if (_fadeOutTimer != null)
+        {
+            _fadeOutTimer.Stop();
+            _fadeOutTimer.Tick -= FadeOutTimer_Tick;
+            _fadeOutTimer = null;
+        }
+
+        // 检查淡出效果器是否启用
+        if (_soundEffectConfig.FadeModifier.Enabled)
+        {
+            // 应用淡出效果
+            _soundEffectConfig.FadeModifier.BeginFadeOut();
+            
+            // 创建一个延迟暂停的定时器，等待淡出效果完成
+            _fadeOutTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(_soundEffectConfig.FadeModifier.FadeOutTimeMs),
+            };
+            
+            _fadeOutTimer.Tick += FadeOutTimer_Tick;
+            _fadeOutTimer.Start();
+        }
+        else
+        {
+            // 直接暂停
+            _soundPlayer.Pause();
+            _progressTimer?.Stop();
+        }
+    }
+
+    /// <summary>
+    /// 淡出定时器事件处理
+    /// </summary>
+    private void FadeOutTimer_Tick(object? sender, EventArgs e)
+    {
+        if (sender is not DispatcherTimer timer) 
+            return;
+
+        // 实际执行暂停操作
+        if (_soundPlayer?.State == PlaybackState.Playing)
+        {
+            _soundPlayer.Pause();
+            _progressTimer?.Stop();
+        }
+        
+        // 停止并清理定时器
+        timer.Stop();
+        timer.Tick -= FadeOutTimer_Tick;
+        _fadeOutTimer = null;
     }
 
     /// <summary>
@@ -65,6 +158,7 @@ public class AudioPlay : IAudioPlay
     public void Stop()
     {
         DisposeCurrentTrack();
+        
     }
 
     /// <summary>
@@ -72,34 +166,22 @@ public class AudioPlay : IAudioPlay
     /// </summary>
     public void Seek(double positionInSeconds)
     {
-        if (_mediaFoundationReader == null || _waveOutEvent == null)
+        if (_soundPlayer == null)
             return;
 
-        var targetTime = TimeSpan.FromSeconds(positionInSeconds);
-        _mediaFoundationReader.CurrentTime =
-            targetTime > _mediaFoundationReader.TotalTime ? _mediaFoundationReader.TotalTime : targetTime;
+        // 确保位置在有效范围内
+        positionInSeconds = Math.Clamp(positionInSeconds, 0, _soundPlayer.Duration);
+        
+        _soundPlayer.Seek((float)positionInSeconds);
     }
-
-    /// <summary>
-    /// 播放进度变化事件
-    /// </summary>
-    public event EventHandler<double>? PositionChanged;
-
-    /// <summary>
-    /// 播放完成事件
-    /// </summary>
-    public event EventHandler? PlaybackCompleted;
-
-    /// <summary>
-    /// 设置音频文件并初始化效果链
-    /// </summary>
-    public void SetAudioTrack(string filePath, double startingSeconds, double channelGains)
+    
+    /// <inheritdoc />
+    public void InitializeAudio(string filePath, double channelGains)
     {
         try
         {
             DisposeCurrentTrack();
-            InitializeNewTrack(filePath, startingSeconds, channelGains);
-            UpdateEffects(UserConfigs); // 应用用户之前的配置
+            InitializeNewTrack(filePath, channelGains);
         }
         catch (Exception ex)
         {
@@ -110,198 +192,67 @@ public class AudioPlay : IAudioPlay
     /// <summary>
     /// 初始化新音轨
     /// </summary>
-    private void InitializeNewTrack(string audioFilePath, double startingSeconds, double replayGain)
+    private void InitializeNewTrack(string audioFilePath, double replayGain)
     {
-        _mediaFoundationReader = new MediaFoundationReader(audioFilePath);
-        var sampleProvider = new SampleChannel(_mediaFoundationReader); // 转换为 ISampleProvider
+        // 创建文件流数据提供者
+        var fileStream = File.OpenRead(audioFilePath);
+        var dataProvider = new StreamDataProvider(fileStream);
 
-        // 从指定时间播放
-        var offsetProvider = new OffsetSampleProvider(sampleProvider)
+        // 创建SoundPlayer并加载音频文件
+        _soundPlayer = new SoundPlayer(dataProvider)
         {
-            SkipOver = TimeSpan.FromSeconds(startingSeconds),
-        };
+            Volume = _volume,// 设置音量
+        }; 
 
-        // 音量控制层
-        _volumeSampleProvider = new VolumeSampleProvider(offsetProvider) { Volume = _volume };
+        _soundEffectConfig.ReplayGainModifier.Gain = (float)replayGain;
 
-        // 初始化效果链
-        _effectChain = new AudioEffectChain(_volumeSampleProvider);
+        // 重置淡入淡出效果器状态
+        _soundEffectConfig.FadeModifier.Reset();
 
-        // 添加默认效果器
-        AddDefaultEffects(replayGain);
+        InitializeEffects(_soundPlayer);
+        
+        // 添加到主混音器
+        Mixer.Master.AddComponent(_soundPlayer);
 
-        // 初始化播放器
-        _waveOutEvent = new WaveOutEvent
-        {
-            DesiredLatency = 100, // 设置较低的延迟以提高响应速度
-        };
-
-        _waveOutEvent.PlaybackStopped += OnPlaybackStopped;
-        _waveOutEvent.Init(_effectChain.GetOutput());
+        // 设置播放完成事件
+        _soundPlayer.PlaybackEnded += OnPlaybackCompleted;
 
         // 初始化进度定时器
-        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _progressTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(500),
+        };
         _progressTimer.Tick += OnProgressTimerTick;
     }
+    
 
     /// <summary>
-    /// 添加默认效果器
+    /// 初始化效果链
     /// </summary>
-    private void AddDefaultEffects(double replayGain)
+    private void InitializeEffects(SoundPlayer soundPlayer)
     {
-        if (_effectChain == null)
-            return;
-
-        _effectChain
-            .AddEffect(new ReplayGainEffect(replayGain)) // 多声道回放增益
-            .AddEffect(new StereoEnhancementEffect()) // 立体声增强
-            .AddEffect(new DistortionEffect()) // 失真
-            .AddEffect(new ReverbEffect()) // 混响
-            .AddEffect(new CompressorEffect()) // 压缩器
-            .AddEffect(new EqualizerEffect()) // 均衡器
-            .AddEffect(new TremoloEffect()) // 颤音
-            .AddEffect(new DelayEffect()) // 回声
-            .AddEffect(new SpatialEffect()) // 空间
-            .AddEffect(new RotatingEffect()) // 环绕
-            .AddEffect(new FadeEffect()); // 淡入淡出
-
-        // 获取效果器实例
-        _fadeEffect = _effectChain.GetEffect<FadeEffect>("Fade");
+        soundPlayer
+            .AddModifier(_soundEffectConfig.ReplayGainModifier)
+            .AddModifier(_soundEffectConfig.ReverbModifier)
+            .AddModifier(_soundEffectConfig.DelayModifier)
+            .AddModifier(_soundEffectConfig.FadeModifier)
+            .AddModifier(_soundEffectConfig.RotatingModifier)
+            .AddModifier(_soundEffectConfig.SpatialModifier)
+            .AddModifier(_soundEffectConfig.CompressorModifier)
+            .AddModifier(_soundEffectConfig.StereoEnhancementModifier)
+            .AddModifier(_soundEffectConfig.TremoloModifier)
+            .AddModifier(_soundEffectConfig.DistortionModifier)
+            .AddModifier(_soundEffectConfig.ParametricEqualizer);
     }
 
+    
     /// <summary>
-    /// 动态更新效果器配置
+    /// 播放完成事件处理
     /// </summary>
-    /// <param name="effectsConfig">效果器配置</param>
-    public void UpdateEffects(Dictionary<string, EffectConfig> effectsConfig)
+    private void OnPlaybackCompleted(object? sender, EventArgs e)
     {
-        foreach ((string? effectName, var effectConfig) in effectsConfig)
-        {
-            UpdateSpecificEffects(effectName, effectConfig);
-        }
-    }
-
-    /// <summary>
-    /// 动态更新效果配置
-    /// </summary>
-    /// <param name="effectName">效果名</param>
-    /// <param name="effectConfig">配置</param>
-    public void UpdateSpecificEffects(string effectName, EffectConfig effectConfig)
-    {
-        var effect = _effectChain?.GetEffect(effectName);
-        if (effect == null)
-            return;
-        // 更新启用状态
-        effect.Enabled = effectConfig.Enabled;
-
-        // 更新参数
-        foreach (var parameter in effectConfig.Parameters)
-        {
-            effect.SetParameter(parameter.Key, parameter.Value);
-        }
-    }
-
-    public void UpdateEffectsEnabled(string effectName, bool value)
-    {
-        var effect = _effectChain?.GetEffect(effectName);
-
-        if (effect == null)
-            return;
-
-        effect.Enabled = value;
-    }
-
-    public void UpdateEffectsParameters(string effectName, string parameter, object value)
-    {
-        var effect = _effectChain?.GetEffect(effectName);
-
-        effect?.SetParameter(parameter, value);
-    }
-
-    /// <summary>
-    /// 刷新播放（变动效果链时调用）
-    /// </summary>
-    private void RefreshPlayback()
-    {
-        if (_waveOutEvent == null)
-            return;
-
-        bool wasPlaying = _waveOutEvent.PlaybackState == PlaybackState.Playing;
-        _waveOutEvent.Stop();
-        _waveOutEvent.Init(_effectChain?.GetOutput());
-        if (wasPlaying)
-            _waveOutEvent.Play();
-    }
-
-    /// <summary>
-    /// 释放当前音轨
-    /// </summary>
-    private void DisposeCurrentTrack()
-    {
-        _waveOutEvent?.Stop();
-        _waveOutEvent?.Dispose();
-        _waveOutEvent = null;
-
-        _mediaFoundationReader?.Dispose();
-        _mediaFoundationReader = null;
-
-        _effectChain = null;
-        _volumeSampleProvider = null;
-        _fadeEffect = null;
-
-        // 停止并释放定时器
-        StopProgressTimer();
-        StopFadeOutTimer();
-    }
-
-    /// <summary>
-    /// 停止进度定时器
-    /// </summary>
-    private void StopProgressTimer()
-    {
-        if (_progressTimer == null)
-            return;
-
-        _progressTimer.Stop();
-        _progressTimer.Tick -= OnProgressTimerTick;
-        _progressTimer = null;
-    }
-
-    /// <summary>
-    /// 停止淡出定时器
-    /// </summary>
-    private void StopFadeOutTimer()
-    {
-        if (_fadeOutTimer == null)
-            return;
-
-        _fadeOutTimer.Stop();
-        _fadeOutTimer.Elapsed -= OnFadeOutTimerElapsed;
-        _fadeOutTimer.Dispose();
-        _fadeOutTimer = null;
-    }
-
-    /// <summary>
-    /// 播放停止事件处理
-    /// </summary>
-    private void OnPlaybackStopped(object? sender, StoppedEventArgs e)
-    {
-        if (e.Exception != null)
-        {
-            Console.WriteLine($"播放错误: {e.Exception.Message}");
-        }
-        else if (_mediaFoundationReader != null)
-        {
-            double currentPosition = _mediaFoundationReader.CurrentTime.TotalSeconds;
-            double totalTime = _mediaFoundationReader.TotalTime.TotalSeconds;
-            double timeElapsedSinceStart = (DateTime.Now - _playStartTime).TotalSeconds;
-
-            // 如果当前位置接近总时长并且已经播放了一段时间，则认为是自然结束
-            if (currentPosition >= totalTime - 0.5 && timeElapsedSinceStart > 0.5)
-            {
-                PlaybackCompleted?.Invoke(this, EventArgs.Empty);
-            }
-        }
+        // 触发播放完成事件
+        PlaybackCompleted?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -309,74 +260,54 @@ public class AudioPlay : IAudioPlay
     /// </summary>
     private void OnProgressTimerTick(object? sender, EventArgs e)
     {
-        if (_mediaFoundationReader == null || _waveOutEvent == null)
+        if (_soundPlayer is not { State: PlaybackState.Playing })
             return;
-        PositionChanged?.Invoke(this, _mediaFoundationReader.CurrentTime.TotalSeconds);
+        
+        // 触发位置变化事件
+        PositionChanged?.Invoke(this, _soundPlayer.Time);
     }
 
-    /// <summary>
-    /// 带淡入效果的播放
-    /// </summary>
-    public void PlayWithFade()
-    {
-        _fadeEffect?.BeginFadeIn();
-        Play();
-    }
 
     /// <summary>
-    /// 带淡出效果的停止
+    /// 启动进度定时器
     /// </summary>
-    public void StopWithFade()
+    private void StartProgressTimer()
     {
-        if (_fadeEffect is not { Enabled: true })
+        _progressTimer?.Start();
+    }
+
+
+    /// <summary>
+    /// 释放当前音轨
+    /// </summary>
+    private void DisposeCurrentTrack()
+    {
+        // 清理淡出定时器
+        if (_fadeOutTimer != null)
         {
-            Pause();
-            return;
+            _fadeOutTimer.Stop();
+            _fadeOutTimer.Tick -= FadeOutTimer_Tick;
+            _fadeOutTimer = null;
         }
 
-        _fadeEffect.BeginFadeOut();
-
-        _fadeOutTimer = new Timer(_fadeEffect.GetParameter<double>("FadeOutTimeMs")) { AutoReset = false };
-        _fadeOutTimer.Elapsed += OnFadeOutTimerElapsed;
-        _fadeOutTimer.Start();
-    }
-
-    /// <summary>
-    /// 响应淡出定时器
-    /// </summary>
-    /// <param name="sender">发送者</param>
-    /// <param name="e">事件参数</param>
-    private void OnFadeOutTimerElapsed(object? sender, ElapsedEventArgs e) => Dispatcher.UIThread.InvokeAsync(Pause);
-
-    /// <summary>
-    /// 添加新效果
-    /// </summary>
-    public void AddEffect(IAudioEffect effect)
-    {
-        if (_effectChain == null)
-            return;
-        _effectChain.AddEffect(effect);
-        RefreshPlayback();
-    }
-
-    /// <summary>
-    /// 移除效果
-    /// </summary>
-    public bool RemoveEffect(string effectName)
-    {
-        if (!(_effectChain?.RemoveEffect(effectName) ?? false))
-            return false;
-        RefreshPlayback();
-        return true;
-    }
-
-    /// <summary>
-    /// 获取效果实例
-    /// </summary>
-    public T? GetEffect<T>(string name)
-        where T : class, IAudioEffect
-    {
-        return _effectChain?.GetEffect<T>(name);
+        if (_soundPlayer != null)
+        {
+            _soundPlayer.Stop();
+            _soundPlayer.PlaybackEnded -= OnPlaybackCompleted;
+            
+            // 从主混音器中移除
+            Mixer.Master.RemoveComponent(_soundPlayer);
+            
+            _soundPlayer = null;
+        }
+        
+        // 停止并释放定时器
+        if (_progressTimer != null)
+        {
+            _progressTimer.Stop();
+            _progressTimer.Tick -= OnProgressTimerTick;
+            _progressTimer = null;
+        }
     }
 
     /// <summary>
@@ -385,6 +316,12 @@ public class AudioPlay : IAudioPlay
     public void Dispose()
     {
         DisposeCurrentTrack();
+        
+        ConfigInfoModel.SaveSoundEffectConfig();
+        
+        // 释放音频引擎
+        _audioEngine.Dispose();
+        
         GC.SuppressFinalize(this);
     }
 }

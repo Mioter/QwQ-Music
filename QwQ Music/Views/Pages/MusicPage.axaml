@@ -1,52 +1,65 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
-             xmlns:u="https://irihi.tech/ursa"
-             xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
-             xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="viewModels:MusicPageViewModel"
-             x:Class="QwQ_Music.Views.Pages.MusicPage">
+<UserControl
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="QwQ_Music.Views.Pages.MusicPage"
+    x:DataType="viewModels:MusicPageViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid Margin="10,0" RowDefinitions="Auto,*">
 
         <Panel Margin="0,5">
 
-            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
+            <StackPanel
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="8">
 
                 <StackPanel.Styles>
 
                     <Style Selector="u|IconButton">
-                        <Setter Property="CornerRadius" Value="8"/>
-                        <Setter Property="Background" Value="Transparent"></Setter>
+                        <Setter Property="CornerRadius" Value="8" />
+                        <Setter Property="Background" Value="Transparent" />
                     </Style>
-                    
+
                     <Style Selector="PathIcon">
                         <Setter Property="Margin" Value="5" />
                     </Style>
 
                 </StackPanel.Styles>
 
-                <TextBox Width="200"
-                         Watermark="搜索音乐"
-                         CornerRadius="8"
-                         Classes="clearButton"
-                         Text="{Binding SearchText,Mode=TwoWay}"
-                         HorizontalAlignment="Left" />
+                <TextBox
+                    Classes="clearButton"
+                    CornerRadius="8"
+                    HorizontalAlignment="Left"
+                    Text="{Binding SearchText, Mode=TwoWay}"
+                    Watermark="搜索音乐"
+                    Width="200" />
 
-                <u:IconButton Icon="{StaticResource SemiIconAlignCenterVertical}" ToolTip.Tip="跳转当前音乐" Classes="Icon"
-                              Command="{Binding SelectedCurrentMusicItemCommand}" />
+                <u:IconButton
+                    Classes="Icon"
+                    Command="{Binding SelectedCurrentMusicItemCommand}"
+                    Icon="{StaticResource SemiIconAlignCenterVertical}"
+                    ToolTip.Tip="跳转当前音乐" />
 
-                <u:IconButton Icon="{StaticResource SemiIconMore}" ToolTip.Tip="更多" Classes="Icon">
+                <u:IconButton
+                    Classes="Icon"
+                    Icon="{StaticResource SemiIconMore}"
+                    ToolTip.Tip="更多">
 
                     <Button.Flyout>
                         <Flyout>
                             <StackPanel Spacing="5">
-                                <CheckBox Name="MoreColumn1" Content="类别" />
-                                <CheckBox Name="MoreColumn2" Content="大小" />
-                                <CheckBox Name="MoreColumn3" Content="备注" />
+                                <CheckBox Content="类别" Name="MoreColumn1" />
+                                <CheckBox Content="大小" Name="MoreColumn2" />
+                                <CheckBox Content="备注" Name="MoreColumn3" />
                             </StackPanel>
                         </Flyout>
                     </Button.Flyout>
@@ -56,18 +69,19 @@
             </StackPanel>
         </Panel>
 
-        <!-- DataGrid 方展示案 -->
-        <DataGrid Grid.Row="1"
-                  Margin="0,0,0,10"
-                  CanUserReorderColumns="True"
-                  CanUserResizeColumns="True"
-                  CanUserSortColumns="True"
-                  IsReadOnly="True"
-                  behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}"
-                  Background="Transparent"
-                  SelectedItem="{Binding SelectedItem}"
-                  ItemsSource="{Binding  AllMusicItems}"
-                  DragDrop.AllowDrop="True">
+        <!--  DataGrid 方展示案  -->
+        <DataGrid
+            Background="Transparent"
+            CanUserReorderColumns="True"
+            CanUserResizeColumns="True"
+            CanUserSortColumns="True"
+            DragDrop.AllowDrop="True"
+            Grid.Row="1"
+            IsReadOnly="True"
+            ItemsSource="{Binding AllMusicItems}"
+            Margin="0,0,0,10"
+            SelectedItem="{Binding SelectedItem}"
+            behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}">
 
             <DataGrid.Styles>
 
@@ -75,42 +89,46 @@
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
-                                <!-- ReSharper disable once Xaml.PossibleNullReferenceException -->
-                                <MenuItem Header="立即播放"
-                                          Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
-                                          CommandParameter="{Binding}">
+                                <!--  ReSharper disable once Xaml.PossibleNullReferenceException  -->
+                                <MenuItem
+                                    Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="立即播放">
                                     <MenuItem.Icon>
-                                        <PathIcon Margin="2" Data="{StaticResource SemiIconPlay}" />
+                                        <PathIcon Data="{StaticResource SemiIconPlay}" Margin="2" />
                                     </MenuItem.Icon>
                                 </MenuItem>
-                                <!-- ReSharper disable once Xaml.PossibleNullReferenceException -->
+                                <!--  ReSharper disable once Xaml.PossibleNullReferenceException  -->
                                 <MenuItem
-                                    Header="添加到下一首"
                                     Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.AddToMusicListNextItemCommand}"
-                                    CommandParameter="{Binding}">
+                                    CommandParameter="{Binding}"
+                                    Header="添加到下一首">
                                     <MenuItem.Icon>
-                                        <PathIcon Margin="2" Data="{StaticResource SemiIconPlus}" RenderTransform="rotate(180deg)"/>
+                                        <PathIcon
+                                            Data="{StaticResource SemiIconPlus}"
+                                            Margin="2"
+                                            RenderTransform="rotate(180deg)" />
                                     </MenuItem.Icon>
                                 </MenuItem>
-                    
+
                                 <MenuItem
-                                    Header="清空播放时长"
                                     Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.ClearMusicItemCurrentDurationCommand}"
-                                    CommandParameter="{Binding}">
+                                    CommandParameter="{Binding}"
+                                    Header="清空播放时长">
                                     <MenuItem.Icon>
-                                        <PathIcon Margin="2" Data="{StaticResource ClearEmpty}"/>
+                                        <PathIcon Data="{StaticResource ClearEmpty}" Margin="2" />
                                     </MenuItem.Icon>
                                 </MenuItem>
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>
                 </Style>
-        
+
                 <Style Selector="DataGrid /template/ DataGridColumnHeader#PART_TopLeftCornerHeader /template/ Border">
                     <Setter Property="Opacity" Value="0" />
                 </Style>
 
-                <Style Selector="DataGridColumnHeadersPresenter > DataGridColumnHeader">
+                <Style Selector="DataGridColumnHeadersPresenter &gt; DataGridColumnHeader">
                     <Setter Property="Theme" Value="{StaticResource NoDecorativeThread}" />
                 </Style>
 
@@ -142,39 +160,48 @@
 
             <DataGrid.Columns>
 
-                <DataGridTemplateColumn Width="1*" SortMemberPath="Title">
+                <DataGridTemplateColumn SortMemberPath="Title" Width="1*">
 
                     <DataGridTemplateColumn.Header>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="歌曲" />
-                            <TextBlock Classes="Tertiary" VerticalAlignment="Bottom" Text=" / 演唱者" FontSize="12" />
+                            <TextBlock
+                                Classes="Tertiary"
+                                FontSize="12"
+                                Text=" / 演唱者"
+                                VerticalAlignment="Bottom" />
                         </StackPanel>
                     </DataGridTemplateColumn.Header>
 
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                
-                                <!-- ReSharper disable Xaml.PossibleNullReferenceException -->
+
+                                <!--  ReSharper disable Xaml.PossibleNullReferenceException  -->
                                 <userControls:MusicAlbumButton
-                                    ExternalMouseTouch="{Binding $parent[DataGridRow].IsPointerOver}"
-                                    IsPlaying="{ Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}"
-                                    CurrentMusicItem="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
                                     Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
-                                    CommandParameter="{Binding}">
-                                    <!-- ReSharper restore Xaml.PossibleNullReferenceException -->
+                                    CommandParameter="{Binding}"
+                                    CornerRadius="8"
+                                    CurrentMusicItem="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
+                                    ExternalMouseTouch="{Binding $parent[DataGridRow].IsPointerOver}"
+                                    IsPlaying="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
+                                    <!--  ReSharper restore Xaml.PossibleNullReferenceException  -->
                                     <Button.Effect>
-                                        <DropShadowEffect OffsetX="0"
-                                                          OffsetY="0"
-                                                          BlurRadius="10"
-                                                          Opacity="0.5"
-                                                          Color="DarkGray" />
+                                        <DropShadowEffect
+                                            BlurRadius="10"
+                                            Color="DarkGray"
+                                            OffsetX="0"
+                                            OffsetY="0"
+                                            Opacity="0.5" />
                                     </Button.Effect>
                                 </userControls:MusicAlbumButton>
 
-                                <StackPanel VerticalAlignment="Center" Spacing="5">
-                                    <TextBlock Text="{Binding TitleProperty}" FontWeight="Bold" />
-                                    <TextBlock Classes="Tertiary" Text="{Binding ArtistsProperty}" FontSize="12" />
+                                <StackPanel Spacing="5" VerticalAlignment="Center">
+                                    <TextBlock FontWeight="Bold" Text="{Binding TitleProperty}" />
+                                    <TextBlock
+                                        Classes="Tertiary"
+                                        FontSize="12"
+                                        Text="{Binding ArtistsProperty}" />
                                 </StackPanel>
 
                             </StackPanel>
@@ -183,40 +210,43 @@
 
                 </DataGridTemplateColumn>
 
-                <DataGridTextColumn Width="1*"
-                                    Header="专辑"
-                                    Binding="{Binding AlbumProperty}" />
+                <DataGridTextColumn
+                    Binding="{Binding AlbumProperty}"
+                    Header="专辑"
+                    Width="1*" />
 
                 <!--<DataGridTextColumn Header="类别"
                                     MinWidth="100"
                                     IsVisible="{Binding ElementName=MoreColumn1,Path=IsChecked}"
                                     Binding="{Binding ExtensionsProperty.Genre}" />-->
 
-                <DataGridTemplateColumn MinWidth="120"
-                                        Header="时长">
+                <DataGridTemplateColumn Header="时长" MinWidth="120">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Spacing="5" VerticalAlignment="Center">
-                                <TextBlock
-                                    Text="{Binding DurationProperty,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter}}" />
+                                <TextBlock Text="{Binding DurationProperty, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}}" />
 
-                                    <TextBlock Classes="Tertiary" FontSize="12"
-                                               Text="{Binding Current,Mode=OneWay,Converter={StaticResource TruncateDecimalConverter},StringFormat='已播放到 : {0}'}" />
-                                </StackPanel>
+                                <TextBlock
+                                    Classes="Tertiary"
+                                    FontSize="12"
+                                    Text="{Binding Current, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}, StringFormat='已播放到 : {0}'}" />
+                            </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTextColumn Header="大小"
-                                    MinWidth="100"
-                                    IsVisible="{Binding IsChecked, ElementName=MoreColumn2}"
-                                    Binding="{Binding FileSizeProperty}" />
- 
-                <DataGridTextColumn Header="备注"
-                                    MinWidth="100"
-                                    IsVisible="{Binding IsChecked, ElementName=MoreColumn3}"
-                                    Binding="{Binding Remarks}" />
-                
+                <DataGridTextColumn
+                    Binding="{Binding FileSizeProperty}"
+                    Header="大小"
+                    IsVisible="{Binding IsChecked, ElementName=MoreColumn2}"
+                    MinWidth="100" />
+
+                <DataGridTextColumn
+                    Binding="{Binding Remarks}"
+                    Header="备注"
+                    IsVisible="{Binding IsChecked, ElementName=MoreColumn3}"
+                    MinWidth="100" />
+
 
             </DataGrid.Columns>
 

@@ -1,10 +1,10 @@
-using System;
 using Avalonia;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
+using QwQ_Music.Utilities.MessageBus;
 
 namespace QwQ_Music.ViewModels;
 
@@ -26,12 +26,11 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
     {
         MusicPlayerViewModel.PlaybackStateChanged += MusicPlayerViewModelOnPlaybackStateChanged;
         MusicPlayerViewModel.CurrentMusicItemChanging += AudioPlayOnTrackIndexChanging;
-        ExitReminderService.ExitReminder += ExitReminderServiceOnExitReminder;
+        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
     }
 
-    private void ExitReminderServiceOnExitReminder(object? sender, EventArgs e)
+    private void ExitReminderMessageChanged(ExitReminderMessage message)
     {
-        ExitReminderService.ExitReminder -= ExitReminderServiceOnExitReminder;
         MusicPlayerViewModel.CurrentMusicItemChanging -= AudioPlayOnTrackIndexChanging;
         MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
     }

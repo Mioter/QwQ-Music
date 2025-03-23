@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Title>SoundFlow</Title>
+        <Description>A powerful and extensible cross-platform .NET audio engine. provides comprehensive audio processing capabilities including playback, recording, effects, analysis, and visualization, built with a modular and high-performance architecture.</Description>
+        <Copyright>Copyright (c) 2025 LSXPrime and Mioter.</Copyright>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="Backends\MiniAudio\runtimes\**\*.*">
+            <Link>runtimes\%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <PackagePath>runtimes</PackagePath>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Pack>true</Pack>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\LICENSE.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+</Project>

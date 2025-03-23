@@ -1,118 +1,43 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.Models.ModelBase;
-using QwQ_Music.Models.SoundEffectModels;
-using QwQ_Music.Services.Audio.Play;
+using QwQ_Music.Helper;
+using QwQ_Music.Utilities;
+using SoundFlow.Modifiers;
 
 namespace QwQ_Music.Models.ConfigModel;
 
-public class SoundEffectConfig : ObservableObject, IDisposable
+public partial class SoundEffectConfig : ObservableObject
 {
-    public SoundEffectConfig()
-    {
-        EffectModelBase.ParameterChanged += ParameterChanged;
-    }
+    public ReplayGainModifier ReplayGainModifier { get; set; } = new();
 
-    private void ParameterChanged((string, string, object) obj) => UpdateEffectConfig(obj.Item1, obj.Item2, obj.Item3);
+    public AlgorithmicReverbModifier ReverbModifier { get; set; } = new();
 
-    public readonly Dictionary<string, EffectConfig> UserConfigs = new(); // 用户配置存储
+    public DelayModifier DelayModifier { get; set; } = new();
+    
+    public FadeModifier FadeModifier { get; set; } = new();
+    
+    public RotatingModifier RotatingModifier { get; set; } = new();
+    
+    public SpatialModifier SpatialModifier { get; set; } = new();
+    
+    public CompressorModifier CompressorModifier { get; set; } = new();
 
-    public StereoEnhancementModel StereoEnhancement { get; set; } = new();
+    public StereoEnhancementModifier StereoEnhancementModifier { get; set; } = new();
+    
+    public TremoloModifier TremoloModifier { get; set; } = new();
+    
+    public DistortionModifier DistortionModifier { get; set; } = new();
+    
+    public ParametricEqualizer ParametricEqualizer { get; set; } = new();
 
-    public ReplayGainModel ReplayGain { get; set; } = new();
+    public static TremoloModifier.TremoloWaveform[] TremoloWaveforms { get; set; } = EnumHelper<TremoloModifier.TremoloWaveform>.ToArray();
+    
 
-    public FadeModel Fade { get; set; } = new();
+    [ObservableProperty]
+    public partial MusicReplayGainStandard SelectedMusicReplayGainStandard { get; set; } = MusicReplayGainStandard.Streaming;
 
-    public ReverbModel Reverb { get; set; } = new();
-
-    public CompressorModel Compressor { get; set; } = new();
-
-    public DelayModel Delay { get; set; } = new();
-
-    public DistortionModel Distortion { get; set; } = new();
-
-    public TremoloModel Tremolo { get; set; } = new();
-
-    public EqualizerModel Equalizer { get; set; } = new();
-
-    public RotatingModel Rotating { get; set; } = new();
-
-    public SpatialModel Spatial { get; set; } = new();
-
-    private MusicReplayGainStandard _selectedMusicReplayGainStandard = MusicReplayGainStandard.Streaming;
-    public MusicReplayGainStandard SelectedMusicReplayGainStandard
-    {
-        get => _selectedMusicReplayGainStandard;
-        set => SetProperty(ref _selectedMusicReplayGainStandard, value);
-    }
-
-    private double _customMusicReplayGainStandard = 12;
-    public double CustomMusicReplayGainStandard
-    {
-        get => _customMusicReplayGainStandard;
-        set => SetProperty(ref _customMusicReplayGainStandard, value);
-    }
-
-    private void UpdateEffectConfig(string effectName, string parameter, object value)
-    {
-        if (!UserConfigs.ContainsKey(effectName))
-            UserConfigs[effectName] = new EffectConfig();
-
-        UserConfigs.TryGetValue(effectName, out var effectConfig);
-
-        if (effectConfig == null)
-            return;
-
-        switch (parameter.ToLower())
-        {
-            case "enabled":
-                if (value is bool isEnabled)
-                {
-                    effectConfig.Enabled = isEnabled;
-                    _audioPlay?.UpdateEffectsEnabled(effectName, isEnabled);
-                }
-                break;
-            default:
-                effectConfig.Parameters[parameter] = value;
-                _audioPlay?.UpdateEffectsParameters(effectName, parameter, value);
-                break;
-        }
-    }
-
-    private IAudioPlay? _audioPlay;
-
-    public void Initialization(IAudioPlay audioPlay)
-    {
-        _audioPlay = audioPlay;
-        _audioPlay.UserConfigs = UserConfigs;
-    }
-
-    private void ReleaseUnmanagedResources()
-    {
-        EffectModelBase.ParameterChanged -= ParameterChanged;
-    }
-
-    private void Dispose(bool disposing)
-    {
-        ReleaseUnmanagedResources();
-        if (disposing)
-        {
-            _audioPlay?.Dispose();
-        }
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    ~SoundEffectConfig()
-    {
-        Dispose(false);
-    }
+    [ObservableProperty]
+    public partial double CustomMusicReplayGainStandard { get; set; } = 12;
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

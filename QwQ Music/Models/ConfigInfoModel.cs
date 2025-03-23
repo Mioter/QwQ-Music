@@ -1,5 +1,6 @@
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services.ConfigIO;
+using System;
 
 namespace QwQ_Music.Models;
 
@@ -7,97 +8,110 @@ public static class ConfigInfoModel
 {
     public const string Version = "0.1.0";
 
-    // MainConfig 实现
-    private static MainConfig? _mainConfig;
-    public static MainConfig MainConfig
-    {
-        get
-        {
-            if (_mainConfig != null)
-                return _mainConfig;
+    // 使用Lazy<T>实现真正的懒加载
+    // ReSharper disable once InconsistentNaming
+    private static readonly Lazy<MainConfig> _mainConfig = new(() =>
+        JsonConfigService.Load<MainConfig>(
+            nameof(MainConfig).ToLower(),
+            MainConfigJsonSerializerContext.Default
+        ) ?? new MainConfig()
+    );
 
-            lock (typeof(ConfigInfoModel))
-            {
-                _mainConfig ??=
-                    JsonConfigService.Load<MainConfig>(
-                        nameof(MainConfig).ToLower(),
-                        MainConfigJsonSerializerContext.Default
-                    ) ?? new MainConfig();
-            }
-            return _mainConfig;
-        }
-    }
+    public static MainConfig MainConfig => _mainConfig.Value;
 
     // PlayerConfig 实现
-    private static PlayerConfig? _playerConfig;
-    public static PlayerConfig PlayerConfig
-    {
-        get
-        {
-            if (_playerConfig != null)
-                return _playerConfig;
+    // ReSharper disable once InconsistentNaming
+    private static readonly Lazy<PlayerConfig> _playerConfig = new(() =>
+        JsonConfigService.Load<PlayerConfig>(
+            nameof(PlayerConfig).ToLower(),
+            PlayerConfigJsonSerializerContext.Default
+        ) ?? new PlayerConfig()
+    );
 
-            lock (typeof(ConfigInfoModel))
-            {
-                _playerConfig ??=
-                    JsonConfigService.Load<PlayerConfig>(
-                        nameof(PlayerConfig).ToLower(),
-                        PlayerConfigJsonSerializerContext.Default
-                    ) ?? new PlayerConfig();
-            }
-            return _playerConfig;
-        }
-    }
+    public static PlayerConfig PlayerConfig => _playerConfig.Value;
 
     // DesktopLyricConfig 实现
-    private static DesktopLyricConfig? _desktopLyricConfig;
-    public static DesktopLyricConfig DesktopLyricConfig
-    {
-        get
-        {
-            if (_desktopLyricConfig != null)
-                return _desktopLyricConfig;
+    // ReSharper disable once InconsistentNaming
+    private static readonly Lazy<DesktopLyricConfig> _desktopLyricConfig = new(() =>
+        JsonConfigService.Load<DesktopLyricConfig>(
+            nameof(DesktopLyricConfig).ToLower(),
+            DesktopLyricConfigJsonSerializerContext.Default
+        ) ?? new DesktopLyricConfig()
+    );
 
-            lock (typeof(ConfigInfoModel))
-            {
-                _desktopLyricConfig ??=
-                    JsonConfigService.Load<DesktopLyricConfig>(
-                        nameof(DesktopLyricConfig).ToLower(),
-                        DesktopLyricConfigJsonSerializerContext.Default
-                    ) ?? new DesktopLyricConfig();
-            }
-            return _desktopLyricConfig;
+    public static DesktopLyricConfig DesktopLyricConfig => _desktopLyricConfig.Value;
+
+    // SoundEffectConfig 实现
+    // ReSharper disable once InconsistentNaming
+    private static readonly Lazy<SoundEffectConfig> _soundEffectConfig = new(() =>
+        JsonConfigService.Load<SoundEffectConfig>(
+            nameof(SoundEffectConfig).ToLower(),
+            SoundEffectConfigModelJsonSerializerContext.Default
+        ) ?? new SoundEffectConfig()
+    );
+
+    public static SoundEffectConfig SoundEffectConfig => _soundEffectConfig.Value;
+
+    public static void SaveSoundEffectConfig()
+    {
+        // 只有当SoundEffectConfig已经被初始化时才保存
+        if (_soundEffectConfig.IsValueCreated)
+        {
+            JsonConfigService
+                .SaveAsync(
+                    SoundEffectConfig,
+                    nameof(SoundEffectConfig).ToLower(),
+                    SoundEffectConfigModelJsonSerializerContext.Default
+                )
+                .ConfigureAwait(false);
         }
     }
-
-    private static SoundEffectConfig? _soundEffectConfig;
-    public static SoundEffectConfig SoundEffectConfig
+    
+    // 添加保存所有已加载配置的方法
+    public static void SaveAll()
     {
-        get
+        if (_mainConfig.IsValueCreated)
         {
-            if (_soundEffectConfig != null)
-                return _soundEffectConfig;
-
-            lock (typeof(ConfigInfoModel))
-            {
-                _soundEffectConfig ??=
-                    JsonConfigService.Load<SoundEffectConfig>(
-                        nameof(SoundEffectConfig).ToLower(),
-                        SoundEffectConfigModelJsonSerializerContext.Default
-                    ) ?? new SoundEffectConfig();
-            }
-            return _soundEffectConfig;
+            JsonConfigService
+                .SaveAsync(
+                    MainConfig,
+                    nameof(MainConfig).ToLower(),
+                    MainConfigJsonSerializerContext.Default
+                )
+                .ConfigureAwait(false);
         }
-    }
-
-    public static void Save()
-    {
-        JsonConfigService
-            .SaveAsync(
-                SoundEffectConfig,
-                nameof(SoundEffectConfig).ToLower(),
-                SoundEffectConfigModelJsonSerializerContext.Default
-            )
-            .ConfigureAwait(false);
+        
+        if (_playerConfig.IsValueCreated)
+        {
+            JsonConfigService
+                .SaveAsync(
+                    PlayerConfig,
+                    nameof(PlayerConfig).ToLower(),
+                    PlayerConfigJsonSerializerContext.Default
+                )
+                .ConfigureAwait(false);
+        }
+        
+        if (_desktopLyricConfig.IsValueCreated)
+        {
+            JsonConfigService
+                .SaveAsync(
+                    DesktopLyricConfig,
+                    nameof(DesktopLyricConfig).ToLower(),
+                    DesktopLyricConfigJsonSerializerContext.Default
+                )
+                .ConfigureAwait(false);
+        }
+        
+        if (_soundEffectConfig.IsValueCreated)
+        {
+            JsonConfigService
+                .SaveAsync(
+                    SoundEffectConfig,
+                    nameof(SoundEffectConfig).ToLower(),
+                    SoundEffectConfigModelJsonSerializerContext.Default
+                )
+                .ConfigureAwait(false);
+        }
     }
 }

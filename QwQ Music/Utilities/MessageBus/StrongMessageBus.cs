@@ -38,9 +38,23 @@ public class StrongMessageBus : MessageBusBase
         var messageType = typeof(TMessage);
         if (!Subscriptions.TryGetValue(messageType, out var entry))
             return [];
-        lock (entry.Lock)
-        {
-            return entry.Subscribers.Cast<Action<TMessage>>().ToList();
-        }
+    
+        return entry.GetSubscriptionsSnapshot()
+            .Cast<Action<TMessage>>()
+            .ToList();
+    }
+
+    /// <summary>
+    /// 查找要移除的订阅项。
+    /// </summary>
+    /// <typeparam name="TMessage">消息类型。</typeparam>
+    /// <param name="entry">订阅项。</param>
+    /// <param name="handler">处理程序。</param>
+    /// <returns>要移除的订阅项列表。</returns>
+    protected override List<object> FindSubscriptionsToRemove<TMessage>(SubscriptionEntry entry, Action<TMessage> handler)
+    {
+        return entry.GetSubscriptionsSnapshot()
+            .Where(sub => sub is Action<TMessage> action && action.Equals(handler))
+            .ToList();
     }
 }

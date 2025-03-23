@@ -1,62 +1,59 @@
-<userControls:MusicAlbumButton xmlns="https://github.com/avaloniaui"
-                               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                               xmlns:models="clr-namespace:QwQ_Music.Models"
-                               xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
-                               xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
-                               x:DataType="models:MusicItemModel"
-                               Margin="10"
-                               Height="50"
-                               Width="50"
-                               Classes="None"
-                               Foreground="White"
-                               Background="{x:Null}"
-                               x:Class="QwQ_Music.Views.UserControls.MusicAlbumButton">
+<userControls:MusicAlbumButton
+    Background="{x:Null}"
+    Classes="None"
+    Foreground="White"
+    Height="50"
+    Margin="10"
+    Width="50"
+    x:Class="QwQ_Music.Views.UserControls.MusicAlbumButton"
+    x:DataType="models:MusicItemModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+    xmlns:models="clr-namespace:QwQ_Music.Models"
+    xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Border CornerRadius="8"
-            ClipToBounds="True">
+    <Border ClipToBounds="True" CornerRadius="{Binding $parent[userControls:MusicAlbumButton].CornerRadius}">
         <Panel>
-            <Image Source="{Binding CoverPathProperty,Converter={StaticResource AlbumImageConverter}}"/>
+            <Image Source="{Binding CoverPathProperty, Converter={StaticResource AlbumImageConverter}}" />
             <Border Background="#33000000" IsHitTestVisible="False">
                 <Border.IsVisible>
-                    <MultiBinding
-                        Converter="{x:Static BoolConverters.Or}">
+                    <MultiBinding Converter="{x:Static BoolConverters.Or}">
                         <Binding ElementName="QuickPlaySwitchControl" Path="Condition" />
                         <Binding Path="$parent[userControls:MusicAlbumButton].ExternalMouseTouch" />
                     </MultiBinding>
                 </Border.IsVisible>
 
-                <control:SwitchControl x:Name="QuickPlaySwitchControl"
-                                              Foreground="White" Margin="6">
+                <control:SwitchControl
+                    Foreground="White"
+                    Margin="6"
+                    x:Name="QuickPlaySwitchControl">
 
                     <control:SwitchControl.Condition>
-                        <MultiBinding
-                            Converter="{StaticResource InstanceEqualityMultiConverter}">
-                            <Binding
-                                Path="$parent[userControls:MusicAlbumButton].CurrentMusicItem" />
+                        <MultiBinding Converter="{StaticResource InstanceEqualityMultiConverter}">
+                            <Binding Path="$parent[userControls:MusicAlbumButton].CurrentMusicItem" />
                             <Binding />
                         </MultiBinding>
                     </control:SwitchControl.Condition>
 
                     <control:SwitchControl.TrueContent>
 
-                        <control:SwitchControl
-                            Condition="{Binding $parent[userControls:MusicAlbumButton].IsPlaying}">
+                        <control:SwitchControl Condition="{Binding $parent[userControls:MusicAlbumButton].IsPlaying}">
 
                             <control:SwitchControl.TrueContent>
 
-                                <control:SwitchControl
-
-                                    Condition="{Binding $parent[userControls:MusicAlbumButton].IsPointerOver}">
+                                <control:SwitchControl Condition="{Binding $parent[userControls:MusicAlbumButton].IsPointerOver}">
 
                                     <control:SwitchControl.TrueContent>
-                                        <PathIcon
-                                            Data="{StaticResource PauseIconData}" />
+                                        <PathIcon Data="{StaticResource PauseIconData}" />
                                     </control:SwitchControl.TrueContent>
 
                                     <control:SwitchControl.FalseContent>
-                                        <StackPanel HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center"
-                                                    Orientation="Horizontal" Spacing="4">
+                                        <StackPanel
+                                            HorizontalAlignment="Center"
+                                            Orientation="Horizontal"
+                                            Spacing="4"
+                                            VerticalAlignment="Center">
 
                                             <Border Classes="Short" />
                                             <Border Classes="Long" />
@@ -64,62 +61,46 @@
 
                                             <StackPanel.Styles>
                                                 <Style Selector="Border">
-                                                    <Setter Property="CornerRadius"
-                                                            Value="3" />
+                                                    <Setter Property="CornerRadius" Value="3" />
                                                     <Setter Property="Width" Value="4" />
-                                                    <Setter Property="Background"
-                                                            Value="White" />
+                                                    <Setter Property="Background" Value="White" />
                                                 </Style>
 
                                                 <Style Selector="Border.Long">
-                                                    <Setter Property="Height"
-                                                            Value="20" />
+                                                    <Setter Property="Height" Value="20" />
                                                     <Style.Animations>
                                                         <Animation
-                                                            IterationCount="Infinite"
                                                             Duration="0:0:1"
-                                                            FillMode="Forward">
+                                                            FillMode="Forward"
+                                                            IterationCount="Infinite">
                                                             <KeyFrame Cue="0%">
-                                                                <Setter
-                                                                    Property="ScaleTransform.ScaleY"
-                                                                    Value="1" />
+                                                                <Setter Property="ScaleTransform.ScaleY" Value="1" />
                                                             </KeyFrame>
                                                             <KeyFrame Cue="50%">
-                                                                <Setter
-                                                                    Property="ScaleTransform.ScaleY"
-                                                                    Value="0.5" />
+                                                                <Setter Property="ScaleTransform.ScaleY" Value="0.5" />
                                                             </KeyFrame>
                                                             <KeyFrame Cue="100%">
-                                                                <Setter
-                                                                    Property="ScaleTransform.ScaleY"
-                                                                    Value="1" />
+                                                                <Setter Property="ScaleTransform.ScaleY" Value="1" />
                                                             </KeyFrame>
                                                         </Animation>
                                                     </Style.Animations>
                                                 </Style>
 
                                                 <Style Selector="Border.Short">
-                                                    <Setter Property="Height"
-                                                            Value="10" />
+                                                    <Setter Property="Height" Value="10" />
                                                     <Style.Animations>
                                                         <Animation
-                                                            IterationCount="Infinite"
                                                             Duration="0:0:1"
-                                                            FillMode="Forward">
+                                                            FillMode="Forward"
+                                                            IterationCount="Infinite">
                                                             <KeyFrame Cue="0%">
-                                                                <Setter
-                                                                    Property="ScaleTransform.ScaleY"
-                                                                    Value="1" />
+                                                                <Setter Property="ScaleTransform.ScaleY" Value="1" />
                                                             </KeyFrame>
                                                             <KeyFrame Cue="50%">
-                                                                <Setter
-                                                                    Property="ScaleTransform.ScaleY"
-                                                                    Value="1.5" />
+                                                                <Setter Property="ScaleTransform.ScaleY" Value="1.5" />
                                                             </KeyFrame>
                                                             <KeyFrame Cue="100%">
-                                                                <Setter
-                                                                    Property="ScaleTransform.ScaleY"
-                                                                    Value="1" />
+                                                                <Setter Property="ScaleTransform.ScaleY" Value="1" />
                                                             </KeyFrame>
                                                         </Animation>
                                                     </Style.Animations>
@@ -136,14 +117,13 @@
                     </control:SwitchControl.TrueContent>
 
                     <control:SwitchControl.FalseContent>
-                        <PathIcon
-                            Data="{StaticResource PlayIconData}" />
+                        <PathIcon Data="{StaticResource PlayIconData}" />
                     </control:SwitchControl.FalseContent>
 
                 </control:SwitchControl>
 
             </Border>
-            
+
         </Panel>
     </Border>
 </userControls:MusicAlbumButton>

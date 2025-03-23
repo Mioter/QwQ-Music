@@ -28,10 +28,7 @@ public abstract class MessageBusBase : IDisposable
     {
         foreach (var entry in Subscriptions.Values)
         {
-            lock (entry.Lock)
-            {
-                entry.Subscribers.Clear();
-            }
+            entry.Subscription();
         }
         Subscriptions.Clear();
         GC.SuppressFinalize(this);
@@ -49,11 +46,8 @@ public abstract class MessageBusBase : IDisposable
         var messageType = typeof(TMessage);
         var entry = Subscriptions.GetOrAdd(messageType, _ => new SubscriptionEntry());
         object subscription = CreateSubscription(handler);
-        lock (entry.Lock)
-        {
-            entry.Subscribers.Add(subscription);
-        }
-        return new SubscriptionToken(() => Unsubscribe(handler, entry, subscription));
+        entry.AddSubscription(subscription);
+        return new SubscriptionToken(() => Unsubscribe(entry, subscription));
     }
 
     /// <summary>
@@ -120,15 +114,39 @@ public abstract class MessageBusBase : IDisposable
     /// </summary>
     /// <typeparam name="TMessage">消息类型。</typeparam>
     /// <param name="handler">处理程序。</param>
-    /// <param name="entry">订阅项。</param>
-    /// <param name="subscription">订阅项。</param>
-    private static void Unsubscribe<TMessage>(Action<TMessage> handler, SubscriptionEntry entry, object subscription)
+    /// <returns>是否成功取消订阅。</returns>
+    public bool Unsubscribe<TMessage>(Action<TMessage> handler)
     {
-        lock (entry.Lock)
-        {
-            entry.Subscribers.Remove(subscription);
-        }
+        ArgumentNullException.ThrowIfNull(handler);
+        var messageType = typeof(TMessage);
+    
+        if (!Subscriptions.TryGetValue(messageType, out var entry))
+            return false;
+        
+        var subscriptionsToRemove = FindSubscriptionsToRemove(entry, handler);
+
+        return subscriptionsToRemove.Aggregate(false, (current, subscription) => current | entry.RemoveSubscription(subscription));
     }
+    
+    /// <summary>
+    /// 取消订阅指定消息类型的处理程序。
+    /// </summary>
+    /// <param name="entry">订阅项管理者。</param>
+    /// <param name="subscription">订阅项。</param>
+    private static void Unsubscribe(SubscriptionEntry entry, object subscription)
+    {
+        entry.RemoveSubscription(subscription);
+    }
+    
+    /// <summary>
+    /// 查找要移除的订阅项。
+    /// </summary>
+    /// <typeparam name="TMessage">消息类型。</typeparam>
+    /// <param name="entry">订阅项。</param>
+    /// <param name="handler">处理程序。</param>
+    /// <returns>要移除的订阅项列表。</returns>
+    protected abstract List<object> FindSubscriptionsToRemove<TMessage>(SubscriptionEntry entry, Action<TMessage> handler);
+    
 
     /// <summary>
     /// 用于取消订阅的令牌类。
@@ -149,7 +167,39 @@ public abstract class MessageBusBase : IDisposable
     /// </summary>
     protected class SubscriptionEntry
     {
-        public List<object> Subscribers { get; } = [];
-        public object Lock { get; } = new();
+        private readonly List<object> _subscribers = [];
+        private object Lock { get; } = new();
+
+        public void AddSubscription(object subscription)
+        {
+            lock (Lock)
+            {
+                _subscribers.Add(subscription);
+            }
+        }
+
+        public bool RemoveSubscription(object subscription)
+        {
+            lock (Lock)
+            {
+                return _subscribers.Remove(subscription);
+            }
+        }
+
+        public List<object> GetSubscriptionsSnapshot()
+        {
+            lock (Lock)
+            {
+                return [.._subscribers];
+            }
+        }
+
+        public void Subscription()
+        {
+            lock (Lock)
+            {
+                _subscribers.Clear();
+            }
+        }
     }
 }

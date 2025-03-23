@@ -37,7 +37,7 @@ public static class AsyncTaskManager
         return handle;
     }
 
-    private static async Task RunDelayTaskAsync(
+    private async static Task RunDelayTaskAsync(
         TimeSpan delay,
         Action onCompleted,
         AsyncTaskHandle handle,
@@ -81,7 +81,7 @@ public static class AsyncTaskManager
         }
     }
 
-    private static async Task RunGeneralTaskAsync(
+    private async static Task RunGeneralTaskAsync(
         Func<CancellationToken, Task> taskFactory,
         Action? onCompleted,
         AsyncTaskHandle handle,

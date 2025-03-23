@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QwQ Music", "QwQ Music\QwQ Music.csproj", "{46C4069F-45E7-420C-B8EB-14D77265F6D6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoundFlow", "SoundFlow\SoundFlow.csproj", "{1CB02449-0FB7-41B7-B88F-E63349155BEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{46C4069F-45E7-420C-B8EB-14D77265F6D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46C4069F-45E7-420C-B8EB-14D77265F6D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46C4069F-45E7-420C-B8EB-14D77265F6D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CB02449-0FB7-41B7-B88F-E63349155BEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CB02449-0FB7-41B7-B88F-E63349155BEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CB02449-0FB7-41B7-B88F-E63349155BEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CB02449-0FB7-41B7-B88F-E63349155BEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

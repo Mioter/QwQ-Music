@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ATL;
 using Avalonia.Media.Imaging;
 using QwQ_Music.Models;
 using File = System.IO.File;
@@ -40,8 +41,7 @@ public static class MusicExtractor
                 {
                     await using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
                     cover.Value.Save(fs); // 指定格式
-                })
-                .ConfigureAwait(false);
+                }).ConfigureAwait(false);
 
             return true;
         }
@@ -52,44 +52,92 @@ public static class MusicExtractor
         }
     }
 
-    public static async Task<LyricsModel> ExtractMusicLyricsAsync(string filePath) =>
-        await Task.Run(() => LyricsModel.ParseAsync(TagLib.File.Create(filePath).Tag.Lyrics));
+    public async static Task<LyricsModel> ExtractMusicLyricsAsync(string filePath) =>
+        await Task.Run(() => LyricsModel.ParseAsync(new Track(filePath).Lyricist));
 
-    public static async Task<MusicTagExtensions> ExtractMusicInfoExtensionsAsync(string filePath)
+    /// <summary>
+    /// 异步获取扩展信息
+    /// </summary>
+    /// <param name="filePath">音频文件路径。</param>
+    /// <returns>包含扩展信息的字典。</returns>
+    public async static Task<MusicTagExtensions> ExtractExtensionsInfoAsync(string filePath)
     {
         return await Task.Run(() =>
         {
-            using var file = TagLib.File.Create(filePath);
-            var tag = file.Tag;
-            var properties = file.Properties;
+            var track = new Track(filePath);
             return new MusicTagExtensions(
-                string.Join(", ", tag.Genres),
-                tag.Year,
-                tag.Composers,
-                tag.Copyright,
-                tag.Disc,
-                tag.Track,
-                properties.AudioSampleRate,
-                properties.AudioBitrate
+                track.Genre ?? string.Empty,
+                track.Year,
+                track.Composer?.Split(',').Select(c => c.Trim()).ToArray() ?? [],
+                track.Copyright ?? string.Empty,
+                track.DiscNumber.HasValue ? (uint)track.DiscNumber.Value : 0,
+                track.TrackNumber.HasValue ? (uint)track.TrackNumber.Value : 0,
+                (int)track.SampleRate,
+                track.ChannelsArrangement.NbChannels,
+                track.Bitrate,
+                track.BitDepth,
+                // 添加更多基本信息
+                track.OriginalAlbum ?? string.Empty,
+                track.OriginalArtist ?? string.Empty,
+                track.AlbumArtist ?? string.Empty,
+                track.Publisher ?? string.Empty,
+                track.Description ?? string.Empty,
+                track.Language ?? string.Empty,
+                // 添加技术信息
+                track.IsVBR,
+                track.AudioFormat.ShortName,
+                track.Encoder ?? string.Empty
             );
         });
     }
-
-    public static MusicTagExtensions ExtractMusicInfoExtensions(string filePath)
+    
+    /// <summary>
+    /// 异步获取详细信息
+    /// </summary>
+    /// <param name="filePath">音频文件路径。</param>
+    /// <returns>包含详细信息的字典。</returns>
+    public async static Task<MusicDetailedInfo> ExtractDetailedInfoAsync(string filePath)
     {
-        using var file = TagLib.File.Create(filePath);
-        var tag = file.Tag;
-        var properties = file.Properties;
-        return new MusicTagExtensions(
-            string.Join(", ", tag.Genres),
-            tag.Year,
-            tag.Composers,
-            tag.Copyright,
-            tag.Disc,
-            tag.Track,
-            properties.AudioSampleRate,
-            properties.AudioBitrate
+        return await Task.Run(() =>
+        {
+        var track = new Track(filePath);
+        return new MusicDetailedInfo(
+            // 发布信息
+            track.Date,
+            track.OriginalReleaseDate,
+            track.PublishingDate,
+            // 专业信息
+            track.ISRC ?? string.Empty,
+            track.CatalogNumber ?? string.Empty,
+            track.ProductId ?? string.Empty,
+            // 其他信息
+            track.BPM,
+            track.Popularity,
+            track.SeriesTitle ?? string.Empty,
+            track.SeriesPart ?? string.Empty,
+            track.LongDescription ?? string.Empty,
+            track.Group ?? string.Empty,
+            // 技术信息
+            track.TechnicalInformation.AudioDataOffset,
+            track.TechnicalInformation.AudioDataSize
         );
+        });
+    }
+    
+    /// <summary>
+    /// 异步获取自定义字段
+    /// </summary>
+    /// <param name="filePath">音频文件路径。</param>
+    /// <returns>自定义字段信息字典。</returns>
+    public async static Task<Dictionary<string, string>> ExtractAdditionalFieldsAsync(string filePath)
+    {
+        return await Task.Run(() =>
+        {
+        var track = new Track(filePath);
+        return track.AdditionalFields != null 
+            ? new Dictionary<string, string>(track.AdditionalFields) 
+            : new Dictionary<string, string>();
+        });
     }
 
     /// <summary>
@@ -101,24 +149,24 @@ public static class MusicExtractor
     {
         try
         {
-            using var file = TagLib.File.Create(filePath);
-            var tag = file.Tag;
-            var properties = file.Properties;
+            var track = new Track(filePath);
             long fileSizeBytes = new FileInfo(filePath).Length;
             string fileSize = FormatFileSize(fileSizeBytes);
-            string title = tag.Title ?? Path.GetFileNameWithoutExtension(filePath);
-            string[] artists = tag.Performers;
-            string album = tag.Album;
-            var duration = properties.Duration;
-            string comment = tag.Comment;
-            string encodingFormat = properties.Description;
+            string title = track.Title ?? Path.GetFileNameWithoutExtension(filePath);
+            string composer = track.Composer;
+            string artists = track.Artist;
+            string album = track.Album;
+            var duration = new TimeSpan(track.Duration);
+            string comment = track.Comment;
+            string encodingFormat = track.Description;
             string allArtists = string.Join(",", artists);
 
-            if (tag.Pictures.Length <= 0)
+            if (track.EmbeddedPictures.Count <= 0)
             {
                 return new MusicItemModel(
                     title,
-                    artists,
+                    artists, 
+                    composer,
                     album,
                     null,
                     filePath,
@@ -135,13 +183,13 @@ public static class MusicExtractor
             );
 
             await SaveCoverAsync(
-                    new Lazy<Bitmap>(new Bitmap(new MemoryStream(tag.Pictures[0].Data.Data))),
+                    new Lazy<Bitmap>(new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData))),
                     coverFileName
                 )
                 .ConfigureAwait(false);
             return new MusicItemModel(
                 title,
-                artists,
+                artists, composer,
                 album,
                 Path.Combine(PlayerConfig.CoverSavePath, coverFileName),
                 filePath,

@@ -10,78 +10,75 @@ using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Audio.Play;
 using QwQ_Music.Services.ConfigIO;
+using QwQ_Music.Utilities.MessageBus;
 using Log = QwQ_Music.Services.LoggerService;
 
 namespace QwQ_Music.ViewModels;
 
 public partial class MusicPlayerViewModel : ViewModelBase
 {
+    #region 单例实现
+    
     // ReSharper disable once InconsistentNaming
     private static readonly Lazy<MusicPlayerViewModel> _instance = new(() => new MusicPlayerViewModel());
     public static MusicPlayerViewModel Instance => _instance.Value;
+    
+    private MusicPlayerViewModel()
+    {
+        InitializeAsync();
+
+        _audioPlay.PositionChanged += OnPositionChanged;
+        _audioPlay.PlaybackCompleted += AudioPlayOnPlaybackCompleted;
+        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
+    }
+    
+    #endregion
+
+    #region 属性和字段
+
+    private readonly AudioPlay _audioPlay = new();
 
     [ObservableProperty]
-    private double _currentDurationInSeconds;
+    public partial double CurrentDurationInSeconds { get; set; }
 
     [ObservableProperty]
-    private MusicItemModel _currentMusicItem = new("听你想听~", ["YOU"]);
-    private bool _isAutoChange;
+    public partial MusicItemModel CurrentMusicItem { get; set; } = new("听你想听~", "YOU");
+    [ObservableProperty]
+    public partial bool IsPlaying { get; set; }
 
     [ObservableProperty]
-    private bool _isPlaying;
+    public partial bool IsMuted { get; set; }
 
     [ObservableProperty]
-    private bool _isMuted;
-
-    [ObservableProperty]
-    private ObservableCollection<MusicItemModel> _musicItems = [];
-
+    public partial ObservableCollection<MusicItemModel> MusicItems { get; set; } = [];
     public static PlaylistModel Playlist { get; } = new(PlayerConfig.LatestPlayListName);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(VolumePercent))]
-    private float _volume = 1.0f;
+    private partial float Volume { get; set; } = 1.0f;
+
+    private bool _isAutoChange;
+    private int CurrentIndex => Playlist.MusicItems.IndexOf(CurrentMusicItem);
+    
     public int VolumePercent
     {
         get => (int)(Volume * 100);
         set => Volume = Math.Clamp(value / 100f, 0f, 1.0f);
     }
+    
+    #endregion
 
-    private MusicPlayerViewModel()
-    {
-        InitializeAsync();
-
-        AudioPlay.PositionChanged += OnPositionChanged;
-        AudioPlay.PlaybackCompleted += AudioPlayOnPlaybackCompleted;
-        ExitReminderService.ExitReminder += ExitReminderServiceOnExitReminder;
-    }
-
-    private void ExitReminderServiceOnExitReminder(object? sender, EventArgs e)
-    {
-        ExitReminderService.ExitReminder -= ExitReminderServiceOnExitReminder;
-        AudioPlay.PositionChanged -= OnPositionChanged;
-        AudioPlay.PlaybackCompleted -= AudioPlayOnPlaybackCompleted;
-
-        AudioPlay.Dispose();
-        SaveMusicInfo(MusicItems);
-        SaveConfig();
-    }
-
-    public readonly IAudioPlay AudioPlay = new SoundFlowAudioPlay();
-
-    private int CurrentIndex => Playlist.MusicItems.IndexOf(CurrentMusicItem);
-
-    partial void OnVolumeChanged(float value)
-    {
-        AudioPlay.SetVolume(value);
-        IsMuted = Volume == 0f;
-    }
-
+    #region 事件
+    
     public event EventHandler<bool>? PlaybackStateChanged;
     public event EventHandler<MusicItemModel>? CurrentMusicItemChanging;
     public event EventHandler<MusicItemModel>? CurrentMusicItemChanged;
     public event EventHandler<ObservableCollection<MusicItemModel>>? MusicItemsChanged;
+    
+    #endregion
 
+    #region 初始化方法
+    
     private void InitializeAsync()
     {
         InitializeMusicItemAsync().ConfigureAwait(false);
@@ -105,12 +102,45 @@ public partial class MusicPlayerViewModel : ViewModelBase
             if (currentMusicItem != null)
                 await SetCurrentMusicItem(currentMusicItem);*/
         }
-        catch
+        catch (Exception ex)
         {
-            Log.Error("Unexpected error occured while initializing music playlist.");
+            Log.Error($"Unexpected error occurred while initializing music playlist: {ex.Message}");
         }
     }
+    
+    #endregion
 
+    #region 属性变更处理
+    
+    partial void OnVolumeChanged(float value)
+    {
+        _audioPlay.SetVolume(value);
+        IsMuted = Volume == 0f;
+    }
+    
+    partial void OnIsPlayingChanged(bool value)
+    {
+        PlaybackStateChanged?.Invoke(this, value);
+    }
+
+    partial void OnMusicItemsChanged(ObservableCollection<MusicItemModel> value)
+    {
+        MusicItemsChanged?.Invoke(this, value);
+    }
+
+    partial void OnCurrentDurationInSecondsChanged(double value)
+    {
+        CurrentMusicItem.Current = TimeSpan.FromSeconds(value);
+        if (_isAutoChange)
+            return;
+        
+        _audioPlay.Seek(value);
+    }
+    
+    #endregion
+
+    #region 事件处理
+    
     private void OnPositionChanged(object? sender, double positionInSeconds)
     {
         _isAutoChange = true;
@@ -132,12 +162,25 @@ public partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
+    private void ExitReminderMessageChanged(ExitReminderMessage message)
+    {
+        _audioPlay.PositionChanged -= OnPositionChanged;
+        _audioPlay.PlaybackCompleted -= AudioPlayOnPlaybackCompleted;
+
+        _audioPlay.Dispose();
+        SaveConfig();
+    }
+    
+    #endregion
+
+    #region 播放控制方法
+    
     private void UpdatePlaybackState(bool isPlaying)
     {
         if (isPlaying)
-            AudioPlay.PlayWithFade();
+            _audioPlay.Play();
         else
-            AudioPlay.StopWithFade();
+            _audioPlay.Pause();
     }
 
     [RelayCommand]
@@ -151,17 +194,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
         IsPlaying = !IsPlaying;
         UpdatePlaybackState(IsPlaying);
-    }
-
-    private async Task<bool> FallbackMusicItem()
-    {
-        if (File.Exists(CurrentMusicItem.FilePath))
-            return false;
-
-        var item = MusicItems.FirstOrDefault();
-        if (item != null)
-            await SetCurrentMusicItem(item);
-        return item == null;
     }
 
     [RelayCommand]
@@ -199,15 +231,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
         await SetAndPlay(GetNextIndex(CurrentIndex));
     }
 
-    private async Task SetAndPlay(int index)
-    {
-        if (index < 0 || index >= Playlist.Count)
-            return;
-        await SetCurrentMusicItem(Playlist.MusicItems[index]);
-        IsPlaying = true;
-        UpdatePlaybackState(true);
-    }
-
     [RelayCommand]
     private void ToggleMuteMode()
     {
@@ -218,9 +241,22 @@ public partial class MusicPlayerViewModel : ViewModelBase
             ConfigInfoModel.PlayerConfig.Volume = VolumePercent;
         }
 
+        /*AudioPlay.IsMute = IsMuted;*/
         VolumePercent = IsMuted ? 0 : ConfigInfoModel.PlayerConfig.Volume;
     }
+    
+    [RelayCommand]
+    private async Task RefreshCurrentMusicItem()
+    {
+        await SetCurrentMusicItem(CurrentMusicItem, true);
+        IsPlaying = true;
+        UpdatePlaybackState(IsPlaying);
+    }
+    
+    #endregion
 
+    #region 播放列表管理
+    
     [RelayCommand]
     private void AddToMusicListNextItem(MusicItemModel musicItem)
     {
@@ -235,45 +271,45 @@ public partial class MusicPlayerViewModel : ViewModelBase
     private void ClearMusicItemCurrentDuration(MusicItemModel musicItem)
     {
         if (musicItem.Equals(CurrentMusicItem))
-            AudioPlay.Seek(0);
-        musicItem.Duration = TimeSpan.Zero;
+            _audioPlay.Seek(0);
+        CurrentDurationInSeconds = 0;
+    }
+    
+    #endregion
+
+    #region 辅助方法
+    
+    private async Task<bool> FallbackMusicItem()
+    {
+        if (File.Exists(CurrentMusicItem.FilePath))
+            return false;
+
+        var item = MusicItems.FirstOrDefault();
+        if (item != null)
+            await SetCurrentMusicItem(item);
+        return item == null;
     }
 
-    [RelayCommand]
-    private async Task RefreshCurrentMusicItem()
+    private async Task SetAndPlay(int index)
     {
-        await SetCurrentMusicItem(CurrentMusicItem, true);
+        if (index < 0 || index >= Playlist.Count)
+            return;
+        await SetCurrentMusicItem(Playlist.MusicItems[index]);
+        IsPlaying = true;
         UpdatePlaybackState(IsPlaying);
     }
 
-    partial void OnIsPlayingChanged(bool value)
-    {
-        PlaybackStateChanged?.Invoke(this, value);
-    }
+    private static int GetNextIndex(int current) => (current + 1) % Playlist.Count;
 
-    partial void OnMusicItemsChanged(ObservableCollection<MusicItemModel> value)
-    {
-        MusicItemsChanged?.Invoke(this, value);
-    }
+    private static int GetPreviousIndex(int current) => (current - 1 + Playlist.Count) % Playlist.Count;
+    
+    private static bool IsNearEnd(MusicItemModel musicItem) =>
+        Math.Abs(musicItem.Duration.TotalSeconds - musicItem.Current.TotalSeconds) < 0.5;
+    
+    #endregion
 
-    partial void OnCurrentDurationInSecondsChanged(double value)
-    {
-        CurrentMusicItem.Current = TimeSpan.FromSeconds(value);
-        if (_isAutoChange)
-            return;
-
-        // 如果播放器已启动，则直接 Seek 到指定位置
-        if (IsPlaying)
-        {
-            AudioPlay.Seek(value);
-        }
-        else
-        {
-            // 如果播放器未启动，则记录起始位置
-            AudioPlay.SetAudioTrack(CurrentMusicItem.FilePath, value, CurrentMusicItem.Gain);
-        }
-    }
-
+    #region 数据持久化
+    
     private static void SaveMusicInfo(ObservableCollection<MusicItemModel> musicItems)
     {
         foreach (var item in musicItems)
@@ -284,7 +320,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         SaveMusicInfo(MusicItems);
     }
+    
+    #endregion
 
+    #region 音频处理
+    
     public async Task SetCurrentMusicItem(MusicItemModel musicItem, bool restart = false)
     {
         if (!Playlist.MusicItems.Contains(musicItem))
@@ -295,8 +335,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
         if (musicItem.Equals(CurrentMusicItem) && !restart)
             return;
 
-        IsPlaying = false;
-
         if (restart || IsNearEnd(musicItem))
         {
             musicItem.Current = TimeSpan.Zero;
@@ -304,36 +342,29 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
         CurrentMusicItemChanging?.Invoke(this, musicItem);
         CurrentMusicItem = musicItem;
-        CurrentDurationInSeconds = musicItem.Current.TotalSeconds;
         CurrentMusicItemChanged?.Invoke(this, musicItem);
 
         try
         {
             await InitializeAudioTrackAsync(musicItem);
+            CurrentDurationInSeconds = musicItem.Current.TotalSeconds;
         }
         catch (Exception ex)
         {
-            Log.Error($"Failed to initialize audio track: {ex.Message}");
+            Log.Error($"初始化音轨失败: {ex.Message}");
         }
     }
-
-    private static bool IsNearEnd(MusicItemModel musicItem) =>
-        Math.Abs(musicItem.Duration.TotalSeconds - musicItem.Current.TotalSeconds) < 0.5;
 
     private async Task InitializeAudioTrackAsync(MusicItemModel musicItem)
     {
         await Task.Run(() =>
         {
-            /*if (musicItem.Gain <= 0f)
-            {
-                musicItem.Gain = ReplayGainCalculator.CalculateGain(musicItem.FilePath);
-            }*/
-
-            AudioPlay.SetAudioTrack(musicItem.FilePath, musicItem.Current.TotalSeconds, musicItem.Gain);
+            if (musicItem.Gain <= 0f)
+                AudioHelper.CalcGainOfMusicItem(musicItem);
+            
+            _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
         });
     }
-
-    private static int GetNextIndex(int current) => (current + 1) % Playlist.Count;
-
-    private static int GetPreviousIndex(int current) => (current - 1 + Playlist.Count) % Playlist.Count;
+    
+    #endregion
 }

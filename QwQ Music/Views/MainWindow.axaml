@@ -1,21 +1,21 @@
 <Window
-    x:Class="QwQ_Music.Views.MainWindow"
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:u="https://irihi.tech/ursa"
-    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+    ExtendClientAreaTitleBarHeightHint="40"
+    ExtendClientAreaToDecorationsHint="True"
+    Height="800"
     Title="QwQ"
     Width="1200"
-    Height="800"
-    WindowState="{Binding MainWindowState ,Mode=OneWayToSource}"
-    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
-    xmlns:pages="clr-namespace:QwQ_Music.Views.Pages"
-    xmlns:converter="clr-namespace:QwQ_Music.Helper.Converter"
-    xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
-    xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+    WindowState="{Binding MainWindowState, Mode=OneWayToSource}"
+    x:Class="QwQ_Music.Views.MainWindow"
     x:DataType="viewModels:MainWindowViewModel"
-    ExtendClientAreaTitleBarHeightHint="40"
-    ExtendClientAreaToDecorationsHint="True">
+    xmlns="https://github.com/avaloniaui"
+    xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
+    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+    xmlns:converter="clr-namespace:QwQ_Music.Helper.Converter"
+    xmlns:pages="clr-namespace:QwQ_Music.Views.Pages"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
         亚克力效果
@@ -55,16 +55,17 @@
 
     <Grid RowDefinitions="40,*">
 
-        <TextBlock Text="QwQ Music"
-                   Margin="20,0"
-                   FontWeight="ExtraBold"
-                   IsHitTestVisible="False"
-                   VerticalAlignment="Center"
-                   FontFamily="{StaticResource VivoSans}"
-                   HorizontalAlignment="Left">
+        <TextBlock
+            FontFamily="{StaticResource VivoSans}"
+            FontWeight="ExtraBold"
+            HorizontalAlignment="Left"
+            IsHitTestVisible="False"
+            Margin="20,0"
+            Text="QwQ Music"
+            VerticalAlignment="Center">
 
             <TextBlock.Foreground>
-                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                <LinearGradientBrush EndPoint="100%,100%" StartPoint="0%,0%">
                     <GradientStop Color="#FFF02FC2" Offset="0" />
                     <GradientStop Color="#FF6094EA" Offset="1" />
                 </LinearGradientBrush>
@@ -78,44 +79,48 @@
 
         <Grid ColumnDefinitions="Auto,*" Grid.Row="1">
 
-            <Grid
-                  HorizontalAlignment="Left"
-                  RowDefinitions="Auto,Auto,120">
+            <Grid HorizontalAlignment="Left" RowDefinitions="Auto,Auto,120">
                 <Grid.Width>
                     <MultiBinding Converter="{x:Static converter:UiStateConverter.PriorityBool}" ConverterParameter="75,150,200">
-                        <Binding Path="!IsNavigationExpand"/>
-                        <Binding Path="IsNavigationExpand"/>
-                        <Binding Path="IsWindowMaximizedOrFullScreen"/>
+                        <Binding Path="!IsNavigationExpand" />
+                        <Binding Path="IsNavigationExpand" />
+                        <Binding Path="IsWindowMaximizedOrFullScreen" />
                     </MultiBinding>
                 </Grid.Width>
 
                 <Grid.Transitions>
                     <Transitions>
-                        <DoubleTransition Property="Width" Duration="0:0:0.5" Easing="CircularEaseOut" />
+                        <DoubleTransition
+                            Duration="0:0:0.5"
+                            Easing="CircularEaseOut"
+                            Property="Width" />
                     </Transitions>
                 </Grid.Transitions>
 
-                <ToggleButton Margin="20,0"
-                              Classes="Rotate"
-                              HorizontalAlignment="Right"
-                              IsChecked="{Binding IsNavigationExpand}">
+                <ToggleButton
+                    Classes="Rotate"
+                    HorizontalAlignment="Right"
+                    IsChecked="{Binding IsNavigationExpand}"
+                    Margin="20,0">
                     <ToggleButton.Content>
-                        <PathIcon Height="10" Data="{StaticResource SemiIconChevronRight}" />
+                        <PathIcon Data="{StaticResource SemiIconChevronRight}" Height="10" />
                     </ToggleButton.Content>
                 </ToggleButton>
 
-                <u:SelectionList Grid.Row="1"
-                                 SelectedIndex="{Binding SelectedIndex}">
+                <u:SelectionList Grid.Row="1" SelectedIndex="{Binding SelectedIndex}">
 
                     <u:SelectionList.Indicator>
-                        <Border Classes.Expanded="{Binding IsNavigationExpand}"
-                                Background="{StaticResource ToggleButtonPrimaryCheckedBackground}"
-                                BoxShadow="0 0 10 0 LightGray"
-                                CornerRadius="8">
+                        <Border
+                            Background="{StaticResource ToggleButtonPrimaryCheckedBackground}"
+                            BoxShadow="0 0 10 0 LightGray"
+                            Classes.Expanded="{Binding IsNavigationExpand}"
+                            CornerRadius="8">
                             <Border.Transitions>
                                 <Transitions>
-                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3"
-                                                                   Easing="CircularEaseOut" />
+                                    <TransformOperationsTransition
+                                        Duration="0:0:0.3"
+                                        Easing="CircularEaseOut"
+                                        Property="RenderTransform" />
                                 </Transitions>
                             </Border.Transitions>
                         </Border>
@@ -134,8 +139,8 @@
                             <Setter Property="FontWeight" Value="Bold" />
                             <Setter Property="Transitions">
                                 <Transitions>
-                                    <BrushTransition Property="Foreground" Duration="0:0:0.3" />
-                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3" />
+                                    <BrushTransition Duration="0:0:0.3" Property="Foreground" />
+                                    <TransformOperationsTransition Duration="0:0:0.3" Property="RenderTransform" />
                                 </Transitions>
                             </Setter>
 
@@ -146,12 +151,12 @@
                             </Style>
                         </Style>
 
-                        <Style Selector="u|SelectionList > StackPanel">
+                        <Style Selector="u|SelectionList &gt; StackPanel">
                             <Setter Property="Spacing" Value="10" />
                             <Setter Property="Orientation" Value="Horizontal" />
                         </Style>
 
-                        <Style Selector="u|SelectionList > StackPanel > TextBlock">
+                        <Style Selector="u|SelectionList &gt; StackPanel &gt; TextBlock">
                             <Setter Property="VerticalAlignment" Value="Center" />
                         </Style>
 
@@ -161,12 +166,12 @@
                         <PathIcon Data="{StaticResource SemiIconSong}" />
                         <TextBlock Text="{Binding MusicName}" />
                     </StackPanel>
-                    
+
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconDisc}" />
                         <TextBlock Text="{Binding ClassificationName}" />
                     </StackPanel>
-                    
+
                     <StackPanel>
                         <PathIcon Data="{StaticResource SemiIconKanban}" />
                         <TextBlock Text="{Binding StatisticsName}" />
@@ -183,36 +188,39 @@
                 <control:IndexControl.PageTransition>
                     <CompositePageTransition>
                         <CrossFade Duration="0:0:0.5" />
-                        <PageSlide Duration="0:0:0.3" Orientation="Vertical" SlideInEasing="QuadraticEaseIn"
-                                   SlideOutEasing="QuadraticEaseOut" />
+                        <PageSlide
+                            Duration="0:0:0.3"
+                            Orientation="Vertical"
+                            SlideInEasing="QuadraticEaseIn"
+                            SlideOutEasing="QuadraticEaseOut" />
                     </CompositePageTransition>
                 </control:IndexControl.PageTransition>
-                
+
                 <!--~1~ 定义数据模板集合 @1@
                 <control:IndexControl.DataTemplates>
                     <DataTemplate DataType="{x:Type viewModels:MusicPageViewModel}">
                         <pages:MusicPage />
                     </DataTemplate>
                 </control:IndexControl.DataTemplates>
-                
+
                 <control:IndexControl.DataTemplates>
                     <DataTemplate DataType="{x:Type viewModels:ClassificationPageViewModel}">
                         <pages:ClassificationPage />
                     </DataTemplate>
                 </control:IndexControl.DataTemplates>
-                
+
                 <control:IndexControl.DataTemplates>
                     <DataTemplate DataType="{x:Type viewModels:StatisticsPageViewModel}">
                         <pages:StatisticsPage />
                     </DataTemplate>
                 </control:IndexControl.DataTemplates>
-                
+
                 <control:IndexControl.DataTemplates>
                     <DataTemplate DataType="{x:Type viewModels:ConfigPageViewModel}">
                         <pages:ConfigMainPage />
                     </DataTemplate>
                 </control:IndexControl.DataTemplates>-->
-                
+
                 <pages:MusicPage />
                 <pages:ClassificationPage />
                 <pages:StatisticsPage />
@@ -222,35 +230,38 @@
         </Grid>
 
         <Border Grid.Row="1" IsVisible="{Binding IsBackgroundLayerVisible}">
-            <Button Classes="None"
-                    Command="{Binding GlobalButtonClickCommand}"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch" />
+            <Button
+                Classes="None"
+                Command="{Binding GlobalButtonClickCommand}"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" />
         </Border>
 
-        <Panel Name="MusicPlayerTrayPanel"
-               Height="125"
-               Width="600"
-               VerticalAlignment="Bottom"
-               Grid.Row="1"
-               Classes.Visible="{Binding IsMusicPlayerTrayVisible}"
-               Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"
-               behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
-               behaviors:SizeAdjuster.ScaleFactor="1.2,1">
+        <Panel
+            Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"
+            Classes.Visible="{Binding IsMusicPlayerTrayVisible}"
+            Grid.Row="1"
+            Height="125"
+            Name="MusicPlayerTrayPanel"
+            VerticalAlignment="Bottom"
+            Width="600"
+            behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
+            behaviors:SizeAdjuster.ScaleFactor="1.2,1">
             <Panel.RenderTransform>
-                <TranslateTransform Y="{Binding MusicPlayerTrayYaxisOffset,Mode=OneWayToSource}" />
+                <TranslateTransform Y="{Binding MusicPlayerTrayYaxisOffset, Mode=OneWayToSource}" />
             </Panel.RenderTransform>
 
             <Panel.Styles>
                 <Style Selector="Panel#MusicPlayerTrayPanel.Hide">
                     <Style.Animations>
-                        <Animation Easing="QuadraticEaseOut"
-                                   FillMode="Forward"
-                                   Duration="0:0:0.5">
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
+                        <Animation
+                            Duration="0:0:0.5"
+                            Easing="QuadraticEaseOut"
+                            FillMode="Forward">
+                            <KeyFrame Cue="0%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
                             </KeyFrame>
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
+                            <KeyFrame Cue="100%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.Y" Value="{Binding #MusicPlayerTrayPanel.Height}" />
                             </KeyFrame>
                         </Animation>
@@ -261,13 +272,14 @@
             <Panel.Styles>
                 <Style Selector="Panel#MusicPlayerTrayPanel.Visible">
                     <Style.Animations>
-                        <Animation Easing="QuadraticEaseIn"
-                                   FillMode="Forward"
-                                   Duration="0:0:0.5">
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
+                        <Animation
+                            Duration="0:0:0.5"
+                            Easing="QuadraticEaseIn"
+                            FillMode="Forward">
+                            <KeyFrame Cue="0%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
                             </KeyFrame>
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
+                            <KeyFrame Cue="100%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.Y" Value="0" />
                             </KeyFrame>
                         </Animation>
@@ -277,8 +289,14 @@
 
             <Panel.Transitions>
                 <Transitions>
-                    <DoubleTransition Property="Height" Duration="0:0:0.5" Easing="CircularEaseOut" />
-                    <DoubleTransition Property="Width" Duration="0:0:0.5" Easing="CircularEaseOut" />
+                    <DoubleTransition
+                        Duration="0:0:0.5"
+                        Easing="CircularEaseOut"
+                        Property="Height" />
+                    <DoubleTransition
+                        Duration="0:0:0.5"
+                        Easing="CircularEaseOut"
+                        Property="Width" />
                 </Transitions>
             </Panel.Transitions>
 
@@ -286,30 +304,32 @@
 
         </Panel>
 
-        <Panel Name="MusicPlayListPanel"
-               Grid.Row="1"
-               Width="300"
-               IsVisible="{Binding MusicPlayListXaxisOffset}"
-               HorizontalAlignment="Right"
-               Classes.Visible="{Binding IsMusicPlayListVisible}"
-               Classes.Hide="{Binding !IsMusicPlayListVisible}"
-               behaviors:SizeAdjuster.CanAdjust="{Binding IsMusicPlayListVisible}"
-               behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
-               behaviors:SizeAdjuster.ScaleFactor="1.2,1">
+        <Panel
+            Classes.Hide="{Binding !IsMusicPlayListVisible}"
+            Classes.Visible="{Binding IsMusicPlayListVisible}"
+            Grid.Row="1"
+            HorizontalAlignment="Right"
+            IsVisible="{Binding MusicPlayListXaxisOffset}"
+            Name="MusicPlayListPanel"
+            Width="300"
+            behaviors:SizeAdjuster.CanAdjust="{Binding IsMusicPlayListVisible}"
+            behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
+            behaviors:SizeAdjuster.ScaleFactor="1.2,1">
             <Panel.RenderTransform>
-                <TranslateTransform X="{Binding MusicPlayListXaxisOffset,Mode=OneWayToSource}" />
+                <TranslateTransform X="{Binding MusicPlayListXaxisOffset, Mode=OneWayToSource}" />
             </Panel.RenderTransform>
 
             <Panel.Styles>
                 <Style Selector="Panel#MusicPlayListPanel.Hide">
                     <Style.Animations>
-                        <Animation Easing="QuadraticEaseOut"
-                                   FillMode="Forward"
-                                   Duration="0:0:0.5">
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
+                        <Animation
+                            Duration="0:0:0.5"
+                            Easing="QuadraticEaseOut"
+                            FillMode="Forward">
+                            <KeyFrame Cue="0%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.X" Value="{Binding MusicPlayListXaxisOffset}" />
                             </KeyFrame>
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
+                            <KeyFrame Cue="100%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.X" Value="{Binding #MusicPlayListPanel.Width}" />
                             </KeyFrame>
                         </Animation>
@@ -320,13 +340,14 @@
             <Panel.Styles>
                 <Style Selector="Panel#MusicPlayListPanel.Visible">
                     <Style.Animations>
-                        <Animation Easing="QuadraticEaseIn"
-                                   FillMode="Forward"
-                                   Duration="0:0:0.5">
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="0%">
+                        <Animation
+                            Duration="0:0:0.5"
+                            Easing="QuadraticEaseIn"
+                            FillMode="Forward">
+                            <KeyFrame Cue="0%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.X" Value="{Binding MusicPlayListXaxisOffset}" />
                             </KeyFrame>
-                            <KeyFrame KeySpline="0.62,0.63,0,1.13" Cue="100%">
+                            <KeyFrame Cue="100%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.X" Value="-1" />
                             </KeyFrame>
                         </Animation>
@@ -336,8 +357,14 @@
 
             <Panel.Transitions>
                 <Transitions>
-                    <DoubleTransition Property="Height" Duration="0:0:0.5" Easing="CircularEaseOut" />
-                    <DoubleTransition Property="Width" Duration="0:0:0.5" Easing="CircularEaseOut" />
+                    <DoubleTransition
+                        Duration="0:0:0.5"
+                        Easing="CircularEaseOut"
+                        Property="Height" />
+                    <DoubleTransition
+                        Duration="0:0:0.5"
+                        Easing="CircularEaseOut"
+                        Property="Width" />
                 </Transitions>
             </Panel.Transitions>
 

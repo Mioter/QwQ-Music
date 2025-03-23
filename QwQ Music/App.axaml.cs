@@ -4,8 +4,8 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using QwQ_Music.Models;
 using QwQ_Music.Services;
+using QwQ_Music.Utilities.MessageBus;
 using QwQ_Music.Views;
 
 namespace QwQ_Music;
@@ -55,8 +55,10 @@ public class App : Application
             if (_applicationLifetime != null)
                 _applicationLifetime.Exit -= OnExit;
 
-            ExitReminderService.Exit();
-            ConfigInfoModel.Save();
+            ExitReminderMessage exitReminderMessage = new(){Success = true};
+
+            StrongMessageBus.Instance.Publish(exitReminderMessage);
+            StrongMessageBus.Instance.Dispose();
         }
         catch (Exception ex)
         {

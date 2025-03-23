@@ -9,33 +9,31 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DynamicData;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
+using QwQ_Music.Utilities.MessageBus;
 
 namespace QwQ_Music.ViewModels;
 
 public partial class MusicPageViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private ObservableCollection<MusicItemModel> _allMusicItems;
+    public partial ObservableCollection<MusicItemModel> AllMusicItems { get; set; }
+    [ObservableProperty]
+    public partial string? SearchText { get; set; }
 
     [ObservableProperty]
-    private string? _searchText;
-
-    [ObservableProperty]
-    private MusicItemModel? _selectedItem;
+    public partial MusicItemModel? SelectedItem { get; set; }
 
     public MusicPageViewModel()
     {
         AllMusicItems = MusicPlayerViewModel.MusicItems;
         MusicPlayerViewModel.MusicItemsChanged += OnMusicPlayerViewModelOnMusicItemsChanged;
-        ExitReminderService.ExitReminder += ExitReminderServiceOnExitReminder;
+        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
     }
 
-    private void ExitReminderServiceOnExitReminder(object? sender, EventArgs e)
+    private void ExitReminderMessageChanged(ExitReminderMessage message)
     {
-        ExitReminderService.ExitReminder -= ExitReminderServiceOnExitReminder;
         MusicPlayerViewModel.MusicItemsChanged -= OnMusicPlayerViewModelOnMusicItemsChanged;
     }
 
@@ -119,14 +117,14 @@ public partial class MusicPageViewModel : ViewModelBase
                     await MusicExtractor.ExtractMusicInfoAsync(path).ConfigureAwait(false)
                 )
             )
-        )
-            .Where(m => m != null)
-            .ToList(); // 过滤 null 值
+        ).Where(m => m != null).ToList(); // 过滤 null 值
 
         // 批量添加到UI集合
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            MusicPlayerViewModel.MusicItems!.AddRange(musicItems);
+            var tempList = MusicPlayerViewModel.MusicItems.ToList();
+            tempList.AddRange(musicItems!);
+            MusicPlayerViewModel.MusicItems = new ObservableCollection<MusicItemModel>(tempList);
         });
     }
 

@@ -57,6 +57,7 @@ public static class DataBaseService
             {nameof(ConfigInfoModel.Version)} TEXT NOT NULL,
             {nameof(MusicItemModel.Title)} TEXT NOT NULL PRIMARY KEY,
             {nameof(MusicItemModel.Artists)} TEXT ,
+            {nameof(MusicItemModel.Composer)} TEXT ,
             {nameof(MusicItemModel.Album)} TEXT,
             BASICINFO TEXT NOT NULL UNIQUE,
             {nameof(MusicItemModel.FilePath)} TEXT NOT NULL UNIQUE,
@@ -319,7 +320,7 @@ public static class DataBaseService
         }
     }
 
-    public static async Task<List<TResult>> LoadFromDataBaseAsync<TResult>(
+    public async static Task<List<TResult>> LoadFromDataBaseAsync<TResult>(
         Table table,
         string[] ordinals,
         Func<SqliteDataReader, TResult> converter,

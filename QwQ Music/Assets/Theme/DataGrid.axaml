@@ -1,9 +1,9 @@
 <ResourceDictionary
+    x:CompileBindings="True"
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    x:CompileBindings="True">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <ControlTheme x:Key="NoDecorativeThread" TargetType="DataGridColumnHeader">
+    <ControlTheme TargetType="DataGridColumnHeader" x:Key="NoDecorativeThread">
         <Setter Property="Foreground" Value="{DynamicResource DataGridColumnHeaderForeground}" />
         <Setter Property="Background" Value="{DynamicResource DataGridColumnHeaderBackground}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -14,31 +14,34 @@
         <Setter Property="MinHeight" Value="{DynamicResource DataGridColumnHeaderMinHeight}" />
         <Setter Property="Template">
             <ControlTemplate TargetType="DataGridColumnHeader">
-                <Border Name="HeaderBorder"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="{TemplateBinding CornerRadius}">
-                    <Grid Name="PART_ColumnHeaderRoot" ColumnDefinitions="*,Auto">
-                        <Border Name="HeaderBackground"
-                                Grid.ColumnSpan="2"
-                                Margin="4"
-                                CornerRadius="5" />
-                        <Grid Grid.Column="0"
-                              Margin="{TemplateBinding Padding}"
-                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                              ColumnDefinitions="*,Auto">
-                            <ContentPresenter Content="{TemplateBinding Content}"
-                                              ContentTemplate="{TemplateBinding ContentTemplate}" />
-                            <PathIcon Name="SortIcon"
-                                      Grid.Column="1"
-                                      Width="8"
-                                      Height="8"
-                                      Margin="0,0,8,0"
-                                      Foreground="{TemplateBinding Foreground}" />
+                <Border
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Name="HeaderBorder">
+                    <Grid ColumnDefinitions="*,Auto" Name="PART_ColumnHeaderRoot">
+                        <Border
+                            CornerRadius="5"
+                            Grid.ColumnSpan="2"
+                            Margin="4"
+                            Name="HeaderBackground" />
+                        <Grid
+                            ColumnDefinitions="*,Auto"
+                            Grid.Column="0"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            Margin="{TemplateBinding Padding}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                            <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            <PathIcon
+                                Foreground="{TemplateBinding Foreground}"
+                                Grid.Column="1"
+                                Height="8"
+                                Margin="0,0,8,0"
+                                Name="SortIcon"
+                                Width="8" />
                         </Grid>
-                        <!--列头间分割线-->
+                        <!--  列头间分割线  -->
                         <!--<Rectangle
                             Name="VerticalSeparator"
                             Grid.Column="1"
@@ -46,18 +49,19 @@
                             VerticalAlignment="Stretch"
                             Fill="{TemplateBinding SeparatorBrush}"
                             IsVisible="{TemplateBinding AreSeparatorsVisible}" />-->
-                        <Panel Name="FocusVisual"
-                               Grid.Column="0"
-                               IsHitTestVisible="False"
-                               IsVisible="False">
+                        <Panel
+                            Grid.Column="0"
+                            IsHitTestVisible="False"
+                            IsVisible="False"
+                            Name="FocusVisual">
                             <Rectangle
-                                Margin="{DynamicResource DataGridCellVisualBorderThickness}"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch"
                                 Fill="Transparent"
+                                HorizontalAlignment="Stretch"
                                 IsHitTestVisible="False"
+                                Margin="{DynamicResource DataGridCellVisualBorderThickness}"
                                 Stroke="{DynamicResource DataGridCellFocusBorderBrush}"
-                                StrokeThickness="{DynamicResource DataGridCellVisualStrokeThickness}" />
+                                StrokeThickness="{DynamicResource DataGridCellVisualStrokeThickness}"
+                                VerticalAlignment="Stretch" />
                         </Panel>
                     </Grid>
                 </Border>

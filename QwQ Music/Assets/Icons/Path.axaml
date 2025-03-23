@@ -1,6 +1,5 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- Add Resources Here -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--  Add Resources Here  -->
     <StreamGeometry x:Key="PlayIconData">
         F1 M1024,1024z M0,0z M458.9056,302.6944L707.2256,446.0544C756.224,474.368,756.224,545.1264,707.2256,573.3888L458.9056,716.7488C409.9072,745.0624,348.6208,709.6832,348.6208,653.056L348.6208,366.336C348.6208,309.76,409.856,274.3808,458.9056,302.6944z
     </StreamGeometry>

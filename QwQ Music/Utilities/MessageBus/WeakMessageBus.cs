@@ -38,22 +38,53 @@ public class WeakMessageBus : MessageBusBase
         var messageType = typeof(TMessage);
         if (!Subscriptions.TryGetValue(messageType, out var entry))
             return [];
-        lock (entry.Lock)
+
+        // 获取线程安全的订阅项快照
+        var subscriptions = entry.GetSubscriptionsSnapshot();
+    
+        // 分离存活/失效的订阅项
+        var validHandlers = new List<Action<TMessage>>();
+        var deadSubscriptions = new List<object>();
+
+        foreach (var subscription in subscriptions.OfType<WeakReference>())
         {
-            var validHandlers = entry
-                .Subscribers.OfType<WeakReference>()
-                .Where(weakRef => weakRef.IsAlive)
-                .Select(weakRef => weakRef.Target as Action<TMessage>)
-                .Where(handler => handler != null)
-                .ToList();
-
-#if DEBUG
-            Console.WriteLine($"Valid handlers for {messageType.Name}: {validHandlers.Count}");
-#endif
-
-            // 清理无效订阅者
-            entry.Subscribers.RemoveAll(weakRef => !((WeakReference)weakRef).IsAlive);
-            return validHandlers!;
+            if (subscription.IsAlive)
+            {
+                if (subscription.Target is Action<TMessage> handler)
+                    validHandlers.Add(handler);
+            }
+            else
+            {
+                deadSubscriptions.Add(subscription);
+            }
         }
+
+        // 清理失效订阅项（线程安全操作）
+        foreach (object dead in deadSubscriptions)
+        {
+            entry.RemoveSubscription(dead);
+        }
+
+
+        return validHandlers;
+    }
+
+    /// <summary>
+    /// 查找要移除的订阅项。
+    /// </summary>
+    /// <typeparam name="TMessage">消息类型。</typeparam>
+    /// <param name="entry">订阅项。</param>
+    /// <param name="handler">处理程序。</param>
+    /// <returns>要移除的订阅项列表。</returns>
+    protected override List<object> FindSubscriptionsToRemove<TMessage>(SubscriptionEntry entry, Action<TMessage> handler)
+    {
+        return entry.GetSubscriptionsSnapshot()
+            .OfType<WeakReference>()
+            .Where(weakRef => 
+                weakRef.IsAlive && 
+                weakRef.Target is Action<TMessage> target && 
+                target.Equals(handler))
+            .Cast<object>()
+            .ToList();
     }
 }

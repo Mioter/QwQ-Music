@@ -1,23 +1,22 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:u="https://irihi.tech/ursa"
-             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="80"
-             x:Class="QwQ_Music.Views.UserControls.TitleBarRightContent">
+<UserControl
+    d:DesignHeight="80"
+    d:DesignWidth="200"
+    mc:Ignorable="d"
+    x:Class="QwQ_Music.Views.UserControls.TitleBarRightContent"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <StackPanel Orientation="Horizontal">
 
-        <Button
-            Classes="Icon"
-            Click="Button_OnClick">
+        <Button Classes="Icon" Click="Button_OnClick">
             <PathIcon Data="{StaticResource SemiIconGithubLogo}" />
         </Button>
 
-        <u:ThemeToggleButton
-            IsThreeState="True"
-            Mode="Controller" />
-        
+        <u:ThemeToggleButton IsThreeState="True" Mode="Controller" />
+
         <StackPanel.Styles>
             <Style Selector="Button">
                 <Setter Property="Height" Value="30" />
@@ -25,7 +24,7 @@
                 <Setter Property="CornerRadius" Value="6" />
             </Style>
         </StackPanel.Styles>
-        
+
     </StackPanel>
 
 </UserControl>

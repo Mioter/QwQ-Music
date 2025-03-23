@@ -1,39 +1,39 @@
 <Application
+    RequestedThemeVariant="Default"
     x:Class="QwQ_Music.App"
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     x:CompileBindings="True"
-    xmlns:semi="https://irihi.tech/semi"
-    xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
+    xmlns="https://github.com/avaloniaui"
     xmlns:converter="clr-namespace:QwQ_Music.Helper.Converter"
+    xmlns:semi="https://irihi.tech/semi"
     xmlns:u="https://irihi.tech/ursa"
-    RequestedThemeVariant="Default">
+    xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Styles>
-        
+
         <semi:SemiTheme Locale="zh-CN" />
         <u-Semi:SemiTheme Locale="zh-CN" />
         <StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
-        
+
         <StyleInclude Source="Assets/Animations/_indexes.axaml" />
         <StyleInclude Source="Assets/Styles/_indexes.axaml" />
-        
+
         <Style Selector="CheckBox">
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        
+
         <Style Selector="ToolTip /template/ ContentPresenter">
             <Setter Property="FontSize" Value="12" />
         </Style>
-        
+
         <Style Selector="u|IconButton.Transparent">
             <Setter Property="Background" Value="Transparent" />
-            
+
             <Style Selector="^:pressed">
                 <Setter Property="RenderTransform" Value="scale(0.98)" />
             </Style>
-            
+
             <Style Selector="^:pointerover">
                 <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultPointeroverBorderBrush}" />
                 <Setter Property="Background" Value="{DynamicResource ButtonDefaultPointeroverBackground}" />
@@ -44,13 +44,13 @@
                 <Setter Property="Background" Value="{DynamicResource ButtonDefaultPressedBackground}" />
             </Style>
         </Style>
-        
+
     </Application.Styles>
 
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="Assets/Theme/_indexes.axaml"/>
+                <ResourceInclude Source="Assets/Theme/_indexes.axaml" />
                 <ResourceInclude Source="Assets/Icons/_indexes.axaml" />
                 <ResourceInclude Source="avares://QwQ.Avalonia.Control/Theme/_indexes.axaml" />
             </ResourceDictionary.MergedDictionaries>
@@ -61,7 +61,7 @@
         <converter:TruncateDecimalConverter x:Key="TruncateDecimalConverter" />
         <converter:SecondsToStringConverter x:Key="SecondsToStringConverter" />
         <converter:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
-        <converter:StringEqualityConverter x:Key="StringEqualityConverter"/>
+        <converter:StringEqualityConverter x:Key="StringEqualityConverter" />
 
         <FontFamily x:Key="VivoSans">/Assets/Fonts#VivoSans</FontFamily>
         <FontFamily x:Key="Consolab">/Assets/Fonts#Consola</FontFamily>

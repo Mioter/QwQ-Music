@@ -1,17 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using QwQ_Music.Controls;
 using QwQ_Music.Helper;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Audio.Play;
 using QwQ_Music.Utilities;
+using QwQ_Music.Utilities.MessageBus;
+using SoundFlow.Modifiers;
 
 namespace QwQ_Music.ViewModels;
 
@@ -20,43 +21,83 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
     public SoundEffectConfigViewModel()
         : base("音效")
     {
-        ExitReminderService.ExitReminder += ExitReminderServiceOnExitReminder;
-        MusicPlayerViewModel.MusicItemsChanged += MusicPlayerViewModelOnMusicItemsChanged;
-
         SoundEffectConfig = ConfigInfoModel.SoundEffectConfig;
-        SoundEffectConfig.Initialization(MusicPlayerViewModel.AudioPlay);
-    }
-
-    private void ExitReminderServiceOnExitReminder(object? sender, EventArgs e)
-    {
-        ExitReminderService.ExitReminder -= ExitReminderServiceOnExitReminder;
-        MusicPlayerViewModel.MusicItemsChanged -= MusicPlayerViewModelOnMusicItemsChanged;
-    }
-
-    private void MusicPlayerViewModelOnMusicItemsChanged(object? sender, ObservableCollection<MusicItemModel> e)
-    {
         RefreshNumberOfCompletedCalc().ConfigureAwait(false);
+        
+        ReplayGainCalculator.CalcCompletedChanged += ReplayGainCalculatorOnCalcCompletedChanged;
+        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
+    }
+
+    private void ReplayGainCalculatorOnCalcCompletedChanged(object? sender, EventArgs e) => NumberOfCompletedCalc++;
+
+    private void ExitReminderMessageChanged(ExitReminderMessage obj)
+    {
+        ReplayGainCalculator.CalcCompletedChanged -= ReplayGainCalculatorOnCalcCompletedChanged;
     }
 
     public SoundEffectConfig SoundEffectConfig { get; }
 
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
-    [ObservableProperty]
-    private AsyncTaskHandle? _taskHandle;
+    [ObservableProperty] public partial AsyncTaskHandle? TaskHandle { get; set; }
 
-    private int _numberOfCompletedCalc;
-    public int NumberOfCompletedCalc
+    [ObservableProperty] public partial int NumberOfCompletedCalc { get; set; }
+
+    public static MusicReplayGainStandard[] MusicReplayGainStandardList { get; set; } = EnumHelper<MusicReplayGainStandard>.ToArray();
+
+    public float SpatialAngle
     {
-        get => _numberOfCompletedCalc;
-        set => SetProperty(ref _numberOfCompletedCalc, value);
+        get => SoundEffectConfig.SpatialModifier.Angle;
+        set
+        {
+            SoundEffectConfig.SpatialModifier.Angle = value;
+            OnPropertyChanged();
+        }
     }
 
-    [ObservableProperty]
-    private List<MusicReplayGainStandard> _musicReplayGainStandardList = EnumHelper<MusicReplayGainStandard>.ToList();
+    public float SpatialDistance
+    {
+        get => SoundEffectConfig.SpatialModifier.Distance;
+        set
+        {
+            SoundEffectConfig.SpatialModifier.Distance = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public List<EqualizerBand> ParametricEqualizerBands
+    {
+        get => SoundEffectConfig.ParametricEqualizer.Bands;
+        set
+        {
+            SoundEffectConfig.ParametricEqualizer.Bands = value;
+            OnPropertyChanged();
+        }
+    }
+    
+    [RelayCommand]
+    private void OnSpeakerPositionChanged(PositionChangedEventArgs e)
+    {
+        SpatialAngle = (float)e.Angle;
+        SpatialDistance = (float)e.Distance;
+    }
+    
+    
+    [RelayCommand]
+    private void RestoreDefaultEqualizer()
+    {
+        var temp = new List<EqualizerBand>(ParametricEqualizerBands);
+        foreach (var equalizerBand in temp)
+        {
+            equalizerBand.GainDb = 0f;
+        }
+        ParametricEqualizerBands = temp;
+    }
+
+
 
     [ObservableProperty]
-    private string _calculationButtonText = "开始计算 ▶";
+    public partial string CalculationButtonText { get; set; } = "开始计算 ▶";
 
     [RelayCommand]
     private Task ClearCallbackGain()
@@ -68,9 +109,7 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
                 if (musicItem.Gain < 0)
                     continue;
                 musicItem.Gain = -1;
-                // 使用线程安全计数器
-                Interlocked.Decrement(ref _numberOfCompletedCalc);
-                OnPropertyChanged(nameof(NumberOfCompletedCalc));
+                NumberOfCompletedCalc++;
             }
         });
 
@@ -139,14 +178,7 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
                             if (item.Gain > 0)
                                 continue;
 
-                            item.Gain = ReplayGainCalculator.CalculateGain(
-                                item.FilePath,
-                                SoundEffectConfig.SelectedMusicReplayGainStandard
-                            );
-
-                            // 使用线程安全计数器
-                            Interlocked.Increment(ref _numberOfCompletedCalc);
-                            OnPropertyChanged(nameof(NumberOfCompletedCalc));
+                            AudioHelper.CalcGainOfMusicItem(item);
                         }
                     },
                     ct
@@ -180,7 +212,7 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
         CleanupTask();
     }
 
-    public async Task RefreshNumberOfCompletedCalc()
+    private async Task RefreshNumberOfCompletedCalc()
     {
         if (MusicPlayerViewModel.MusicItems.Count <= 0)
             return;

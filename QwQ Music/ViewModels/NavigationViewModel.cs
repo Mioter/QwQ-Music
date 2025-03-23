@@ -17,17 +17,16 @@ public class NavigationViewModel : ViewModelBase
         SelectedIndex = index;
     }
 
-    private int _selectedIndex;
     public int SelectedIndex
     {
-        get => _selectedIndex;
+        get;
         set
         {
-            if (!SetProperty(ref _selectedIndex, value))
+            if (!SetProperty(ref field, value))
                 return;
 
-            NavigateService.NavigateTo(NavViewName, _selectedIndex);
-            OnNavigateTo(_selectedIndex);
+            NavigateService.NavigateTo(NavViewName, field);
+            OnNavigateTo(field);
         }
     }
 

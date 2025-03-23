@@ -45,15 +45,6 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
 
     public bool IsBackgroundLayerVisible => false;
 
-    partial void OnMusicPlayListXaxisOffsetChanging(double oldValue, double newValue)
-    {
-        if (oldValue < newValue || newValue > 0.9)
-            return;
-
-        IsMusicPlayListVisible = false;
-        IsMusicPlayListVisible = true;
-    }
-
     partial void OnMainWindowStateChanged(WindowState value) =>
         IsWindowMaximizedOrFullScreen = MainWindowState is WindowState.Maximized or WindowState.FullScreen;
 

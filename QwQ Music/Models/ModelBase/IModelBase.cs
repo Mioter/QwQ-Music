@@ -8,6 +8,6 @@ public interface IModelBase<out TConfig>
 {
     bool IsInitialized { get; }
     bool IsError { get; }
-    static abstract TConfig Parse(in SqliteDataReader config);
+    abstract static TConfig Parse(in SqliteDataReader config);
     Dictionary<string, string> Dump();
 }
