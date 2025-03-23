@@ -36,5 +36,5 @@ public enum SampleFormat
     /// <summary>
     /// 32-bit floating point format.
     /// </summary>
-    F32 = 5
+    F32 = 5,
 }

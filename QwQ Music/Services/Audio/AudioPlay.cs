@@ -8,7 +8,7 @@ using SoundFlow.Components;
 using SoundFlow.Enums;
 using SoundFlow.Providers;
 
-namespace QwQ_Music.Services.Audio.Play;
+namespace QwQ_Music.Services.Audio;
 
 /// <summary>
 /// 基于SoundFlow实现的音频播放器
@@ -231,6 +231,9 @@ public class AudioPlay : IAudioPlay
     /// </summary>
     private void InitializeEffects(SoundPlayer soundPlayer)
     {
+        
+        _soundEffectConfig.ParametricEqualizer.SetBandsOwner();
+        
         soundPlayer
             .AddModifier(_soundEffectConfig.ReplayGainModifier)
             .AddModifier(_soundEffectConfig.ReverbModifier)

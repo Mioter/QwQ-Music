@@ -1,5 +1,4 @@
-﻿using System;
-using SoundFlow.Enums;
+﻿using SoundFlow.Enums;
 
 namespace SoundFlow.Exceptions;
 

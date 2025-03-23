@@ -1,5 +1,4 @@
-﻿using System;
-using SoundFlow.Abstracts;
+﻿using SoundFlow.Abstracts;
 using SoundFlow.Enums;
 using SoundFlow.Interfaces;
 using System.Collections.Concurrent;

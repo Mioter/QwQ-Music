@@ -83,5 +83,5 @@ public enum Result
     FailedToInitBackend = -400,
     FailedToOpenBackendDevice = -401,
     FailedToStartBackendDevice = -402,
-    FailedToStopBackendDevice = -403
+    FailedToStopBackendDevice = -403,
 }

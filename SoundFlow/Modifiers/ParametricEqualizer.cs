@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using SoundFlow.Abstracts;
+﻿using SoundFlow.Abstracts;
 
 namespace SoundFlow.Modifiers;
 
@@ -39,7 +36,7 @@ public sealed class ParametricEqualizer : SoundModifier
     private void InitializeDefaultBands()
     {
         // 创建默认频段
-        var bands = new List<EqualizerBand>
+        Bands = new List<EqualizerBand>
         {
             // 低频段 (Low frequencies)
             new PeakingBand { Frequency = 60, Q = 1.0f },    // 低频增强 (Sub-bass)
@@ -54,14 +51,20 @@ public sealed class ParametricEqualizer : SoundModifier
             // 高频段 (High frequencies)
             new PeakingBand { Frequency = 4000, Q = 1.0f },  // 高频 (Presence)
             new PeakingBand { Frequency = 8000, Q = 1.0f },  // 高频 (Brilliance)
-            new PeakingBand { Frequency = 16000, Q = 1.0f }  // 超高频 (Air)
+            new PeakingBand { Frequency = 16000, Q = 1.0f }, // 超高频 (Air)
         };
 
+        SetBandsOwner();
+    }
+    /// <summary>
+    /// 设置频段所有者
+    /// </summary>
+    public void SetBandsOwner()
+    {
         // 设置所有者并添加到列表
-        foreach (var band in bands)
+        foreach (var band in Bands.ToList())
         {
             band.SetOwner(this);
-            Bands.Add(band);
         }
     }
 
@@ -229,7 +232,7 @@ public enum FilterType
     /// 全通滤波器，改变音频信号的相位而不影响其频率响应<br />
     /// An all-pass filter changes the phase of the audio signal without affecting its frequency response.
     /// </summary>
-    AllPass
+    AllPass,
 }
 
 /// <summary>

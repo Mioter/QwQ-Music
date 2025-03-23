@@ -18,5 +18,5 @@ public enum PlaybackState
     /// <summary>
     /// The player or recorder is paused.
     /// </summary>
-    Paused
+    Paused,
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using SoundFlow.Abstracts;
+﻿using SoundFlow.Abstracts;
 
 namespace SoundFlow.Components;
 
@@ -36,7 +35,7 @@ public class EnvelopeGenerator : SoundComponent
         /// <summary>
         /// The envelope is in the release stage, falling from the sustain level to silence.
         /// </summary>
-        Release
+        Release,
     }
 
     /// <summary>
@@ -60,7 +59,7 @@ public class EnvelopeGenerator : SoundComponent
         /// The envelope performs an instant attack and decay upon <see cref="TriggerOn"/>, bypassing the sustain stage.
         /// Useful for percussive sounds or short bursts.
         /// </summary>
-        Trigger // Instant Attack and Decay, no Sustain
+        Trigger, // Instant Attack and Decay, no Sustain
     }
 
     /// <summary>

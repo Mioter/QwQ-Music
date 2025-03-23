@@ -1,4 +1,3 @@
-using System;
 using SoundFlow.Abstracts;
 
 namespace SoundFlow.Modifiers;
@@ -20,7 +19,7 @@ public sealed class FadeModifier : SoundModifier
         /// <summary>指数渐变</summary>
         Exponential,
         /// <summary>余弦渐变</summary>
-        Cosine
+        Cosine,
     }
 
     // 状态参数
@@ -171,7 +170,7 @@ public sealed class FadeModifier : SoundModifier
                 CalculateGain((double)_processedSamples / _targetSamples),
             FadePhase.Completing => _endGain,
             FadePhase.Idle => _endGain,
-            _ => _startGain
+            _ => _startGain,
         };
     }
 
@@ -195,7 +194,7 @@ public sealed class FadeModifier : SoundModifier
             FadeCurve.Linear => p => p,
             FadeCurve.Exponential => p => p * p,
             FadeCurve.Cosine => p => (1 - Math.Cos(Math.PI * p)) / 2,
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(),
         };
     }
 
@@ -231,6 +230,6 @@ public sealed class FadeModifier : SoundModifier
     {
         Idle,
         Active,
-        Completing
+        Completing,
     }
 }

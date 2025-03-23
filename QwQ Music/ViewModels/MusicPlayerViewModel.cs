@@ -8,7 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
-using QwQ_Music.Services.Audio.Play;
+using QwQ_Music.Services.Audio;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities.MessageBus;
 using Log = QwQ_Music.Services.LoggerService;

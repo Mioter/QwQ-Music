@@ -1,5 +1,4 @@
-﻿using System;
-using SoundFlow.Abstracts;
+﻿using SoundFlow.Abstracts;
 
 namespace SoundFlow.Components;
 
@@ -41,7 +40,7 @@ public class Oscillator : SoundComponent
         /// <summary>
         /// A pulse wave (also known as a rectangular wave), similar to a square wave but with adjustable pulse width, allowing for timbral variations.
         /// </summary>
-        Pulse // Optional
+        Pulse, // Optional
     }
 
     // Parameters
@@ -112,7 +111,7 @@ public class Oscillator : SoundComponent
             WaveformType.Noise => (float)(_random.NextDouble() * 2.0 - 1.0),
             WaveformType.Pulse =>
                 _currentPhase + Phase < Math.PI * PulseWidth ? 1f : -1f,
-            _ => 0f
+            _ => 0f,
         };
 
 

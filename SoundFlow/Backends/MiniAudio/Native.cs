@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using SoundFlow.Backends.MiniAudio.Enums;
@@ -51,7 +48,7 @@ internal static unsafe partial class Native
                     Architecture.X64 => $"{relativeBase}/win-x64/native/{libraryName}.dll",
                     Architecture.Arm64 => $"{relativeBase}/win-arm64/native/{libraryName}.dll",
                     _ => throw new PlatformNotSupportedException(
-                        $"Unsupported Windows architecture: {RuntimeInformation.ProcessArchitecture}")
+                        $"Unsupported Windows architecture: {RuntimeInformation.ProcessArchitecture}"),
                 };
             }
 
@@ -62,7 +59,7 @@ internal static unsafe partial class Native
                     Architecture.X64 => $"{relativeBase}/osx-x64/native/{libraryName}.dylib",
                     Architecture.Arm64 => $"{relativeBase}/osx-arm64/native/{libraryName}.dylib",
                     _ => throw new PlatformNotSupportedException(
-                        $"Unsupported macOS architecture: {RuntimeInformation.ProcessArchitecture}")
+                        $"Unsupported macOS architecture: {RuntimeInformation.ProcessArchitecture}"),
                 };
             }
 
@@ -74,7 +71,7 @@ internal static unsafe partial class Native
                     Architecture.Arm => $"{relativeBase}/linux-arm/native/{libraryName}.so",
                     Architecture.Arm64 => $"{relativeBase}/linux-arm64/native/{libraryName}.so",
                     _ => throw new PlatformNotSupportedException(
-                        $"Unsupported Linux architecture: {RuntimeInformation.ProcessArchitecture}")
+                        $"Unsupported Linux architecture: {RuntimeInformation.ProcessArchitecture}"),
                 };
             }
 
@@ -86,7 +83,7 @@ internal static unsafe partial class Native
                     Architecture.Arm => $"{relativeBase}/android-arm/native/{libraryName}.so",
                     Architecture.Arm64 => $"{relativeBase}/android-arm64/native/{libraryName}.so",
                     _ => throw new PlatformNotSupportedException(
-                        $"Unsupported Android architecture: {RuntimeInformation.ProcessArchitecture}")
+                        $"Unsupported Android architecture: {RuntimeInformation.ProcessArchitecture}"),
                 };
             }
 
@@ -97,7 +94,7 @@ internal static unsafe partial class Native
                 {
                     Architecture.Arm64 => $"{relativeBase}/ios-arm64/native/{libraryName}.framework/{libraryName}",
                     _ => throw new PlatformNotSupportedException(
-                        $"Unsupported iOS architecture: {RuntimeInformation.ProcessArchitecture}")
+                        $"Unsupported iOS architecture: {RuntimeInformation.ProcessArchitecture}"),
                 };
             }
 

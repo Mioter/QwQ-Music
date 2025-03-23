@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SoundFlow.Interfaces;
+﻿namespace SoundFlow.Interfaces;
 
 /// <summary>
 /// An interface representing a sound encoder.

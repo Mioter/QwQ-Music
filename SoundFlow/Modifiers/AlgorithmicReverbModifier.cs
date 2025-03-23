@@ -1,5 +1,4 @@
-﻿using System;
-using SoundFlow.Abstracts;
+﻿using SoundFlow.Abstracts;
 using System.Runtime.CompilerServices;
 
 namespace SoundFlow.Modifiers;
@@ -47,7 +46,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         [1176, 1248, 1337, 1418, 1490, 1559, 1631, 1691], // Channel 4
         [1189, 1261, 1350, 1431, 1505, 1574, 1648, 1708], // Channel 5
         [1202, 1274, 1363, 1444, 1520, 1589, 1665, 1725], // Channel 6
-        [1215, 1287, 1376, 1457, 1535, 1604, 1682, 1742] // Channel 7
+        [1215, 1287, 1376, 1457, 1535, 1604, 1682, 1742], // Channel 7
     ];
 
     private static readonly float[][] AllPassTunings =
@@ -59,7 +58,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         [608, 493, 393, 277], // Channel 4
         [621, 506, 406, 290], // Channel 5
         [634, 519, 419, 303], // Channel 6
-        [647, 532, 432, 316] // Channel 7
+        [647, 532, 432, 316], // Channel 7
     ];
 
     private const float FixedGain = 0.015f;

@@ -153,7 +153,7 @@ public class ShaderEffectControl : Control
             using var paint = new SKPaint
             {
                 Shader = shader,
-                IsAntialias = true
+                IsAntialias = true,
             };
 
             canvas.DrawRect(

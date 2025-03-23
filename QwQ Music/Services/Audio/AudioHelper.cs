@@ -5,7 +5,7 @@ using QwQ_Music.Models;
 using QwQ_Music.Utilities;
 using SoundFlow.Providers;
 
-namespace QwQ_Music.Services.Audio.Play;
+namespace QwQ_Music.Services.Audio;
 
 public static class AudioHelper
 {
