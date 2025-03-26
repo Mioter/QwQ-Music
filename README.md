@@ -29,15 +29,18 @@
 🔸 元初 [@metaone01](https://github.com/metaone01 "最好的元初")
 <br><br>
 
+### 📖 使用的项目 <br><br>
+
+⚡ [SoundFlow](https://github.com/LSXPrime/SoundFlow)
+<br><br>
+
 ### 📗 被引入的包 <br><br>
 
 🔹 社区工具包 [CommunityToolkit](https://github.com/CommunityToolkit/dotnet)
 <br><br>
 🔹 行为包 [Avalonia.Xaml.Behaviors](https://github.com/AvaloniaUI/Avalonia.Xaml.Behaviors)
 <br><br>
-🔹 [NAudio](https://github.com/naudio/NAudio "音频处理")
-🔹 [SonicBoom](https://github.com/nightblade9/SonicBoom "NAudio的最小化分支")
-🔹 [TagLibSharp](https://github.com/mono/taglib-sharp "元数据读取")
+🔹 读取音频元数据 [ALT](https://github.com/Zeugma440/atldotnet)
 <br><br>
 
 ### 🍁 特别感谢泥 <br><br>
