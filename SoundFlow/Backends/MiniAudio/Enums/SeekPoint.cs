@@ -10,5 +10,5 @@ internal enum SeekPoint
     /// <summary>
     ///     Seek from the current position in the stream.
     /// </summary>
-    FromCurrent
+    FromCurrent,
 }

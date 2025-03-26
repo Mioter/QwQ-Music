@@ -1,6 +1,6 @@
 using System;
 
-namespace QwQ_Music.Services.Audio.Play;
+namespace QwQ_Music.Services.Audio;
 
 /// <summary>
 /// 音频播放接口，定义音频播放器的基本行为

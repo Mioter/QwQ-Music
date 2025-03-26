@@ -1,5 +1,4 @@
-﻿using System;
-using SoundFlow.Abstracts;
+﻿using SoundFlow.Abstracts;
 
 namespace SoundFlow.Modifiers;
 

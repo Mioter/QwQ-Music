@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using SoundFlow.Abstracts;
 using SoundFlow.Interfaces;
 using SoundFlow.Utils;
@@ -41,7 +38,7 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
         /// <summary>
         /// Detects voice activity by combining multiple detection algorithms for improved accuracy.
         /// </summary>
-        Combined
+        Combined,
     }
 
     /// <summary>
@@ -380,7 +377,7 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
             DetectionMode.SpectralContrast => SpectralContrastDecision(),
             DetectionMode.ZeroCrossingRate => ZeroCrossingDecision(),
             DetectionMode.Combined => CombinedDecision(),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(),
         };
     }
 

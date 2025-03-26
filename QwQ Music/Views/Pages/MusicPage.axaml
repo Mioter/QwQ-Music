@@ -43,6 +43,33 @@
                     Watermark="搜索音乐"
                     Width="200" />
 
+                <u:PathPicker
+                    AllowMultiple="True"
+                    Command="{Binding SelectedPathsCommand}"
+                    IsClearSelectionOnCancel="True"
+                    Theme="{DynamicResource ButtonPathPicker}"
+                    Title="添加音乐"
+                    UsePickerType="OpenFolder">
+                    <u:PathPicker.Styles>
+                        <Style Selector="u|PathPicker /template/ Button">
+                            <Setter Property="Padding" Value="3" />
+                            <Setter Property="CornerRadius" Value="8" />
+                            <Setter Property="Content">
+                                <Template>
+                                    <PathIcon Data="{StaticResource SemiIconPlus}" Height="13.5" />
+                                </Template>
+                            </Setter>
+                        </Style>
+
+                    </u:PathPicker.Styles>
+                </u:PathPicker>
+
+                <!--<u:IconButton
+                    Classes="Icon"
+                    Command="{Binding SelectedCurrentMusicItemCommand}"
+                    Icon="{StaticResource SemiIconPlus}"
+                    ToolTip.Tip="添加音乐" />-->
+
                 <u:IconButton
                     Classes="Icon"
                     Command="{Binding SelectedCurrentMusicItemCommand}"
@@ -69,7 +96,6 @@
             </StackPanel>
         </Panel>
 
-        <!--  DataGrid 方展示案  -->
         <DataGrid
             Background="Transparent"
             CanUserReorderColumns="True"

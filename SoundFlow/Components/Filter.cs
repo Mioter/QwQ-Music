@@ -1,5 +1,4 @@
-﻿using System;
-using SoundFlow.Abstracts;
+﻿using SoundFlow.Abstracts;
 
 namespace SoundFlow.Components;
 
@@ -28,7 +27,7 @@ public class Filter : SoundComponent
         /// <summary>
         /// Attenuates frequencies around the cutoff frequency, allowing frequencies further away to pass.
         /// </summary>
-        Notch
+        Notch,
     }
 
     // Parameters

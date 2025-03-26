@@ -28,5 +28,5 @@ public enum EncodingFormat
     /// <summary>
     /// Ogg Vorbis audio format.
     /// </summary>
-    Vorbis
+    Vorbis,
 }

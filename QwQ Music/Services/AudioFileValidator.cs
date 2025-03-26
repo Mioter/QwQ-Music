@@ -6,19 +6,78 @@ namespace QwQ_Music.Services;
 
 public static class AudioFileValidator
 {
+    private static readonly List<string> SupportedAudioFormats =
+    [
+        "AAC", "MP4", "M4A", "M4B",
+        // Apple Core Audio
+        "CAF",
+        // Audible
+        "AAX", "AA",
+        // Audio Interchange File Format
+        "AIF", "AIFF", "AIFC",
+        // Digital Theatre System
+        "DTS",
+        // Direct Stream Digital
+        "DSD", "DSF",
+        // Dolby Digital
+        "AC3",
+        // Extended Module
+        "XM",
+        // Free Lossless Audio Codec
+        "FLAC",
+        // Genesis YM2612
+        "GYM",
+        // Impulse Tracker
+        "IT",
+        // Matroska Audio, WebM Audio
+        "MKA", "WEBM",
+        // Musical Instruments Digital Interface
+        "MID", "MIDI",
+        // Monkey's Audio
+        "APE",
+        // MPEG Audio Layer
+        "MP1", "MP2", "MP3",
+        // MusePack / MPEGplus
+        "MPC", "MP+",
+        // Noisetracker/Soundtracker/Protracker
+        "MOD",
+        // OGG : Vorbis, Opus, Embedded FLAC, Speex
+        "OGG", "OGA", "OPUS", "SPX",
+        // OptimFROG
+        "OFR", "OFS",
+        // Portable Sound Format
+        "PSF", "PSF1", "PSF2", "MINIPSF", "MINIPSF1", "MINIPSF2", "SSF", "MINISSF", "GSF", "MINIGSF", "QSF", "MINIQSF",
+        // ScreamTracker
+        "S3M",
+        // SPC700 (Super Nintendo Sound files)
+        "SPC",
+        // Toms' losslesss Audio Kompressor
+        "TAK",
+        // True Audio
+        "TTA",
+        // TwinVQ
+        "VQF",
+        // PCM (uncompressed audio)
+        "WAV", "BWAV", "BWF",
+        // Video Game Music (SEGA systems sound files)
+        "VGM", "VGZ",
+        // WavPack
+        "WV",
+        // Windows Media Audio/Advanced Systems Format
+        "WMA", "ASF",
+    ];
 
     private static bool IsAudioFile(string filePath)
     {
-        return System.IO.File.Exists(filePath) && ValidateWithTagLib(filePath);
-
+        return System.IO.File.Exists(filePath) && ValidateWithMetadata(filePath);
     }
 
-    private static bool ValidateWithTagLib(string path)
+    private static bool ValidateWithMetadata(string path)
     {
         try
         {
             var track = new Track(path);
-            return track.AudioFormat != Format.UNKNOWN_FORMAT;
+            return SupportedAudioFormats.Contains(track.AudioFormat.ShortName.ToUpper());
         }
         catch
         {
@@ -26,7 +85,7 @@ public static class AudioFileValidator
         }
     }
 
-    public static List<string>? FilterAudioFiles(List<string>? items)
+    public static List<string>? FilterAudioFiles(IReadOnlyList<string>? items)
     {
         return items?.Where(IsAudioFile).ToList();
     }

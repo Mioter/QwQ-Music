@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using SoundFlow.Enums;
 
 namespace SoundFlow.Utils;
@@ -24,7 +23,7 @@ public static class Extensions
             SampleFormat.S32 => 4,
             SampleFormat.F32 => 4,
             SampleFormat.Unknown => 0,
-            _ => throw new ArgumentOutOfRangeException(nameof(sampleFormat), "Invalid SampleFormat")
+            _ => throw new ArgumentOutOfRangeException(nameof(sampleFormat), "Invalid SampleFormat"),
         };
     }
 

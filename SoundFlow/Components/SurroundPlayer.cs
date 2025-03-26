@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using SoundFlow.Abstracts;
 using SoundFlow.Interfaces;
 using SoundFlow.Modifiers;
@@ -46,7 +43,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
         /// <summary>
         /// Custom configuration defined by the user.
         /// </summary>
-        Custom
+        Custom,
     }
 
     private SpeakerConfiguration _speakerConfig = SpeakerConfiguration.Surround51;
@@ -86,7 +83,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
         /// <summary>
         /// Vector-Based Amplitude Panning (VBAP).
         /// </summary>
-        Vbap
+        Vbap,
     }
 
     /// <summary>
@@ -176,7 +173,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
             [0f, 0f, 0f, 15f, 15f, 5f],
             [
                 new Vector2(-1f, 0f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(-0.8f, -1f),
-                new Vector2(0.8f, -1f), new Vector2(0f, -1.5f)
+                new Vector2(0.8f, -1f), new Vector2(0f, -1.5f),
             ]
         ));
 
@@ -187,7 +184,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
             [0f, 0f, 0f, 15f, 15f, 5f, 5f, 5f],
             [
                 new Vector2(-1f, 0f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(-0.8f, -1f),
-                new Vector2(0.8f, -1f), new Vector2(-1f, -1.5f), new Vector2(1f, -1.5f), new Vector2(0f, -2f)
+                new Vector2(0.8f, -1f), new Vector2(-1f, -1.5f), new Vector2(1f, -1.5f), new Vector2(0f, -2f),
             ]
         ));
     }
@@ -205,7 +202,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
             SpeakerConfiguration.Custom => _currentConfiguration,
             _ => _predefinedConfigurations.TryGetValue(config, out var predefinedConfig)
                 ? predefinedConfig
-                : throw new ArgumentException("Invalid speaker configuration.")
+                : throw new ArgumentException("Invalid speaker configuration."),
         };
 
         InitializeDelayLines();
@@ -500,20 +497,20 @@ public sealed class SurroundPlayer : SoundPlayerBase
             4 =>
             [ // Quad
                 new Vector2(-1, 0), new Vector2(1, 0),
-                new Vector2(0, 1), new Vector2(0, -1)
+                new Vector2(0, 1), new Vector2(0, -1),
             ],
             5 =>
             [ // 5.0 surround
                 new Vector2(-1, 0), new Vector2(1, 0), // Front L/R
                 new Vector2(0, 0), // Center
-                new Vector2(-0.5f, -1), new Vector2(0.5f, -1) // Rear L/R
+                new Vector2(-0.5f, -1), new Vector2(0.5f, -1), // Rear L/R
             ],
             6 =>
             [ // 5.1 surround
                 new Vector2(-1, 0), new Vector2(1, 0), // Front L/R
                 new Vector2(0, 0), // Center
                 new Vector2(-0.5f, -1), new Vector2(0.5f, -1), // Rear L/R
-                new Vector2(0, -1.5f) // LFE
+                new Vector2(0, -1.5f), // LFE
             ],
             8 =>
             [ // 7.1 surround
@@ -521,9 +518,9 @@ public sealed class SurroundPlayer : SoundPlayerBase
                 new Vector2(0, 0), // Center
                 new Vector2(-1, -1), new Vector2(1, -1), // Side L/R
                 new Vector2(-0.5f, -1.5f), new Vector2(0.5f, -1.5f), // Rear L/R
-                new Vector2(0, -2f) // LFE
+                new Vector2(0, -2f), // LFE
             ],
-            _ => CreateCircularLayout(channelCount) // Fallback for unknown configs
+            _ => CreateCircularLayout(channelCount), // Fallback for unknown configs
         };
     }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using SoundFlow.Abstracts;
+﻿using SoundFlow.Abstracts;
 
 namespace SoundFlow.Components;
 
@@ -43,7 +42,7 @@ public class LowFrequencyOscillator : SoundComponent
         /// <summary>
         /// A waveform that holds a random value constant for a cycle and then changes to a new random value.
         /// </summary>
-        SampleAndHold
+        SampleAndHold,
     }
 
     /// <summary>
@@ -58,7 +57,7 @@ public class LowFrequencyOscillator : SoundComponent
         /// <summary>
         /// The LFO's phase is reset to the <see cref="Phase"/> value each time the <see cref="Trigger"/> method is called.
         /// </summary>
-        NoteTrigger
+        NoteTrigger,
     }
 
     // Parameters

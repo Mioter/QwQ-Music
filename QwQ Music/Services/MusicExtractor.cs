@@ -156,7 +156,7 @@ public static class MusicExtractor
             string composer = track.Composer;
             string artists = track.Artist;
             string album = track.Album;
-            var duration = new TimeSpan(track.Duration);
+            var duration = TimeSpan.FromMilliseconds(track.DurationMs);
             string comment = track.Comment;
             string encodingFormat = track.Description;
             string allArtists = string.Join(",", artists);

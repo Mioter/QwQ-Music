@@ -1,4 +1,3 @@
-using System;
 using SoundFlow.Abstracts;
 
 namespace SoundFlow.Modifiers;
@@ -120,7 +119,7 @@ public sealed class TremoloModifier : SoundModifier
             TremoloWaveform.Triangle => phase < 0.5f ? 2.0f * phase : 2.0f * (1.0f - phase),
             TremoloWaveform.Square => phase < 0.5f ? 1.0f : 0.0f,
             TremoloWaveform.Sawtooth => phase,
-            _ => 0.5f
+            _ => 0.5f,
         };
         
         // 应用深度参数

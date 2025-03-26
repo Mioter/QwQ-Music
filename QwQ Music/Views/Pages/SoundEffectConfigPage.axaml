@@ -516,13 +516,12 @@
                         Height="400"
                         HorizontalAlignment="Left"
                         Margin="0,10,0,0"
-                        VerticalAlignment="Top"
-                        Width="600">
+                        VerticalAlignment="Top">
 
                         <ItemsControl
                             HorizontalAlignment="Center"
                             ItemsSource="{Binding ParametricEqualizerBands}"
-                            Margin="0,20,0,10">
+                            Margin="20,20,0,10">
 
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>

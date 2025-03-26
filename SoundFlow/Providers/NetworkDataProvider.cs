@@ -1,12 +1,6 @@
-﻿using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
+﻿using System.Buffers;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using SoundFlow.Abstracts;
 using SoundFlow.Enums;
 using SoundFlow.Interfaces;
@@ -410,7 +404,7 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
                 _hlsSegments.Add(new HlsSegment
                 {
                     Uri = segmentUri,
-                    Duration = segmentDuration
+                    Duration = segmentDuration,
                 });
                 _hlsTotalDuration += segmentDuration;
                 segmentDuration = 0;

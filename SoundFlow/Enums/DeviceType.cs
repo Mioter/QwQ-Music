@@ -13,5 +13,5 @@ public enum DeviceType
     /// <summary>
     /// Device used for audio capture.
     /// </summary>
-    Capture
+    Capture,
 }

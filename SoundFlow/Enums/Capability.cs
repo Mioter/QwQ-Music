@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SoundFlow.Enums;
+﻿namespace SoundFlow.Enums;
 
 /// <summary>
 ///     Describes the capabilities of a sound device.
@@ -26,5 +24,5 @@ public enum Capability
     /// <summary>
     ///     The device is used for loopback recording (capturing the output).
     /// </summary>
-    Loopback = 4
+    Loopback = 4,
 }

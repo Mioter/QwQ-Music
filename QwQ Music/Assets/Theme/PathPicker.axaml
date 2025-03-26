@@ -1,0 +1,18 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--  Add Resources Here  -->
+    <ControlTheme TargetType="u:PathPicker" x:Key="ButtonPathPicker">
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Button Classes="Icon" Name="{x:Static u:PathPicker.PART_Button}" />
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^ /template/ Button#PART_Button:pressed">
+            <Setter Property="RenderTransform" Value="{x:Null}" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

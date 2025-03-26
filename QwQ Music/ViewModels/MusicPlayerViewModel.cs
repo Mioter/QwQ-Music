@@ -8,7 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
-using QwQ_Music.Services.Audio.Play;
+using QwQ_Music.Services.Audio;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities.MessageBus;
 using Log = QwQ_Music.Services.LoggerService;
@@ -271,8 +271,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
     private void ClearMusicItemCurrentDuration(MusicItemModel musicItem)
     {
         if (musicItem.Equals(CurrentMusicItem))
-            _audioPlay.Seek(0);
-        CurrentDurationInSeconds = 0;
+            CurrentDurationInSeconds = 0;
+        else
+            musicItem.Current = TimeSpan.Zero;
     }
     
     #endregion
@@ -339,15 +340,14 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             musicItem.Current = TimeSpan.Zero;
         }
-
-        CurrentMusicItemChanging?.Invoke(this, musicItem);
-        CurrentMusicItem = musicItem;
-        CurrentMusicItemChanged?.Invoke(this, musicItem);
-
+        
         try
         {
+            CurrentMusicItemChanging?.Invoke(this, musicItem);
             await InitializeAudioTrackAsync(musicItem);
+            CurrentMusicItem = musicItem;
             CurrentDurationInSeconds = musicItem.Current.TotalSeconds;
+            CurrentMusicItemChanged?.Invoke(this, musicItem);
         }
         catch (Exception ex)
         {
