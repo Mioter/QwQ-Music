@@ -36,23 +36,58 @@ public sealed class ParametricEqualizer : SoundModifier
     private void InitializeDefaultBands()
     {
         // 创建默认频段
-        Bands = new List<EqualizerBand>
-        {
-            // 低频段 (Low frequencies)
-            new PeakingBand { Frequency = 60, Q = 1.0f },    // 低频增强 (Sub-bass)
-            new PeakingBand { Frequency = 150, Q = 1.0f },   // 低频 (Bass)
-            new PeakingBand { Frequency = 250, Q = 1.0f },   // 低中频 (Low-mids)
+        Bands =
+        [
+            new PeakingBand
+            {
+                Frequency = 60,
+                Q = 1.0f
+            }, // 低频增强 (Sub-bass)
+            new PeakingBand
+            {
+                Frequency = 150,
+                Q = 1.0f
+            }, // 低频 (Bass)
+            new PeakingBand
+            {
+                Frequency = 250,
+                Q = 1.0f
+            }, // 低中频 (Low-mids)
 
             // 中频段 (Mid frequencies)
-            new PeakingBand { Frequency = 500, Q = 1.0f },   // 中频 (Mids)
-            new PeakingBand { Frequency = 1000, Q = 1.0f },  // 中频 (Mids)
-            new PeakingBand { Frequency = 2000, Q = 1.0f },  // 高中频 (Upper-mids)
+            new PeakingBand
+            {
+                Frequency = 500,
+                Q = 1.0f
+            }, // 中频 (Mids)
+            new PeakingBand
+            {
+                Frequency = 1000,
+                Q = 1.0f
+            }, // 中频 (Mids)
+            new PeakingBand
+            {
+                Frequency = 2000,
+                Q = 1.0f
+            }, // 高中频 (Upper-mids)
 
             // 高频段 (High frequencies)
-            new PeakingBand { Frequency = 4000, Q = 1.0f },  // 高频 (Presence)
-            new PeakingBand { Frequency = 8000, Q = 1.0f },  // 高频 (Brilliance)
-            new PeakingBand { Frequency = 16000, Q = 1.0f }, // 超高频 (Air)
-        };
+            new PeakingBand
+            {
+                Frequency = 4000,
+                Q = 1.0f
+            }, // 高频 (Presence)
+            new PeakingBand
+            {
+                Frequency = 8000,
+                Q = 1.0f
+            }, // 高频 (Brilliance)
+            new PeakingBand
+            {
+                Frequency = 16000,
+                Q = 1.0f
+            }, // 超高频 (Air)
+        ];
 
         SetBandsOwner();
     }

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Input;
-using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -19,6 +18,7 @@ public partial class MusicPageViewModel : ViewModelBase
 {
     [ObservableProperty]
     public partial ObservableCollection<MusicItemModel> AllMusicItems { get; set; }
+    
     [ObservableProperty]
     public partial string? SearchText { get; set; }
 
@@ -46,21 +46,17 @@ public partial class MusicPageViewModel : ViewModelBase
 
     partial void OnSearchTextChanged(string? value)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            AllMusicItems = MusicPlayerViewModel.MusicItems;
-        }
-        else
-        {
-            // 使用 Where 进行过滤，并将结果转换为 ObservableCollection。
-            AllMusicItems = new ObservableCollection<MusicItemModel>(
-                MusicPlayerViewModel.MusicItems.Where(musicItem =>
-                    musicItem.Title.Contains(value)
-                    || musicItem.Artists.Contains(value)
-                    || musicItem.Album.Contains(value)
-                )
-            );
-        }
+        var source = string.IsNullOrEmpty(value)
+            ? MusicPlayerViewModel.MusicItems
+            : MusicPlayerViewModel.MusicItems.Where(MatchesSearchCriteria);
+
+        AllMusicItems = new ObservableCollection<MusicItemModel>(source);
+        return;
+
+        bool MatchesSearchCriteria(MusicItemModel item) =>
+            item.Title.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+            item.Artists.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+            item.Album.Contains(value, StringComparison.OrdinalIgnoreCase);
     }
 
     [RelayCommand]
@@ -79,6 +75,17 @@ public partial class MusicPageViewModel : ViewModelBase
         SelectedItem = null;
         SelectedItem = MusicPlayerViewModel.CurrentMusicItem;
     }
+    
+    [RelayCommand]
+    private async Task SelectedPaths(IReadOnlyList<string> paths)
+    {
+        if (paths.Count == 0)
+            return;
+            
+        // 直接使用字符串路径列表
+        var allFilePaths = await Task.Run(() => GetAllFilePaths(paths)).ConfigureAwait(false);
+        await ImportMusicFilesAsync(allFilePaths).ConfigureAwait(false);
+    }
 
     [RelayCommand]
     private async Task DropFilesAsync(DragEventArgs? e)
@@ -90,19 +97,46 @@ public partial class MusicPageViewModel : ViewModelBase
         if (items == null)
             return;
 
+        // 将 IStorageItem 转换为路径字符串
+        var paths = items.Select(item => 
+        {
+            try 
+            {
+                return item.Path.IsAbsoluteUri ? item.Path.LocalPath : null;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"无法解析路径: {item.Path} (错误: {ex.Message})");
+                return null;
+            }
+        })
+        .Where(path => path != null)
+        .ToList();
+
+        // 获取所有拖入的文件路径
+        var allFilePaths = await Task.Run(() => GetAllFilePaths(paths!)).ConfigureAwait(false);
+        await ImportMusicFilesAsync(allFilePaths).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 导入音乐文件到播放列表
+    /// </summary>
+    /// <param name="filePaths">要导入的文件路径列表</param>
+    /// <returns>导入任务</returns>
+    private async Task ImportMusicFilesAsync(IReadOnlyList<string> filePaths)
+    {
+        // 过滤出音频文件
+        var audioFilePaths = await Task.Run(() => AudioFileValidator.FilterAudioFiles(filePaths))
+            .ConfigureAwait(false);
+
+        if (audioFilePaths == null || audioFilePaths.Count == 0)
+            return;
+
         // 预加载现有路径集合
         var existingPaths = new HashSet<string>(
             MusicPlayerViewModel.MusicItems.Select(x => x.FilePath),
             StringComparer.OrdinalIgnoreCase
         );
-
-        // 获取所有拖入的文件路径
-        var allFilePaths = await Task.Run(() => GetAllFilePaths(items)).ConfigureAwait(false);
-        var audioFilePaths = await Task.Run(() => AudioFileValidator.FilterAudioFiles(allFilePaths))
-            .ConfigureAwait(false);
-
-        if (audioFilePaths == null || audioFilePaths.Count == 0)
-            return;
 
         // 过滤掉已存在的路径
         var newFilePaths = audioFilePaths.Where(path => !existingPaths.Contains(path)).ToList();
@@ -128,28 +162,20 @@ public partial class MusicPageViewModel : ViewModelBase
         });
     }
 
-    private static List<string> GetAllFilePaths(List<IStorageItem> items)
+    /// <summary>
+    /// 从路径列表获取所有文件路径（包括子目录）
+    /// </summary>
+    /// <param name="paths">路径列表</param>
+    /// <returns>所有文件路径</returns>
+    private static List<string> GetAllFilePaths(IReadOnlyList<string> paths)
     {
         var allFilePaths = new List<string>();
-        foreach (var uri in items.Select(item => item.Path))
+        
+        foreach (var path in paths)
         {
-            if (!uri.IsAbsoluteUri)
-            {
-                Console.WriteLine($"跳过非绝对路径的项: {uri}");
-                continue; // 跳过无效项
-            }
-
-            string path;
-            try
-            {
-                path = uri.LocalPath;
-            }
-            catch (InvalidOperationException ex)
-            {
-                Console.WriteLine($"无法解析路径: {uri} (错误: {ex.Message})");
+            if (string.IsNullOrEmpty(path))
                 continue;
-            }
-
+                
             if (Directory.Exists(path))
             {
                 try
