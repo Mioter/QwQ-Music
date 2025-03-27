@@ -74,6 +74,16 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
             OnPropertyChanged();
         }
     }
+
+    public int NoiseReductionFftSize
+    {
+        get => (int)Math.Log(SoundEffectConfig.NoiseReductionModifier.FftSize,2);
+        set
+        {
+            SoundEffectConfig.NoiseReductionModifier.FftSize = (int)Math.Pow(2, value);
+            OnPropertyChanged();
+        }
+    }
     
     [RelayCommand]
     private void OnSpeakerPositionChanged(PositionChangedEventArgs e)

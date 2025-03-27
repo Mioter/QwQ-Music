@@ -2,58 +2,111 @@
 using SoundFlow.Abstracts;
 using SoundFlow.Utils;
 
-namespace SoundFlow.Experimental;
+namespace SoundFlow.Modifiers;
 
 /// <summary>
+/// 噪声降低效果器<br />
 /// A sound modifier that implements a noise reduction algorithm.
 /// </summary>
-public class NoiseReductionModifier : SoundModifier
+public sealed class NoiseReductionModifier : SoundModifier
 {
-    private readonly int _fftSize;
-    private readonly int _hopSize;
-    private readonly float _alpha;
-    private readonly float _beta;
-    private readonly float _smoothingFactor;
-    private readonly float _gain;
+    private int _fftSize = 2048;
+    private int _hopSize;
+    private float _alpha = 2.0f;
+    private float _beta = 0.01f;
+    private float _smoothingFactor = 0.9f;
+    private float _gain = 1.2f;
+    private int _noiseFrames = 10;
+    
     private readonly float[] _window;
     private readonly float _windowSumSq;
     private readonly Complex[][] _fftBuffers;
     private readonly float[][] _noisePsd;
     private readonly float[][] _inputBuffers;
     private readonly float[][] _outputOverlapBuffers;
-    private readonly int _noiseFrames;
     private readonly int _channels;
     private int _noiseFramesCollected;
     private bool _noiseEstimationDone;
 
     /// <inheritdoc />
-    public override string Name { get; set; } = "Noise Reducer";
+    public override string Name { get; set; } = "Noise Reduction";
 
     /// <summary>
-    /// WIP - Initializes a new instance of the <see cref="NoiseReductionModifier"/> class.
+    /// FFT 大小，必须是 2 的幂<br />
+    /// The size of the FFT. Must be a power of 2.
     /// </summary>
-    /// <param name="fftSize">The size of the FFT. Must be a power of 2.</param>
-    /// <param name="alpha">The over-subtraction factor. Typical values are between 1 and 5.</param>
-    /// <param name="beta">The spectral flooring parameter. Typical values are between 0 and 0.1.</param>
-    /// <param name="smoothingFactor">The smoothing factor for residual noise suppression.</param>
-    /// <param name="gain">Post-processing gain multiplier.</param>
-    /// <param name="noiseFrames">The number of initial frames to use for noise estimation.</param>
-    /// <exception cref="ArgumentException"></exception>
-    /// <remarks>Exceptionally Not working yet.</remarks>
-    public NoiseReductionModifier(int fftSize = 2048, float alpha = 2.0f, float beta = 0.01f, 
-        float smoothingFactor = 0.9f, float gain = 1.2f, int noiseFrames = 10)
+    public int FftSize
     {
-        if ((fftSize & fftSize - 1) != 0)
-            throw new ArgumentException("FFT size must be a power of 2.");
-        
-        _fftSize = fftSize;
-        _hopSize = fftSize / 2;
-        _alpha = alpha;
-        _beta = beta;
-        _smoothingFactor = smoothingFactor;
-        _gain = gain;
+        get => _fftSize;
+        set
+        {
+            if ((value & value - 1) != 0)
+                throw new ArgumentException("FFT size must be a power of 2.");
+            
+            _fftSize = value;
+            _hopSize = value / 2;
+        }
+    }
+
+    /// <summary>
+    /// 过减因子，典型值在 1 到 5 之间<br />
+    /// The over-subtraction factor. Typical values are between 1 and 5.
+    /// </summary>
+    public float Alpha
+    {
+        get => _alpha;
+        set => _alpha = Math.Clamp(value, 0.5f, 10.0f);
+    }
+
+    /// <summary>
+    /// 谱底参数，典型值在 0 到 0.1 之间<br />
+    /// The spectral flooring parameter. Typical values are between 0 and 0.1.
+    /// </summary>
+    public float Beta
+    {
+        get => _beta;
+        set => _beta = Math.Clamp(value, 0.0f, 0.5f);
+    }
+
+    /// <summary>
+    /// 残余噪声抑制的平滑因子<br />
+    /// The smoothing factor for residual noise suppression.
+    /// </summary>
+    public float SmoothingFactor
+    {
+        get => _smoothingFactor;
+        set => _smoothingFactor = Math.Clamp(value, 0.0f, 1.0f);
+    }
+
+    /// <summary>
+    /// 后处理增益乘数<br />
+    /// Post-processing gain multiplier.
+    /// </summary>
+    public float Gain
+    {
+        get => _gain;
+        set => _gain = Math.Clamp(value, 0.1f, 5.0f);
+    }
+
+    /// <summary>
+    /// 用于噪声估计的初始帧数<br />
+    /// The number of initial frames to use for noise estimation.
+    /// </summary>
+    public int NoiseFrames
+    {
+        get => _noiseFrames;
+        set => _noiseFrames = Math.Clamp(value, 1, 100);
+    }
+
+    /// <summary>
+    /// 构造函数<br />
+    /// Constructor
+    /// </summary>
+    public NoiseReductionModifier()
+    {
+        _hopSize = _fftSize / 2;
         _channels = AudioEngine.Channels;
-        _window = MathHelper.HanningWindow(fftSize);
+        _window = MathHelper.HanningWindow(_fftSize);
         _windowSumSq = CalculateWindowSumSq();
         
         _fftBuffers = new Complex[_channels][];
@@ -68,7 +121,9 @@ public class NoiseReductionModifier : SoundModifier
             _inputBuffers[c] = new float[_fftSize * 2]; // Ring buffer
             _outputOverlapBuffers[c] = new float[_hopSize];
         }
-        _noiseFrames = noiseFrames;
+        
+        _noiseFramesCollected = 0;
+        _noiseEstimationDone = false;
     }
 
     private float CalculateWindowSumSq()
@@ -107,11 +162,13 @@ public class NoiseReductionModifier : SoundModifier
 
     /// <inheritdoc />
     public override float ProcessSample(float sample, int channel) => 
-        throw new NotSupportedException("NoiseReducer operates on buffers");
+        throw new NotSupportedException("噪声降低器只能处理缓冲区");
 
     /// <inheritdoc />
     public override void Process(Span<float> buffer)
     {
+        if (_channels != AudioEngine.Channels) return;
+        
         for (int c = 0; c < _channels; c++)
         {
             ProcessChannel(

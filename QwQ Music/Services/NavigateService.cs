@@ -15,7 +15,8 @@ public static class NavigateService
             { "设置", ("窗口", 3) },
             { "歌词", ("设置", 0) },
             { "音效", ("设置", 1) },
-            { "立体效果", ("音效", 0) },
+            { "输出", ("设置", 2) },
+            { "立体增强", ("音效", 0) },
             { "空间效果", ("音效", 1) },
             { "环绕效果", ("音效", 1) },
             { "混响效果", ("音效", 1) },
@@ -26,6 +27,7 @@ public static class NavigateService
             { "均衡器", ("音效", 1) },
             { "淡入淡出", ("音效", 1) },
             { "回调增益", ("音效", 1) },
+            { "噪音减少", ("音效", 1) },
         };
 
     private static readonly Dictionary<string, string[]?> ViewTree = new()
@@ -34,11 +36,11 @@ public static class NavigateService
         { "主页", null },
         { "分类", null },
         { "统计", null },
-        { "设置", ["歌词", "音效"] },
+        { "设置", ["歌词", "音效", "输出"] },
         {
             "音效",
             [
-                "立体效果",
+                "立体增强",
                 "空间效果",
                 "环绕效果",
                 "混响效果",
@@ -50,6 +52,7 @@ public static class NavigateService
                 "均衡器",
                 "淡入淡出",
                 "回调增益",
+                "噪音减少",
             ]
         },
     };

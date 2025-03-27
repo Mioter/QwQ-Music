@@ -36,7 +36,6 @@
                 </StackPanel.Styles>
 
                 <TextBox
-                    Classes="clearButton"
                     CornerRadius="8"
                     HorizontalAlignment="Left"
                     Text="{Binding SearchText, Mode=TwoWay}"

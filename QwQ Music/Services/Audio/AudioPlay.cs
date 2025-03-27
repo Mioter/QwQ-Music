@@ -245,7 +245,8 @@ public class AudioPlay : IAudioPlay
             .AddModifier(_soundEffectConfig.StereoEnhancementModifier)
             .AddModifier(_soundEffectConfig.TremoloModifier)
             .AddModifier(_soundEffectConfig.DistortionModifier)
-            .AddModifier(_soundEffectConfig.ParametricEqualizer);
+            .AddModifier(_soundEffectConfig.ParametricEqualizer)
+            .AddModifier(_soundEffectConfig.NoiseReductionModifier);
     }
 
     

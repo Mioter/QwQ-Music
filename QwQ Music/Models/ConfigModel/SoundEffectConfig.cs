@@ -29,6 +29,8 @@ public partial class SoundEffectConfig : ObservableObject
     public DistortionModifier DistortionModifier { get; set; } = new();
     
     public ParametricEqualizer ParametricEqualizer { get; set; } = new();
+    
+    public NoiseReductionModifier NoiseReductionModifier { get; set; } = new();
 
     public static TremoloModifier.TremoloWaveform[] TremoloWaveforms { get; set; } = EnumHelper<TremoloModifier.TremoloWaveform>.ToArray();
     

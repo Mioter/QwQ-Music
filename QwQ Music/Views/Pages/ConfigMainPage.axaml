@@ -39,6 +39,7 @@
 
             <TextBlock Text="歌词" />
             <TextBlock Text="音效" />
+            <TextBlock Text="输出" />
 
         </u:SelectionList>
 
@@ -57,6 +58,7 @@
 
             <pages:LyricConfigPage />
             <pages:SoundEffectConfigPage />
+            <pages:AudioOutputConfigPage />
 
         </control:IndexControl>
     </Grid>

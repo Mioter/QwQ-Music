@@ -31,7 +31,7 @@ public static class MusicExtractor
         // 检查文件是否存在
         if (File.Exists(filePath))
         {
-            LoggerService.Info($"Cover already exists: {filePath}. Skipping save.");
+            /*LoggerService.Info($"Cover already exists: {filePath}. Skipping save.");*/
             return true;
         }
 

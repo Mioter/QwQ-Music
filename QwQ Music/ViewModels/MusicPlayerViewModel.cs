@@ -121,6 +121,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
     partial void OnIsPlayingChanged(bool value)
     {
         PlaybackStateChanged?.Invoke(this, value);
+
+        if (value)
+            _audioPlay.Play();
+        else
+            _audioPlay.Pause();
     }
 
     partial void OnMusicItemsChanged(ObservableCollection<MusicItemModel> value)
@@ -154,7 +159,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             CurrentMusicItem.Current = TimeSpan.Zero;
             await ToggleNextSong();
-            CurrentMusicItem.Current = TimeSpan.Zero;
+            CurrentDurationInSeconds = 0;
         }
         catch (Exception ex)
         {
@@ -175,13 +180,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     #region 播放控制方法
     
-    private void UpdatePlaybackState(bool isPlaying)
-    {
-        if (isPlaying)
-            _audioPlay.Play();
-        else
-            _audioPlay.Pause();
-    }
 
     [RelayCommand]
     private async Task TogglePlayback()
@@ -193,7 +191,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
             Playlist.MusicItems = new ObservableCollection<MusicItemModel>(MusicItems);
 
         IsPlaying = !IsPlaying;
-        UpdatePlaybackState(IsPlaying);
     }
 
     [RelayCommand]
@@ -211,8 +208,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
             await SetCurrentMusicItem(musicItem, true);
             IsPlaying = true;
         }
-
-        UpdatePlaybackState(IsPlaying);
     }
 
     [RelayCommand]
@@ -250,7 +245,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         await SetCurrentMusicItem(CurrentMusicItem, true);
         IsPlaying = true;
-        UpdatePlaybackState(IsPlaying);
     }
     
     #endregion
@@ -297,7 +291,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
             return;
         await SetCurrentMusicItem(Playlist.MusicItems[index]);
         IsPlaying = true;
-        UpdatePlaybackState(IsPlaying);
     }
 
     private static int GetNextIndex(int current) => (current + 1) % Playlist.Count;
@@ -311,15 +304,10 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     #region 数据持久化
     
-    private static void SaveMusicInfo(ObservableCollection<MusicItemModel> musicItems)
-    {
-        foreach (var item in musicItems)
-            DataBaseService.SaveToDatabaseAsync(item, DataBaseService.Table.MUSICS).ConfigureAwait(false);
-    }
-
     private void SaveConfig()
     {
-        SaveMusicInfo(MusicItems);
+        foreach (var item in MusicItems)
+            DataBaseService.SaveToDatabaseAsync(item, DataBaseService.Table.MUSICS).ConfigureAwait(false);
     }
     
     #endregion
@@ -340,6 +328,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             musicItem.Current = TimeSpan.Zero;
         }
+        
+        IsPlaying = false;
         
         try
         {
