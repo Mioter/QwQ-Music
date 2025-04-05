@@ -423,7 +423,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
         if (PlayerConfig.SampleRate != _audioEngine.SampleRate)
         {
-            SetOutputSampleRate(PlayerConfig.SampleRate);
+            await SetOutputSampleRate(PlayerConfig.SampleRate);
         }
 
         var args = new CurrentMusicItemChangedCancelEventArgs(musicItem);
@@ -455,7 +455,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         });
     }
 
-    private async void SetOutputSampleRate(int sampleRate)
+    private async Task SetOutputSampleRate(int sampleRate)
     {
         try
         {

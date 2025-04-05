@@ -223,9 +223,19 @@ public static class DataBaseService
             var data = model.Dump();
             string formatted = "";
             foreach ((string? key, string? val) in data)
-                formatted += $"{key} = {val},";
-
-            command.CommandText = $"UPDATE {table:G} {formatted.TrimEnd(',')} WHERE {condition}";
+                formatted += $"{key} = '{val.Replace("'", "''")}',"; // 添加单引号并转义已有的单引号
+    
+            // 确保WHERE条件中的字符串值被单引号括起来
+            if (condition.Contains("="))
+            {
+                var parts = condition.Split('=');
+                if (parts.Length == 2)
+                {
+                    condition = $"{parts[0].Trim()} = '{parts[1].Trim().Replace("'", "''")}'";
+                }
+            }
+    
+            command.CommandText = $"UPDATE {table:G} SET {formatted.TrimEnd(',')} WHERE {condition}";
             await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             return true;
         }

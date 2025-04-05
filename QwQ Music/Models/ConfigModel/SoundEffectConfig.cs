@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Helper;
-using QwQ_Music.Utilities;
 using SoundFlow.Modifiers;
 
 namespace QwQ_Music.Models.ConfigModel;
@@ -34,13 +33,6 @@ public partial class SoundEffectConfig : ObservableObject
 
     public static TremoloModifier.TremoloWaveform[] TremoloWaveforms { get; set; } =
         EnumHelper<TremoloModifier.TremoloWaveform>.ToArray();
-
-    [ObservableProperty]
-    public partial MusicReplayGainStandard SelectedMusicReplayGainStandard { get; set; } =
-        MusicReplayGainStandard.Streaming;
-
-    [ObservableProperty]
-    public partial double CustomMusicReplayGainStandard { get; set; } = 12;
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

@@ -109,16 +109,6 @@
                 </Grid>
 
                 <StackPanel>
-                    <TextBlock Text="淡入淡出" />
-                    <CheckBox IsChecked="{Binding SoundEffectConfig.FadeModifier.Enabled}" />
-                </StackPanel>
-
-                <StackPanel>
-                    <TextBlock Text="回放增益" />
-                    <CheckBox IsChecked="{Binding SoundEffectConfig.ReplayGainModifier.Enabled}" />
-                </StackPanel>
-
-                <StackPanel>
                     <TextBlock Text="噪音减少" />
                     <CheckBox IsChecked="{Binding SoundEffectConfig.NoiseReductionModifier.Enabled}" />
                 </StackPanel>
@@ -248,7 +238,8 @@
                             <Border
                                 ClipToBounds="True"
                                 IsHitTestVisible="False"
-                                Margin="3">
+                                Margin="3"
+                                behaviors:DynamicCornerBehavior.IsEnabled="True">
 
                                 <Image
                                     Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}"
@@ -363,6 +354,15 @@
                 </StackPanel>
 
                 <StackPanel DataContext="{Binding SoundEffectConfig.DelayModifier}">
+
+                    <u:Divider Content="{Binding #DelaySetter4.Value, StringFormat='延迟时间 : {0} 毫秒'}" FontSize="12" />
+                    <u:NumericIntUpDown
+                        InnerRightContent="ms"
+                        Maximum="60000"
+                        Minimum="0"
+                        Name="DelaySetter4"
+                        Step="200"
+                        Value="{Binding DelayTimeMs}" />
 
                     <TextBlock FontSize="12" Text="{Binding #DelaySetter1.Value, StringFormat='截至频率 : {0:F3} '}" />
                     <Slider
@@ -565,119 +565,6 @@
 
                     </Border>
                 </Grid>
-
-                <StackPanel DataContext="{Binding SoundEffectConfig.FadeModifier}">
-
-                    <u:Divider Content="{Binding FadeInTimeMs, StringFormat='淡入时长 : {0} 毫秒'}" FontSize="12" />
-                    <u:NumericIntUpDown
-                        EmptyInputValue="1"
-                        InnerRightContent="ms"
-                        Maximum="60000"
-                        Minimum="0"
-                        Step="200"
-                        Value="{Binding FadeInTimeMs}" />
-                    <u:Divider Content="{Binding FadeOutTimeMs, StringFormat='淡出时长 : {0} 毫秒'}" FontSize="12" />
-
-                    <u:NumericIntUpDown
-                        EmptyInputValue="1"
-                        InnerRightContent="ms"
-                        Maximum="60000"
-                        Minimum="0"
-                        Step="200"
-                        Value="{Binding FadeOutTimeMs}" />
-
-                </StackPanel>
-
-                <StackPanel>
-
-                    <StackPanel.Resources>
-
-                        <!--  ReSharper disable once Xaml.RedundantResource  -->
-                        <x:Double x:Key="BannerTitleFontSize">14</x:Double>
-
-                    </StackPanel.Resources>
-
-                    <u:Banner
-                        Classes="Bordered"
-                        Content="回放增益是一种用于标准化音频播放音量的技术，旨在解决不同音频文件之间音量差异的问题。通过分析音频文件的内容，计算出一个标准化的响度值，并将该值以元数据的形式存储在文件中，而不会改变原始音频数据本身。"
-                        CornerRadius="8"
-                        FontSize="12"
-                        Header="什么是回放增益"
-                        HorizontalContentAlignment="Stretch"
-                        Margin="0,5" />
-
-                    <StackPanel Orientation="Horizontal">
-
-                        <StackPanel.Styles>
-                            <Style Selector="StackPanel &gt; TextBlock">
-                                <Setter Property="FontSize" Value="12" />
-                            </Style>
-                        </StackPanel.Styles>
-
-                        <TextBlock FontWeight="Bold" Text="{Binding NumberOfCompletedCalc, StringFormat='已计算增益 : {0}'}" />
-
-                        <TextBlock Text="{Binding MusicPlayerViewModel.MusicItems.Count, StringFormat=' / {0}'}" />
-
-                    </StackPanel>
-
-
-                    <ProgressBar Maximum="{Binding MusicPlayerViewModel.MusicItems.Count}" Value="{Binding NumberOfCompletedCalc}" />
-
-                    <Grid ColumnDefinitions="*,Auto" Margin="0,5">
-
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <ComboBox
-                                CornerRadius="8"
-                                ItemsSource="{Binding MusicReplayGainStandardList}"
-                                MinWidth="130"
-                                SelectedItem="{Binding SoundEffectConfig.SelectedMusicReplayGainStandard}" />
-
-                            <u:NumericIntUpDown
-                                CornerRadius="8"
-                                IsVisible="{Binding SoundEffectConfig.SelectedMusicReplayGainStandard, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Custom'}"
-                                Value="{Binding SoundEffectConfig.CustomMusicReplayGainStandard}"
-                                Width="100" />
-                        </StackPanel>
-
-                        <StackPanel
-                            Grid.Column="1"
-                            Orientation="Horizontal"
-                            Spacing="10">
-
-                            <Button
-                                Classes="Icon"
-                                Command="{Binding ToggleCalculationCommand}"
-                                Content="{Binding CalculationButtonText}"
-                                CornerRadius="8"
-                                FontSize="12"
-                                Padding="8" />
-
-                            <Button
-                                Classes="Icon"
-                                Command="{Binding CancelCalcCallbackGainCommand}"
-                                Content="取消计算"
-                                CornerRadius="8"
-                                FontSize="12"
-                                IsEnabled="{Binding TaskHandle, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                Padding="8" />
-
-                            <u:IconButton
-                                Classes="Transparent"
-                                Command="{Binding ClearCallbackGainCommand}"
-                                Content="清空增益"
-                                CornerRadius="8"
-                                FontSize="12"
-                                IsEnabled="{Binding TaskHandle, Converter={x:Static ObjectConverters.IsNull}}">
-                                <u:IconButton.Icon>
-                                    <PathIcon
-                                        Data="{StaticResource SemiIconDelete}"
-                                        Foreground="#ff6b6b"
-                                        Height="12" />
-                                </u:IconButton.Icon>
-                            </u:IconButton>
-                        </StackPanel>
-                    </Grid>
-                </StackPanel>
 
                 <StackPanel>
 
