@@ -29,17 +29,18 @@ internal static unsafe partial class Native
             return NativeLibrary.Load(libraryPath);
         }
 
-
         private static string GetLibraryPath(string libraryName)
         {
-            string? relativeBase = Directory.Exists("runtimes") ? "runtimes" :
-                Directory.EnumerateDirectories(Directory.GetCurrentDirectory(), "runtimes", SearchOption.AllDirectories)
+            string? relativeBase = Directory.Exists("runtimes")
+                ? "runtimes"
+                : Directory
+                    .EnumerateDirectories(Directory.GetCurrentDirectory(), "runtimes", SearchOption.AllDirectories)
                     .Select(dirPath => Path.GetRelativePath(Directory.GetCurrentDirectory(), dirPath))
                     .FirstOrDefault();
-            
+
             if (string.IsNullOrEmpty(relativeBase))
                 throw new DirectoryNotFoundException("Unable to find runtimes directory.");
-            
+
             if (OperatingSystem.IsWindows())
             {
                 return RuntimeInformation.ProcessArchitecture switch
@@ -48,7 +49,8 @@ internal static unsafe partial class Native
                     Architecture.X64 => $"{relativeBase}/win-x64/native/{libraryName}.dll",
                     Architecture.Arm64 => $"{relativeBase}/win-arm64/native/{libraryName}.dll",
                     _ => throw new PlatformNotSupportedException(
-                        $"Unsupported Windows architecture: {RuntimeInformation.ProcessArchitecture}"),
+                        $"Unsupported Windows architecture: {RuntimeInformation.ProcessArchitecture}"
+                    ),
                 };
             }
 
@@ -59,7 +61,8 @@ internal static unsafe partial class Native
                     Architecture.X64 => $"{relativeBase}/osx-x64/native/{libraryName}.dylib",
                     Architecture.Arm64 => $"{relativeBase}/osx-arm64/native/{libraryName}.dylib",
                     _ => throw new PlatformNotSupportedException(
-                        $"Unsupported macOS architecture: {RuntimeInformation.ProcessArchitecture}"),
+                        $"Unsupported macOS architecture: {RuntimeInformation.ProcessArchitecture}"
+                    ),
                 };
             }
 
@@ -71,7 +74,8 @@ internal static unsafe partial class Native
                     Architecture.Arm => $"{relativeBase}/linux-arm/native/{libraryName}.so",
                     Architecture.Arm64 => $"{relativeBase}/linux-arm64/native/{libraryName}.so",
                     _ => throw new PlatformNotSupportedException(
-                        $"Unsupported Linux architecture: {RuntimeInformation.ProcessArchitecture}"),
+                        $"Unsupported Linux architecture: {RuntimeInformation.ProcessArchitecture}"
+                    ),
                 };
             }
 
@@ -83,7 +87,8 @@ internal static unsafe partial class Native
                     Architecture.Arm => $"{relativeBase}/android-arm/native/{libraryName}.so",
                     Architecture.Arm64 => $"{relativeBase}/android-arm64/native/{libraryName}.so",
                     _ => throw new PlatformNotSupportedException(
-                        $"Unsupported Android architecture: {RuntimeInformation.ProcessArchitecture}"),
+                        $"Unsupported Android architecture: {RuntimeInformation.ProcessArchitecture}"
+                    ),
                 };
             }
 
@@ -94,12 +99,14 @@ internal static unsafe partial class Native
                 {
                     Architecture.Arm64 => $"{relativeBase}/ios-arm64/native/{libraryName}.framework/{libraryName}",
                     _ => throw new PlatformNotSupportedException(
-                        $"Unsupported iOS architecture: {RuntimeInformation.ProcessArchitecture}"),
+                        $"Unsupported iOS architecture: {RuntimeInformation.ProcessArchitecture}"
+                    ),
                 };
             }
 
             throw new PlatformNotSupportedException(
-                $"Unsupported operating system: {RuntimeInformation.OSDescription}");
+                $"Unsupported operating system: {RuntimeInformation.OSDescription}"
+            );
         }
     }
 
@@ -112,23 +119,36 @@ internal static unsafe partial class Native
     public static partial void EncoderUninit(nint pEncoder);
 
     [LibraryImport("libminiaudio", EntryPoint = "ma_encoder_write_pcm_frames")]
-    public static partial Result EncoderWritePcmFrames(nint pEncoder, nint pFramesIn, ulong frameCount,
-        ulong* pFramesWritten);
+    public static partial Result EncoderWritePcmFrames(
+        nint pEncoder,
+        nint pFramesIn,
+        ulong frameCount,
+        ulong* pFramesWritten
+    );
 
     #endregion
 
     #region Decoder
 
     [LibraryImport("libminiaudio", EntryPoint = "ma_decoder_init")]
-    public static partial Result DecoderInit(DecoderRead onRead, DecoderSeek onSeek, nint pUserData,
-        nint pConfig, nint pDecoder);
+    public static partial Result DecoderInit(
+        DecoderRead onRead,
+        DecoderSeek onSeek,
+        nint pUserData,
+        nint pConfig,
+        nint pDecoder
+    );
 
     [LibraryImport("libminiaudio", EntryPoint = "ma_decoder_uninit")]
     public static partial Result DecoderUninit(nint pDecoder);
 
     [LibraryImport("libminiaudio", EntryPoint = "ma_decoder_read_pcm_frames")]
-    public static partial Result DecoderReadPcmFrames(nint decoder, nint framesOut, uint frameCount,
-        out uint* framesRead);
+    public static partial Result DecoderReadPcmFrames(
+        nint decoder,
+        nint framesOut,
+        uint frameCount,
+        out uint* framesRead
+    );
 
     [LibraryImport("libminiaudio", EntryPoint = "ma_decoder_seek_to_pcm_frame")]
     public static partial Result DecoderSeekToPcmFrame(nint decoder, ulong frame);
@@ -142,7 +162,7 @@ internal static unsafe partial class Native
 
     [LibraryImport("libminiaudio", EntryPoint = "ma_context_init")]
     public static partial Result ContextInit(nint backends, uint backendCount, nint config, nint context);
-    
+
     [LibraryImport("libminiaudio", EntryPoint = "ma_context_uninit")]
     public static partial void ContextUninit(nint context);
 
@@ -151,7 +171,13 @@ internal static unsafe partial class Native
     #region Device
 
     [LibraryImport("libminiaudio", EntryPoint = "sf_get_devices")]
-    public static partial Result GetDevices(nint context, out nint pPlaybackDevices, out nint pCaptureDevices, out nint playbackDeviceCount, out nint captureDeviceCount);
+    public static partial Result GetDevices(
+        nint context,
+        out nint pPlaybackDevices,
+        out nint pCaptureDevices,
+        out nint playbackDeviceCount,
+        out nint captureDeviceCount
+    );
 
     [LibraryImport("libminiaudio", EntryPoint = "ma_device_init")]
     public static partial Result DeviceInit(nint context, nint config, nint device);
@@ -185,12 +211,23 @@ internal static unsafe partial class Native
     public static partial nint AllocateDecoderConfig(SampleFormat format, uint channels, uint sampleRate);
 
     [LibraryImport("libminiaudio", EntryPoint = "sf_allocate_encoder_config")]
-    public static partial nint AllocateEncoderConfig(EncodingFormat encodingFormat, SampleFormat format, uint channels,
-        uint sampleRate);
+    public static partial nint AllocateEncoderConfig(
+        EncodingFormat encodingFormat,
+        SampleFormat format,
+        uint channels,
+        uint sampleRate
+    );
 
     [LibraryImport("libminiaudio", EntryPoint = "sf_allocate_device_config")]
-    public static partial nint AllocateDeviceConfig(Capability capabilityType, SampleFormat format, uint channels,
-        uint sampleRate, AudioCallback dataCallback, nint playbackDevice, nint captureDevice);
+    public static partial nint AllocateDeviceConfig(
+        Capability capabilityType,
+        SampleFormat format,
+        uint channels,
+        uint sampleRate,
+        AudioCallback dataCallback,
+        nint playbackDevice,
+        nint captureDevice
+    );
 
     #endregion
 

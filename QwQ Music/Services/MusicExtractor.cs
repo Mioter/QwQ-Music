@@ -13,14 +13,18 @@ namespace QwQ_Music.Services;
 
 public static class MusicExtractor
 {
+    // 添加缓存大小限制和LRU跟踪
     private static readonly Dictionary<string, Bitmap> ImageCache = new();
+    private static readonly LinkedList<string> CacheOrder = [];
+    private const int MaxCacheSize = 50; // 最大缓存图片数量
+    private const int DefaultThumbnailWidth = 128; // 默认缩略图宽度，降低了原来的256
 
     /// <summary>
     /// 异步保存专辑封面图片。
     /// </summary>
     /// <param name="cover">专辑封面图片。</param>
     /// <param name="coverName">专辑封面索引。</param>
-    private async static Task<bool> SaveCoverAsync(Lazy<Bitmap> cover, string coverName)
+    private static async Task<bool> SaveCoverAsync(Lazy<Bitmap> cover, string coverName)
     {
         // 构造完整文件路径
         string filePath = Path.Combine(PlayerConfig.CoverSavePath, coverName);
@@ -41,7 +45,8 @@ public static class MusicExtractor
                 {
                     await using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
                     cover.Value.Save(fs); // 指定格式
-                }).ConfigureAwait(false);
+                })
+                .ConfigureAwait(false);
 
             return true;
         }
@@ -52,7 +57,7 @@ public static class MusicExtractor
         }
     }
 
-    public async static Task<LyricsModel> ExtractMusicLyricsAsync(string filePath) =>
+    public static async Task<LyricsModel> ExtractMusicLyricsAsync(string filePath) =>
         await Task.Run(() => LyricsModel.ParseAsync(new Track(filePath).Lyricist));
 
     /// <summary>
@@ -60,7 +65,7 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>包含扩展信息的字典。</returns>
-    public async static Task<MusicTagExtensions> ExtractExtensionsInfoAsync(string filePath)
+    public static async Task<MusicTagExtensions> ExtractExtensionsInfoAsync(string filePath)
     {
         return await Task.Run(() =>
         {
@@ -90,53 +95,53 @@ public static class MusicExtractor
             );
         });
     }
-    
+
     /// <summary>
     /// 异步获取详细信息
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>包含详细信息的字典。</returns>
-    public async static Task<MusicDetailedInfo> ExtractDetailedInfoAsync(string filePath)
+    public static async Task<MusicDetailedInfo> ExtractDetailedInfoAsync(string filePath)
     {
         return await Task.Run(() =>
         {
-        var track = new Track(filePath);
-        return new MusicDetailedInfo(
-            // 发布信息
-            track.Date,
-            track.OriginalReleaseDate,
-            track.PublishingDate,
-            // 专业信息
-            track.ISRC ?? string.Empty,
-            track.CatalogNumber ?? string.Empty,
-            track.ProductId ?? string.Empty,
-            // 其他信息
-            track.BPM,
-            track.Popularity,
-            track.SeriesTitle ?? string.Empty,
-            track.SeriesPart ?? string.Empty,
-            track.LongDescription ?? string.Empty,
-            track.Group ?? string.Empty,
-            // 技术信息
-            track.TechnicalInformation.AudioDataOffset,
-            track.TechnicalInformation.AudioDataSize
-        );
+            var track = new Track(filePath);
+            return new MusicDetailedInfo(
+                // 发布信息
+                track.Date,
+                track.OriginalReleaseDate,
+                track.PublishingDate,
+                // 专业信息
+                track.ISRC ?? string.Empty,
+                track.CatalogNumber ?? string.Empty,
+                track.ProductId ?? string.Empty,
+                // 其他信息
+                track.BPM,
+                track.Popularity,
+                track.SeriesTitle ?? string.Empty,
+                track.SeriesPart ?? string.Empty,
+                track.LongDescription ?? string.Empty,
+                track.Group ?? string.Empty,
+                // 技术信息
+                track.TechnicalInformation.AudioDataOffset,
+                track.TechnicalInformation.AudioDataSize
+            );
         });
     }
-    
+
     /// <summary>
     /// 异步获取自定义字段
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>自定义字段信息字典。</returns>
-    public async static Task<Dictionary<string, string>> ExtractAdditionalFieldsAsync(string filePath)
+    public static async Task<Dictionary<string, string>> ExtractAdditionalFieldsAsync(string filePath)
     {
         return await Task.Run(() =>
         {
-        var track = new Track(filePath);
-        return track.AdditionalFields != null 
-            ? new Dictionary<string, string>(track.AdditionalFields) 
-            : new Dictionary<string, string>();
+            var track = new Track(filePath);
+            return track.AdditionalFields != null
+                ? new Dictionary<string, string>(track.AdditionalFields)
+                : new Dictionary<string, string>();
         });
     }
 
@@ -145,27 +150,28 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="filePath">音乐文件路径。</param>
     /// <returns>包含音乐信息的模型。</returns>
-    public async static Task<MusicItemModel?> ExtractMusicInfoAsync(string filePath)
+    public static async Task<MusicItemModel?> ExtractMusicInfoAsync(string filePath)
     {
         try
         {
             var track = new Track(filePath);
             long fileSizeBytes = new FileInfo(filePath).Length;
             string fileSize = FormatFileSize(fileSizeBytes);
-            string title = track.Title ?? Path.GetFileNameWithoutExtension(filePath);
+            string title = string.IsNullOrWhiteSpace(track.Title)
+                ? Path.GetFileNameWithoutExtension(filePath)
+                : track.Title;
             string composer = track.Composer;
             string artists = track.Artist;
             string album = track.Album;
             var duration = TimeSpan.FromMilliseconds(track.DurationMs);
             string comment = track.Comment;
             string encodingFormat = track.Description;
-            string allArtists = string.Join(",", artists);
 
             if (track.EmbeddedPictures.Count <= 0)
             {
                 return new MusicItemModel(
                     title,
-                    artists, 
+                    artists,
                     composer,
                     album,
                     null,
@@ -178,7 +184,7 @@ public static class MusicExtractor
                 );
             }
             string coverFileName = CleanFileName(
-                $"{(allArtists.Length > 20 ? allArtists[..20] : allArtists)}-{(album?.Length > 20 ? album[..20] : album)
+                $"{(artists.Length > 20 ? artists[..20] : artists)}-{(album?.Length > 20 ? album[..20] : album)
                 }.jpg"
             );
 
@@ -189,7 +195,8 @@ public static class MusicExtractor
                 .ConfigureAwait(false);
             return new MusicItemModel(
                 title,
-                artists, composer,
+                artists,
+                composer,
                 album,
                 Path.Combine(PlayerConfig.CoverSavePath, coverFileName),
                 filePath,
@@ -240,10 +247,12 @@ public static class MusicExtractor
         // 尝试从缓存中加载
         if (ImageCache.TryGetValue(coverPath, out var cachedImage))
         {
+            // 更新LRU顺序
+            CacheOrder.Remove(coverPath);
+            CacheOrder.AddFirst(coverPath);
             return cachedImage;
         }
 
-        // 获取文件流
         using var stream = GetFileStream(coverPath);
         if (stream == null)
         {
@@ -252,11 +261,22 @@ public static class MusicExtractor
 
         try
         {
-            // 解码并缩放图片
-            var bitmap = Bitmap.DecodeToWidth(stream, 256);
+            // 解码并缩放图片，使用较小的宽度
+            var bitmap = Bitmap.DecodeToWidth(stream, DefaultThumbnailWidth);
+
+            // 管理缓存大小
+            if (ImageCache.Count >= MaxCacheSize && CacheOrder is { Count: > 0, Last: not null })
+            // 移除最久未使用的图片
+            {
+                string oldestKey = CacheOrder.Last.Value;
+                CacheOrder.RemoveLast();
+                ImageCache.Remove(oldestKey);
+            }
 
             // 更新缓存
             ImageCache[coverPath] = bitmap;
+            CacheOrder.AddFirst(coverPath);
+
             return bitmap;
         }
         catch (Exception ex)

@@ -38,7 +38,8 @@ public static class MathHelper
     public static void Fft(Complex[] data)
     {
         int n = data.Length;
-        if (n <= 1) return;
+        if (n <= 1)
+            return;
 
         if (Avx.IsSupported && n >= 8) // Use AVX for larger arrays
             FftAvx(data);
@@ -55,7 +56,8 @@ public static class MathHelper
     private static void FftScalar(Complex[] data)
     {
         int n = data.Length;
-        if (n <= 1) return;
+        if (n <= 1)
+            return;
 
         // Separate even and odd elements
         var even = new Complex[n / 2];
@@ -95,8 +97,10 @@ public static class MathHelper
         {
             int m = 1 << s;
             int m2 = m >> 1;
-            var wm = Vector128.Create(Complex.FromPolarCoordinates(1.0, -Math.PI / m2).Real,
-                Complex.FromPolarCoordinates(1.0, -Math.PI / m2).Imaginary);
+            var wm = Vector128.Create(
+                Complex.FromPolarCoordinates(1.0, -Math.PI / m2).Real,
+                Complex.FromPolarCoordinates(1.0, -Math.PI / m2).Imaginary
+            );
 
             for (int k = 0; k < n; k += m)
             {
@@ -175,7 +179,8 @@ public static class MathHelper
                 var w = Vector256.Create(1.0, 0.0, 1.0, 0.0);
                 for (int j = 0; j < m2; j += 2)
                 {
-                    if (j + 1 >= m2) break;
+                    if (j + 1 >= m2)
+                        break;
 
                     fixed (Complex* pData = &data[0])
                     {
@@ -227,18 +232,13 @@ public static class MathHelper
     {
         // (a.Real * b.Real - a.Imaginary * b.Imaginary, a.Real * b.Imaginary + a.Imaginary * b.Real)
         var real = Sse2.Multiply(a, b);
-        var imaginary =
-            Sse2.Multiply(Sse2.Shuffle(a, a, 0b_01_00_01_00),
-                Sse2.Shuffle(b, b,
-                    0b_01_00_01_00)); // [a.Imaginary, a.Real, a.Imaginary, a.Real] * [b.Imaginary, b.Real, b.Imaginary, b.Real]
+        var imaginary = Sse2.Multiply(Sse2.Shuffle(a, a, 0b_01_00_01_00), Sse2.Shuffle(b, b, 0b_01_00_01_00)); // [a.Imaginary, a.Real, a.Imaginary, a.Real] * [b.Imaginary, b.Real, b.Imaginary, b.Real]
 
         // Negate the second element in imaginary
         var sign = Vector128.Create(-1.0, 1.0);
         imaginary = Sse2.Multiply(imaginary, sign);
 
-        return Sse2.Add(real,
-            Sse2.Shuffle(imaginary, imaginary,
-                0b_01_00_01_00)); // [real.Real - imaginary.Imaginary, real.Imaginary + imaginary.Real]
+        return Sse2.Add(real, Sse2.Shuffle(imaginary, imaginary, 0b_01_00_01_00)); // [real.Real - imaginary.Imaginary, real.Imaginary + imaginary.Real]
     }
 
     /// <summary>
@@ -252,23 +252,20 @@ public static class MathHelper
         var bSwapped = Avx.Shuffle(b, b, 0b_01_00_01_00);
         var temp1 = Avx.Multiply(a, b);
         var temp2 = Avx.Multiply(a, bSwapped);
-    
+
         // Compute real parts: temp1[0] - temp1[1], temp1[2] - temp1[3]
         var real = Avx.HorizontalSubtract(temp1, temp1);
         real = Avx.Permute2x128(real, real, 0x31);
-    
+
         // Compute imag parts: temp2[0] + temp2[1], temp2[2] + temp2[3]
         var imag = Avx.HorizontalAdd(temp2, temp2);
         imag = Avx.Permute2x128(imag, imag, 0x31);
-    
+
         // Combine real and imag parts
-        var result = Avx.Add(
-            Avx.Shuffle(real, real, 0b_00_00_10_00),
-            Avx.Shuffle(imag, imag, 0b_01_01_11_01)
-        );
+        var result = Avx.Add(Avx.Shuffle(real, real, 0b_00_00_10_00), Avx.Shuffle(imag, imag, 0b_01_01_11_01));
         return result;
     }
-    
+
     /// <summary>
     /// Generates a Hamming window of a specified size using SIMD acceleration with fallback to a scalar implementation.
     /// </summary>
@@ -482,8 +479,7 @@ public static class MathHelper
 
             for (int i = 0; i < size - remainder; i += vectorSize)
             {
-                var vIndices = Vector256.Create((float)i, i + 1, i + 2, i + 3,
-                    i + 4, i + 5, i + 6, i + 7);
+                var vIndices = Vector256.Create((float)i, i + 1, i + 2, i + 3, i + 4, i + 5, i + 6, i + 7);
                 var vCosArg = Avx.Multiply(vTwoPi, vIndices);
                 var vCos = FastCosineAvx(vCosArg);
                 var vResult = Avx.Subtract(vConstA, Avx.Multiply(vConstB, vCos));
@@ -499,12 +495,12 @@ public static class MathHelper
 
         return window;
     }
-    
+
     /// <summary>
     /// Performs linear interpolation between two values
     /// </summary>
     public static float Lerp(float a, float b, float t) => a + (b - a) * Math.Clamp(t, 0, 1);
-    
+
     /// <summary>
     /// Checks if a number is a power of two (2, 4, 8, 16, etc.).
     /// </summary>

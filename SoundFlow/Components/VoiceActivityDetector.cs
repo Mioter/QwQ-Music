@@ -159,7 +159,6 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
     /// </summary>
     public bool IsVoiceActive { get; private set; }
 
-
     /// <summary>
     /// Initializes a new instance of the <see cref="VoiceActivityDetector"/> class.
     /// </summary>
@@ -224,14 +223,14 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
         const float dcBias = 0.5f;
         const float highPassCoeff = 0.99f;
         float dcOffset = 0f;
-    
+
         // 预先计算缓冲区大小，避免动态扩容
         int requiredCapacity = _sampleBuffer.Count + input.Length;
         if (_sampleBuffer.Capacity < requiredCapacity)
         {
             // 创建新队列并复制数据，避免频繁扩容
             var newBuffer = new Queue<float>(Math.Max(requiredCapacity, Config.FftSize * 4));
-            foreach (var sample in _sampleBuffer)
+            foreach (float sample in _sampleBuffer)
                 newBuffer.Enqueue(sample);
             _sampleBuffer = newBuffer;
         }
@@ -278,9 +277,10 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
         for (int i = 0; i < frame.Length; i++)
         {
             float abs = Math.Abs(frame[i]);
-            envelope = abs > envelope
-                ? attackCoeff * envelope + (1 - attackCoeff) * abs
-                : releaseCoeff * envelope + (1 - releaseCoeff) * abs;
+            envelope =
+                abs > envelope
+                    ? attackCoeff * envelope + (1 - attackCoeff) * abs
+                    : releaseCoeff * envelope + (1 - releaseCoeff) * abs;
 
             output[i] = envelope > CurrentNoiseFloor ? frame[i] : 0;
         }
@@ -306,12 +306,12 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
         {
             _fftBuffer[i] = new Complex(needWindow ? frame[i] * _window[i] : frame[i], 0);
         }
-    
+
         MathHelper.Fft(_fftBuffer);
-    
+
         float[] spectrum = new float[Config.FftSize / 2];
         const float epsilon = 1e-12f;
-    
+
         // 使用 Span<T> 优化内存分配
         Span<float> spectrumSpan = spectrum;
         for (int i = 1; i < Config.FftSize / 2; i++)
@@ -319,7 +319,7 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
             float magnitude = (float)(_fftBuffer[i].Magnitude / Config.FftSize);
             spectrumSpan[i] = Math.Clamp(magnitude * magnitude, epsilon, 1f);
         }
-    
+
         return spectrum;
     }
 
@@ -345,9 +345,7 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
         geometricMean = MathF.Pow(geometricMean, 1f / spectrum.Length);
         arithmeticMean /= spectrum.Length;
 
-        return arithmeticMean > epsilon
-            ? geometricMean / arithmeticMean
-            : 0f;
+        return arithmeticMean > epsilon ? geometricMean / arithmeticMean : 0f;
     }
 
     /// <summary>
@@ -363,8 +361,7 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
 
         for (int i = 1; i < frame.Length; i++)
         {
-            if (!(Math.Abs(frame[i] - prevSample) > 0.01f) ||
-                Math.Sign(frame[i]) == Math.Sign(prevSample))
+            if (!(Math.Abs(frame[i] - prevSample) > 0.01f) || Math.Sign(frame[i]) == Math.Sign(prevSample))
                 continue;
 
             crossings++;
@@ -404,9 +401,7 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
         float spectralScore = 1 - _spectralFlatness;
         float zcrScore = 1 - Math.Clamp(_zeroCrossingRate / 0.5f, 0, 1);
 
-        float combined = energyScore * 0.6f +
-                       spectralScore * 0.3f +
-                       zcrScore * 0.1f;
+        float combined = energyScore * 0.6f + spectralScore * 0.3f + zcrScore * 0.1f;
 
         return combined > Config.MinSignalConfidence;
     }
@@ -455,8 +450,7 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
     private bool EnergyBasedDecision()
     {
         float snr = (CurrentEnergy - CurrentNoiseFloor) / CurrentNoiseFloor;
-        return snr > Config.MinSignalConfidence &&
-               CurrentEnergy > _dynamicThreshold;
+        return snr > Config.MinSignalConfidence && CurrentEnergy > _dynamicThreshold;
     }
 
     /// <summary>
@@ -542,13 +536,13 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
 
         if (!MathHelper.IsPowerOfTwo(config.FftSize))
             throw new ArgumentException("FFT size must be power of two", nameof(config));
-    
+
         if (config.SpeechBandHigh <= config.SpeechBandLow)
             throw new ArgumentException($"Invalid frequency band: {config.SpeechBandLow}-{config.SpeechBandHigh}Hz");
-            
+
         if (config.HistoryBufferSize <= 0)
             throw new ArgumentException("History buffer size must be positive", nameof(config));
-            
+
         if (config.NoiseFloorDecayRate <= 0 || config.NoiseFloorDecayRate > 1)
             throw new ArgumentException("Noise floor decay rate must be between 0 and 1", nameof(config));
     }
@@ -574,13 +568,8 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
         if (handler != null)
         {
             // 创建事件参数的副本，确保线程安全
-            var args = new VoiceActivityEventArgs(
-                active,
-                CurrentEnergy,
-                CurrentNoiseFloor,
-                CurrentConfidence
-            );
-            
+            var args = new VoiceActivityEventArgs(active, CurrentEnergy, CurrentNoiseFloor, CurrentConfidence);
+
             // 使用线程安全的方式触发事件
             handler(this, args);
         }
@@ -601,8 +590,7 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
 /// <param name="energy">The current energy level of the audio signal at the time of the event.</param>
 /// <param name="noise">The current noise floor level estimated by the detector.</param>
 /// <param name="confidence">The confidence level of voice activity detection.</param>
-public class VoiceActivityEventArgs(bool isActive, float energy, float noise, float confidence)
-    : EventArgs
+public class VoiceActivityEventArgs(bool isActive, float energy, float noise, float confidence) : EventArgs
 {
     /// <summary>
     /// Gets a value indicating whether voice activity is currently active.

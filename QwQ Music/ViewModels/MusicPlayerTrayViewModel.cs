@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Utilities.MessageBus;
 
@@ -11,25 +10,25 @@ namespace QwQ_Music.ViewModels;
 public partial class MusicPlayerTrayViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private double _albumCoverCurrentAngle;
+    public partial double AlbumCoverCurrentAngle { get; set; }
 
     [ObservableProperty]
-    private double _albumCoverRecordAngle;
+    public partial double AlbumCoverRecordAngle { get; set; }
 
     [ObservableProperty]
-    private double _playButtonAngle;
+    public partial double PlayButtonAngle { get; set; }
 
     [ObservableProperty]
-    private Thickness _playButtonPadding;
+    public partial Thickness PlayButtonPadding { get; set; }
 
     public MusicPlayerTrayViewModel()
     {
         MusicPlayerViewModel.PlaybackStateChanged += MusicPlayerViewModelOnPlaybackStateChanged;
         MusicPlayerViewModel.CurrentMusicItemChanging += AudioPlayOnTrackIndexChanging;
-        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
+        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
     }
 
-    private void ExitReminderMessageChanged(ExitReminderMessage message)
+    private void ExitReminderMessageHandler(ExitReminderMessage message)
     {
         MusicPlayerViewModel.CurrentMusicItemChanging -= AudioPlayOnTrackIndexChanging;
         MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
@@ -55,10 +54,10 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
         {
             // 根据你的需求处理滚轮滚动事件
             case > 0:
-                MusicPlayerViewModel.VolumePercent += 2;
+                MusicPlayerViewModel.Volume += 2;
                 break;
             case < 0:
-                MusicPlayerViewModel.VolumePercent -= 2;
+                MusicPlayerViewModel.Volume -= 2;
                 break;
         }
     }
@@ -69,7 +68,7 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
             AlbumCoverRecordAngle = AlbumCoverCurrentAngle;
     }
 
-    private void AudioPlayOnTrackIndexChanging(object? sender, MusicItemModel musicItemModel)
+    private void AudioPlayOnTrackIndexChanging(object? sender, CurrentMusicItemChangedCancelEventArgs e)
     {
         AlbumCoverRecordAngle = 0;
     }

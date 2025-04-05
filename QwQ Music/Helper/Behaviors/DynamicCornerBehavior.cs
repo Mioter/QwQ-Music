@@ -125,21 +125,21 @@ public class DynamicCornerBehavior
         DynamicCornerBehavior,
         Control,
         bool
-    >("IsEnabled", false, true);
+    >("IsEnabled");
 
     // 形状模式
     public static readonly AttachedProperty<ShapeMode> ModeProperty = AvaloniaProperty.RegisterAttached<
         DynamicCornerBehavior,
         Control,
         ShapeMode
-    >("Mode", ShapeMode.Circle, true);
+    >("Mode");
 
     // 自定义比例（用于混合模式）
     public static readonly AttachedProperty<double> AspectRatioProperty = AvaloniaProperty.RegisterAttached<
         DynamicCornerBehavior,
         Control,
         double
-    >("AspectRatio", 1.0, true);
+    >("AspectRatio", 1.0);
 
     #endregion
 

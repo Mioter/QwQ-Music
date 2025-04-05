@@ -19,26 +19,32 @@ public class LowFrequencyOscillator : SoundComponent
         /// A smooth, sinusoidal waveform.
         /// </summary>
         Sine,
+
         /// <summary>
         /// A waveform that alternates abruptly between two levels, creating a pulse.
         /// </summary>
         Square,
+
         /// <summary>
         /// A waveform that linearly ramps up and down, creating a triangular shape.
         /// </summary>
         Triangle,
+
         /// <summary>
         /// A waveform that ramps upwards linearly and then abruptly resets to the starting level.
         /// </summary>
         Sawtooth,
+
         /// <summary>
         /// A waveform that ramps downwards linearly and then abruptly resets to the starting level.
         /// </summary>
         ReverseSawtooth,
+
         /// <summary>
         /// A waveform that generates random values at each sample.
         /// </summary>
         Random,
+
         /// <summary>
         /// A waveform that holds a random value constant for a cycle and then changes to a new random value.
         /// </summary>
@@ -54,6 +60,7 @@ public class LowFrequencyOscillator : SoundComponent
         /// The LFO runs continuously without any external triggering.
         /// </summary>
         FreeRunning,
+
         /// <summary>
         /// The LFO's phase is reset to the <see cref="Phase"/> value each time the <see cref="Trigger"/> method is called.
         /// </summary>
@@ -117,7 +124,8 @@ public class LowFrequencyOscillator : SoundComponent
     /// </summary>
     public void Trigger()
     {
-        if (Mode != TriggerMode.NoteTrigger) return;
+        if (Mode != TriggerMode.NoteTrigger)
+            return;
         _currentPhase = Phase; // Reset phase on trigger
         if (Type == WaveformType.SampleAndHold)
         {

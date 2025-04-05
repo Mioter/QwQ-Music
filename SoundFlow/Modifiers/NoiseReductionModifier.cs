@@ -17,7 +17,7 @@ public sealed class NoiseReductionModifier : SoundModifier
     private float _smoothingFactor = 0.9f;
     private float _gain = 1.2f;
     private int _noiseFrames = 10;
-    
+
     private readonly float[] _window;
     private readonly float _windowSumSq;
     private readonly Complex[][] _fftBuffers;
@@ -42,7 +42,7 @@ public sealed class NoiseReductionModifier : SoundModifier
         {
             if ((value & value - 1) != 0)
                 throw new ArgumentException("FFT size must be a power of 2.");
-            
+
             _fftSize = value;
             _hopSize = value / 2;
         }
@@ -108,7 +108,7 @@ public sealed class NoiseReductionModifier : SoundModifier
         _channels = AudioEngine.Channels;
         _window = MathHelper.HanningWindow(_fftSize);
         _windowSumSq = CalculateWindowSumSq();
-        
+
         _fftBuffers = new Complex[_channels][];
         _noisePsd = new float[_channels][];
         _inputBuffers = new float[_channels][];
@@ -121,7 +121,7 @@ public sealed class NoiseReductionModifier : SoundModifier
             _inputBuffers[c] = new float[_fftSize * 2]; // Ring buffer
             _outputOverlapBuffers[c] = new float[_hopSize];
         }
-        
+
         _noiseFramesCollected = 0;
         _noiseEstimationDone = false;
     }
@@ -143,7 +143,7 @@ public sealed class NoiseReductionModifier : SoundModifier
         for (int i = 0; i < _noiseFrames; i++)
         {
             int offset = i * _hopSize;
-            
+
             // Apply window
             for (int j = 0; j < _fftSize; j++)
                 _fftBuffers[channel][j] = new Complex(_inputBuffers[channel][j + offset] * _window[j], 0);
@@ -161,22 +161,18 @@ public sealed class NoiseReductionModifier : SoundModifier
     }
 
     /// <inheritdoc />
-    public override float ProcessSample(float sample, int channel) => 
+    public override float ProcessSample(float sample, int channel) =>
         throw new NotSupportedException("噪声降低器只能处理缓冲区");
 
     /// <inheritdoc />
     public override void Process(Span<float> buffer)
     {
-        if (_channels != AudioEngine.Channels) return;
-        
+        if (_channels != AudioEngine.Channels)
+            return;
+
         for (int c = 0; c < _channels; c++)
         {
-            ProcessChannel(
-                buffer: buffer,
-                channel: c,
-                channelOffset: c,
-                stride: _channels
-            );
+            ProcessChannel(buffer: buffer, channel: c, channelOffset: c, stride: _channels);
         }
     }
 
@@ -191,8 +187,7 @@ public sealed class NoiseReductionModifier : SoundModifier
         int samplesToCopy = buffer.Length / _channels;
         for (int i = 0; i < samplesToCopy; i++)
         {
-            inputBuffer[(i + _hopSize) % inputBuffer.Length] = 
-                buffer[channelOffset + i * stride];
+            inputBuffer[(i + _hopSize) % inputBuffer.Length] = buffer[channelOffset + i * stride];
         }
 
         int totalProcessed = 0;
@@ -240,7 +235,7 @@ public sealed class NoiseReductionModifier : SoundModifier
             for (int j = 0; j < _fftSize; j++)
             {
                 float outputSample = (float)(fftBuffer[j].Real * _window[j]) / _windowSumSq * _gain;
-                
+
                 if (j < _hopSize)
                 {
                     // Add overlap from previous frame

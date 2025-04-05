@@ -16,8 +16,10 @@ public sealed class FadeModifier : SoundModifier
     {
         /// <summary>线性渐变</summary>
         Linear,
+
         /// <summary>指数渐变</summary>
         Exponential,
+
         /// <summary>余弦渐变</summary>
         Cosine,
     }
@@ -29,7 +31,7 @@ public sealed class FadeModifier : SoundModifier
     private double _startGain;
     private double _endGain;
     private Func<double, double> _curveFunc = null!;
-    
+
     // 配置参数
     private double _fadeInTimeMs = 1000;
     private double _fadeOutTimeMs = 1000;
@@ -96,7 +98,8 @@ public sealed class FadeModifier : SoundModifier
     public override void Process(Span<float> buffer)
     {
         // 如果不在活动状态，直接返回，保持原始音频不变
-        if (_phase != FadePhase.Active && _phase != FadePhase.Completing) return;
+        if (_phase != FadePhase.Active && _phase != FadePhase.Completing)
+            return;
 
         for (int i = 0; i < buffer.Length; i++)
         {
@@ -113,7 +116,7 @@ public sealed class FadeModifier : SoundModifier
                     double progress = (double)_processedSamples / _targetSamples;
                     double gain = CalculateGain(progress);
                     buffer[i] *= (float)gain;
-                    
+
                     if (channel == AudioEngine.Channels - 1)
                         _processedSamples++;
                 }
@@ -139,24 +142,24 @@ public sealed class FadeModifier : SoundModifier
     {
         // 如果当前已经处于目标增益状态，则不需要执行渐变
         _startGain = GetCurrentGain();
-        
+
         // 如果起始增益和目标增益相同或非常接近，则不执行渐变
         if (Math.Abs(_startGain - targetGain) < _smoothnessThreshold)
         {
             _endGain = targetGain;
             return;
         }
-        
+
         _endGain = targetGain;
-        
+
         // 根据目标增益选择使用渐入或渐出时间
         double fadeTimeMs = targetGain > _startGain ? _fadeInTimeMs : _fadeOutTimeMs;
         _targetSamples = CalculateSampleCount(fadeTimeMs);
-        
+
         // 确保至少有一些样本需要处理
         if (_targetSamples <= 0)
             _targetSamples = 1;
-            
+
         _processedSamples = 0;
         UpdateCurveFunction();
         _phase = FadePhase.Active;
@@ -166,8 +169,7 @@ public sealed class FadeModifier : SoundModifier
     {
         return _phase switch
         {
-            FadePhase.Active when _processedSamples > 0 => 
-                CalculateGain((double)_processedSamples / _targetSamples),
+            FadePhase.Active when _processedSamples > 0 => CalculateGain((double)_processedSamples / _targetSamples),
             FadePhase.Completing => _endGain,
             FadePhase.Idle => _endGain,
             _ => _startGain,
@@ -213,7 +215,8 @@ public sealed class FadeModifier : SoundModifier
     private void ApplyFinalGain(Span<float> buffer)
     {
         float finalGain = (float)_endGain;
-        if (Math.Abs(finalGain - 1f) < _smoothnessThreshold) return;
+        if (Math.Abs(finalGain - 1f) < _smoothnessThreshold)
+            return;
 
         for (int i = 0; i < buffer.Length; i++)
         {

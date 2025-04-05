@@ -11,7 +11,9 @@ namespace QwQ_Music.Services;
 public static class LoggerService
 {
     // 配置项
-    public static readonly string SavePath = EnsureExists.Path(Path.Combine(Environment.CurrentDirectory, "log"));
+    public static readonly string SavePath = PathEnsurer.EnsureDirectoryExists(
+        Path.Combine(AppContext.BaseDirectory, "log")
+    );
     public static bool IsKeepOpen { get; set; } = false;
     public static LogLevel Level { get; set; } = LogLevel.Debug;
     public static int RetryCount { get; set; } = 3;
@@ -25,6 +27,7 @@ public static class LoggerService
         Warning,
         Error,
         Fatal,
+        Custom,
     }
 
     // 内部状态
@@ -61,7 +64,7 @@ public static class LoggerService
     /// <summary>
     /// 异步写入日志，支持重试机制
     /// </summary>
-    private async static Task WriteLogAsync(string logMessage)
+    private static async Task WriteLogAsync(string logMessage)
     {
         await AsyncLock.WaitAsync();
         try
@@ -85,7 +88,7 @@ public static class LoggerService
     /// <summary>
     /// 尝试写入日志，支持重试机制
     /// </summary>
-    private async static Task AttemptWriteWithRetry(string logMessage)
+    private static async Task AttemptWriteWithRetry(string logMessage)
     {
         int attempts = 0;
         while (attempts < RetryCount)
@@ -180,5 +183,5 @@ public static class LoggerService
         [CallerLineNumber] int line = 0,
         [CallerMemberName] string? function = null,
         [CallerFilePath] string? filename = null
-    ) => Log(LogLevel.Fatal, status.ToUpper(), message, line, function, filename);
+    ) => Log(LogLevel.Custom, status.ToUpper(), message, line, function, filename);
 }

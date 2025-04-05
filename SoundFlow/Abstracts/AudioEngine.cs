@@ -25,7 +25,7 @@ public abstract class AudioEngine : IDisposable
     private bool _soloedComponentExists;
     private SoundComponent? _soloedComponent;
 
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
 
     private Thread? _audioThread;
     private readonly ManualResetEvent _audioThreadStarted = new(false);
@@ -167,8 +167,13 @@ public abstract class AudioEngine : IDisposable
     /// <summary>
     ///     Gets the audio engine instance.
     /// </summary>
-    public static AudioEngine Instance => _Instance ?? throw new BackendException("None", Result.NoBackend,
-        "AudioEngine is not initialized yet. Create an instance of your backend first.");
+    public static AudioEngine Instance =>
+        _Instance
+        ?? throw new BackendException(
+            "None",
+            Result.NoBackend,
+            "AudioEngine is not initialized yet. Create an instance of your backend first."
+        );
 
     /// <summary>
     ///     Cleans up resources before the object is garbage collected.
@@ -229,7 +234,6 @@ public abstract class AudioEngine : IDisposable
             buffer = tempBuffer.AsSpan(0, length);
         }
 
-
         // Process soloed component or the entire graph
         lock (_lock)
         {
@@ -285,9 +289,14 @@ public abstract class AudioEngine : IDisposable
         }
     }
 
-
-    private void ConvertAndCopyToOutput<T>(nint output, int length, Span<float> floatBuffer, float maxValue,
-        bool isUnsigned = false) where T : unmanaged
+    private void ConvertAndCopyToOutput<T>(
+        nint output,
+        int length,
+        Span<float> floatBuffer,
+        float maxValue,
+        bool isUnsigned = false
+    )
+        where T : unmanaged
     {
         var outputSpan = Extensions.GetSpan<T>(output, length);
         for (int i = 0; i < length; i++)
@@ -302,9 +311,7 @@ public abstract class AudioEngine : IDisposable
             {
                 int intValue = (int)scaledValue;
                 byte[] intBytes = BitConverter.GetBytes(intValue); // Get the bytes of the integer
-                outputSpan[i] =
-                    (T)Convert.ChangeType(BitConverter.ToInt32(intBytes, 0),
-                        typeof(T)); // Convert back, effectively using 32 bits for alignment
+                outputSpan[i] = (T)Convert.ChangeType(BitConverter.ToInt32(intBytes, 0), typeof(T)); // Convert back, effectively using 32 bits for alignment
             }
             else
             {
@@ -317,7 +324,6 @@ public abstract class AudioEngine : IDisposable
             floatBuffer[i] = 0;
         }
     }
-
 
     /// <summary>
     ///     Called by an implementation when the audio input has captured samples.
@@ -342,8 +348,13 @@ public abstract class AudioEngine : IDisposable
     /// <param name="channels">The number of audio channels.</param>
     /// <param name="sampleRate">The sample rate of the input audio.</param>
     /// <returns>An instance of a sound encoder.</returns>
-    internal protected abstract ISoundEncoder CreateEncoder(string filePath, EncodingFormat encodingFormat,
-        SampleFormat sampleFormat, int channels, int sampleRate);
+    internal protected abstract ISoundEncoder CreateEncoder(
+        string filePath,
+        EncodingFormat encodingFormat,
+        SampleFormat sampleFormat,
+        int channels,
+        int sampleRate
+    );
 
     /// <summary>
     ///     Constructs a sound decoder specific to the implementation.
@@ -366,7 +377,7 @@ public abstract class AudioEngine : IDisposable
     ///     This method should be called after any changes to the audio device configuration.
     /// </remarks>
     public abstract void UpdateDevicesInfo();
-    
+
     /// <summary>
     ///     Occurs when samples are processed by Input or Output components.
     /// </summary>

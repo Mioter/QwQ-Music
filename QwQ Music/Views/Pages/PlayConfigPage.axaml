@@ -1,0 +1,123 @@
+<UserControl
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="QwQ_Music.Views.Pages.PlayConfigPage"
+    x:DataType="viewModel:PlayConfigPageViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModel="clr-namespace:QwQ_Music.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <WrapPanel
+        ItemSpacing="20"
+        LineSpacing="20"
+        Margin="12,20">
+
+        <WrapPanel.Styles>
+
+            <Style Selector="WrapPanel &gt; Border">
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderCardBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="MinWidth" Value="200" />
+            </Style>
+
+            <Style Selector="WrapPanel &gt; Border &gt; StackPanel">
+                <Setter Property="Spacing" Value="10" />
+                <Setter Property="Margin" Value="5,10" />
+            </Style>
+
+            <Style Selector="WrapPanel &gt; Border &gt; StackPanel &gt; RadioButton">
+                <Setter Property="Margin" Value="25,0" />
+            </Style>
+
+            <Style Selector="WrapPanel &gt; Border &gt; StackPanel &gt; StackPanel">
+                <Setter Property="Height" Value="25" />
+                <Setter Property="Orientation" Value="Horizontal" />
+            </Style>
+
+            <Style Selector="WrapPanel &gt; Border &gt; StackPanel &gt; StackPanel &gt; PathIcon">
+                <Setter Property="Foreground" Value="{Binding RandomColor}" />
+            </Style>
+
+            <Style Selector="WrapPanel &gt; Border &gt; StackPanel &gt; StackPanel &gt; TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+
+        </WrapPanel.Styles>
+
+        <Border>
+            <StackPanel>
+                <StackPanel>
+                    <PathIcon Data="{StaticResource PlayIconData}" />
+                    <TextBlock Text="播放完成后 : " />
+                </StackPanel>
+
+                <RadioButton Content="自动切换" IsChecked="{Binding PlayerConfig.AutoSwitchNext}" />
+                <RadioButton Content="回到开头" IsChecked="{Binding !PlayerConfig.AutoSwitchNext}" />
+            </StackPanel>
+        </Border>
+
+        <Border>
+            <StackPanel>
+                <StackPanel>
+                    <PathIcon
+                        Data="{StaticResource SemiIconChevronUpDown}"
+                        Height="14"
+                        Width="25" />
+                    <TextBlock Text="切换音乐时 : " />
+                </StackPanel>
+
+                <!--<CheckBox Name="CheckBox2">
+                    <Interaction.Behaviors>
+                        <DataTriggerBehavior Binding="{Binding #CheckBox2.IsChecked}" Value="True">
+                            <ChangePropertyAction PropertyName="Content" Value="从头开始播放" />
+                        </DataTriggerBehavior>
+                        <DataTriggerBehavior Binding="{Binding #CheckBox2.IsChecked}" Value="False">
+                            <ChangePropertyAction PropertyName="Content" Value="继续上次播放时长播放" />
+                        </DataTriggerBehavior>
+                    </Interaction.Behaviors>
+                </CheckBox>-->
+                <RadioButton Content="从头开始播放" IsChecked="{Binding PlayerConfig.IsRestartPlay}" />
+                <RadioButton Content="继续上次播放" IsChecked="{Binding !PlayerConfig.IsRestartPlay}" />
+            </StackPanel>
+        </Border>
+
+        <Border>
+            <StackPanel>
+                <StackPanel>
+                    <PathIcon
+                        Data="{StaticResource Random}"
+                        Height="14"
+                        Width="25" />
+                    <TextBlock Text="随机模式 : " />
+                </StackPanel>
+
+                <RadioButton Content="随机切换一首" IsChecked="{Binding PlayerConfig.IsRealRandom}" />
+                <RadioButton Content="打乱播放列表" IsChecked="{Binding !PlayerConfig.IsRealRandom}" />
+            </StackPanel>
+        </Border>
+
+        <Border>
+            <StackPanel>
+                <StackPanel>
+                    <PathIcon
+                        Data="{StaticResource SemiIconBytedanceLogo}"
+                        Height="13"
+                        Width="25" />
+                    <TextBlock Text="输出采样率 : " />
+                </StackPanel>
+
+                <ComboBox
+                    CornerRadius="8"
+                    ItemsSource="{Binding PlayerConfig.AudioOutputSampleRateArray}"
+                    Margin="25,0"
+                    SelectedItem="{Binding PlayerConfig.SampleRate}" />
+
+            </StackPanel>
+        </Border>
+
+    </WrapPanel>
+</UserControl>

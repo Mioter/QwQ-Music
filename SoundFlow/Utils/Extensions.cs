@@ -34,7 +34,8 @@ public static class Extensions
     /// <param name="ptr">The pointer to the first element of the span.</param>
     /// <param name="length">The number of elements in the span.</param>
     /// <returns>A <see cref="Span{T}" /> for the given pointer and length.</returns>
-    public static unsafe Span<T> GetSpan<T>(nint ptr, int length) where T : unmanaged
+    public static unsafe Span<T> GetSpan<T>(nint ptr, int length)
+        where T : unmanaged
     {
         return new Span<T>((void*)ptr, length);
     }
@@ -46,7 +47,8 @@ public static class Extensions
     /// <param name="pointer">The native pointer to the start of the array.</param>
     /// <param name="count">The number of structures to read.</param>
     /// <returns>An array of structures of type <typeparamref name="T"/> read from the specified pointer.</returns>
-    public static T[] ReadArray<T>(this nint pointer, int count) where T : struct
+    public static T[] ReadArray<T>(this nint pointer, int count)
+        where T : struct
     {
         var array = new T[count];
         for (int i = 0; i < count; i++)

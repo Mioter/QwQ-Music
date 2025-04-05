@@ -33,22 +33,22 @@ public interface ISoundPlayer
     /// Gets the total duration of the audio in seconds.
     /// </summary>
     float Duration { get; }
-    
+
     /// <summary>
     /// Gets the loop start point in samples.
     /// </summary>
     int LoopStartSamples { get; }
-    
+
     /// <summary>
     /// Gets the loop end point in samples. -1 indicates loop to the natural end of the audio.
     /// </summary>
     int LoopEndSamples { get; }
-    
+
     /// <summary>
     /// Gets the loop start point in seconds.
     /// </summary>
     float LoopStartSeconds { get; }
-    
+
     /// <summary>
     /// Gets the loop end point in seconds. -1 indicates loop to the natural end of the audio.
     /// </summary>
@@ -75,7 +75,7 @@ public interface ISoundPlayer
     /// After stopping, playback can be restarted from the beginning by calling <see cref="Play"/>.
     /// </summary>
     void Stop();
-    
+
     /// <summary>
     /// Seeks to a specific time in the audio playback using TimeSpan.
     /// </summary>
@@ -101,7 +101,7 @@ public interface ISoundPlayer
     /// </summary>
     /// <param name="sampleOffset">The sample offset to seek to, relative to the beginning of the audio data.</param>
     bool Seek(int sampleOffset);
-    
+
     /// <summary>
     /// Sets the loop points for the sound player in seconds.
     /// </summary>
@@ -115,8 +115,7 @@ public interface ISoundPlayer
     /// <param name="startSample">The loop start sample. Must be non-negative.</param>
     /// <param name="endSample">The loop end sample, optional. Use -1 or null to loop to the natural end of the audio. Must be greater than or equal to startSample, or -1.</param>
     void SetLoopPoints(int startSample, int endSample = -1);
-    
-    
+
     /// <summary>
     /// Sets the loop points for the sound player using TimeSpan.
     /// </summary>

@@ -47,7 +47,7 @@ public static class ReplayGainCalculator
         int channels,
         MusicReplayGainStandard standard = MusicReplayGainStandard.Streaming,
         double customTargetLufs = StreamingTargetLufs
-        )
+    )
     {
         var filter = new KWeightingFilter(sampleRate);
         var loudnessMeter = new LoudnessMeter(channels);
@@ -61,14 +61,14 @@ public static class ReplayGainCalculator
         double measuredLufs = loudnessMeter.GetIntegratedLoudness();
         double targetLufs = GetTargetLoudness(standard, customTargetLufs);
         double gain = CalculateLinearGain(measuredLufs, targetLufs);
-        
+
         CalcCompletedChanged?.Invoke(null, EventArgs.Empty);
-        
+
         return gain;
     }
 
     #region 私有辅助方法
-    
+
     private static double GetTargetLoudness(MusicReplayGainStandard standard, double customTarget) =>
         standard switch
         {

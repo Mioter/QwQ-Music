@@ -9,22 +9,22 @@ namespace QwQ_Music.Services.Audio;
 
 public static class AudioHelper
 {
-
     public static void CalcGainOfMusicItem(MusicItemModel item)
     {
         var ex = item.GetExtensionsInfo().GetAwaiter().GetResult();
         item.Gain = ReplayGainCalculator.CalculateGain(
-            ReadAudioBlocks(item.FilePath,ex.SamplingRate,ex.Channels),
+            ReadAudioBlocks(item.FilePath, ex.SamplingRate, ex.Channels),
             ex.SamplingRate,
-            ex.Channels);
+            ex.Channels
+        );
     }
-    
-    public static IEnumerable<float[]> ReadAudioBlocks(string filePath,int sampleRate, int channels)
+
+    public static IEnumerable<float[]> ReadAudioBlocks(string filePath, int sampleRate, int channels)
     {
         var fileStream = File.OpenRead(filePath);
         var reader = new StreamDataProvider(fileStream);
         float[] buffer = new float[sampleRate * channels]; // 1秒缓冲
-    
+
         int samplesRead;
         while ((samplesRead = reader.ReadBytes(buffer)) > 0)
         {

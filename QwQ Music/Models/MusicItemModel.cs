@@ -10,8 +10,8 @@ using QwQ_Music.Services.ConfigIO;
 namespace QwQ_Music.Models;
 
 public partial class MusicItemModel(
-    string? title = null,
-    string? artists = null,  
+    string title = "未知标题",
+    string? artists = null,
     string? composer = null,
     string? album = null,
     string? coverPath = null,
@@ -28,17 +28,15 @@ public partial class MusicItemModel(
     public bool IsInitialized { get; private set; }
     public bool IsError { get; private set; }
 
-    public string Title = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
-
+    public string Title = title;
 
     public string TitleProperty => Title;
 
+    public string Artists = string.IsNullOrWhiteSpace(artists) ? "未知歌手" : artists;
 
-    public string Artists = artists ?? "未知歌手";
-    
     public string Composer = composer ?? string.Empty;
     public string ComposerProperty => Composer;
-    
+
     public string ArtistsProperty => string.Join(',', Artists);
 
     public string Album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
@@ -66,8 +64,9 @@ public partial class MusicItemModel(
 
     [ObservableProperty]
     private string? _remarks;
-    
-    public async Task<MusicTagExtensions> GetExtensionsInfo() => await MusicExtractor.ExtractExtensionsInfoAsync(FilePath);
+
+    public async Task<MusicTagExtensions> GetExtensionsInfo() =>
+        await MusicExtractor.ExtractExtensionsInfoAsync(FilePath);
 
     public readonly Lazy<Task<LyricsModel>> Lyrics = new(() => MusicExtractor.ExtractMusicLyricsAsync(filePath));
 
@@ -172,4 +171,3 @@ public readonly record struct MusicDetailedInfo(
     long AudioDataOffset,
     long AudioDataSize
 );
-

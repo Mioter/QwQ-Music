@@ -12,7 +12,7 @@ public sealed class RotatingModifier : SoundModifier
     private float _currentAngle;
     private float[] _channelWeights = [];
     private float[] _filterStates = [];
-    
+
     // 配置参数
     private float _rotationSpeed = 0.5f;
     private float _radius = 10f;

@@ -147,15 +147,19 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
             if (response is { IsSuccessStatusCode: true, Content.Headers.ContentType: not null })
             {
                 string contentType = response.Content.Headers.ContentType.MediaType!;
-                if (contentType.Equals("application/vnd.apple.mpegurl", StringComparison.OrdinalIgnoreCase) ||
-                    contentType.Equals("application/x-mpegURL", StringComparison.OrdinalIgnoreCase) ||
-                    contentType.Equals("audio/x-mpegURL", StringComparison.OrdinalIgnoreCase) ||
-                    contentType.Equals("audio/mpegurl", StringComparison.OrdinalIgnoreCase))
+                if (
+                    contentType.Equals("application/vnd.apple.mpegurl", StringComparison.OrdinalIgnoreCase)
+                    || contentType.Equals("application/x-mpegURL", StringComparison.OrdinalIgnoreCase)
+                    || contentType.Equals("audio/x-mpegURL", StringComparison.OrdinalIgnoreCase)
+                    || contentType.Equals("audio/mpegurl", StringComparison.OrdinalIgnoreCase)
+                )
                     return true;
             }
 
-            if (url.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase) ||
-                url.EndsWith(".m3u", StringComparison.OrdinalIgnoreCase))
+            if (
+                url.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase)
+                || url.EndsWith(".m3u", StringComparison.OrdinalIgnoreCase)
+            )
                 return true;
 
             string? content = await DownloadPartialContentAsync(url, 1024);
@@ -213,11 +217,14 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
                     {
                         // Download a small chunk (e.g., first 256KB) for temporary decoder
                         var partialContentRequest = new HttpRequestMessage(HttpMethod.Get, _url);
-                        partialContentRequest.Headers.Range = new RangeHeaderValue(0,
-                            Math.Min(response.Content.Headers.ContentLength.Value, 256 * 1024) -
-                            1); // Request up to 256KB
-                        var partialContentResponse = await _httpClient.SendAsync(partialContentRequest,
-                            HttpCompletionOption.ResponseContentRead);
+                        partialContentRequest.Headers.Range = new RangeHeaderValue(
+                            0,
+                            Math.Min(response.Content.Headers.ContentLength.Value, 256 * 1024) - 1
+                        ); // Request up to 256KB
+                        var partialContentResponse = await _httpClient.SendAsync(
+                            partialContentRequest,
+                            HttpCompletionOption.ResponseContentRead
+                        );
                         partialContentResponse.EnsureSuccessStatusCode();
 
                         await using var partialContentStream = await partialContentResponse.Content.ReadAsStreamAsync();
@@ -253,7 +260,6 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
                 {
                     Length = -1;
                 }
-
 
                 var networkStream = await response.Content.ReadAsStreamAsync();
                 _stream = new MemoryStream();
@@ -401,11 +407,7 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
             else if (!trimmedLine.StartsWith('#'))
             {
                 string segmentUri = CombineUri(baseUrl, trimmedLine);
-                _hlsSegments.Add(new HlsSegment
-                {
-                    Uri = segmentUri,
-                    Duration = segmentDuration,
-                });
+                _hlsSegments.Add(new HlsSegment { Uri = segmentUri, Duration = segmentDuration });
                 _hlsTotalDuration += segmentDuration;
                 segmentDuration = 0;
             }
@@ -414,7 +416,8 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
 
     private static string CombineUri(string baseUri, string relativeUri)
     {
-        if (!Uri.TryCreate(baseUri, UriKind.Absolute, out var baseUriObj)) return relativeUri;
+        if (!Uri.TryCreate(baseUri, UriKind.Absolute, out var baseUriObj))
+            return relativeUri;
         return Uri.TryCreate(baseUriObj, relativeUri, out var newUri) ? newUri.ToString() : relativeUri;
     }
 
@@ -482,8 +485,11 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
     {
         try
         {
-            var response = await _httpClient.GetAsync(segment.Uri, HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken);
+            var response = await _httpClient.GetAsync(
+                segment.Uri,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken
+            );
 
             response.EnsureSuccessStatusCode();
 
@@ -537,14 +543,15 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
     {
         try
         {
-            if (_decoder == null || _stream == null) return;
-            if (!CanSeek || !_contentLength.HasValue || Length <= 0) return;
+            if (_decoder == null || _stream == null)
+                return;
+            if (!CanSeek || !_contentLength.HasValue || Length <= 0)
+                return;
 
             float timeProportion = (float)sampleOffset / Length;
             long targetByteOffset = (long)(timeProportion * _contentLength.Value);
             targetByteOffset = Math.Max(0, targetByteOffset);
             targetByteOffset = Math.Min(targetByteOffset, _contentLength.Value - 1);
-
 
             if (sampleOffset < _samplePosition) // Backward Seek
             {
@@ -559,15 +566,23 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
                 if (targetByteOffset >= _stream.Length)
                 {
                     long currentStreamLength = _stream.Length;
-                    long endByteToFetch = Math.Min(targetByteOffset + 1024 * 1024,
-                        _contentLength.GetValueOrDefault(long.MaxValue) - 1);
-                    if (endByteToFetch < currentStreamLength) endByteToFetch = currentStreamLength + 1024 * 1024;
+                    long endByteToFetch = Math.Min(
+                        targetByteOffset + 1024 * 1024,
+                        _contentLength.GetValueOrDefault(long.MaxValue) - 1
+                    );
+                    if (endByteToFetch < currentStreamLength)
+                        endByteToFetch = currentStreamLength + 1024 * 1024;
 
                     using (var rangeRequest = new HttpRequestMessage(HttpMethod.Get, _url))
                     {
                         rangeRequest.Headers.Range = new RangeHeaderValue(currentStreamLength, endByteToFetch);
 
-                        using (var rangeResponse = await _httpClient.SendAsync(rangeRequest, HttpCompletionOption.ResponseContentRead))
+                        using (
+                            var rangeResponse = await _httpClient.SendAsync(
+                                rangeRequest,
+                                HttpCompletionOption.ResponseContentRead
+                            )
+                        )
                         {
                             rangeResponse.EnsureSuccessStatusCode();
                             await using (var contentStream = await rangeResponse.Content.ReadAsStreamAsync())
@@ -632,7 +647,10 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
 
         _cancellationTokenSource?.Cancel(false);
         _cancellationTokenSource = new CancellationTokenSource();
-        Task.Run(async () => { await BufferHlsStreamAsync(_cancellationTokenSource.Token); });
+        Task.Run(async () =>
+        {
+            await BufferHlsStreamAsync(_cancellationTokenSource.Token);
+        });
     }
 
     private void DisposeResources()

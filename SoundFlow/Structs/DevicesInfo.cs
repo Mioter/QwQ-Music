@@ -16,7 +16,7 @@ public struct DeviceInfo
     /// <summary>
     /// The name of the device.
     /// </summary>
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]  // 255 + 1 for null terminator
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)] // 255 + 1 for null terminator
     public string Name;
 
     /// <summary>

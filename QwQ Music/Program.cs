@@ -1,5 +1,8 @@
 ﻿using System;
 using Avalonia;
+using QwQ_Music.Models;
+using QwQ_Music.Services;
+using QwQ_Music.Utilities.MessageBus;
 
 namespace QwQ_Music;
 
@@ -11,7 +14,34 @@ public static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        AppDomain.CurrentDomain.ProcessExit += CurrentDomainOnProcessExit;
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomainOnUnhandledException;
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+    }
+
+    private static void CurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void CurrentDomainOnProcessExit(object? sender, EventArgs e)
+    {
+        AppDomain.CurrentDomain.ProcessExit -= CurrentDomainOnProcessExit;
+
+        try
+        {
+            ConfigInfoModel.SaveAll();
+
+            StrongMessageBus.Instance.Publish(new ExitReminderMessage { Success = true });
+            StrongMessageBus.Instance.Dispose();
+
+            LoggerService.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            // Log the exception or handle it as needed
+            LoggerService.Error($"An error occurred: {ex.Message}");
+        }
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

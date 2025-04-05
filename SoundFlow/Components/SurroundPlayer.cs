@@ -58,7 +58,8 @@ public sealed class SurroundPlayer : SoundPlayerBase
         {
             if (value == SpeakerConfiguration.Custom && _currentConfiguration == null)
                 throw new InvalidOperationException(
-                    "Cannot use Custom speaker configuration without setting a custom SurroundConfig.");
+                    "Cannot use Custom speaker configuration without setting a custom SurroundConfig."
+                );
 
             _speakerConfig = value;
             SetSpeakerConfiguration(value);
@@ -142,7 +143,8 @@ public sealed class SurroundPlayer : SoundPlayerBase
     /// <summary>
     /// A sound player that simulates surround sound with support for different speaker configurations.
     /// </summary>
-    public SurroundPlayer(ISoundDataProvider dataProvider) : base(dataProvider)
+    public SurroundPlayer(ISoundDataProvider dataProvider)
+        : base(dataProvider)
     {
         InitializePredefinedConfigurations();
         SetSpeakerConfiguration(_speakerConfig);
@@ -151,42 +153,64 @@ public sealed class SurroundPlayer : SoundPlayerBase
     private void InitializePredefinedConfigurations()
     {
         //Stereo
-        _predefinedConfigurations.Add(SpeakerConfiguration.Stereo, new SurroundConfiguration(
-            "Stereo",
-            [1f, 1f], // Volumes
-            [0f, 0f], // Delays in ms
-            [new Vector2(-1f, 0f), new Vector2(1f, 0f)]
-        ));
+        _predefinedConfigurations.Add(
+            SpeakerConfiguration.Stereo,
+            new SurroundConfiguration(
+                "Stereo",
+                [1f, 1f], // Volumes
+                [0f, 0f], // Delays in ms
+                [new Vector2(-1f, 0f), new Vector2(1f, 0f)]
+            )
+        );
 
         // Quad
-        _predefinedConfigurations.Add(SpeakerConfiguration.Quad, new SurroundConfiguration(
-            "Quad",
-            [1f, 1f, 0.7f, 0.7f],
-            [0f, 0f, 15f, 15f],
-            [new Vector2(-1f, 0f), new Vector2(1f, 0f), new Vector2(-1f, -1f), new Vector2(1f, -1f)]
-        ));
+        _predefinedConfigurations.Add(
+            SpeakerConfiguration.Quad,
+            new SurroundConfiguration(
+                "Quad",
+                [1f, 1f, 0.7f, 0.7f],
+                [0f, 0f, 15f, 15f],
+                [new Vector2(-1f, 0f), new Vector2(1f, 0f), new Vector2(-1f, -1f), new Vector2(1f, -1f)]
+            )
+        );
 
         // 5.1 Surround
-        _predefinedConfigurations.Add(SpeakerConfiguration.Surround51, new SurroundConfiguration(
-            "Surround 5.1",
-            [1f, 1f, 1f, 0.7f, 0.7f, 0.5f],
-            [0f, 0f, 0f, 15f, 15f, 5f],
-            [
-                new Vector2(-1f, 0f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(-0.8f, -1f),
-                new Vector2(0.8f, -1f), new Vector2(0f, -1.5f),
-            ]
-        ));
+        _predefinedConfigurations.Add(
+            SpeakerConfiguration.Surround51,
+            new SurroundConfiguration(
+                "Surround 5.1",
+                [1f, 1f, 1f, 0.7f, 0.7f, 0.5f],
+                [0f, 0f, 0f, 15f, 15f, 5f],
+                [
+                    new Vector2(-1f, 0f),
+                    new Vector2(1f, 0f),
+                    new Vector2(0f, 0f),
+                    new Vector2(-0.8f, -1f),
+                    new Vector2(0.8f, -1f),
+                    new Vector2(0f, -1.5f),
+                ]
+            )
+        );
 
         // 7.1 Surround
-        _predefinedConfigurations.Add(SpeakerConfiguration.Surround71, new SurroundConfiguration(
-            "Surround 7.1",
-            [1f, 1f, 1f, 0.7f, 0.7f, 0.7f, 0.7f, 0.5f],
-            [0f, 0f, 0f, 15f, 15f, 5f, 5f, 5f],
-            [
-                new Vector2(-1f, 0f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(-0.8f, -1f),
-                new Vector2(0.8f, -1f), new Vector2(-1f, -1.5f), new Vector2(1f, -1.5f), new Vector2(0f, -2f),
-            ]
-        ));
+        _predefinedConfigurations.Add(
+            SpeakerConfiguration.Surround71,
+            new SurroundConfiguration(
+                "Surround 7.1",
+                [1f, 1f, 1f, 0.7f, 0.7f, 0.7f, 0.7f, 0.5f],
+                [0f, 0f, 0f, 15f, 15f, 5f, 5f, 5f],
+                [
+                    new Vector2(-1f, 0f),
+                    new Vector2(1f, 0f),
+                    new Vector2(0f, 0f),
+                    new Vector2(-0.8f, -1f),
+                    new Vector2(0.8f, -1f),
+                    new Vector2(-1f, -1.5f),
+                    new Vector2(1f, -1.5f),
+                    new Vector2(0f, -2f),
+                ]
+            )
+        );
     }
 
     /// <summary>
@@ -262,8 +286,10 @@ public sealed class SurroundPlayer : SoundPlayerBase
                 );
 
                 // Apply low-pass filter to LFE channel (e.g., last speaker in 5.1)
-                if (speakerIndex == _currentConfiguration.SpeakerPositions.Length - 1 &&
-                    _speakerConfig != SpeakerConfiguration.Stereo)
+                if (
+                    speakerIndex == _currentConfiguration.SpeakerPositions.Length - 1
+                    && _speakerConfig != SpeakerConfiguration.Stereo
+                )
                 {
                     delayedSample = ApplyLowPassFilter(delayedSample);
                 }
@@ -283,7 +309,6 @@ public sealed class SurroundPlayer : SoundPlayerBase
         base.HandleEndOfStream(buffer);
         InitializeDelayLines(); // Re-initialize delay lines on loop or stop to avoid artifacts.
     }
-
 
     private void UpdatePanningFactors()
     {
@@ -323,8 +348,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
 
             for (int ch = 0; ch < numOutputChannels; ch++)
             {
-                float distance = Vector2.Distance(relativeVec,
-                    outputSpeakerPositions[ch] - _listenerPosition);
+                float distance = Vector2.Distance(relativeVec, outputSpeakerPositions[ch] - _listenerPosition);
                 distances[ch] = distance;
                 totalWeight += 1f / (distance + 0.001f); // Prevent division by zero
             }
@@ -436,7 +460,8 @@ public sealed class SurroundPlayer : SoundPlayerBase
 
                 // Calculate determinant for orientation check
                 float det = spkA.X * spkB.Y - spkB.X * spkA.Y;
-                if (MathF.Abs(det) < 1e-6) continue;
+                if (MathF.Abs(det) < 1e-6)
+                    continue;
 
                 // Calculate barycentric coordinates
                 float wa = (direction.X * spkB.Y - direction.Y * spkB.X) / det;
@@ -445,8 +470,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
                 if (wa >= 0 && wb >= 0 && wa + wb <= 1)
                 {
                     // Calculate actual contribution strength
-                    float contribution = wa * Vector2.Dot(direction, spkA) +
-                                       wb * Vector2.Dot(direction, spkB);
+                    float contribution = wa * Vector2.Dot(direction, spkA) + wb * Vector2.Dot(direction, spkB);
 
                     if (contribution > maxContribution)
                     {
@@ -474,8 +498,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
         int nearest = 0;
         for (int i = 0; i < numSpeakers; i++)
         {
-            float dot = Vector2.Dot(direction,
-                Vector2.Normalize(outputSpeakers[i] - _listenerPosition));
+            float dot = Vector2.Dot(direction, Vector2.Normalize(outputSpeakers[i] - _listenerPosition));
             if (dot > maxDot)
             {
                 maxDot = dot;
@@ -496,28 +519,37 @@ public sealed class SurroundPlayer : SoundPlayerBase
             2 => [new Vector2(-1, 0), new Vector2(1, 0)], // Stereo
             4 =>
             [ // Quad
-                new Vector2(-1, 0), new Vector2(1, 0),
-                new Vector2(0, 1), new Vector2(0, -1),
+                new Vector2(-1, 0),
+                new Vector2(1, 0),
+                new Vector2(0, 1),
+                new Vector2(0, -1),
             ],
             5 =>
             [ // 5.0 surround
-                new Vector2(-1, 0), new Vector2(1, 0), // Front L/R
+                new Vector2(-1, 0),
+                new Vector2(1, 0), // Front L/R
                 new Vector2(0, 0), // Center
-                new Vector2(-0.5f, -1), new Vector2(0.5f, -1), // Rear L/R
+                new Vector2(-0.5f, -1),
+                new Vector2(0.5f, -1), // Rear L/R
             ],
             6 =>
             [ // 5.1 surround
-                new Vector2(-1, 0), new Vector2(1, 0), // Front L/R
+                new Vector2(-1, 0),
+                new Vector2(1, 0), // Front L/R
                 new Vector2(0, 0), // Center
-                new Vector2(-0.5f, -1), new Vector2(0.5f, -1), // Rear L/R
+                new Vector2(-0.5f, -1),
+                new Vector2(0.5f, -1), // Rear L/R
                 new Vector2(0, -1.5f), // LFE
             ],
             8 =>
             [ // 7.1 surround
-                new Vector2(-1, 0), new Vector2(1, 0), // Front L/R
+                new Vector2(-1, 0),
+                new Vector2(1, 0), // Front L/R
                 new Vector2(0, 0), // Center
-                new Vector2(-1, -1), new Vector2(1, -1), // Side L/R
-                new Vector2(-0.5f, -1.5f), new Vector2(0.5f, -1.5f), // Rear L/R
+                new Vector2(-1, -1),
+                new Vector2(1, -1), // Side L/R
+                new Vector2(-0.5f, -1.5f),
+                new Vector2(0.5f, -1.5f), // Rear L/R
                 new Vector2(0, -2f), // LFE
             ],
             _ => CreateCircularLayout(channelCount), // Fallback for unknown configs
@@ -532,10 +564,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
         for (int i = 0; i < speakers; i++)
         {
             float angle = i * angleStep;
-            positions[i] = new Vector2(
-                MathF.Cos(angle),
-                MathF.Sin(angle)
-            );
+            positions[i] = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
         }
 
         return positions;

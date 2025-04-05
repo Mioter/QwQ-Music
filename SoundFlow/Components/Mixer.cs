@@ -8,7 +8,7 @@ namespace SoundFlow.Components;
 public sealed class Mixer : SoundComponent
 {
     private readonly List<SoundComponent> _components = [];
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
 
     /// <summary>
     ///     Gets the master mixer, representing the final output of the audio graph.
@@ -26,21 +26,27 @@ public sealed class Mixer : SoundComponent
     ///     Thrown if the component is the mixer itself or if adding the component would create
     ///     a cycle in the graph.
     /// </exception>
-    public void AddComponent(SoundComponent component)
+    public SoundComponent AddComponent(SoundComponent component)
     {
-        if (component == this) throw new ArgumentException("Cannot add a mixer to itself.", nameof(component));
+        if (component == this)
+            throw new ArgumentException("Cannot add a mixer to itself.", nameof(component));
 
         // Check for cycles
         if (WouldCreateCycle(component))
-            throw new ArgumentException("Adding this component would create a cycle in the audio graph.",
-                nameof(component));
+            throw new ArgumentException(
+                "Adding this component would create a cycle in the audio graph.",
+                nameof(component)
+            );
 
         lock (_lock)
         {
-            if (_components.Contains(component)) return;
+            if (_components.Contains(component))
+                return this;
             _components.Add(component);
             component.Parent = this;
         }
+
+        return this;
     }
 
     /// <summary>
@@ -66,19 +72,22 @@ public sealed class Mixer : SoundComponent
     ///     Removes a sound component from the mixer.
     /// </summary>
     /// <param name="component">The sound component to remove.</param>
-    public void RemoveComponent(SoundComponent component)
+    public SoundComponent RemoveComponent(SoundComponent component)
     {
         lock (_lock)
         {
             if (_components.Remove(component))
                 component.Parent = null;
         }
+
+        return this;
     }
 
     /// <inheritdoc />
     protected override void GenerateAudio(Span<float> buffer)
     {
-        if (!Enabled || Mute) return;
+        if (!Enabled || Mute)
+            return;
 
         lock (_lock)
         {

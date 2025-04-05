@@ -10,7 +10,7 @@ public class EnumHelper<T>
     {
         return Enum.GetValues(typeof(T)).Cast<T>().ToList();
     }
-    
+
     public static T[] ToArray()
     {
         return Enum.GetValues(typeof(T)).Cast<T>().ToArray();

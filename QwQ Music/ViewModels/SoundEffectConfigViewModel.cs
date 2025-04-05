@@ -12,6 +12,7 @@ using QwQ_Music.Services;
 using QwQ_Music.Services.Audio;
 using QwQ_Music.Utilities;
 using QwQ_Music.Utilities.MessageBus;
+using QwQ_Music.Utilities.Tasks;
 using SoundFlow.Modifiers;
 
 namespace QwQ_Music.ViewModels;
@@ -22,15 +23,15 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
         : base("音效")
     {
         SoundEffectConfig = ConfigInfoModel.SoundEffectConfig;
-        RefreshNumberOfCompletedCalc().ConfigureAwait(false);
-        
+        _ = RefreshNumberOfCompletedCalc();
+
         ReplayGainCalculator.CalcCompletedChanged += ReplayGainCalculatorOnCalcCompletedChanged;
-        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
+        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
     }
 
     private void ReplayGainCalculatorOnCalcCompletedChanged(object? sender, EventArgs e) => NumberOfCompletedCalc++;
 
-    private void ExitReminderMessageChanged(ExitReminderMessage obj)
+    private void ExitReminderMessageHandler(ExitReminderMessage obj)
     {
         ReplayGainCalculator.CalcCompletedChanged -= ReplayGainCalculatorOnCalcCompletedChanged;
     }
@@ -39,11 +40,14 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
 
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
-    [ObservableProperty] public partial AsyncTaskHandle? TaskHandle { get; set; }
+    [ObservableProperty]
+    public partial IAsyncTaskHandle? TaskHandle { get; set; }
 
-    [ObservableProperty] public partial int NumberOfCompletedCalc { get; set; }
+    [ObservableProperty]
+    public partial int NumberOfCompletedCalc { get; set; }
 
-    public static MusicReplayGainStandard[] MusicReplayGainStandardList { get; set; } = EnumHelper<MusicReplayGainStandard>.ToArray();
+    public static MusicReplayGainStandard[] MusicReplayGainStandardList { get; set; } =
+        EnumHelper<MusicReplayGainStandard>.ToArray();
 
     public float SpatialAngle
     {
@@ -77,22 +81,21 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
 
     public int NoiseReductionFftSize
     {
-        get => (int)Math.Log(SoundEffectConfig.NoiseReductionModifier.FftSize,2);
+        get => (int)Math.Log(SoundEffectConfig.NoiseReductionModifier.FftSize, 2);
         set
         {
             SoundEffectConfig.NoiseReductionModifier.FftSize = (int)Math.Pow(2, value);
             OnPropertyChanged();
         }
     }
-    
+
     [RelayCommand]
     private void OnSpeakerPositionChanged(PositionChangedEventArgs e)
     {
         SpatialAngle = (float)e.Angle;
         SpatialDistance = (float)e.Distance;
     }
-    
-    
+
     [RelayCommand]
     private void RestoreDefaultEqualizer()
     {
@@ -103,8 +106,6 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
         }
         ParametricEqualizerBands = temp;
     }
-
-
 
     [ObservableProperty]
     public partial string CalculationButtonText { get; set; } = "开始计算 ▶";
@@ -119,7 +120,7 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
                 if (musicItem.Gain < 0)
                     continue;
                 musicItem.Gain = -1;
-                NumberOfCompletedCalc++;
+                NumberOfCompletedCalc--;
             }
         });
 
@@ -133,27 +134,33 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
             return;
 
         // 状态判断和操作一体化处理
-        switch (TaskHandle?.Status)
+        if (TaskHandle != null)
         {
-            case AsyncTaskStatus.Created:
-                break;
-            case null:
-            case AsyncTaskStatus.Cancelled:
-            case AsyncTaskStatus.Completed:
-            case AsyncTaskStatus.Faulted:
-                StartNewCalculation();
-                break;
+            switch (TaskHandle.Status)
+            {
+                case AsyncTaskStatus.Faulted:
+                    StartNewCalculation();
+                    break;
 
-            case AsyncTaskStatus.Running:
-                await TaskHandle.PauseAsync();
-                break;
+                case AsyncTaskStatus.Running:
+                    await TaskHandle.PauseAsync();
+                    break;
 
-            case AsyncTaskStatus.Paused:
-                TaskHandle.Resume();
-                break;
-            default:
-                LoggerService.Error($"不存在的任务状态: {TaskHandle.Status}");
-                break;
+                case AsyncTaskStatus.Paused:
+                    TaskHandle.Resume();
+                    break;
+                case AsyncTaskStatus.Created:
+                case AsyncTaskStatus.Completed:
+                case AsyncTaskStatus.Cancelled:
+                    break;
+                default:
+                    LoggerService.Error($"不存在的任务状态: {TaskHandle.Status}");
+                    break;
+            }
+        }
+        else
+        {
+            StartNewCalculation();
         }
 
         UpdatePromptText();
@@ -174,25 +181,25 @@ public partial class SoundEffectConfigViewModel : NavigationViewModel
         TaskHandle = AsyncTaskManager.CreateTask(
             async ct =>
             {
-                await Task.Run(
-                    () =>
+                // 不使用一次性的 Task.Run，而是逐个处理每个音乐项
+                foreach (var item in MusicPlayerViewModel.MusicItems)
+                {
+                    // 在每个项目处理前检查取消请求
+                    ct.ThrowIfCancellationRequested();
+
+                    // 在每个项目处理前等待暂停状态解除
+                    if (TaskHandle is AsyncTaskHandle handle)
                     {
-                        foreach (var item in MusicPlayerViewModel.MusicItems)
-                        {
-                            // 增加暂停检查点
-                            if (TaskHandle?.Status == AsyncTaskStatus.Paused)
-                                TaskHandle.WaitIfPausedAsync().Wait(ct);
+                        await handle.WaitIfPausedAsync();
+                    }
 
-                            ct.ThrowIfCancellationRequested();
+                    // 跳过已计算的项目
+                    if (item.Gain > 0)
+                        continue;
 
-                            if (item.Gain > 0)
-                                continue;
-
-                            AudioHelper.CalcGainOfMusicItem(item);
-                        }
-                    },
-                    ct
-                );
+                    // 使用较小的任务单元，以便能够及时响应暂停
+                    await Task.Run(() => AudioHelper.CalcGainOfMusicItem(item), ct);
+                }
             },
             CleanupTask,
             ex =>

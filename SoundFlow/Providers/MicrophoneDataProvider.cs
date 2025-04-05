@@ -1,7 +1,7 @@
-﻿using SoundFlow.Abstracts;
+﻿using System.Collections.Concurrent;
+using SoundFlow.Abstracts;
 using SoundFlow.Enums;
 using SoundFlow.Interfaces;
-using System.Collections.Concurrent;
 
 namespace SoundFlow.Providers;
 
@@ -28,7 +28,8 @@ public class MicrophoneDataProvider : ISoundDataProvider, IDisposable
         _audioEngine = AudioEngine.Instance;
         if (_audioEngine.Capability != Capability.Record && _audioEngine.Capability != Capability.Mixed)
             throw new InvalidOperationException(
-                "AudioEngine must be initialized with Capability.Record or Capability.Mixed to use MicrophoneDataProvider.");
+                "AudioEngine must be initialized with Capability.Record or Capability.Mixed to use MicrophoneDataProvider."
+            );
         _bufferSize = bufferSize;
         SampleRate = sampleRate ?? _audioEngine.SampleRate;
         AudioEngine.OnAudioProcessed += EnqueueAudioData;

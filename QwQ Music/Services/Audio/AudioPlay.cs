@@ -3,7 +3,6 @@ using System.IO;
 using Avalonia.Threading;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
-using SoundFlow.Backends.MiniAudio;
 using SoundFlow.Components;
 using SoundFlow.Enums;
 using SoundFlow.Providers;
@@ -15,13 +14,11 @@ namespace QwQ_Music.Services.Audio;
 /// </summary>
 public class AudioPlay : IAudioPlay
 {
-    private readonly MiniAudioEngine _audioEngine;
     private SoundPlayer? _soundPlayer;
     private DispatcherTimer? _progressTimer;
     private DispatcherTimer? _fadeOutTimer; // 添加一个字段来跟踪当前的淡出定时器
-    private float _volume = 1.0f;
 
-    private readonly SoundEffectConfig _soundEffectConfig;
+    private readonly SoundEffectConfig _soundEffectConfig = ConfigInfoModel.SoundEffectConfig;
 
     /// <inheritdoc />
     public event EventHandler<double>? PositionChanged;
@@ -32,32 +29,29 @@ public class AudioPlay : IAudioPlay
     /// <inheritdoc />
     public bool IsMute
     {
-        get => _soundPlayer?.Mute ?? false;
+        get;
         set
         {
-            if (_soundPlayer != null) _soundPlayer.Mute = value;
+            field = value;
+            if (_soundPlayer != null)
+            {
+                _soundPlayer.Mute = value;
+            }
         }
     }
 
-    /// <summary>
-    /// 构造函数，初始化SoundFlow音频引擎
-    /// </summary>
-    public AudioPlay()
+    /// <inheritdoc />
+    public float Volume
     {
-        // 初始化SoundFlow音频引擎，使用44.1kHz采样率，仅支持播放功能
-        _audioEngine = new MiniAudioEngine(44100, Capability.Playback);
-        _soundEffectConfig = ConfigInfoModel.SoundEffectConfig;
-    }
-
-    /// <summary>
-    /// 设置音量（范围：0.0 到 1.0）
-    /// </summary>
-    public void SetVolume(float volume)
-    {
-        _volume = Math.Clamp(volume, 0.0f, 1.0f);
-        if (_soundPlayer != null)
+        get;
+        set
         {
-            _soundPlayer.Volume = _volume;
+            field = Math.Clamp(value / 100, 0.0f, 1.0f);
+
+            if (_soundPlayer != null)
+            {
+                _soundPlayer.Volume = field;
+            }
         }
     }
 
@@ -76,7 +70,7 @@ public class AudioPlay : IAudioPlay
             _fadeOutTimer.Tick -= FadeOutTimer_Tick;
             _fadeOutTimer = null;
         }
-        
+
         // 检查淡入效果器是否启用
         if (_soundEffectConfig.FadeModifier.Enabled)
         {
@@ -90,8 +84,6 @@ public class AudioPlay : IAudioPlay
         StartProgressTimer();
     }
 
-
-    
     /// <summary>
     /// 暂停播放
     /// </summary>
@@ -113,13 +105,13 @@ public class AudioPlay : IAudioPlay
         {
             // 应用淡出效果
             _soundEffectConfig.FadeModifier.BeginFadeOut();
-            
+
             // 创建一个延迟暂停的定时器，等待淡出效果完成
             _fadeOutTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(_soundEffectConfig.FadeModifier.FadeOutTimeMs),
             };
-            
+
             _fadeOutTimer.Tick += FadeOutTimer_Tick;
             _fadeOutTimer.Start();
         }
@@ -136,7 +128,7 @@ public class AudioPlay : IAudioPlay
     /// </summary>
     private void FadeOutTimer_Tick(object? sender, EventArgs e)
     {
-        if (sender is not DispatcherTimer timer) 
+        if (sender is not DispatcherTimer timer)
             return;
 
         // 实际执行暂停操作
@@ -145,7 +137,7 @@ public class AudioPlay : IAudioPlay
             _soundPlayer.Pause();
             _progressTimer?.Stop();
         }
-        
+
         // 停止并清理定时器
         timer.Stop();
         timer.Tick -= FadeOutTimer_Tick;
@@ -157,8 +149,7 @@ public class AudioPlay : IAudioPlay
     /// </summary>
     public void Stop()
     {
-        DisposeCurrentTrack();
-        
+        _soundPlayer?.Stop();
     }
 
     /// <summary>
@@ -171,17 +162,17 @@ public class AudioPlay : IAudioPlay
 
         // 确保位置在有效范围内
         positionInSeconds = Math.Clamp(positionInSeconds, 0, _soundPlayer.Duration);
-        
+
         _soundPlayer.Seek((float)positionInSeconds);
     }
-    
+
     /// <inheritdoc />
-    public void InitializeAudio(string filePath, double channelGains)
+    public void InitializeAudio(string filePath, double replayGain)
     {
         try
         {
             DisposeCurrentTrack();
-            InitializeNewTrack(filePath, channelGains);
+            InitializeNewTrack(filePath, replayGain);
         }
         catch (Exception ex)
         {
@@ -201,8 +192,9 @@ public class AudioPlay : IAudioPlay
         // 创建SoundPlayer并加载音频文件
         _soundPlayer = new SoundPlayer(dataProvider)
         {
-            Volume = _volume,// 设置音量
-        }; 
+            Volume = Volume, // 设置音量
+            Mute = IsMute, // 是否静音
+        };
 
         _soundEffectConfig.ReplayGainModifier.Gain = (float)replayGain;
 
@@ -210,7 +202,7 @@ public class AudioPlay : IAudioPlay
         _soundEffectConfig.FadeModifier.Reset();
 
         InitializeEffects(_soundPlayer);
-        
+
         // 添加到主混音器
         Mixer.Master.AddComponent(_soundPlayer);
 
@@ -218,22 +210,17 @@ public class AudioPlay : IAudioPlay
         _soundPlayer.PlaybackEnded += OnPlaybackCompleted;
 
         // 初始化进度定时器
-        _progressTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(500),
-        };
+        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _progressTimer.Tick += OnProgressTimerTick;
     }
-    
 
     /// <summary>
     /// 初始化效果链
     /// </summary>
     private void InitializeEffects(SoundPlayer soundPlayer)
     {
-        
         _soundEffectConfig.ParametricEqualizer.SetBandsOwner();
-        
+
         soundPlayer
             .AddModifier(_soundEffectConfig.ReplayGainModifier)
             .AddModifier(_soundEffectConfig.ReverbModifier)
@@ -249,7 +236,6 @@ public class AudioPlay : IAudioPlay
             .AddModifier(_soundEffectConfig.NoiseReductionModifier);
     }
 
-    
     /// <summary>
     /// 播放完成事件处理
     /// </summary>
@@ -266,11 +252,10 @@ public class AudioPlay : IAudioPlay
     {
         if (_soundPlayer is not { State: PlaybackState.Playing })
             return;
-        
+
         // 触发位置变化事件
         PositionChanged?.Invoke(this, _soundPlayer.Time);
     }
-
 
     /// <summary>
     /// 启动进度定时器
@@ -279,7 +264,6 @@ public class AudioPlay : IAudioPlay
     {
         _progressTimer?.Start();
     }
-
 
     /// <summary>
     /// 释放当前音轨
@@ -298,13 +282,13 @@ public class AudioPlay : IAudioPlay
         {
             _soundPlayer.Stop();
             _soundPlayer.PlaybackEnded -= OnPlaybackCompleted;
-            
+
             // 从主混音器中移除
             Mixer.Master.RemoveComponent(_soundPlayer);
-            
+
             _soundPlayer = null;
         }
-        
+
         // 停止并释放定时器
         if (_progressTimer != null)
         {
@@ -320,12 +304,7 @@ public class AudioPlay : IAudioPlay
     public void Dispose()
     {
         DisposeCurrentTrack();
-        
-        ConfigInfoModel.SaveSoundEffectConfig();
-        
-        // 释放音频引擎
-        _audioEngine.Dispose();
-        
+
         GC.SuppressFinalize(this);
     }
 }

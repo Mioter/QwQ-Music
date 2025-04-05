@@ -16,14 +16,17 @@ public class Filter : SoundComponent
         /// Allows frequencies below the cutoff frequency to pass, attenuating frequencies above it.
         /// </summary>
         LowPass,
+
         /// <summary>
         /// Allows frequencies above the cutoff frequency to pass, attenuating frequencies below it.
         /// </summary>
         HighPass,
+
         /// <summary>
         /// Allows frequencies around the cutoff frequency to pass, attenuating frequencies further away.
         /// </summary>
         BandPass,
+
         /// <summary>
         /// Attenuates frequencies around the cutoff frequency, allowing frequencies further away to pass.
         /// </summary>
@@ -82,8 +85,15 @@ public class Filter : SoundComponent
     }
 
     // Internal state for the biquad filter
-    private float _x1, _x2, _y1, _y2; // Delay elements for input (x) and output (y) samples
-    private float _a0, _a1, _a2, _b1, _b2; // Filter coefficients for the biquad filter structure
+    private float _x1,
+        _x2,
+        _y1,
+        _y2; // Delay elements for input (x) and output (y) samples
+    private float _a0,
+        _a1,
+        _a2,
+        _b1,
+        _b2; // Filter coefficients for the biquad filter structure
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Filter"/> class with default settings and calculates initial filter coefficients.

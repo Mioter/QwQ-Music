@@ -69,9 +69,9 @@
                         Command="{Binding $parent[Window].((viewModels:MainWindowViewModel)DataContext).ShowMusicPlaylistCommand}"
                         ToolTip.Tip="隐藏播放列表">
                         <PathIcon
-                            Data="{StaticResource SemiIconChevronRightStroked}"
-                            Height="11"
-                            Width="11" />
+                            Data="{StaticResource RoundedTriangle}"
+                            RenderTransform="rotate(-90deg)"
+                            Width="12" />
                     </Button>
                 </StackPanel>
             </Panel>

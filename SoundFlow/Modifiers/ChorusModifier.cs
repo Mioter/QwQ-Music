@@ -12,7 +12,6 @@ public sealed class ChorusModifier : SoundModifier
     private readonly List<float[]> _delayLines = [];
     private readonly int[] _delayIndices;
     private readonly float[] _lfoPhases;
-    
 
     /// <summary>
     /// The maximum delay time in milliseconds (controls buffer size) <br />
@@ -23,8 +22,9 @@ public sealed class ChorusModifier : SoundModifier
         get => _maxDelayMs;
         set
         {
-            if (Math.Abs(_maxDelayMs - value) < 0.0001) return;
-        
+            if (Math.Abs(_maxDelayMs - value) < 0.0001)
+                return;
+
             _maxDelayMs = value;
             UpdateDelayBuffers();
         }
@@ -63,13 +63,13 @@ public sealed class ChorusModifier : SoundModifier
     private void UpdateDelayBuffers()
     {
         _maxDelaySamples = Math.Max(1, (int)(_maxDelayMs * AudioEngine.Instance.SampleRate / 1000f));
-        
+
         _delayLines.Clear();
         for (int i = 0; i < AudioEngine.Channels; i++)
         {
             _delayLines.Add(new float[_maxDelaySamples]);
         }
-        
+
         Array.Clear(_delayIndices, 0, _delayIndices.Length);
         Array.Clear(_lfoPhases, 0, _lfoPhases.Length);
     }
@@ -77,19 +77,16 @@ public sealed class ChorusModifier : SoundModifier
     /// <inheritdoc />
     public override float ProcessSample(float sample, int channel)
     {
-        if (channel >= _delayLines.Count) return sample;
-        
+        if (channel >= _delayLines.Count)
+            return sample;
+
         float[] delayLine = _delayLines[channel];
         ref float phase = ref _lfoPhases[channel];
         ref int delayIndex = ref _delayIndices[channel];
 
         // Calculate modulated delay time
         float lfo = MathF.Sin(phase) * DepthMs * AudioEngine.Instance.SampleRate / 1000f;
-        float delayTimeSamples = Math.Clamp(
-            _maxDelaySamples / 2f + lfo,
-            1f, 
-            _maxDelaySamples - 1f
-        );
+        float delayTimeSamples = Math.Clamp(_maxDelaySamples / 2f + lfo, 1f, _maxDelaySamples - 1f);
 
         // Get delayed sample
         int readIndex = (delayIndex - (int)delayTimeSamples + _maxDelaySamples) % _maxDelaySamples;
@@ -101,7 +98,8 @@ public sealed class ChorusModifier : SoundModifier
 
         // Update LFO phase
         phase += MathF.Tau * RateHz / AudioEngine.Instance.SampleRate;
-        if (phase >= MathF.Tau) phase -= MathF.Tau;
+        if (phase >= MathF.Tau)
+            phase -= MathF.Tau;
 
         return sample * (1 - WetDryMix) + delayed * WetDryMix;
     }

@@ -12,7 +12,6 @@ public abstract class AudioAnalyzer
     /// </summary>
     public virtual string Name { get; set; } = "Audio Analyzer";
 
-    
     private readonly IVisualizer? _visualizer;
 
     /// <summary>
@@ -24,7 +23,6 @@ public abstract class AudioAnalyzer
         _visualizer = visualizer;
     }
 
-    
     /// <summary>
     /// Processes the audio data and sends it to the visualizer.
     /// </summary>

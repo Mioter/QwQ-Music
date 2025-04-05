@@ -21,8 +21,13 @@ internal sealed unsafe class MiniAudioEncoder : ISoundEncoder
     /// <param name="sampleFormat">The format of the input audio samples.</param>
     /// <param name="channels">The number of audio channels.</param>
     /// <param name="sampleRate">The sample rate of the input audio.</param>
-    public MiniAudioEncoder(string filePath, EncodingFormat encodingFormat, SampleFormat sampleFormat, int channels,
-        int sampleRate)
+    public MiniAudioEncoder(
+        string filePath,
+        EncodingFormat encodingFormat,
+        SampleFormat sampleFormat,
+        int channels,
+        int sampleRate
+    )
     {
         FilePath = filePath;
 
@@ -76,7 +81,7 @@ internal sealed unsafe class MiniAudioEncoder : ISoundEncoder
         {
             if (disposing)
                 Native.EncoderUninit(_encoder);
-            
+
             Native.Free(_encoder);
 
             IsDisposed = true;
