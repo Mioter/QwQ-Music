@@ -1,8 +1,8 @@
-﻿using SoundFlow.Abstracts;
+﻿using System.Collections.ObjectModel;
+using SoundFlow.Abstracts;
 using SoundFlow.Enums;
-using SoundFlow.Interfaces;
 using SoundFlow.Exceptions;
-using System.Collections.ObjectModel;
+using SoundFlow.Interfaces;
 
 namespace SoundFlow.Components;
 
@@ -62,11 +62,13 @@ public class Recorder : IDisposable
     /// <param name="encodingFormat">The desired encoding format for the recorded audio file. Defaults to <see cref="EncodingFormat.Wav"/>.</param>
     /// <param name="sampleRate">The desired sample rate for recording, in samples per second. Defaults to 44100 Hz.</param>
     /// <param name="channels">The number of channels to record. Defaults to 2 (stereo).</param>
-    public Recorder(string filePath,
+    public Recorder(
+        string filePath,
         SampleFormat sampleFormat = SampleFormat.F32,
         EncodingFormat encodingFormat = EncodingFormat.Wav,
         int sampleRate = 44100,
-        int channels = 2)
+        int channels = 2
+    )
     {
         SampleFormat = sampleFormat;
         EncodingFormat = encodingFormat;
@@ -83,11 +85,13 @@ public class Recorder : IDisposable
     /// <param name="encodingFormat">The encoding format (primarily for internal use or if an encoder is manually managed). Defaults to <see cref="EncodingFormat.Wav"/>.</param>
     /// <param name="sampleRate">The desired sample rate for recording, in samples per second. Defaults to 44100 Hz.</param>
     /// <param name="channels">The number of channels to record. Defaults to 2 (stereo).</param>
-    public Recorder(AudioProcessCallback callback,
+    public Recorder(
+        AudioProcessCallback callback,
         SampleFormat sampleFormat = SampleFormat.F32,
         EncodingFormat encodingFormat = EncodingFormat.Wav,
         int sampleRate = 44100,
-        int channels = 2)
+        int channels = 2
+    )
     {
         ProcessCallback = callback;
         SampleFormat = sampleFormat;
@@ -124,8 +128,11 @@ public class Recorder : IDisposable
         {
             _encoder = AudioEngine.Instance.CreateEncoder(FilePath, EncodingFormat, SampleFormat, Channels, SampleRate);
             if (_encoder == null)
-                throw new BackendException(AudioEngine.Instance.GetType().Name, Result.Error,
-                    "Failed to create encoder.");
+                throw new BackendException(
+                    AudioEngine.Instance.GetType().Name,
+                    Result.Error,
+                    "Failed to create encoder."
+                );
         }
 
         AudioEngine.OnAudioProcessed += OnOnAudioProcessed;
@@ -234,7 +241,7 @@ public class Recorder : IDisposable
         // Process analyzers
         foreach (var analyzer in _analyzers)
         {
-             analyzer.Process(samples);
+            analyzer.Process(samples);
         }
 
         // Pass samples

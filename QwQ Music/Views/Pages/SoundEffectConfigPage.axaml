@@ -456,13 +456,14 @@
 
                     <TextBlock FontSize="12" Text="{Binding #CompressorSetter1.Value, StringFormat='阈值 : {0:F3} Db'}" />
                     <u:NumericFloatUpDown
+                        InnerRightContent="Db"
                         Maximum="0"
                         Minimum="-50"
                         Name="CompressorSetter1"
                         Step="5"
                         Value="{Binding ThresholdDb}" />
 
-                    <TextBlock FontSize="12" Text="{Binding #CompressorSetter2.Value, StringFormat='压缩比 : {0:F3}'}" />
+                    <TextBlock FontSize="12" Text="{Binding #CompressorSetter2.Value, StringFormat='压缩比 : 1 / {0:F3}'}" />
                     <u:NumericFloatUpDown
                         Minimum="1"
                         Name="CompressorSetter2"
@@ -471,6 +472,7 @@
 
                     <TextBlock FontSize="12" Text="{Binding #CompressorSetter3.Value, StringFormat='攻击时间 : {0:F3} ms'}" />
                     <u:NumericFloatUpDown
+                        InnerRightContent="ms"
                         Minimum="0.1"
                         Name="CompressorSetter3"
                         Step="5"
@@ -478,6 +480,7 @@
 
                     <TextBlock FontSize="12" Text="{Binding #CompressorSetter4.Value, StringFormat='释放时间 : {0:F3} ms'}" />
                     <u:NumericFloatUpDown
+                        InnerRightContent="ms"
                         Minimum="0.1"
                         Name="CompressorSetter4"
                         Step="5"
@@ -485,15 +488,17 @@
 
                     <TextBlock FontWeight="Black" Text="扩展属性" />
 
-                    <TextBlock FontSize="12" Text="{Binding #CompressorSetter5.Value, StringFormat='软拐点宽度 : {0:F3} dB'}" />
+                    <TextBlock FontSize="12" Text="{Binding #CompressorSetter5.Value, StringFormat='软拐点宽度 : {0:F3} Db'}" />
                     <u:NumericFloatUpDown
+                        InnerRightContent="Db"
                         Minimum="0"
                         Name="CompressorSetter5"
                         Step="5"
                         Value="{Binding KneeDb}" />
 
-                    <TextBlock FontSize="12" Text="{Binding #CompressorSetter6.Value, StringFormat='补偿增益 : {0:F3} dB'}" />
+                    <TextBlock FontSize="12" Text="{Binding #CompressorSetter6.Value, StringFormat='补偿增益 : {0:F3} Db'}" />
                     <u:NumericFloatUpDown
+                        InnerRightContent="Db"
                         Minimum="0"
                         Name="CompressorSetter6"
                         Step="1"
@@ -566,6 +571,7 @@
                     <u:Divider Content="{Binding FadeInTimeMs, StringFormat='淡入时长 : {0} 毫秒'}" FontSize="12" />
                     <u:NumericIntUpDown
                         EmptyInputValue="1"
+                        InnerRightContent="ms"
                         Maximum="60000"
                         Minimum="0"
                         Step="200"
@@ -574,6 +580,7 @@
 
                     <u:NumericIntUpDown
                         EmptyInputValue="1"
+                        InnerRightContent="ms"
                         Maximum="60000"
                         Minimum="0"
                         Step="200"
@@ -675,7 +682,7 @@
                 <StackPanel>
 
                     <TextBlock FontSize="12" Text="{Binding NoiseReductionFftSize, StringFormat='FFT大小 : 2 ^ {0:F0}'}" />
-                    <u:NumericIntUpDown Minimum="0" Value="{Binding NoiseReductionFftSize}" />
+                    <u:NumericIntUpDown Minimum="10" Value="{Binding NoiseReductionFftSize}" />
 
                     <TextBlock FontSize="12" Text="{Binding #NoiseReductionSetter1.Value, StringFormat='过减因子 : {0:F3}'}" />
                     <Slider
@@ -705,7 +712,7 @@
                         Name="NoiseReductionSetter4"
                         Value="{Binding SoundEffectConfig.NoiseReductionModifier.Gain}" />
 
-                    <TextBlock FontSize="12" Text="{Binding #NoiseReductionSetter5.Value, StringFormat='用于噪声估计的初始帧数 : {0:F0}'}" />
+                    <TextBlock FontSize="12" Text="{Binding #NoiseReductionSetter5.Value, StringFormat='用于预估噪声的初始帧数 : {0:F0}'}" />
                     <Slider
                         Maximum="100"
                         Minimum="1"

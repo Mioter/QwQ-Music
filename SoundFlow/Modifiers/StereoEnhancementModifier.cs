@@ -10,7 +10,7 @@ public sealed class StereoEnhancementModifier : SoundModifier
 {
     // 状态变量
     private readonly float[] _bassFilterStates = new float[2];
-    
+
     // 配置参数
     private float _enhancementFactor = 1.5f;
     private float _stereoWidth = 1.0f;
@@ -90,19 +90,22 @@ public sealed class StereoEnhancementModifier : SoundModifier
     /// <inheritdoc />
     public override void Process(Span<float> buffer)
     {
-        if (!Enabled) return;
+        if (!Enabled)
+            return;
 
         int channels = AudioEngine.Channels;
-        
+
         // 只处理立体声
-        if (channels < 2) return;
+        if (channels < 2)
+            return;
 
         float sampleTime = 1f / AudioEngine.Instance.SampleRate;
 
         for (int n = 0; n < buffer.Length; n += channels)
         {
             // 确保有足够的样本
-            if (n + 1 >= buffer.Length) break;
+            if (n + 1 >= buffer.Length)
+                break;
 
             // 获取左右声道样本
             float left = buffer[n];
@@ -163,9 +166,9 @@ public sealed class StereoEnhancementModifier : SoundModifier
     {
         if (Math.Abs(sample) <= threshold)
             return sample;
-        
-        return Math.Sign(sample) * 
-               (threshold + (1 - threshold) * MathF.Tanh((Math.Abs(sample) - threshold) / (1 - threshold)));
+
+        return Math.Sign(sample)
+            * (threshold + (1 - threshold) * MathF.Tanh((Math.Abs(sample) - threshold) / (1 - threshold)));
     }
 
     /// <summary>

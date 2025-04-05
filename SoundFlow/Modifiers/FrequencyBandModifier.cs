@@ -10,7 +10,7 @@ public class FrequencyBandModifier : SoundModifier
 {
     private readonly LowPassFilter _lowPass;
     private readonly HighPassFilter _highPass;
-    
+
     /// <summary>
     /// 创建频段处理器实例<br />
     /// Constructs a new instance of <see cref="FrequencyBandModifier"/>
@@ -19,7 +19,7 @@ public class FrequencyBandModifier : SoundModifier
     {
         // 默认设置：20Hz - 20kHz
         // Default settings: 20Hz - 20kHz
-        _highPass = new HighPassFilter(20f); 
+        _highPass = new HighPassFilter(20f);
         _lowPass = new LowPassFilter(20000f);
     }
 
@@ -40,10 +40,7 @@ public class FrequencyBandModifier : SoundModifier
             // Ensure high frequency is not lower than low frequency
             if (value > LowCutoffFrequency)
             {
-                _lowPass.CutoffFrequency = Math.Min(
-                    value, 
-                    AudioEngine.Instance.SampleRate / 2.0f
-                );
+                _lowPass.CutoffFrequency = Math.Min(value, AudioEngine.Instance.SampleRate / 2.0f);
             }
         }
     }
@@ -66,8 +63,8 @@ public class FrequencyBandModifier : SoundModifier
             if (value < HighCutoffFrequency)
             {
                 _highPass.CutoffFrequency = Math.Max(
-                    value, 
-                    20f  // 最低有效频率
+                    value,
+                    20f // 最低有效频率
                 );
             }
         }

@@ -1,5 +1,4 @@
-﻿
-namespace SoundFlow.Interfaces;
+﻿namespace SoundFlow.Interfaces;
 
 /// <summary>
 /// Represents a visualizer that can process audio data and generate visualization data.

@@ -37,8 +37,8 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
         (float)_samplePosition / AudioEngine.Channels / AudioEngine.Instance.SampleRate / PlaybackSpeed;
 
     /// <inheritdoc />
-    public float Duration => (float)_dataProvider.Length / AudioEngine.Channels / AudioEngine.Instance.SampleRate /
-                             PlaybackSpeed;
+    public float Duration =>
+        (float)_dataProvider.Length / AudioEngine.Channels / AudioEngine.Instance.SampleRate / PlaybackSpeed;
 
     /// <inheritdoc />
     public int LoopStartSamples { get; private set; }
@@ -50,9 +50,8 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
     public float LoopStartSeconds => (float)LoopStartSamples / AudioEngine.Channels / AudioEngine.Instance.SampleRate;
 
     /// <inheritdoc />
-    public float LoopEndSeconds => LoopEndSamples == -1
-        ? -1
-        : (float)LoopEndSamples / AudioEngine.Channels / AudioEngine.Instance.SampleRate;
+    public float LoopEndSeconds =>
+        LoopEndSamples == -1 ? -1 : (float)LoopEndSamples / AudioEngine.Channels / AudioEngine.Instance.SampleRate;
 
     /// <summary>
     /// Constructor for BaseSoundPlayer.
@@ -153,7 +152,7 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
         if (IsLooping)
         {
             int loopStart = LoopStartSamples;
-            
+
             // Fallback to loop start if something unexpected
             Seek(loopStart); // Seek to the loop start point
 
@@ -214,10 +213,10 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
     {
         if (time < TimeSpan.Zero)
             return false;
-        
+
         if (Duration <= 0)
             return time <= TimeSpan.Zero && Seek(0f);
-        
+
         switch (seekOrigin)
         {
             case SeekOrigin.Current:
@@ -225,7 +224,7 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
             case SeekOrigin.End:
                 if (Duration <= 0 || !double.IsNegative(time.TotalSeconds))
                     return Seek(Duration);
-                
+
                 return Seek((float)(Duration + time.TotalSeconds));
             case SeekOrigin.Begin:
             default:
@@ -264,8 +263,10 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
         if (startTime < 0)
             throw new ArgumentOutOfRangeException(nameof(startTime), "Loop start time cannot be negative.");
         if (endTime.HasValue && Math.Abs(endTime.Value - -1f) < 1e-6 && endTime < startTime)
-            throw new ArgumentOutOfRangeException(nameof(endTime),
-                "Loop end time must be greater than or equal to start time, or -1.");
+            throw new ArgumentOutOfRangeException(
+                nameof(endTime),
+                "Loop end time must be greater than or equal to start time, or -1."
+            );
 
         LoopStartSamples = (int)(startTime * AudioEngine.Instance.SampleRate * AudioEngine.Channels);
         LoopEndSamples = endTime.HasValue
@@ -273,7 +274,6 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
                 ? -1
                 : (int)(endTime.Value * AudioEngine.Instance.SampleRate * AudioEngine.Channels)
             : -1;
-
 
         // Clamp to valid sample range
         LoopStartSamples = Math.Clamp(LoopStartSamples, 0, _dataProvider.Length);
@@ -286,8 +286,10 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
         if (startSample < 0)
             throw new ArgumentOutOfRangeException(nameof(startSample), "Loop start sample cannot be negative.");
         if (endSample != -1 && endSample < startSample)
-            throw new ArgumentOutOfRangeException(nameof(endSample),
-                "Loop end sample must be greater than or equal to start sample, or -1.");
+            throw new ArgumentOutOfRangeException(
+                nameof(endSample),
+                "Loop end sample must be greater than or equal to start sample, or -1."
+            );
 
         LoopStartSamples = startSample;
         LoopEndSamples = endSample;
@@ -303,8 +305,10 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
         if (startTime < TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(startTime), "Loop start time cannot be negative.");
         if (endTime < startTime)
-            throw new ArgumentOutOfRangeException(nameof(endTime),
-                "Loop end time must be greater than or equal to start time, or null.");
+            throw new ArgumentOutOfRangeException(
+                nameof(endTime),
+                "Loop end time must be greater than or equal to start time, or null."
+            );
 
         float startTimeSeconds = (float)startTime.TotalSeconds;
         double? endTimeSeconds = endTime?.TotalSeconds;

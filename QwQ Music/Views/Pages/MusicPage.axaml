@@ -70,15 +70,11 @@
                     ToolTip.Tip="添加音乐" />-->
 
                 <u:IconButton
-                    Classes="Icon"
                     Command="{Binding SelectedCurrentMusicItemCommand}"
                     Icon="{StaticResource SemiIconAlignCenterVertical}"
                     ToolTip.Tip="跳转当前音乐" />
 
-                <u:IconButton
-                    Classes="Icon"
-                    Icon="{StaticResource SemiIconMore}"
-                    ToolTip.Tip="更多">
+                <u:IconButton Icon="{StaticResource SemiIconMore}" ToolTip.Tip="更多">
 
                     <Button.Flyout>
                         <Flyout>

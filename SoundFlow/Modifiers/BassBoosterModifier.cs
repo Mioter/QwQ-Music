@@ -73,8 +73,7 @@ public class BassBoosterModifier : SoundModifier
 
         // 更新共振状态
         // Update resonance state
-        _resonanceState[channel] = _lpState[channel] + 
-                                  _resonanceState[channel] * feedbackFactor;
+        _resonanceState[channel] = _lpState[channel] + _resonanceState[channel] * feedbackFactor;
 
         // 混合原始信号和增强信号
         // Mix original and boosted signal

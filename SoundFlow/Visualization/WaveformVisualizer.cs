@@ -10,7 +10,7 @@ public class WaveformVisualizer : IVisualizer
 {
     /// <inheritdoc />
     public string Name { get; } = "Waveform Visualizer";
-    
+
     /// <summary>
     /// Gets the waveform data.
     /// </summary>
@@ -28,9 +28,9 @@ public class WaveformVisualizer : IVisualizer
             VisualizationUpdated?.Invoke(this, EventArgs.Empty);
         }
     }
-    
+
     private Color _waveformColor = new(0, 1, 0); // Default green
-    
+
     /// <summary>
     /// Gets the size of the waveform visualization in pixels (X - width, Y - height).
     /// </summary>
@@ -53,7 +53,6 @@ public class WaveformVisualizer : IVisualizer
         {
             return;
         }
-
 
         float midY = Size.Y / 2;
         float xStep = Size.X / (Waveform.Count - 1);

@@ -38,59 +38,22 @@ public sealed class ParametricEqualizer : SoundModifier
         // 创建默认频段
         Bands =
         [
-            new PeakingBand
-            {
-                Frequency = 60,
-                Q = 1.0f
-            }, // 低频增强 (Sub-bass)
-            new PeakingBand
-            {
-                Frequency = 150,
-                Q = 1.0f
-            }, // 低频 (Bass)
-            new PeakingBand
-            {
-                Frequency = 250,
-                Q = 1.0f
-            }, // 低中频 (Low-mids)
-
+            new PeakingBand { Frequency = 60, Q = 1.0f }, // 低频增强 (Sub-bass)
+            new PeakingBand { Frequency = 150, Q = 1.0f }, // 低频 (Bass)
+            new PeakingBand { Frequency = 250, Q = 1.0f }, // 低中频 (Low-mids)
             // 中频段 (Mid frequencies)
-            new PeakingBand
-            {
-                Frequency = 500,
-                Q = 1.0f
-            }, // 中频 (Mids)
-            new PeakingBand
-            {
-                Frequency = 1000,
-                Q = 1.0f
-            }, // 中频 (Mids)
-            new PeakingBand
-            {
-                Frequency = 2000,
-                Q = 1.0f
-            }, // 高中频 (Upper-mids)
-
+            new PeakingBand { Frequency = 500, Q = 1.0f }, // 中频 (Mids)
+            new PeakingBand { Frequency = 1000, Q = 1.0f }, // 中频 (Mids)
+            new PeakingBand { Frequency = 2000, Q = 1.0f }, // 高中频 (Upper-mids)
             // 高频段 (High frequencies)
-            new PeakingBand
-            {
-                Frequency = 4000,
-                Q = 1.0f
-            }, // 高频 (Presence)
-            new PeakingBand
-            {
-                Frequency = 8000,
-                Q = 1.0f
-            }, // 高频 (Brilliance)
-            new PeakingBand
-            {
-                Frequency = 16000,
-                Q = 1.0f
-            }, // 超高频 (Air)
+            new PeakingBand { Frequency = 4000, Q = 1.0f }, // 高频 (Presence)
+            new PeakingBand { Frequency = 8000, Q = 1.0f }, // 高频 (Brilliance)
+            new PeakingBand { Frequency = 16000, Q = 1.0f }, // 超高频 (Air)
         ];
 
         SetBandsOwner();
     }
+
     /// <summary>
     /// 设置频段所有者
     /// </summary>
@@ -118,12 +81,14 @@ public sealed class ParametricEqualizer : SoundModifier
         _filtersPerChannel.Clear();
         for (int channel = 0; channel < AudioEngine.Channels; channel++)
         {
-            var filters = Bands.Select(band => 
-            {
-                var filter = new BiquadFilter();
-                filter.UpdateCoefficients(band, AudioEngine.Instance.SampleRate);
-                return filter;
-            }).ToList();
+            var filters = Bands
+                .Select(band =>
+                {
+                    var filter = new BiquadFilter();
+                    filter.UpdateCoefficients(band, AudioEngine.Instance.SampleRate);
+                    return filter;
+                })
+                .ToList();
 
             _filtersPerChannel[channel] = filters;
         }
@@ -146,12 +111,14 @@ public sealed class ParametricEqualizer : SoundModifier
             return value.Aggregate(sample, (current, filter) => filter.ProcessSample(current));
 
         // 如果尚未为此通道初始化滤波器，则进行初始化
-        var filters = Bands.Select(band => 
-        {
-            var filter = new BiquadFilter();
-            filter.UpdateCoefficients(band, AudioEngine.Instance.SampleRate);
-            return filter;
-        }).ToList();
+        var filters = Bands
+            .Select(band =>
+            {
+                var filter = new BiquadFilter();
+                filter.UpdateCoefficients(band, AudioEngine.Instance.SampleRate);
+                return filter;
+            })
+            .ToList();
 
         _filtersPerChannel[channel] = filters;
         return filters.Aggregate(sample, (current, filter) => filter.ProcessSample(current));
@@ -167,7 +134,7 @@ public sealed class ParametricEqualizer : SoundModifier
         Bands.Add(band);
         InitializeFilters();
     }
-    
+
     /// <summary>
     /// 添加多个均衡器频段并重新初始化滤波器<br />
     /// Adds multiple EQ bands to the equalizer and reinitializes the filters.
@@ -177,7 +144,7 @@ public sealed class ParametricEqualizer : SoundModifier
         var equalizerBands = bands.ToList();
         foreach (var band in equalizerBands)
             band.SetOwner(this);
-            
+
         Bands.AddRange(equalizerBands);
         InitializeFilters();
     }
@@ -210,7 +177,7 @@ public sealed class ParametricEqualizer : SoundModifier
     {
         foreach (var band in Bands)
             band.GainDb = 0;
-            
+
         InitializeFilters();
     }
 }
@@ -281,10 +248,10 @@ public class EqualizerBand
     private float _q = 0.7071f;
     private float _s = 1f;
     private FilterType _type;
-    
+
     // 添加对参数化均衡器的引用
     private ParametricEqualizer? _owner;
-    
+
     /// <summary>
     /// 设置此频段所属的均衡器<br />
     /// Set the equalizer that owns this band
@@ -293,16 +260,16 @@ public class EqualizerBand
     {
         _owner = owner;
     }
-    
+
     /// <summary>
     /// 均衡器频段的中心频率（赫兹）<br />
     /// The center frequency of the EQ band in Hz.
     /// </summary>
-    public float Frequency 
-    { 
+    public float Frequency
+    {
         get => _frequency;
-        set 
-        { 
+        set
+        {
             _frequency = value;
             _owner?.UpdateFilters();
         }
@@ -312,11 +279,11 @@ public class EqualizerBand
     /// 均衡器频段的增益（分贝）<br />
     /// The gain of the EQ band in decibels.
     /// </summary>
-    public float GainDb 
-    { 
+    public float GainDb
+    {
         get => _gainDb;
-        set 
-        { 
+        set
+        {
             _gainDb = value;
             _owner?.UpdateFilters();
         }
@@ -326,11 +293,11 @@ public class EqualizerBand
     /// 均衡器频段的品质因数<br />
     /// The quality factor of the EQ band.
     /// </summary>
-    public float Q 
-    { 
+    public float Q
+    {
         get => _q;
-        set 
-        { 
+        set
+        {
             _q = value;
             _owner?.UpdateFilters();
         }
@@ -340,11 +307,11 @@ public class EqualizerBand
     /// 均衡器频段的增益乘数<br />
     /// The gain multiplier of the EQ band.
     /// </summary>
-    public float S 
-    { 
+    public float S
+    {
         get => _s;
-        set 
-        { 
+        set
+        {
             _s = value;
             _owner?.UpdateFilters();
         }
@@ -354,11 +321,11 @@ public class EqualizerBand
     /// 要应用的滤波器类型<br />
     /// The type of filter to apply.
     /// </summary>
-    public FilterType Type 
-    { 
+    public FilterType Type
+    {
         get => _type;
-        set 
-        { 
+        set
+        {
             _type = value;
             _owner?.UpdateFilters();
         }
@@ -479,8 +446,16 @@ public class AllPassBand : EqualizerBand
 /// </summary>
 public class BiquadFilter
 {
-    private float _a0, _a1, _a2, _b0, _b1, _b2;
-    private float _x1, _x2, _y1, _y2;
+    private float _a0,
+        _a1,
+        _a2,
+        _b0,
+        _b1,
+        _b2;
+    private float _x1,
+        _x2,
+        _y1,
+        _y2;
 
     /// <summary>
     /// 根据指定的均衡器频段参数更新滤波器系数<br />

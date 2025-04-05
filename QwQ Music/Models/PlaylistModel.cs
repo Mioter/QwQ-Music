@@ -7,15 +7,12 @@ using QwQ_Music.Services.ConfigIO;
 
 namespace QwQ_Music.Models;
 
-public class PlaylistModel(string name) : ObservableObject, IEnumerable<MusicItemModel>
+public partial class PlaylistModel(string name) : ObservableObject, IEnumerable<MusicItemModel>
 {
     public readonly string Name = name;
 
-    public ObservableCollection<MusicItemModel> MusicItems
-    {
-        get;
-        set => SetProperty(ref field, value);
-    } = [];
+    [ObservableProperty]
+    public partial ObservableCollection<MusicItemModel> MusicItems { get; set; } = [];
 
     public string LatestPlayedMusic = "";
 

@@ -1,6 +1,6 @@
 <UserControl
-    d:DesignHeight="125"
-    d:DesignWidth="600"
+    d:DesignHeight="130"
+    d:DesignWidth="650"
     mc:Ignorable="d"
     x:Class="QwQ_Music.Views.UserControls.MusicPlayerTray"
     x:DataType="viewModel:MusicPlayerTrayViewModel"
@@ -8,6 +8,7 @@
     xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
     xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enums="clr-namespace:QwQ_Music.Enums"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModel="clr-namespace:QwQ_Music.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -43,7 +44,7 @@
             <Button
                 Background="{x:Null}"
                 Classes="None"
-                Command="{Binding MusicPlayerViewModel.TogglePlaybackCommand}">
+                Command="{Binding $parent[Window].((viewModel:MainWindowViewModel)DataContext).ShowMusicPlayerPageCommand}">
                 <Border
                     Background="Black"
                     BorderBrush="White"
@@ -51,13 +52,13 @@
                     BoxShadow="0 0 10 0 DarkGray"
                     Margin="10"
                     behaviors:DynamicCornerBehavior.IsEnabled="True">
-
-                    <Border ClipToBounds="True" Margin="5">
+                    <Border
+                        ClipToBounds="True"
+                        Margin="5"
+                        behaviors:DynamicCornerBehavior.IsEnabled="True">
                         <!--  专辑封面 Image 控件  -->
                         <Image
                             Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}"
-                            MaxHeight="60"
-                            MaxWidth="60"
                             RenderOptions.BitmapBlendingMode="Source"
                             Source="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty, Converter={StaticResource AlbumImageConverter}}">
 
@@ -109,6 +110,17 @@
                             <Setter Property="Padding" Value="0" />
                         </Style>
                     </StackPanel.Styles>
+
+                    <!--  刷新播放  -->
+                    <Button
+                        Classes="Icon"
+                        Command="{Binding MusicPlayerViewModel.RefreshCurrentMusicItemCommand}"
+                        Foreground="{DynamicResource TextBlockDefaultForeground}"
+                        Height="25"
+                        IsEnabled="{Binding MusicPlayerViewModel.CurrentMusicItem.FilePathProperty, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=''}"
+                        behaviors:DynamicCornerBehavior.IsEnabled="True">
+                        <PathIcon Data="{StaticResource SemiIconRefresh2}" Margin="5" />
+                    </Button>
 
                     <!--  上一首  -->
                     <Button
@@ -215,16 +227,32 @@
                         <PathIcon Data="{StaticResource PlayIconData}" Height="30" />
                     </Button>
 
+                    <!--  播放模式  -->
                     <Button
                         Classes="Icon"
-                        Command="{Binding MusicPlayerViewModel.RefreshCurrentMusicItemCommand}"
+                        Command="{Binding MusicPlayerViewModel.TogglePlayModeCommand}"
                         Foreground="{DynamicResource TextBlockDefaultForeground}"
+                        Height="25"
+                        ToolTip.Placement="Top"
+                        ToolTip.Tip="{Binding MusicPlayerViewModel.PlayModeName}"
+                        ToolTip.VerticalOffset="-10"
                         behaviors:DynamicCornerBehavior.IsEnabled="True">
-                        <PathIcon
-                            Data="{StaticResource SemiIconRefresh2}"
-                            Height="12"
-                            Margin="5"
-                            Width="12" />
+                        <control:ChoiceControl Selected="{Binding MusicPlayerViewModel.PlayerConfig.PlayMode}" TargetType="{x:Type enums:PlayMode}">
+                            <PathIcon
+                                Data="{StaticResource Sequential}"
+                                Margin="3.6"
+                                control:ChoiceControl.SelectName="Sequential" />
+
+                            <PathIcon
+                                Data="{StaticResource Random}"
+                                Margin="4.8"
+                                control:ChoiceControl.SelectName="Random" />
+
+                            <PathIcon
+                                Data="{StaticResource SingleLoop}"
+                                Margin="4"
+                                control:ChoiceControl.SelectName="SingleLoop" />
+                        </control:ChoiceControl>
                     </Button>
 
                 </StackPanel>
@@ -248,7 +276,6 @@
                         FontSize="13"
                         Text="{Binding MusicPlayerViewModel.CurrentDurationInSeconds, Mode=OneWay, Converter={StaticResource SecondsToStringConverter}}"
                         VerticalAlignment="Center" />
-
 
                     <TextBlock
                         FontSize="11"
@@ -339,14 +366,14 @@
                                         FontSize="10"
                                         HorizontalAlignment="Center"
                                         Margin="0,0,0,3"
-                                        Text="{Binding MusicPlayerViewModel.VolumePercent}" />
+                                        Text="{Binding MusicPlayerViewModel.Volume}" />
 
                                     <Slider
                                         Grid.Row="1"
                                         HorizontalAlignment="Center"
                                         Maximum="100"
                                         Orientation="Vertical"
-                                        Value="{Binding MusicPlayerViewModel.VolumePercent}" />
+                                        Value="{Binding MusicPlayerViewModel.Volume}" />
 
                                     <Button
                                         Classes="Icon"
@@ -386,14 +413,14 @@
 
                         <ToolTip.Tip>
                             <Panel>
-                                <TextBlock FontSize="12" IsVisible="{Binding MusicPlayerViewModel.VolumePercent}">
+                                <TextBlock FontSize="12" IsVisible="{Binding MusicPlayerViewModel.Volume}">
                                     <Run Text="当前音量：" />
-                                    <Run Text="{Binding MusicPlayerViewModel.VolumePercent}" />
+                                    <Run Text="{Binding MusicPlayerViewModel.Volume}" />
                                     <Run Text="%" />
                                 </TextBlock>
                                 <TextBlock
                                     FontSize="12"
-                                    IsVisible="{Binding !MusicPlayerViewModel.VolumePercent}"
+                                    IsVisible="{Binding !MusicPlayerViewModel.Volume}"
                                     Text="静音" />
                             </Panel>
                         </ToolTip.Tip>

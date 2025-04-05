@@ -8,6 +8,7 @@ using Microsoft.Data.Sqlite;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Models.ModelBase;
+using QwQ_Music.Utilities;
 using Log = QwQ_Music.Services.LoggerService;
 
 namespace QwQ_Music.Services.ConfigIO;
@@ -15,9 +16,22 @@ namespace QwQ_Music.Services.ConfigIO;
 public static class DataBaseService
 {
     // ReSharper disable once InconsistentNaming
-    private static readonly SqliteConnection Database = new(
-        "data source=" + MainConfig.DatabaseSavePath + ";Foreign Keys=True;"
-    );
+    private static SqliteConnection? _database;
+
+    private static SqliteConnection Database
+    {
+        get
+        {
+            if (_database == null)
+            {
+                // 确保数据库文件所在目录存在
+                PathEnsurer.EnsureFileAndDirectoryExist(MainConfig.DatabaseSavePath);
+
+                _database = new SqliteConnection("data source=" + MainConfig.DatabaseSavePath + ";Foreign Keys=True;");
+            }
+            return _database;
+        }
+    }
 
     private static SqliteCommand Command
     {
@@ -45,10 +59,24 @@ public static class DataBaseService
 
     // ReSharper restore InconsistentNaming
 
-    private async static Task EnsureTableExistsAsync()
+    private static async Task EnsureTableExistsAsync()
     {
+        // 确保数据库文件存在
         if (!File.Exists(MainConfig.DatabaseSavePath))
-            _ = new FileStream(MainConfig.DatabaseSavePath, FileMode.Create, FileAccess.Write, FileShare.None);
+        {
+            // 确保目录存在
+            PathEnsurer.EnsureFileAndDirectoryExist(MainConfig.DatabaseSavePath);
+
+            // 如果连接已经创建，需要关闭并重新创建
+            if (_database != null)
+            {
+                if (_database.State != ConnectionState.Closed)
+                    await _database.CloseAsync();
+                _database = null; // 强制重新创建连接
+            }
+        }
+
+        // 创建表
         await using var music = Command;
         await using var playlist = Command;
         await using var names = Command;
@@ -97,7 +125,7 @@ public static class DataBaseService
     /// <summary>
     /// 异步从数据库加载数据。
     /// </summary>
-    public async static IAsyncEnumerable<TConfig> LoadFromDatabaseAsync<TConfig>(
+    public static async IAsyncEnumerable<TConfig> LoadFromDatabaseAsync<TConfig>(
         Table table = Table.MUSICS,
         Range limit = default,
         string? search = null,
@@ -184,9 +212,9 @@ public static class DataBaseService
     }
 
     /// <summary>
-    /// 异步保存数据到数据库。
+    /// 异步更新数据到数据库。
     /// </summary>
-    public async static Task<bool> UpdateDataAsync<TConfig>(IModelBase<TConfig> model, Table table, string condition)
+    public static async Task<bool> UpdateDataAsync<TConfig>(IModelBase<TConfig> model, Table table, string condition)
         where TConfig : IModelBase<TConfig>
     {
         try
@@ -209,7 +237,7 @@ public static class DataBaseService
     }
 
     /// <summary>
-    /// 同步保存数据到数据库。
+    /// 同步更新数据到数据库。
     /// </summary>
     public static bool UpdateData<TConfig>(in IModelBase<TConfig> model, in Table table, in string condition)
         where TConfig : IModelBase<TConfig>
@@ -236,13 +264,32 @@ public static class DataBaseService
     /// <summary>
     /// 异步保存数据到数据库。
     /// </summary>
-    public async static Task<bool> SaveToDatabaseAsync<TConfig>(IModelBase<TConfig> model, Table table)
+    public static async Task<bool> SaveToDatabaseAsync<TConfig>(IModelBase<TConfig> model, Table table)
         where TConfig : IModelBase<TConfig>
     {
         try
         {
             var command = Command;
             var dict = model.Dump();
+
+            // 检查记录是否已存在
+            if (dict.TryGetValue(nameof(MusicItemModel.FilePath), out string? filePath))
+            {
+                var checkCommand = Command;
+                checkCommand.CommandText =
+                    $"SELECT COUNT(*) FROM {table:G} WHERE {nameof(MusicItemModel.FilePath)} = @FilePath";
+                checkCommand.Parameters.AddWithValue("@FilePath", filePath);
+                int count = Convert.ToInt32(await checkCommand.ExecuteScalarAsync().ConfigureAwait(false));
+
+                // 如果记录已存在，执行更新而不是插入
+                if (count > 0)
+                {
+                    return await UpdateDataAsync(model, table, $"{nameof(MusicItemModel.FilePath)} = {filePath}")
+                        .ConfigureAwait(false);
+                }
+            }
+
+            // 执行原来的插入逻辑
             var parameters = dict.Select(kv => new SqliteParameter($"@{kv.Key}", kv.Value));
             command.CommandText =
                 $"INSERT INTO {table:G} ({string.Join(',', dict.Keys)}) VALUES ({string.Join(",", dict.Keys.Select(k => $"@{k}"))})";
@@ -320,7 +367,7 @@ public static class DataBaseService
         }
     }
 
-    public async static Task<List<TResult>> LoadFromDataBaseAsync<TResult>(
+    public static async Task<List<TResult>> LoadFromDataBaseAsync<TResult>(
         Table table,
         string[] ordinals,
         Func<SqliteDataReader, TResult> converter,

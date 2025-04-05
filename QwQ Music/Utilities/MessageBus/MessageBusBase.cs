@@ -2,177 +2,199 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace QwQ_Music.Utilities.MessageBus;
 
 /// <summary>
-/// 消息总线基类，提供通用的发布/订阅逻辑。
+/// 消息总线基类，提供消息发布和订阅的基本实现
 /// </summary>
-public abstract class MessageBusBase : IDisposable
+public abstract class MessageBusBase : IMessageBus
 {
     /// <summary>
-    /// 存储所有消息类型及其对应订阅项的字典。
+    /// 存储所有订阅信息的线程安全字典
     /// </summary>
     protected readonly ConcurrentDictionary<Type, SubscriptionEntry> Subscriptions = new();
 
     /// <summary>
-    /// 当发生异常时触发的事件。
+    /// 发布消息到总线
     /// </summary>
-    public event EventHandler<Exception>? OnException;
-
-    /// <summary>
-    /// 释放资源并清理所有订阅。
-    /// </summary>
-    public void Dispose()
+    /// <typeparam name="TMessage">消息类型</typeparam>
+    /// <param name="message">消息实例</param>
+    public void Publish<TMessage>(TMessage message)
     {
-        foreach (var entry in Subscriptions.Values)
+        ArgumentNullException.ThrowIfNull(message);
+
+        var handlers = GetValidHandlers<TMessage>();
+
+        // 异步执行所有处理器，避免阻塞发布者
+        if (handlers.Count > 0)
         {
-            entry.Subscription();
+            foreach (var handler in handlers)
+            {
+                try
+                {
+                    handler(message);
+                }
+                catch (Exception ex)
+                {
+                    // 处理异常，避免一个处理器的异常影响其他处理器
+                    OnHandlerException(ex, typeof(TMessage), message);
+                }
+            }
         }
-        Subscriptions.Clear();
-        GC.SuppressFinalize(this);
     }
 
     /// <summary>
-    /// 订阅指定消息类型的处理程序。
+    /// 处理消息处理器执行过程中的异常
     /// </summary>
-    /// <typeparam name="TMessage">消息类型。</typeparam>
-    /// <param name="handler">处理程序。</param>
-    /// <returns>一个可释放的对象，用于取消订阅。</returns>
+    /// <param name="exception">异常</param>
+    /// <param name="messageType">消息类型</param>
+    /// <param name="message">消息实例</param>
+    protected virtual void OnHandlerException(Exception exception, Type messageType, object message)
+    {
+        // 默认实现只是记录异常，子类可以覆盖此方法提供自定义异常处理
+        System.Diagnostics.Debug.WriteLine($"MessageBus处理器异常: {exception.Message}, 消息类型: {messageType.Name}");
+    }
+
+    /// <summary>
+    /// 订阅指定类型的消息
+    /// </summary>
+    /// <typeparam name="TMessage">消息类型</typeparam>
+    /// <param name="handler">消息处理器</param>
+    /// <returns>订阅令牌，用于取消订阅</returns>
     public IDisposable Subscribe<TMessage>(Action<TMessage> handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
+
         var messageType = typeof(TMessage);
         var entry = Subscriptions.GetOrAdd(messageType, _ => new SubscriptionEntry());
-        object subscription = CreateSubscription(handler);
+
+        object? subscription = CreateSubscription(handler);
         entry.AddSubscription(subscription);
+
         return new SubscriptionToken(() => Unsubscribe(entry, subscription));
     }
 
     /// <summary>
-    /// 发布指定的消息（异步）。
+    /// 取消订阅指定类型的消息
     /// </summary>
-    /// <typeparam name="TMessage">消息类型。</typeparam>
-    /// <param name="message">消息对象。</param>
-    public async Task PublishAsync<TMessage>(TMessage message)
-    {
-        var tasks = GetValidHandlers<TMessage>()
-            .Select(handler => Task.Run(() => SafeInvokeHandler(handler, message)))
-            .ToList();
-        await Task.WhenAll(tasks);
-    }
-
-    /// <summary>
-    /// 发布指定的消息（同步）。
-    /// </summary>
-    /// <typeparam name="TMessage">消息类型。</typeparam>
-    /// <param name="message">消息对象。</param>
-    public void Publish<TMessage>(TMessage message)
-    {
-        foreach (var handler in GetValidHandlers<TMessage>())
-        {
-            SafeInvokeHandler(handler, message);
-        }
-    }
-
-    /// <summary>
-    /// 安全地调用处理程序并捕获异常。
-    /// </summary>
-    /// <typeparam name="TMessage">消息类型。</typeparam>
-    /// <param name="handler">处理程序。</param>
-    /// <param name="message">消息对象。</param>
-    private void SafeInvokeHandler<TMessage>(Action<TMessage> handler, TMessage message)
-    {
-        try
-        {
-            handler(message);
-        }
-        catch (Exception ex)
-        {
-            OnException?.Invoke(this, ex);
-        }
-    }
-
-    /// <summary>
-    /// 获取有效的处理程序列表。
-    /// </summary>
-    /// <typeparam name="TMessage">消息类型。</typeparam>
-    /// <returns>有效的处理程序列表。</returns>
-    protected abstract List<Action<TMessage>> GetValidHandlers<TMessage>();
-
-    /// <summary>
-    /// 创建订阅项。
-    /// </summary>
-    /// <typeparam name="TMessage">消息类型。</typeparam>
-    /// <param name="handler">处理程序。</param>
-    /// <returns>订阅项。</returns>
-    protected abstract object CreateSubscription<TMessage>(Action<TMessage> handler);
-
-    /// <summary>
-    /// 取消订阅指定消息类型的处理程序。
-    /// </summary>
-    /// <typeparam name="TMessage">消息类型。</typeparam>
-    /// <param name="handler">处理程序。</param>
-    /// <returns>是否成功取消订阅。</returns>
+    /// <typeparam name="TMessage">消息类型</typeparam>
+    /// <param name="handler">消息处理器</param>
+    /// <returns>是否成功取消订阅</returns>
     public bool Unsubscribe<TMessage>(Action<TMessage> handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
+
         var messageType = typeof(TMessage);
-    
+
         if (!Subscriptions.TryGetValue(messageType, out var entry))
             return false;
-        
+
         var subscriptionsToRemove = FindSubscriptionsToRemove(entry, handler);
 
-        return subscriptionsToRemove.Aggregate(false, (current, subscription) => current | entry.RemoveSubscription(subscription));
+        return subscriptionsToRemove.Any(subscription => entry.RemoveSubscription(subscription));
     }
-    
+
     /// <summary>
-    /// 取消订阅指定消息类型的处理程序。
+    /// 取消指定的订阅
     /// </summary>
-    /// <param name="entry">订阅项管理者。</param>
-    /// <param name="subscription">订阅项。</param>
     private static void Unsubscribe(SubscriptionEntry entry, object subscription)
     {
         entry.RemoveSubscription(subscription);
     }
-    
-    /// <summary>
-    /// 查找要移除的订阅项。
-    /// </summary>
-    /// <typeparam name="TMessage">消息类型。</typeparam>
-    /// <param name="entry">订阅项。</param>
-    /// <param name="handler">处理程序。</param>
-    /// <returns>要移除的订阅项列表。</returns>
-    protected abstract List<object> FindSubscriptionsToRemove<TMessage>(SubscriptionEntry entry, Action<TMessage> handler);
-    
 
     /// <summary>
-    /// 用于取消订阅的令牌类。
+    /// 获取有效的消息处理器列表
     /// </summary>
-    private class SubscriptionToken(Action unsubscribeAction) : IDisposable
+    /// <typeparam name="TMessage">消息类型</typeparam>
+    /// <returns>有效的处理器列表</returns>
+    protected abstract List<Action<TMessage>> GetValidHandlers<TMessage>();
+
+    /// <summary>
+    /// 创建订阅对象
+    /// </summary>
+    /// <typeparam name="TMessage">消息类型</typeparam>
+    /// <param name="handler">消息处理器</param>
+    /// <returns>订阅对象</returns>
+    protected abstract object CreateSubscription<TMessage>(Action<TMessage> handler);
+
+    /// <summary>
+    /// 查找要移除的订阅
+    /// </summary>
+    /// <typeparam name="TMessage">消息类型</typeparam>
+    /// <param name="entry">订阅条目</param>
+    /// <param name="handler">消息处理器</param>
+    /// <returns>要移除的订阅列表</returns>
+    protected abstract List<object> FindSubscriptionsToRemove<TMessage>(
+        SubscriptionEntry entry,
+        Action<TMessage> handler
+    );
+
+    /// <summary>
+    /// 清除所有订阅
+    /// </summary>
+    public void ClearAllSubscriptions()
     {
-        private readonly Action _unsubscribeAction =
-            unsubscribeAction ?? throw new ArgumentNullException(nameof(unsubscribeAction));
-
-        public void Dispose()
+        foreach (var entry in Subscriptions.Values)
         {
-            _unsubscribeAction();
+            entry.ClearSubscriptions();
+        }
+
+        Subscriptions.Clear();
+    }
+
+    /// <summary>
+    /// 释放资源，清除所有订阅
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// 释放资源的虚方法，允许子类重写
+    /// </summary>
+    /// <param name="disposing">是否正在释放托管资源</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            ClearAllSubscriptions();
         }
     }
 
     /// <summary>
-    /// 订阅项类，包含订阅者的列表和锁对象。
+    /// 订阅令牌，用于取消订阅
     /// </summary>
-    protected class SubscriptionEntry
+    private sealed class SubscriptionToken(Action unsubscribeAction) : IDisposable
+    {
+        private readonly Action _unsubscribeAction =
+            unsubscribeAction ?? throw new ArgumentNullException(nameof(unsubscribeAction));
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _unsubscribeAction();
+            _disposed = true;
+        }
+    }
+
+    /// <summary>
+    /// 订阅条目，管理特定消息类型的所有订阅
+    /// </summary>
+    protected sealed class SubscriptionEntry
     {
         private readonly List<object> _subscribers = [];
-        private object Lock { get; } = new();
+        private readonly Lock _lock = new();
 
         public void AddSubscription(object subscription)
         {
-            lock (Lock)
+            lock (_lock)
             {
                 _subscribers.Add(subscription);
             }
@@ -180,7 +202,7 @@ public abstract class MessageBusBase : IDisposable
 
         public bool RemoveSubscription(object subscription)
         {
-            lock (Lock)
+            lock (_lock)
             {
                 return _subscribers.Remove(subscription);
             }
@@ -188,15 +210,15 @@ public abstract class MessageBusBase : IDisposable
 
         public List<object> GetSubscriptionsSnapshot()
         {
-            lock (Lock)
+            lock (_lock)
             {
-                return [.._subscribers];
+                return [.. _subscribers];
             }
         }
 
-        public void Subscription()
+        public void ClearSubscriptions()
         {
-            lock (Lock)
+            lock (_lock)
             {
                 _subscribers.Clear();
             }

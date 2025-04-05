@@ -75,7 +75,5 @@ public class SpectrumVisualizer : IVisualizer
     public event EventHandler? VisualizationUpdated;
 
     /// <inheritdoc />
-    public void Dispose()
-    {
-    }
+    public void Dispose() { }
 }

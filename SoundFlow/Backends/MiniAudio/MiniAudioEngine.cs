@@ -10,11 +10,11 @@ namespace SoundFlow.Backends.MiniAudio;
 ///     An audio engine based on the MiniAudio library.
 /// </summary>
 public sealed class MiniAudioEngine(
-    int sampleRate,
-    Capability capability,
+    int sampleRate = 48000,
+    Capability capability = Capability.Playback,
     SampleFormat sampleFormat = SampleFormat.F32,
-    int channels = 2)
-    : AudioEngine(sampleRate, capability, sampleFormat, channels)
+    int channels = 2
+) : AudioEngine(sampleRate, capability, sampleFormat, channels)
 {
     private Native.AudioCallback? _audioCallback;
     private nint _context;
@@ -22,7 +22,6 @@ public sealed class MiniAudioEngine(
 
     /// <inheritdoc />
     protected override bool RequiresBackendThread { get; } = false;
-
 
     /// <inheritdoc />
     protected override void InitializeAudioDevice()
@@ -35,16 +34,20 @@ public sealed class MiniAudioEngine(
         InitializeDeviceInternal(nint.Zero, DeviceType.Playback);
     }
 
-
     private void InitializeDeviceInternal(nint deviceId, DeviceType type)
     {
-        if (_device != nint.Zero) 
+        if (_device != nint.Zero)
             CleanupCurrentDevice();
 
-        IntPtr deviceConfig = Native.AllocateDeviceConfig(Capability, SampleFormat, (uint)Channels, (uint)SampleRate,
+        IntPtr deviceConfig = Native.AllocateDeviceConfig(
+            Capability,
+            SampleFormat,
+            (uint)Channels,
+            (uint)SampleRate,
             _audioCallback ??= AudioCallback,
             type == DeviceType.Playback ? deviceId : nint.Zero,
-            type == DeviceType.Capture ? deviceId : nint.Zero);
+            type == DeviceType.Capture ? deviceId : nint.Zero
+        );
 
         _device = Native.AllocateDevice();
         var result = Native.DeviceInit(nint.Zero, deviceConfig, _device);
@@ -52,7 +55,7 @@ public sealed class MiniAudioEngine(
 
         if (result != Result.Success)
         {
-            Native.Free(_device); 
+            Native.Free(_device);
             _device = nint.Zero;
             throw new InvalidOperationException($"Unable to init device. {result}");
         }
@@ -63,7 +66,7 @@ public sealed class MiniAudioEngine(
             CleanupCurrentDevice();
             throw new InvalidOperationException($"Unable to start device. {result}");
         }
-        
+
         UpdateDevicesInfo();
         CurrentPlaybackDevice = PlaybackDevices.FirstOrDefault(x => x.IsDefault);
         CurrentCaptureDevice = CaptureDevices.FirstOrDefault(x => x.IsDefault);
@@ -71,21 +74,22 @@ public sealed class MiniAudioEngine(
 
     private void CleanupCurrentDevice()
     {
-        if (_device == nint.Zero) return;
+        if (_device == nint.Zero)
+            return;
         Native.DeviceStop(_device);
         Native.DeviceUninit(_device);
         Native.Free(_device);
         _device = nint.Zero;
     }
 
-
     private void AudioCallback(IntPtr _, IntPtr output, IntPtr input, uint length)
     {
         int sampleCount = (int)length * Channels;
-        if (Capability != Capability.Record) ProcessGraph(output, sampleCount);
-        if (Capability != Capability.Playback) ProcessAudioInput(input, sampleCount);
+        if (Capability != Capability.Record)
+            ProcessGraph(output, sampleCount);
+        if (Capability != Capability.Playback)
+            ProcessAudioInput(input, sampleCount);
     }
-
 
     /// <inheritdoc />
     protected override void ProcessAudioData() { }
@@ -98,10 +102,14 @@ public sealed class MiniAudioEngine(
         Native.Free(_context);
     }
 
-
     /// <inheritdoc />
-    internal protected override ISoundEncoder CreateEncoder(string filePath, EncodingFormat encodingFormat,
-        SampleFormat sampleFormat, int encodingChannels, int sampleRate)
+    internal protected override ISoundEncoder CreateEncoder(
+        string filePath,
+        EncodingFormat encodingFormat,
+        SampleFormat sampleFormat,
+        int encodingChannels,
+        int sampleRate
+    )
     {
         return new MiniAudioEncoder(filePath, encodingFormat, sampleFormat, encodingChannels, sampleRate);
     }
@@ -131,16 +139,25 @@ public sealed class MiniAudioEngine(
     /// <inheritdoc />
     public override void UpdateDevicesInfo()
     {
-        var result = Native.GetDevices(_context, out IntPtr pPlaybackDevices, out IntPtr pCaptureDevices,
-            out IntPtr playbackDeviceCount, out IntPtr captureDeviceCount);
+        var result = Native.GetDevices(
+            _context,
+            out IntPtr pPlaybackDevices,
+            out IntPtr pCaptureDevices,
+            out IntPtr playbackDeviceCount,
+            out IntPtr captureDeviceCount
+        );
         if (result != Result.Success)
             throw new InvalidOperationException("Unable to get devices.");
 
         PlaybackDeviceCount = (int)playbackDeviceCount;
         CaptureDeviceCount = (int)captureDeviceCount;
-        
-        if (pPlaybackDevices == nint.Zero || pCaptureDevices == nint.Zero || playbackDeviceCount == 0 ||
-            captureDeviceCount == 0)
+
+        if (
+            pPlaybackDevices == nint.Zero
+            || pCaptureDevices == nint.Zero
+            || playbackDeviceCount == 0
+            || captureDeviceCount == 0
+        )
             throw new InvalidOperationException("Unable to get devices.");
 
         PlaybackDevices = pPlaybackDevices.ReadArray<DeviceInfo>(PlaybackDeviceCount);

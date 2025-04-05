@@ -11,12 +11,13 @@ public class MultiChannelChorusModifier : SoundModifier
     private class ChannelState
     {
         public readonly float[] DelayLine;
+
         // 延迟线缓冲区 / Delay line buffer
-        public float LfoPhase;          // LFO相位 / LFO phase
-        public int DelayIndex;          // 当前延迟索引 / Current delay index
-        public float Depth;             // 调制深度 / Modulation depth
-        public float Rate;              // LFO速率 / LFO rate (Hz)
-        public float Feedback;          // 反馈系数 / Feedback amount
+        public float LfoPhase; // LFO相位 / LFO phase
+        public int DelayIndex; // 当前延迟索引 / Current delay index
+        public float Depth; // 调制深度 / Modulation depth
+        public float Rate; // LFO速率 / LFO rate (Hz)
+        public float Feedback; // 反馈系数 / Feedback amount
 
         public ChannelState(int maxDelay)
         {
@@ -57,7 +58,8 @@ public class MultiChannelChorusModifier : SoundModifier
         get => _maxDelay;
         set
         {
-            if (_maxDelay == value) return;
+            if (_maxDelay == value)
+                return;
             _maxDelay = Math.Max(64, value);
             RebuildDelayLines();
         }
@@ -75,8 +77,9 @@ public class MultiChannelChorusModifier : SoundModifier
             if (value.Length != AudioEngine.Channels)
             {
                 throw new ArgumentException(
-                    $"需要 {AudioEngine.Channels} 个通道参数 / " +
-                    $"Expected {AudioEngine.Channels} channel parameters, got {value.Length}");
+                    $"需要 {AudioEngine.Channels} 个通道参数 / "
+                        + $"Expected {AudioEngine.Channels} channel parameters, got {value.Length}"
+                );
             }
             _channelParameters = value;
             ApplyChannelParameters();
@@ -126,25 +129,26 @@ public class MultiChannelChorusModifier : SoundModifier
         {
             int channel = i % AudioEngine.Channels;
             var state = _channels[channel];
-            
+
             // 计算调制延迟 / Calculate modulated delay
             float lfo = MathF.Sin(state.LfoPhase) * state.Depth;
             int delayTime = (int)(_maxDelay / 2f + lfo);
-            
+
             // 获取延迟样本 / Get delayed sample
             int readIndex = (state.DelayIndex - delayTime + _maxDelay) % _maxDelay;
             float delayed = state.DelayLine[readIndex];
-            
+
             // 更新延迟线 / Update delay line
             state.DelayLine[state.DelayIndex] = buffer[i] + delayed * state.Feedback;
-            
+
             // 更新LFO相位 / Update LFO phase
             state.LfoPhase += 2 * MathF.PI * state.Rate / AudioEngine.Instance.SampleRate;
-            if (state.LfoPhase > 2 * MathF.PI) state.LfoPhase -= 2 * MathF.PI;
-            
+            if (state.LfoPhase > 2 * MathF.PI)
+                state.LfoPhase -= 2 * MathF.PI;
+
             // 推进延迟索引 / Advance delay index
             state.DelayIndex = (state.DelayIndex + 1) % _maxDelay;
-            
+
             // 混合湿/干信号 / Mix wet/dry
             buffer[i] = buffer[i] * (1 - _wetMix) + delayed * _wetMix;
         }
@@ -167,6 +171,5 @@ public class MultiChannelChorusModifier : SoundModifier
 
         /// <summary>反馈系数 / Feedback amount</summary>
         public float Feedback { get; set; } = Math.Clamp(feedback, 0f, 0.95f);
-
     }
 }

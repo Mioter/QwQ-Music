@@ -92,9 +92,10 @@ public class CompressorModifier : SoundModifier
         float sampleDb = LinearToDb(MathF.Abs(sample));
 
         // 更新包络检测器 / Update envelope detector
-        _envelope = sampleDb > _envelope 
-            ? _alphaA * _envelope + (1 - _alphaA) * sampleDb
-            : _alphaR * _envelope + (1 - _alphaR) * sampleDb;
+        _envelope =
+            sampleDb > _envelope
+                ? _alphaA * _envelope + (1 - _alphaA) * sampleDb
+                : _alphaR * _envelope + (1 - _alphaR) * sampleDb;
 
         // 计算超阈值量 / Calculate overshoot
         float overshootDb = _envelope - ThresholdDb;
@@ -143,6 +144,5 @@ public class CompressorModifier : SoundModifier
     /// 线性值转dB<br />
     /// Convert linear value to dB
     /// </summary>
-    private static float LinearToDb(float linear) => 
-        linear > 0 ? 20f * MathF.Log10(linear) : float.NegativeInfinity;
+    private static float LinearToDb(float linear) => linear > 0 ? 20f * MathF.Log10(linear) : float.NegativeInfinity;
 }

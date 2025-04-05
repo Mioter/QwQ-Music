@@ -3,58 +3,73 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
+using QwQ_Music.Services.Shader;
 using QwQ_Music.Utilities.MessageBus;
 
 namespace QwQ_Music.ViewModels;
 
-public class MusicPlayerPageViewModel : ViewModelBase
+public partial class MusicPlayerPageViewModel : ViewModelBase
 {
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     public MusicPlayerPageViewModel()
     {
-        MusicPlayerViewModel.CurrentMusicItemChanging += MusicPlayerViewModelOnCurrentMusicItemChanging;
-        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
+        MusicPlayerViewModel.CurrentMusicItemChanged += MusicPlayerViewModelOnCurrentMusicItemChanged;
+        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
     }
 
-    private void ExitReminderMessageChanged(ExitReminderMessage message)
+    private void ExitReminderMessageHandler(ExitReminderMessage message)
     {
-        MusicPlayerViewModel.CurrentMusicItemChanging -= MusicPlayerViewModelOnCurrentMusicItemChanging;
+        MusicPlayerViewModel.CurrentMusicItemChanged -= MusicPlayerViewModelOnCurrentMusicItemChanged;
     }
 
-    private bool IsNightMode { get; set; }
-    private const int ColorCount = 2;
+    public static string ShaderCode => ShaderConstants.WaveWarpShader;
 
-    private async void MusicPlayerViewModelOnCurrentMusicItemChanging(object? sender, MusicItemModel musicItem)
+    [ObservableProperty]
+    public partial bool IsShaderAnimationEnabled { get; set; } = true;
+    
+    private const int ColorCount = 4;
+
+    private async void MusicPlayerViewModelOnCurrentMusicItemChanged(object? sender, MusicItemModel musicItem)
     {
         try
         {
-            List<Color> colorsList = [];
-            await Task.Run(() =>
+            if (!string.IsNullOrWhiteSpace(musicItem.CoverPath))
             {
-                if (musicItem.CoverColors is { Length: >= ColorCount })
+
+                List<Color>? colorsList = null;
+                await Task.Run(() =>
                 {
-                    colorsList.AddRange(musicItem.CoverColors.Select(Color.Parse));
-                }
-                else
+                    colorsList = musicItem.CoverColors is { Length: >= ColorCount } 
+                        ? [..musicItem.CoverColors.Select(Color.Parse)] 
+                        : ColorExtraction.GetColorPalette(musicItem.CoverPath, ColorCount,ColorExtractionAlgorithm.OctTree);
+                });
+
+                if (colorsList != null)
                 {
-                    colorsList = string.IsNullOrWhiteSpace(musicItem.CoverPath)
-                        ? [Colors.AntiqueWhite, Colors.AliceBlue, Colors.PeachPuff]
-                        : ColorExtraction.GetColorPalette(musicItem.CoverPath, ColorCount,ColorExtraction.ColorTone.Bright);
                     musicItem.CoverColors = colorsList.Select(x => x.ToString()).ToArray();
                 }
-            });
-
-            ColorsList = colorsList;
+                
+                ColorsList = colorsList ?? GetDefaultColors;
+            }
+            else
+            {
+                ColorsList =  GetDefaultColors;
+            }
+            
             OnPropertyChanged(nameof(ColorsList));
         }
         catch (Exception ex)
         {
-            LoggerService.Error($"{nameof(MusicPlayerViewModelOnCurrentMusicItemChanging)}: {ex.Message}");
+            LoggerService.Error($"{nameof(MusicPlayerViewModelOnCurrentMusicItemChanged)} 发生错误 : {ex.Message}");
         }
     }
 
-    public List<Color> ColorsList { get; set; } = [Colors.AntiqueWhite, Colors.AliceBlue, Colors.PeachPuff];
+    public List<Color>? ColorsList { get; set; } = GetDefaultColors;
+
+    private static List<Color>? GetDefaultColors =>
+        [Colors.AntiqueWhite, Colors.AliceBlue, Colors.PapayaWhip, Colors.NavajoWhite];
 }
