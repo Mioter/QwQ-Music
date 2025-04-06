@@ -10,46 +10,46 @@ namespace QwQ_Music.ViewModels;
 
 public partial class SoundEffectConfigViewModel() : NavigationViewModel("音效")
 {
-    public SoundEffectConfig SoundEffectConfig { get; } = ConfigInfoModel.SoundEffectConfig;
+    public AudioModifierConfig AudioModifierConfig { get; } = ConfigInfoModel.AudioModifierConfig;
 
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     public float SpatialAngle
     {
-        get => SoundEffectConfig.SpatialModifier.Angle;
+        get => AudioModifierConfig.SpatialModifier.Angle;
         set
         {
-            SoundEffectConfig.SpatialModifier.Angle = value;
+            AudioModifierConfig.SpatialModifier.Angle = value;
             OnPropertyChanged();
         }
     }
 
     public float SpatialDistance
     {
-        get => SoundEffectConfig.SpatialModifier.Distance;
+        get => AudioModifierConfig.SpatialModifier.Distance;
         set
         {
-            SoundEffectConfig.SpatialModifier.Distance = value;
+            AudioModifierConfig.SpatialModifier.Distance = value;
             OnPropertyChanged();
         }
     }
 
     public List<EqualizerBand> ParametricEqualizerBands
     {
-        get => SoundEffectConfig.ParametricEqualizer.Bands;
+        get => AudioModifierConfig.ParametricEqualizer.Bands;
         set
         {
-            SoundEffectConfig.ParametricEqualizer.Bands = value;
+            AudioModifierConfig.ParametricEqualizer.Bands = value;
             OnPropertyChanged();
         }
     }
 
     public int NoiseReductionFftSize
     {
-        get => (int)Math.Log(SoundEffectConfig.NoiseReductionModifier.FftSize, 2);
+        get => (int)Math.Log(AudioModifierConfig.NoiseReductionModifier.FftSize, 2);
         set
         {
-            SoundEffectConfig.NoiseReductionModifier.FftSize = (int)Math.Pow(2, value);
+            AudioModifierConfig.NoiseReductionModifier.FftSize = (int)Math.Pow(2, value);
             OnPropertyChanged();
         }
     }

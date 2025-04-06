@@ -46,15 +46,15 @@ public static class ConfigInfoModel
 
     // SoundEffectConfig 实现
     // ReSharper disable once InconsistentNaming
-    private static readonly Lazy<SoundEffectConfig> _soundEffectConfig = new(
+    private static readonly Lazy<AudioModifierConfig> _soundEffectConfig = new(
         () =>
-            JsonConfigService.Load<SoundEffectConfig>(
-                nameof(SoundEffectConfig).ToLower(),
+            JsonConfigService.Load<AudioModifierConfig>(
+                nameof(AudioModifierConfig).ToLower(),
                 SoundEffectConfigModelJsonSerializerContext.Default
-            ) ?? new SoundEffectConfig()
+            ) ?? new AudioModifierConfig()
     );
 
-    public static SoundEffectConfig SoundEffectConfig => _soundEffectConfig.Value;
+    public static AudioModifierConfig AudioModifierConfig => _soundEffectConfig.Value;
 
     #endregion
 
@@ -77,8 +77,8 @@ public static class ConfigInfoModel
         {
             JsonConfigService
                 .SaveAsync(
-                    SoundEffectConfig,
-                    nameof(SoundEffectConfig).ToLower(),
+                    AudioModifierConfig,
+                    nameof(AudioModifierConfig).ToLower(),
                     SoundEffectConfigModelJsonSerializerContext.Default
                 )
                 .ConfigureAwait(false);

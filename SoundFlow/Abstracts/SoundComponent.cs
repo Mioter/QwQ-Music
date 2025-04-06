@@ -17,7 +17,7 @@ public abstract class SoundComponent
     // Connection state
     private readonly List<SoundComponent> _inputs = [];
     private readonly List<SoundComponent> _outputs = [];
-    private readonly object _connectionsLock = new();
+    private readonly Lock _connectionsLock = new();
 
     // Processing state
     private readonly List<ISoundModifier> _modifiers = [];

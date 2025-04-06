@@ -5,7 +5,7 @@ using SoundFlow.Modifiers;
 
 namespace QwQ_Music.Models.ConfigModel;
 
-public partial class SoundEffectConfig : ObservableObject
+public partial class AudioModifierConfig : ObservableObject
 {
     public ReplayGainModifier ReplayGainModifier { get; set; } = new();
 
@@ -36,5 +36,5 @@ public partial class SoundEffectConfig : ObservableObject
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(SoundEffectConfig))]
+[JsonSerializable(typeof(AudioModifierConfig))]
 internal partial class SoundEffectConfigModelJsonSerializerContext : JsonSerializerContext;

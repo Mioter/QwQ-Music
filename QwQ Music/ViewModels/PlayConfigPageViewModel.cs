@@ -12,17 +12,18 @@ using QwQ_Music.Services.Audio;
 using QwQ_Music.Utilities;
 using QwQ_Music.Utilities.MessageBus;
 using QwQ_Music.Utilities.Tasks;
+using SoundFlow.Modifiers;
 
 namespace QwQ_Music.ViewModels;
 
-public partial class  PlayConfigPageViewModel : ViewModelBase
+public partial class PlayConfigPageViewModel : ViewModelBase
 {
     public PlayerConfig PlayerConfig { get; set; } = ConfigInfoModel.PlayerConfig;
-    
+
     public MusicPlayerViewModel MusicPlayerViewModel { get; set; } = MusicPlayerViewModel.Instance;
-    
-    public SoundEffectConfig SoundEffectConfig { get; } = ConfigInfoModel.SoundEffectConfig;
-    
+
+    public AudioModifierConfig AudioModifierConfig { get; } = ConfigInfoModel.AudioModifierConfig;
+
     public PlayConfigPageViewModel()
     {
         _ = RefreshNumberOfCompletedCalc();
@@ -38,24 +39,28 @@ public partial class  PlayConfigPageViewModel : ViewModelBase
         ReplayGainCalculator.CalcCompletedChanged -= ReplayGainCalculatorOnCalcCompletedChanged;
     }
 
+    public FadeModifier.FadeCurve[] FadeCurves { get; } = EnumHelper<FadeModifier.FadeCurve>.ToArray();
 
     #region 回放增益
 
-    [ObservableProperty] public partial IAsyncTaskHandle? TaskHandle { get; set; }
+    [ObservableProperty]
+    public partial IAsyncTaskHandle? TaskHandle { get; set; }
 
-    [ObservableProperty] public partial int NumberOfCompletedCalc { get; set; }
+    [ObservableProperty]
+    public partial int NumberOfCompletedCalc { get; set; }
 
     public static MusicReplayGainStandard[] MusicReplayGainStandardList { get; set; } =
         EnumHelper<MusicReplayGainStandard>.ToArray();
-
 
     [ObservableProperty]
     public partial MusicReplayGainStandard SelectedMusicReplayGainStandard { get; set; } =
         MusicReplayGainStandard.Streaming;
 
-    [ObservableProperty] public partial double CustomMusicReplayGainStandard { get; set; } = 12;
+    [ObservableProperty]
+    public partial double CustomMusicReplayGainStandard { get; set; } = 12;
 
-    [ObservableProperty] public partial string CalculationButtonText { get; set; } = "开始计算 ▶";
+    [ObservableProperty]
+    public partial string CalculationButtonText { get; set; } = "开始 ▶";
 
     [RelayCommand]
     private Task ClearCallbackGain()
@@ -77,7 +82,10 @@ public partial class  PlayConfigPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task ToggleCalculation()
     {
-        if (MusicPlayerViewModel.MusicItems.Count <= 0)
+        if (
+            MusicPlayerViewModel.MusicItems.Count <= 0
+            || NumberOfCompletedCalc == MusicPlayerViewModel.MusicItems.Count
+        )
             return;
 
         // 状态判断和操作一体化处理
@@ -98,8 +106,8 @@ public partial class  PlayConfigPageViewModel : ViewModelBase
                     break;
                 case AsyncTaskStatus.Created:
                 case AsyncTaskStatus.Completed:
-                case AsyncTaskStatus.Cancelled:
                     break;
+                case AsyncTaskStatus.Cancelled:
                 default:
                     LoggerService.Error($"不存在的任务状态: {TaskHandle.Status}");
                     break;
@@ -117,9 +125,9 @@ public partial class  PlayConfigPageViewModel : ViewModelBase
     {
         CalculationButtonText = TaskHandle?.Status switch
         {
-            AsyncTaskStatus.Running => "暂停计算 ♪",
-            AsyncTaskStatus.Paused => "继续计算 ▶",
-            _ => "开始计算 ▶",
+            AsyncTaskStatus.Running => "暂停 \u23f8",
+            AsyncTaskStatus.Paused => "继续 ▶",
+            _ => "开始 ▶",
         };
     }
 
@@ -169,7 +177,7 @@ public partial class  PlayConfigPageViewModel : ViewModelBase
     [RelayCommand]
     private void CancelCalcCallbackGain()
     {
-        if (TaskHandle is not { Status: < AsyncTaskStatus.Completed })
+        if (TaskHandle is null)
             return;
 
         TaskHandle.Cancel();
@@ -181,9 +189,7 @@ public partial class  PlayConfigPageViewModel : ViewModelBase
         if (MusicPlayerViewModel.MusicItems.Count <= 0)
             return;
 
-        await Task.Run(() =>
-            NumberOfCompletedCalc = MusicPlayerViewModel.MusicItems.Count(x => x.Gain > 0)
-        );
+        await Task.Run(() => NumberOfCompletedCalc = MusicPlayerViewModel.MusicItems.Count(x => x.Gain > 0));
     }
 
     #endregion

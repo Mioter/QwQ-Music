@@ -62,55 +62,55 @@
 
                 <StackPanel>
                     <TextBlock Text="立体增强" />
-                    <CheckBox IsChecked="{Binding SoundEffectConfig.StereoEnhancementModifier.Enabled}" />
+                    <CheckBox IsChecked="{Binding AudioModifierConfig.StereoEnhancementModifier.Enabled}" />
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="空间效果" />
-                    <CheckBox IsChecked="{Binding SoundEffectConfig.SpatialModifier.Enabled}" />
+                    <CheckBox IsChecked="{Binding AudioModifierConfig.SpatialModifier.Enabled}" />
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="环绕效果" />
-                    <CheckBox IsChecked="{Binding SoundEffectConfig.RotatingModifier.Enabled}" />
+                    <CheckBox IsChecked="{Binding AudioModifierConfig.RotatingModifier.Enabled}" />
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="混响效果" />
-                    <CheckBox IsChecked="{Binding SoundEffectConfig.ReverbModifier.Enabled}" />
+                    <CheckBox IsChecked="{Binding AudioModifierConfig.ReverbModifier.Enabled}" />
 
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="延迟效果" />
-                    <CheckBox IsChecked="{Binding SoundEffectConfig.DelayModifier.Enabled}" />
+                    <CheckBox IsChecked="{Binding AudioModifierConfig.DelayModifier.Enabled}" />
 
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="失真效果" />
-                    <CheckBox IsChecked="{Binding SoundEffectConfig.DistortionModifier.Enabled}" />
+                    <CheckBox IsChecked="{Binding AudioModifierConfig.DistortionModifier.Enabled}" />
 
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="颤音效果" />
-                    <CheckBox IsChecked="{Binding SoundEffectConfig.TremoloModifier.Enabled}" />
+                    <CheckBox IsChecked="{Binding AudioModifierConfig.TremoloModifier.Enabled}" />
                 </StackPanel>
 
                 <Grid ColumnDefinitions="65,Auto">
                     <TextBlock Text="压缩器" />
-                    <CheckBox Grid.Column="1" IsChecked="{Binding SoundEffectConfig.CompressorModifier.Enabled}" />
+                    <CheckBox Grid.Column="1" IsChecked="{Binding AudioModifierConfig.CompressorModifier.Enabled}" />
                 </Grid>
 
                 <Grid ColumnDefinitions="65,Auto">
                     <TextBlock Text="均衡器" />
-                    <CheckBox Grid.Column="1" IsChecked="{Binding SoundEffectConfig.ParametricEqualizer.Enabled}" />
+                    <CheckBox Grid.Column="1" IsChecked="{Binding AudioModifierConfig.ParametricEqualizer.Enabled}" />
                 </Grid>
 
                 <StackPanel>
                     <TextBlock Text="噪音减少" />
-                    <CheckBox IsChecked="{Binding SoundEffectConfig.NoiseReductionModifier.Enabled}" />
+                    <CheckBox IsChecked="{Binding AudioModifierConfig.NoiseReductionModifier.Enabled}" />
                 </StackPanel>
 
             </u:SelectionList>
@@ -138,7 +138,7 @@
                     </Style>
                 </control:IndexControl.Styles>
 
-                <StackPanel DataContext="{Binding SoundEffectConfig.StereoEnhancementModifier}">
+                <StackPanel DataContext="{Binding AudioModifierConfig.StereoEnhancementModifier}">
 
                     <TextBlock FontWeight="Black" Text="效果增强" />
 
@@ -263,7 +263,7 @@
 
                 </Panel>
 
-                <StackPanel DataContext="{Binding SoundEffectConfig.RotatingModifier}">
+                <StackPanel DataContext="{Binding AudioModifierConfig.RotatingModifier}">
 
                     <StackPanel Orientation="Horizontal" Spacing="5">
 
@@ -303,7 +303,7 @@
 
                 </StackPanel>
 
-                <StackPanel DataContext="{Binding SoundEffectConfig.ReverbModifier}">
+                <StackPanel DataContext="{Binding AudioModifierConfig.ReverbModifier}">
 
                     <TextBlock FontWeight="Black" Text="基础属性" />
 
@@ -353,7 +353,7 @@
 
                 </StackPanel>
 
-                <StackPanel DataContext="{Binding SoundEffectConfig.DelayModifier}">
+                <StackPanel DataContext="{Binding AudioModifierConfig.DelayModifier}">
 
                     <u:Divider Content="{Binding #DelaySetter4.Value, StringFormat='延迟时间 : {0} 毫秒'}" FontSize="12" />
                     <u:NumericIntUpDown
@@ -387,7 +387,7 @@
 
                 </StackPanel>
 
-                <StackPanel DataContext="{Binding SoundEffectConfig.DistortionModifier}">
+                <StackPanel DataContext="{Binding AudioModifierConfig.DistortionModifier}">
 
                     <TextBlock FontSize="12" Text="{Binding #DistortionSetter1.Value, StringFormat='失真量 : {0:F3}'}" />
                     <Slider
@@ -421,36 +421,37 @@
 
                 <StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock
-                            FontSize="12"
-                            FontWeight="Black"
-                            Text="波形"
-                            VerticalAlignment="Center" />
-                        <ComboBox
-                            CornerRadius="8"
-                            ItemsSource="{Binding SoundEffectConfig.TremoloWaveforms}"
-                            MinWidth="130"
-                            SelectedItem="{Binding SoundEffectConfig.TremoloModifier.Waveform}" />
-                    </StackPanel>
+                    <u:Divider
+                        Content="波形"
+                        FontSize="12"
+                        FontWeight="Black" />
+                    <ComboBox
+                        CornerRadius="8"
+                        ItemsSource="{Binding AudioModifierConfig.TremoloWaveforms}"
+                        MinWidth="150"
+                        SelectedItem="{Binding AudioModifierConfig.TremoloModifier.Waveform}" />
+                    <u:Divider
+                        Content="其他"
+                        FontSize="12"
+                        FontWeight="Black" />
 
                     <TextBlock FontSize="12" Text="{Binding #TremoloSetter1.Value, StringFormat='速率 : {0:F3} Hz'}" />
                     <Slider
                         Maximum="20"
                         Minimum="0.1"
                         Name="TremoloSetter1"
-                        Value="{Binding SoundEffectConfig.TremoloModifier.Rate}" />
+                        Value="{Binding AudioModifierConfig.TremoloModifier.Rate}" />
 
                     <TextBlock FontSize="12" Text="{Binding #TremoloSetter2.Value, StringFormat='深度 : {0:F3}'}" />
                     <Slider
                         Maximum="1"
                         Minimum="0"
                         Name="TremoloSetter2"
-                        Value="{Binding SoundEffectConfig.TremoloModifier.Depth}" />
+                        Value="{Binding AudioModifierConfig.TremoloModifier.Depth}" />
 
                 </StackPanel>
 
-                <StackPanel DataContext="{Binding SoundEffectConfig.CompressorModifier}">
+                <StackPanel DataContext="{Binding AudioModifierConfig.CompressorModifier}">
 
                     <TextBlock FontWeight="Black" Text="基础属性" />
 
@@ -576,35 +577,35 @@
                         Maximum="10"
                         Minimum="0.5"
                         Name="NoiseReductionSetter1"
-                        Value="{Binding SoundEffectConfig.NoiseReductionModifier.Alpha}" />
+                        Value="{Binding AudioModifierConfig.NoiseReductionModifier.Alpha}" />
 
                     <TextBlock FontSize="12" Text="{Binding #NoiseReductionSetter2.Value, StringFormat='谱底参数 : {0:F3}'}" />
                     <Slider
                         Maximum="0.5"
                         Minimum="0"
                         Name="NoiseReductionSetter2"
-                        Value="{Binding SoundEffectConfig.NoiseReductionModifier.Beta}" />
+                        Value="{Binding AudioModifierConfig.NoiseReductionModifier.Beta}" />
 
                     <TextBlock FontSize="12" Text="{Binding #NoiseReductionSetter3.Value, StringFormat='残余噪声抑制的平滑因子 : {0:F3}'}" />
                     <Slider
                         Maximum="1"
                         Minimum="0.1"
                         Name="NoiseReductionSetter3"
-                        Value="{Binding SoundEffectConfig.NoiseReductionModifier.SmoothingFactor}" />
+                        Value="{Binding AudioModifierConfig.NoiseReductionModifier.SmoothingFactor}" />
 
                     <TextBlock FontSize="12" Text="{Binding #NoiseReductionSetter4.Value, StringFormat='后处理增益乘数 : {0:F3}'}" />
                     <Slider
                         Maximum="5"
                         Minimum="0.1"
                         Name="NoiseReductionSetter4"
-                        Value="{Binding SoundEffectConfig.NoiseReductionModifier.Gain}" />
+                        Value="{Binding AudioModifierConfig.NoiseReductionModifier.Gain}" />
 
                     <TextBlock FontSize="12" Text="{Binding #NoiseReductionSetter5.Value, StringFormat='用于预估噪声的初始帧数 : {0:F0}'}" />
                     <Slider
                         Maximum="100"
                         Minimum="1"
                         Name="NoiseReductionSetter5"
-                        Value="{Binding SoundEffectConfig.NoiseReductionModifier.NoiseFrames}" />
+                        Value="{Binding AudioModifierConfig.NoiseReductionModifier.NoiseFrames}" />
 
                 </StackPanel>
 

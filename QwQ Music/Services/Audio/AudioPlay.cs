@@ -18,7 +18,7 @@ public class AudioPlay : IAudioPlay
     private DispatcherTimer? _progressTimer;
     private DispatcherTimer? _fadeOutTimer; // 添加一个字段来跟踪当前的淡出定时器
 
-    private readonly SoundEffectConfig _soundEffectConfig = ConfigInfoModel.SoundEffectConfig;
+    private readonly AudioModifierConfig _audioModifierConfig = ConfigInfoModel.AudioModifierConfig;
 
     /// <inheritdoc />
     public event EventHandler<double>? PositionChanged;
@@ -53,7 +53,25 @@ public class AudioPlay : IAudioPlay
                 _soundPlayer.Volume = field;
             }
         }
-    }
+    } = 1.0f;
+
+    /// <inheritdoc />
+    public float Speed
+    {
+        get;
+        set
+        {
+            if (value <= 0f)
+                return;
+
+            field = value;
+
+            if (_soundPlayer != null)
+            {
+                _soundPlayer.PlaybackSpeed = field;
+            }
+        }
+    } = 1.0f;
 
     /// <summary>
     /// 开始播放
@@ -72,10 +90,10 @@ public class AudioPlay : IAudioPlay
         }
 
         // 检查淡入效果器是否启用
-        if (_soundEffectConfig.FadeModifier.Enabled)
+        if (_audioModifierConfig.FadeModifier.Enabled)
         {
             // 应用淡入效果
-            _soundEffectConfig.FadeModifier.BeginFadeIn();
+            _audioModifierConfig.FadeModifier.BeginFadeIn();
         }
 
         _soundPlayer.Play();
@@ -101,15 +119,15 @@ public class AudioPlay : IAudioPlay
         }
 
         // 检查淡出效果器是否启用
-        if (_soundEffectConfig.FadeModifier.Enabled)
+        if (_audioModifierConfig.FadeModifier.Enabled)
         {
             // 应用淡出效果
-            _soundEffectConfig.FadeModifier.BeginFadeOut();
+            _audioModifierConfig.FadeModifier.BeginFadeOut();
 
             // 创建一个延迟暂停的定时器，等待淡出效果完成
             _fadeOutTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(_soundEffectConfig.FadeModifier.FadeOutTimeMs),
+                Interval = TimeSpan.FromMilliseconds(_audioModifierConfig.FadeModifier.FadeOutTimeMs),
             };
 
             _fadeOutTimer.Tick += FadeOutTimer_Tick;
@@ -194,12 +212,13 @@ public class AudioPlay : IAudioPlay
         {
             Volume = Volume, // 设置音量
             Mute = IsMute, // 是否静音
+            PlaybackSpeed = Speed, // 播放速度
         };
 
-        _soundEffectConfig.ReplayGainModifier.Gain = (float)replayGain;
+        _audioModifierConfig.ReplayGainModifier.Gain = (float)replayGain;
 
         // 重置淡入淡出效果器状态
-        _soundEffectConfig.FadeModifier.Reset();
+        _audioModifierConfig.FadeModifier.Reset();
 
         InitializeEffects(_soundPlayer);
 
@@ -219,21 +238,21 @@ public class AudioPlay : IAudioPlay
     /// </summary>
     private void InitializeEffects(SoundPlayer soundPlayer)
     {
-        _soundEffectConfig.ParametricEqualizer.SetBandsOwner();
+        _audioModifierConfig.ParametricEqualizer.SetBandsOwner();
 
         soundPlayer
-            .AddModifier(_soundEffectConfig.ReplayGainModifier)
-            .AddModifier(_soundEffectConfig.ReverbModifier)
-            .AddModifier(_soundEffectConfig.DelayModifier)
-            .AddModifier(_soundEffectConfig.FadeModifier)
-            .AddModifier(_soundEffectConfig.RotatingModifier)
-            .AddModifier(_soundEffectConfig.SpatialModifier)
-            .AddModifier(_soundEffectConfig.CompressorModifier)
-            .AddModifier(_soundEffectConfig.StereoEnhancementModifier)
-            .AddModifier(_soundEffectConfig.TremoloModifier)
-            .AddModifier(_soundEffectConfig.DistortionModifier)
-            .AddModifier(_soundEffectConfig.ParametricEqualizer)
-            .AddModifier(_soundEffectConfig.NoiseReductionModifier);
+            .AddModifier(_audioModifierConfig.ReplayGainModifier)
+            .AddModifier(_audioModifierConfig.ReverbModifier)
+            .AddModifier(_audioModifierConfig.DelayModifier)
+            .AddModifier(_audioModifierConfig.FadeModifier)
+            .AddModifier(_audioModifierConfig.RotatingModifier)
+            .AddModifier(_audioModifierConfig.SpatialModifier)
+            .AddModifier(_audioModifierConfig.CompressorModifier)
+            .AddModifier(_audioModifierConfig.StereoEnhancementModifier)
+            .AddModifier(_audioModifierConfig.TremoloModifier)
+            .AddModifier(_audioModifierConfig.DistortionModifier)
+            .AddModifier(_audioModifierConfig.ParametricEqualizer)
+            .AddModifier(_audioModifierConfig.NoiseReductionModifier);
     }
 
     /// <summary>

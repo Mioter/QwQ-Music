@@ -169,7 +169,13 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         set
         {
             _preDelay = Math.Clamp(value, 0, 100);
-            _preDelaySamples = (int)(_preDelay * AudioEngine.Instance.SampleRate / 1000f);
+            int newPreDelaySamples = (int)(_preDelay * AudioEngine.Instance.SampleRate / 1000f);
+
+            // 确保索引不会越界
+            if (newPreDelaySamples > _preDelayBuffers[0].Length)
+                newPreDelaySamples = _preDelayBuffers[0].Length;
+
+            _preDelaySamples = newPreDelaySamples;
         }
     }
 
@@ -295,7 +301,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
             float input = sample * FixedGain;
 
             // Apply pre-delay
-            if (channel < _preDelayBuffers.Length)
+            if (channel < _preDelayBuffers.Length && _preDelaySamples < _preDelayBuffers[channel].Length)
             {
                 _preDelayBuffers[channel][_preDelayIndices[channel]] = input;
                 input = _preDelayBuffers[channel][

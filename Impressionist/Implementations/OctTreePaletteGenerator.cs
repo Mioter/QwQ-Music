@@ -25,7 +25,7 @@ namespace Impressionist.Implementations
             quantizer.Quantize(1);
             var index = new List<Vector3>() { targetColor.Keys.FirstOrDefault() };
             var result = quantizer.GetThemeResult();
-            var colorIsDark = result.RGBVectorToHSVColor().sRGBColorIsDark();
+            bool colorIsDark = result.RGBVectorToHSVColor().sRGBColorIsDark();
             return Task.FromResult(new ThemeColorResult(result, colorIsDark));
         }
 
@@ -46,7 +46,7 @@ namespace Impressionist.Implementations
             {
                 builder = builder.Where(t => t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250);
             }
-            var colorIsDark = colorResult.ColorIsDark;
+            bool colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
                 builder = builder.Where(t => t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
@@ -82,7 +82,7 @@ namespace Impressionist.Implementations
             List<Vector3> result;
             if (quantizeResult.Count < clusterCount)
             {
-                var count = quantizeResult.Count;
+                int count = quantizeResult.Count;
                 result = new List<Vector3>();
                 for (int i = 0; i < clusterCount; i++)
                 {
@@ -139,9 +139,9 @@ namespace Impressionist.Implementations
 
             public void Quantize(int colorCount)
             {
-                var nodesToRemove = levelNodes[7].Count - colorCount;
+                int nodesToRemove = levelNodes[7].Count - colorCount;
                 int level = 6;
-                var toBreak = false;
+                bool toBreak = false;
                 while (level >= 0 && nodesToRemove > 0)
                 {
                     var leaves = levelNodes[level]
@@ -189,7 +189,7 @@ namespace Impressionist.Implementations
             {
                 if (level < 8)
                 {
-                    var index = GetIndex(color, level);
+                    byte index = GetIndex(color, level);
                     if (Children[index] == null)
                     {
                         var newNode = new Node(parent);
@@ -209,7 +209,7 @@ namespace Impressionist.Implementations
             {
                 if (level < 8)
                 {
-                    var index = GetIndex(color, level);
+                    byte index = GetIndex(color, level);
                     if (Children[index] == null)
                     {
                         var newNode = new Node(parent);
@@ -233,7 +233,7 @@ namespace Impressionist.Implementations
                 }
                 else
                 {
-                    var index = GetIndex(color, level);
+                    byte index = GetIndex(color, level);
                     return Children[index].GetColor(color, level + 1);
                 }
             }
@@ -242,7 +242,7 @@ namespace Impressionist.Implementations
             {
                 var paletteResult = GetPaletteResult();
                 var sum = new Vector3(0, 0, 0);
-                var count = 0;
+                int count = 0;
                 foreach (var item in paletteResult)
                 {
                     sum += item.Key * item.Value;
@@ -288,7 +288,7 @@ namespace Impressionist.Implementations
             private byte GetIndex(Vector3 color, int level)
             {
                 byte ret = 0;
-                var mask = Convert.ToByte(0b10000000 >> level);
+                byte mask = Convert.ToByte(0b10000000 >> level);
                 if (((byte)color.X & mask) != 0)
                 {
                     ret |= 0b100;
@@ -313,7 +313,7 @@ namespace Impressionist.Implementations
 
             private static Vector3 Average(IEnumerable<Tuple<Vector3, int>> colors)
             {
-                var totals = colors.Sum(c => c.Item2);
+                int totals = colors.Sum(c => c.Item2);
                 return new Vector3(
                     x: (int)colors.Sum(c => c.Item1.X * c.Item2) / totals,
                     y: (int)colors.Sum(c => c.Item1.Y * c.Item2) / totals,

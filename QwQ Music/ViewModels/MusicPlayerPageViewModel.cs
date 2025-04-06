@@ -30,7 +30,7 @@ public partial class MusicPlayerPageViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial bool IsShaderAnimationEnabled { get; set; } = true;
-    
+
     private const int ColorCount = 4;
 
     private async void MusicPlayerViewModelOnCurrentMusicItemChanged(object? sender, MusicItemModel musicItem)
@@ -39,27 +39,30 @@ public partial class MusicPlayerPageViewModel : ViewModelBase
         {
             if (!string.IsNullOrWhiteSpace(musicItem.CoverPath))
             {
-
                 List<Color>? colorsList = null;
                 await Task.Run(() =>
                 {
-                    colorsList = musicItem.CoverColors is { Length: >= ColorCount } 
-                        ? [..musicItem.CoverColors.Select(Color.Parse)] 
-                        : ColorExtraction.GetColorPalette(musicItem.CoverPath, ColorCount,ColorExtractionAlgorithm.OctTree);
+                    colorsList = musicItem.CoverColors is { Length: >= ColorCount }
+                        ? [.. musicItem.CoverColors.Select(Color.Parse)]
+                        : ColorExtraction.GetColorPalette(
+                            musicItem.CoverPath,
+                            ColorCount,
+                            ColorExtractionAlgorithm.OctTree
+                        );
                 });
 
                 if (colorsList != null)
                 {
                     musicItem.CoverColors = colorsList.Select(x => x.ToString()).ToArray();
                 }
-                
+
                 ColorsList = colorsList ?? GetDefaultColors;
             }
             else
             {
-                ColorsList =  GetDefaultColors;
+                ColorsList = GetDefaultColors;
             }
-            
+
             OnPropertyChanged(nameof(ColorsList));
         }
         catch (Exception ex)

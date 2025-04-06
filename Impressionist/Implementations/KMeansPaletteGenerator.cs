@@ -32,7 +32,7 @@ namespace Impressionist.Implementations
             {
                 colorVector = clusters.First().LABVectorToRGBVector();
             }
-            var isDark = colorVector.RGBVectorToHSVColor().sRGBColorIsDark();
+            bool isDark = colorVector.RGBVectorToHSVColor().sRGBColorIsDark();
             return Task.FromResult(new ThemeColorResult(colorVector, isDark));
         }
 
@@ -51,7 +51,7 @@ namespace Impressionist.Implementations
             }
             var colorResult = await CreateThemeColor(sourceColor, ignoreWhite, toLab);
             var builder = sourceColor.AsEnumerable();
-            var colorIsDark = colorResult.ColorIsDark;
+            bool colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
                 builder = builder.Where(t => t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
@@ -87,7 +87,7 @@ namespace Impressionist.Implementations
                 dominantColors.Add(representative);
             }
             var result = new List<Vector3>();
-            var count = dominantColors.Count;
+            int count = dominantColors.Count;
             for (int i = 0; i < clusterCount; i++)
             {
                 // You know, it is always hard to fullfill a palette when you have no enough colors. So please forgive me when placing the same color over and over again.
@@ -99,7 +99,7 @@ namespace Impressionist.Implementations
         static Vector3[] KMeansCluster(Dictionary<Vector3, int> colors, int numClusters, bool useKMeansPP)
         {
             // Initialize the clusters, reduces the total number when total colors is less than clusters
-            var clusterCount = Math.Min(numClusters, colors.Count);
+            int clusterCount = Math.Min(numClusters, colors.Count);
             var clusters = new List<Dictionary<Vector3, int>>();
             for (int i = 0; i < clusterCount; i++)
             {
@@ -117,7 +117,7 @@ namespace Impressionist.Implementations
                 centers = KMeansPlusPlusCluster(colors, clusterCount).ToArray();
             }
             // Loop until the clusters stabilize
-            var changed = true;
+            bool changed = true;
             while (changed)
             {
                 changed = false;
@@ -125,17 +125,17 @@ namespace Impressionist.Implementations
                 foreach (var color in colors.Keys)
                 {
                     var nearest = FindNearestCenter(color, centers);
-                    var clusterIndex = Array.IndexOf(centers, nearest);
+                    int clusterIndex = Array.IndexOf(centers, nearest);
                     clusters[clusterIndex][color] = colors[color];
                 }
 
                 // Recompute the cluster centers
                 for (int i = 0; i < Math.Min(numClusters, clusterCount); i++)
                 {
-                    var sumX = 0f;
-                    var sumY = 0f;
-                    var sumZ = 0f;
-                    var count = 0f;
+                    float sumX = 0f;
+                    float sumY = 0f;
+                    float sumZ = 0f;
+                    float count = 0f;
                     foreach (var color in clusters[i].Keys)
                     {
                         sumX += color.X * colors[color];
@@ -144,9 +144,9 @@ namespace Impressionist.Implementations
                         count += colors[color];
                     }
 
-                    var x = (sumX / count);
-                    var y = (sumY / count);
-                    var z = (sumZ / count);
+                    float x = (sumX / count);
+                    float y = (sumY / count);
+                    float z = (sumZ / count);
                     var newCenter = new Vector3(x, y, z);
                     if (!newCenter.Equals(centers[i]))
                     {
@@ -163,11 +163,11 @@ namespace Impressionist.Implementations
         static Vector3 FindNearestCenter(Vector3 color, Vector3[] centers)
         {
             var nearest = centers[0];
-            var minDist = float.MaxValue;
+            float minDist = float.MaxValue;
 
             foreach (var center in centers)
             {
-                var dist = Vector3.Distance(color, center); // The original version implemented a Distance method by wieslawsoltes himself, I changed that to Vector ones.
+                float dist = Vector3.Distance(color, center); // The original version implemented a Distance method by wieslawsoltes himself, I changed that to Vector ones.
                 if (dist < minDist)
                 {
                     nearest = center;
@@ -181,10 +181,10 @@ namespace Impressionist.Implementations
         static List<Vector3> KMeansPlusPlusCluster(Dictionary<Vector3, int> colors, int numClusters)
         {
             Random random = new Random();
-            var clusterCount = Math.Min(numClusters, colors.Count);
+            int clusterCount = Math.Min(numClusters, colors.Count);
             var clusters = new List<Vector3>();
             var targetColor = colors.Keys.ToList();
-            var index = random.Next(targetColor.Count);
+            int index = random.Next(targetColor.Count);
             clusters.Add(targetColor[index]);
             for (int i = 1; i < clusterCount; i++)
             {
@@ -193,7 +193,7 @@ namespace Impressionist.Implementations
                 for (int vectorId = 0; vectorId < targetColor.Count; vectorId++)
                 {
                     var minDistanceItem = clusters[0];
-                    var minDistance = Vector3.Distance(minDistanceItem, targetColor[vectorId]);
+                    float minDistance = Vector3.Distance(minDistanceItem, targetColor[vectorId]);
                     for (int clusterIdx = 1; clusterIdx < i; clusterIdx++)
                     {
                         float currentDistance = Vector3.Distance(clusters[clusterIdx], targetColor[vectorId]);

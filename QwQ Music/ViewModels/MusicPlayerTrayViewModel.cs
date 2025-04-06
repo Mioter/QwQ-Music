@@ -37,10 +37,10 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     [RelayCommand]
-    private static void NavigationToSoundEffectView()
-    {
-        NavigateService.NavigateEvent("音效");
-    }
+    private static void NavigationToSoundEffectView() => NavigateService.NavigateEvent("音效");
+
+    [RelayCommand]
+    private static void ResetPlaybackSpeed() => MusicPlayerViewModel.Speed = 1.0f;
 
     [RelayCommand]
     private static void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs? e)
@@ -58,6 +58,26 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
                 break;
             case < 0:
                 MusicPlayerViewModel.Volume -= 2;
+                break;
+        }
+    }
+
+    [RelayCommand]
+    private static void OnSpeedBarPointerWheelChanged(PointerWheelEventArgs? e)
+    {
+        if (e == null)
+            return;
+        // 阻止事件冒泡到父级元素
+        e.Handled = true;
+
+        switch (e.Delta.Y)
+        {
+            // 根据你的需求处理滚轮滚动事件
+            case > 0:
+                MusicPlayerViewModel.Speed += 0.01f;
+                break;
+            case < 0:
+                MusicPlayerViewModel.Speed -= 0.01f;
                 break;
         }
     }

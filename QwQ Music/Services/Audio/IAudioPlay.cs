@@ -48,6 +48,11 @@ public interface IAudioPlay : IDisposable
     void Seek(double positionInSeconds);
 
     /// <summary>
+    /// 播放速度（需 > 0f）
+    /// </summary>
+    float Speed { get; set; }
+
+    /// <summary>
     /// 设置音频文件并初始化
     /// </summary>
     void InitializeAudio(string filePath, double replayGain);

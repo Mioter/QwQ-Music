@@ -10,6 +10,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:QwQ_Music.Enums"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:u="https://irihi.tech/ursa"
     xmlns:viewModel="clr-namespace:QwQ_Music.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
@@ -75,9 +76,10 @@
             <!--  音乐信息  -->
             <StackPanel
                 Grid.Column="1"
+                HorizontalAlignment="Left"
                 Spacing="5"
                 VerticalAlignment="Center"
-                Width="80">
+                Width="60">
 
                 <TextBlock
                     FontWeight="DemiBold"
@@ -93,13 +95,14 @@
 
             </StackPanel>
 
-            <!--  播放控制  -->
+            <!--  播放信息  -->
             <Grid
                 ColumnDefinitions="*,Auto"
                 Grid.Column="2"
                 Margin="0,5,0,10"
                 RowDefinitions="*,Auto">
 
+                <!--  播放控制  -->
                 <StackPanel
                     HorizontalAlignment="Center"
                     Orientation="Horizontal"
@@ -261,7 +264,7 @@
                 <Slider
                     Grid.Column="0"
                     Grid.Row="1"
-                    Margin="20,0"
+                    Margin="10,0"
                     Maximum="{Binding MusicPlayerViewModel.CurrentMusicItem.DurationProperty.TotalSeconds}"
                     Value="{Binding MusicPlayerViewModel.CurrentDurationInSeconds}" />
 
@@ -295,12 +298,19 @@
                 <WrapPanel
                     Grid.Column="1"
                     Grid.Row="0"
+                    HorizontalAlignment="Right"
                     VerticalAlignment="Center"
                     Width="100">
 
                     <WrapPanel.Resources>
+
                         <!--  ReSharper disable once Xaml.RedundantResource  -->
                         <x:Double x:Key="FlyoutMinWidth">30</x:Double>
+                        <!--  ReSharper disable once Xaml.RedundantResource  -->
+                        <Thickness x:Key="FlyoutPadding">0</Thickness>
+                        <!--  ReSharper disable once Xaml.RedundantResource  -->
+                        <x:Double x:Key="FlyoutMinHeight">30</x:Double>
+
                     </WrapPanel.Resources>
 
                     <WrapPanel.Styles>
@@ -315,12 +325,70 @@
 
                     </WrapPanel.Styles>
 
-                    <Button Classes="Icon" Command="{Binding NavigationToSoundEffectViewCommand}">
+                    <Button Classes="Icon">
 
                         <PathIcon
                             Data="{StaticResource SemiIconSimilarity}"
                             Height="13"
                             Width="13" />
+
+                        <Button.Flyout>
+                            <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
+                                <StackPanel
+                                    Margin="10"
+                                    Spacing="5"
+                                    Width="180">
+
+                                    <TextBlock
+                                        FontFamily="{StaticResource VivoSans}"
+                                        FontSize="12"
+                                        FontWeight="Bold"
+                                        HorizontalAlignment="Center"
+                                        Text="{Binding MusicPlayerViewModel.Speed, StringFormat='播放速率 : {0:F3}'}" />
+
+                                    <Slider
+                                        Maximum="1.5"
+                                        Minimum="0.5"
+                                        Value="{Binding MusicPlayerViewModel.Speed}">
+
+                                        <Interaction.Behaviors>
+
+                                            <EventTriggerBehavior EventName="PointerWheelChanged">
+                                                <InvokeCommandAction Command="{Binding SpeedBarPointerWheelChangedCommand}" PassEventArgsToCommand="True" />
+                                            </EventTriggerBehavior>
+
+                                        </Interaction.Behaviors>
+
+                                    </Slider>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+
+                                        <StackPanel.Styles>
+
+                                            <Style Selector="u|IconButton">
+                                                <Setter Property="Height" Value="30" />
+                                                <Setter Property="Width" Value="30" />
+                                                <Setter Property="CornerRadius" Value="8" />
+                                            </Style>
+
+                                        </StackPanel.Styles>
+
+                                        <u:IconButton
+                                            Classes="Transparent"
+                                            Command="{Binding NavigationToSoundEffectViewCommand}"
+                                            CornerRadius="8"
+                                            Icon="{StaticResource SemiIconBox}" />
+
+                                        <u:IconButton
+                                            Classes="Transparent"
+                                            Command="{Binding ResetPlaybackSpeedCommand}"
+                                            CornerRadius="8"
+                                            Icon="{StaticResource SemiIconRefresh}" />
+                                    </StackPanel>
+
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
 
                     </Button>
 
@@ -349,21 +417,18 @@
                                 Width="3" />
                         </Panel>
 
-                        <Button.Resources>
-                            <!--  ReSharper disable once Xaml.RedundantResource  -->
-                            <Thickness x:Key="FlyoutPadding">0</Thickness>
-                            <!--  ReSharper disable once Xaml.RedundantResource  -->
-                            <x:Double x:Key="FlyoutMinHeight">160</x:Double>
-                        </Button.Resources>
 
                         <Button.Flyout>
                             <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
 
-                                <Grid Margin="0,5,0,0" RowDefinitions="Auto,*,Auto">
+                                <Grid
+                                    Height="180"
+                                    Margin="0,5,0,0"
+                                    RowDefinitions="Auto,*,Auto">
 
                                     <TextBlock
                                         FontFamily="{StaticResource VivoSans}"
-                                        FontSize="10"
+                                        FontSize="12"
                                         HorizontalAlignment="Center"
                                         Margin="0,0,0,3"
                                         Text="{Binding MusicPlayerViewModel.Volume}" />
@@ -379,13 +444,12 @@
                                         Classes="Icon"
                                         Classes.Silent="{Binding MusicPlayerViewModel.IsMuted}"
                                         Command="{Binding MusicPlayerViewModel.ToggleMuteModeCommand}"
+                                        CornerRadius="8"
                                         Grid.Row="2"
-                                        Height="20"
-                                        Margin="5"
-                                        Padding="0"
-                                        Width="20">
+                                        Margin="8"
+                                        Padding="0">
 
-                                        <PathIcon Data="{StaticResource Prohibit}" />
+                                        <PathIcon Data="{StaticResource Prohibit}" Width="25" />
 
                                         <Button.Styles>
                                             <Style Selector="Button.Silent">

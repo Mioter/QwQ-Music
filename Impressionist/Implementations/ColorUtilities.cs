@@ -52,7 +52,7 @@ namespace Impressionist.Implementations
         {
             if (hsv.H == 360)
                 hsv.H = 0;
-            int Hi = (int)Math.Floor((float)hsv.H / 60) % 6;
+            int Hi = (int)Math.Floor(hsv.H / 60) % 6;
 
             float f = (hsv.H / 60) - Hi;
             float p = (hsv.V / 100) * (1 - (hsv.S / 100));
@@ -92,9 +92,9 @@ namespace Impressionist.Implementations
 
         public static Vector3 RGBVectorToXYZVector(this Vector3 rgb)
         {
-            var red = rgb.X;
-            var green = rgb.Y;
-            var blue = rgb.Z;
+            float red = rgb.X;
+            float green = rgb.Y;
+            float blue = rgb.Z;
             // normalize red, green, blue values
             float rLinear = red / 255.0f;
             float gLinear = green / 255.0f;
@@ -118,9 +118,9 @@ namespace Impressionist.Implementations
 
         public static Vector3 XYZVectorToRGBVector(this Vector3 xyz)
         {
-            var x = xyz.X;
-            var y = xyz.Y;
-            var z = xyz.Z;
+            float x = xyz.X;
+            float y = xyz.Y;
+            float z = xyz.Z;
             float[] Clinear = new float[3];
             Clinear[0] = x * 3.2410f - y * 1.5374f - z * 0.4986f; // red
             Clinear[1] = -x * 0.9692f + y * 1.8760f - z * 0.0416f; // green
@@ -153,9 +153,9 @@ namespace Impressionist.Implementations
         public static Vector3 XYZVectorToLABVector(this Vector3 xyz)
         {
             Vector3 lab = new Vector3();
-            var x = xyz.X;
-            var y = xyz.Y;
-            var z = xyz.Z;
+            float x = xyz.X;
+            float y = xyz.Y;
+            float z = xyz.Z;
             lab.X = 116.0f * Fxyz(y / D65Y) - 16f;
             lab.Y = 500.0f * (Fxyz(x / D65X) - Fxyz(y / D65Y));
             lab.Z = 200.0f * (Fxyz(y / D65Y) - Fxyz(z / D65Z));
@@ -165,9 +165,9 @@ namespace Impressionist.Implementations
         public static Vector3 LABVectorToXYZVector(this Vector3 lab)
         {
             float delta = 6.0f / 29.0f;
-            var l = lab.X;
-            var a = lab.Y;
-            var b = lab.Z;
+            float l = lab.X;
+            float a = lab.Y;
+            float b = lab.Z;
             float fy = (l + 16f) / 116.0f;
             float fx = fy + (a / 500.0f);
             float fz = fy - (b / 200.0f);
@@ -208,15 +208,15 @@ namespace Impressionist.Implementations
         {
             if (color.V < 65)
                 return true;
-            var s = color.S / 100;
+            float s = color.S / 100;
             if (s <= HLGGap)
             {
-                var targetV = HLGFunction1(s);
+                float targetV = HLGFunction1(s);
                 return color.V / 100f < targetV;
             }
             else
             {
-                var targetV = HLGFunction2(s);
+                float targetV = HLGFunction2(s);
                 return color.V / 100f < targetV;
             }
         }
@@ -237,15 +237,15 @@ namespace Impressionist.Implementations
         {
             if (color.V < 65)
                 return true;
-            var s = color.S / 100;
+            float s = color.S / 100;
             if (s <= BT709Gap)
             {
-                var targetV = BT709Function1(s);
+                float targetV = BT709Function1(s);
                 return color.V / 100f < targetV;
             }
             else
             {
-                var targetV = BT709Function2(s);
+                float targetV = BT709Function2(s);
                 return color.V / 100f < targetV;
             }
         }
@@ -266,15 +266,15 @@ namespace Impressionist.Implementations
         {
             if (color.V < 65)
                 return true;
-            var s = color.S / 100;
+            float s = color.S / 100;
             if (s <= sRGBGap)
             {
-                var targetV = sRGBFunction1(s);
+                float targetV = sRGBFunction1(s);
                 return color.V / 100f < targetV;
             }
             else
             {
-                var targetV = sRGBFunction2(s);
+                float targetV = sRGBFunction2(s);
                 return color.V / 100f < targetV;
             }
         }

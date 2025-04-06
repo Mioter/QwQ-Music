@@ -12,6 +12,8 @@ public partial class PlayerConfig : ObservableObject
 
     public bool IsMuted { get; set; }
 
+    public float PlaybackSpeed { get; set; } = 1.0f;
+
     public bool AutoSwitchNext { get; set; } = true;
 
     public bool IsRestartPlay { get; set; } = true;
@@ -19,8 +21,7 @@ public partial class PlayerConfig : ObservableObject
     public bool IsRealRandom { get; set; }
 
     public static string LatestPlayListName => string.Empty;
-    
-        
+
     public static int[] AudioOutputSampleRateArray { get; } =
         [44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000];
 

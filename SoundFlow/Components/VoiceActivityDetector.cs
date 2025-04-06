@@ -543,7 +543,7 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
         if (config.HistoryBufferSize <= 0)
             throw new ArgumentException("History buffer size must be positive", nameof(config));
 
-        if (config.NoiseFloorDecayRate <= 0 || config.NoiseFloorDecayRate > 1)
+        if (config.NoiseFloorDecayRate is <= 0 or > 1)
             throw new ArgumentException("Noise floor decay rate must be between 0 and 1", nameof(config));
     }
 

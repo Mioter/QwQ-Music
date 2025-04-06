@@ -4,15 +4,20 @@ using System.Linq;
 
 namespace QwQ_Music.Helper;
 
-public class EnumHelper<T>
+public static class EnumHelper<T>
 {
     public static List<T> ToList()
     {
-        return Enum.GetValues(typeof(T)).Cast<T>().ToList();
+        return GeuEnumerable().ToList();
     }
 
     public static T[] ToArray()
     {
-        return Enum.GetValues(typeof(T)).Cast<T>().ToArray();
+        return GeuEnumerable().ToArray();
+    }
+
+    private static IEnumerable<T> GeuEnumerable()
+    {
+        return Enum.GetValuesAsUnderlyingType(typeof(T)).Cast<T>();
     }
 }

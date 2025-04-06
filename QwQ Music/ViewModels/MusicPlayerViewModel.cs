@@ -30,8 +30,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         InitializeAsync();
 
-        _audioPlay.Volume = Volume;
-        _audioPlay.IsMute = IsMuted;
         _audioPlay.PositionChanged += OnPositionChanged;
         _audioPlay.PlaybackCompleted += AudioPlayOnPlaybackCompleted;
         StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
@@ -63,7 +61,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private bool _isAutoChange;
 
-
     private int CurrentIndex => Playlist.MusicItems.IndexOf(CurrentMusicItem);
 
     public int Volume
@@ -71,7 +68,10 @@ public partial class MusicPlayerViewModel : ViewModelBase
         get => PlayerConfig.Volume;
         set
         {
-            PlayerConfig.Volume = Math.Clamp(value, 0, 100);
+            if (value is > 100 or < 0)
+                return;
+
+            PlayerConfig.Volume = value;
             OnPropertyChanged();
             _audioPlay.Volume = value;
             IsMuted = value == 0f;
@@ -86,6 +86,20 @@ public partial class MusicPlayerViewModel : ViewModelBase
             PlayerConfig.IsMuted = value;
             OnPropertyChanged();
             _audioPlay.IsMute = value;
+        }
+    }
+
+    public float Speed
+    {
+        get => PlayerConfig.PlaybackSpeed;
+        set
+        {
+            if (value <= 0.5 || value >= 1.5)
+                return;
+
+            PlayerConfig.PlaybackSpeed = value;
+            OnPropertyChanged();
+            _audioPlay.Speed = value;
         }
     }
 
@@ -134,7 +148,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
     #endregion
 
     #region 属性变更处理
-
 
     partial void OnIsPlayingChanged(bool value)
     {
@@ -399,7 +412,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         foreach (var item in MusicItems)
         {
-            DataBaseService.SaveToDatabaseAsync(item, DataBaseService.Table.MUSICS).ConfigureAwait(false);
+            DataBaseService.SaveToDatabaseAsync(item, DataBaseService.Table.MUSICS).Wait();
         }
     }
 

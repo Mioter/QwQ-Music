@@ -33,12 +33,20 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
     public bool IsLooping { get; set; }
 
     /// <inheritdoc />
-    public float Time =>
-        (float)_samplePosition / AudioEngine.Channels / AudioEngine.Instance.SampleRate / PlaybackSpeed;
+    public float Time => (float)_samplePosition / AudioEngine.Channels / AudioEngine.Instance.SampleRate;
+
+    /// <summary>
+    /// 实际播放时长
+    /// </summary>
+    public float ActualTime => Time / PlaybackSpeed;
 
     /// <inheritdoc />
-    public float Duration =>
-        (float)_dataProvider.Length / AudioEngine.Channels / AudioEngine.Instance.SampleRate / PlaybackSpeed;
+    public float Duration => (float)_dataProvider.Length / AudioEngine.Channels / AudioEngine.Instance.SampleRate;
+
+    /// <summary>
+    /// 实际总时长
+    /// </summary>
+    public float ActualDuration => Duration / PlaybackSpeed;
 
     /// <inheritdoc />
     public int LoopStartSamples { get; private set; }

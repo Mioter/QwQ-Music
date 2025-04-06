@@ -51,9 +51,10 @@ public static class ColorExtraction
 
         // 尝试使用缓存的位图
         var bitmap = MusicExtractor.LoadCompressedBitmapFromCache(imagePath);
-        return bitmap == null ? null : // 缓存不存在直接返回null
+        return bitmap == null
+            ? null
+            : // 缓存不存在直接返回null
             GetColorPaletteFromBitmap(bitmap, colorCount, algorithm);
-
     }
 
     /// <summary>
