@@ -13,7 +13,7 @@
 如果你看不到，可能需要更好的网络~  
 <br><br>
 
-![主界面](.\.doc\UI_Home_1.png "这是主界面")
+![主界面](https://github.com/Mioter/QwQ-Music/blob/develop/.doc/UI_Home_1.png "这是主界面")
 
 ## ✨ 值得注意的
 
