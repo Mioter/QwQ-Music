@@ -11,7 +11,7 @@ public static class LanguageModel
         ZhCn,
     }
 
-    public static Dictionary<string, string> Lang = new()
+    public static readonly Dictionary<string, string> Lang = new()
     {
         ["MusicName"] = "音乐",
         ["ClassificationName"] = "分类",

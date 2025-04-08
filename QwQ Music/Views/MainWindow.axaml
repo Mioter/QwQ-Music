@@ -1,16 +1,15 @@
 <Window
     ExtendClientAreaTitleBarHeightHint="40"
     ExtendClientAreaToDecorationsHint="True"
-    Height="800"
+    Height="{Binding WindowHeight, Mode=OneWayToSource}"
+    MinHeight="400"
+    MinWidth="600"
     Title="QwQ"
-    Width="1200"
-    WindowState="{Binding MainWindowState, Mode=OneWayToSource}"
+    Width="{Binding WindowWidth, Mode=OneWayToSource}"
     x:Class="QwQ_Music.Views.MainWindow"
     x:DataType="viewModels:MainWindowViewModel"
     xmlns="https://github.com/avaloniaui"
-    xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
     xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
-    xmlns:converter="clr-namespace:QwQ_Music.Helper.Converter"
     xmlns:pages="clr-namespace:QwQ_Music.Views.Pages"
     xmlns:u="https://irihi.tech/ursa"
     xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
@@ -79,14 +78,19 @@
 
         <Grid ColumnDefinitions="Auto,*" Grid.Row="1">
 
-            <Grid HorizontalAlignment="Left" RowDefinitions="Auto,Auto,120">
-                <Grid.Width>
+            <Grid
+                Classes.Expand="{Binding IsNavigationExpand}"
+                Classes.Retract="{Binding !IsNavigationExpand}"
+                HorizontalAlignment="Left"
+                RowDefinitions="Auto,Auto"
+                Width="{Binding NavigationWidth}">
+                <!--<Grid.Width>
                     <MultiBinding Converter="{x:Static converter:UiStateConverter.PriorityBool}" ConverterParameter="75,150,200">
                         <Binding Path="!IsNavigationExpand" />
                         <Binding Path="IsNavigationExpand" />
                         <Binding Path="IsWindowMaximizedOrFullScreen" />
                     </MultiBinding>
-                </Grid.Width>
+                </Grid.Width>-->
 
                 <Grid.Transitions>
                     <Transitions>
@@ -111,7 +115,7 @@
 
                     <u:SelectionList.Indicator>
                         <Border
-                            Background="{StaticResource ToggleButtonPrimaryCheckedBackground}"
+                            Background="{DynamicResource SemiBlue5}"
                             BoxShadow="0 0 10 0 LightGray"
                             Classes.Expanded="{Binding IsNavigationExpand}"
                             CornerRadius="8">
@@ -221,7 +225,7 @@
                     </DataTemplate>
                 </control:IndexControl.DataTemplates>-->
 
-                <pages:MusicPage />
+                <pages:AllMusicPage />
                 <pages:ClassificationPage />
                 <pages:StatisticsPage />
                 <pages:ConfigMainPage />
@@ -229,7 +233,10 @@
 
         </Grid>
 
-        <Border Grid.Row="1" IsVisible="{Binding IsBackgroundLayerVisible}">
+        <Border
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            IsVisible="{Binding IsBackgroundLayerVisible}">
             <Button
                 Classes="None"
                 Command="{Binding GlobalButtonClickCommand}"
@@ -241,12 +248,12 @@
             Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"
             Classes.Visible="{Binding IsMusicPlayerTrayVisible}"
             Grid.Row="1"
-            Height="125"
+            Height="130"
+            MaxWidth="800"
+            MinWidth="550"
             Name="MusicPlayerTrayPanel"
             VerticalAlignment="Bottom"
-            Width="600"
-            behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
-            behaviors:SizeAdjuster.ScaleFactor="1.2,1">
+            Width="{Binding MusicPlayerTrayWidth}">
             <Panel.RenderTransform>
                 <TranslateTransform Y="{Binding MusicPlayerTrayYaxisOffset, Mode=OneWayToSource}" />
             </Panel.RenderTransform>
@@ -262,7 +269,7 @@
                                 <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
                             </KeyFrame>
                             <KeyFrame Cue="100%" KeySpline="0.62,0.63,0,1.13">
-                                <Setter Property="TranslateTransform.Y" Value="{Binding #MusicPlayerTrayPanel.Height}" />
+                                <Setter Property="TranslateTransform.Y" Value="{Binding #MusicPlayerTrayPanel.Bounds.Height}" />
                             </KeyFrame>
                         </Animation>
                     </Style.Animations>
@@ -309,12 +316,10 @@
             Classes.Visible="{Binding IsMusicPlayListVisible}"
             Grid.Row="1"
             HorizontalAlignment="Right"
-            IsVisible="{Binding MusicPlayListXaxisOffset}"
+            MaxWidth="400"
+            MinWidth="250"
             Name="MusicPlayListPanel"
-            Width="300"
-            behaviors:SizeAdjuster.CanAdjust="{Binding IsMusicPlayListVisible}"
-            behaviors:SizeAdjuster.IsAdjusted="{Binding IsWindowMaximizedOrFullScreen}"
-            behaviors:SizeAdjuster.ScaleFactor="1.2,1">
+            Width="{Binding MusicPlayListWidth}">
             <Panel.RenderTransform>
                 <TranslateTransform X="{Binding MusicPlayListXaxisOffset, Mode=OneWayToSource}" />
             </Panel.RenderTransform>
@@ -330,7 +335,7 @@
                                 <Setter Property="TranslateTransform.X" Value="{Binding MusicPlayListXaxisOffset}" />
                             </KeyFrame>
                             <KeyFrame Cue="100%" KeySpline="0.62,0.63,0,1.13">
-                                <Setter Property="TranslateTransform.X" Value="{Binding #MusicPlayListPanel.Width}" />
+                                <Setter Property="TranslateTransform.X" Value="{Binding #MusicPlayListPanel.Bounds.Width}" />
                             </KeyFrame>
                         </Animation>
                     </Style.Animations>
@@ -348,7 +353,7 @@
                                 <Setter Property="TranslateTransform.X" Value="{Binding MusicPlayListXaxisOffset}" />
                             </KeyFrame>
                             <KeyFrame Cue="100%" KeySpline="0.62,0.63,0,1.13">
-                                <Setter Property="TranslateTransform.X" Value="-1" />
+                                <Setter Property="TranslateTransform.X" Value="0" />
                             </KeyFrame>
                         </Animation>
                     </Style.Animations>
@@ -372,5 +377,61 @@
 
         </Panel>
 
+        <Panel
+            Classes.Hide="{Binding !IsMusicPlayerPageVisible}"
+            Classes.Visible="{Binding IsMusicPlayerPageVisible}"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Height="{Binding MusicCoverPageHeight}"
+            Margin="{Binding $parent[Window].OffScreenMargin}"
+            MinHeight="{Binding $parent[Window].MinHeight}"
+            Name="MusicPlayerPagePanel"
+            VerticalAlignment="Bottom">
+            <Panel.RenderTransform>
+                <TranslateTransform Y="{Binding MusicPlayerPageYaxisOffset, Mode=OneWayToSource}" />
+            </Panel.RenderTransform>
+
+            <Panel.Styles>
+                <Style Selector="Panel#MusicPlayerPagePanel.Hide">
+                    <Style.Animations>
+                        <Animation Duration="0:0:0.1" FillMode="Forward">
+                            <KeyFrame Cue="0%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerPageYaxisOffset}" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding #MusicPlayerPagePanel.Bounds.Height}" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+            </Panel.Styles>
+
+            <Panel.Styles>
+                <Style Selector="Panel#MusicPlayerPagePanel.Visible">
+                    <Style.Animations>
+                        <Animation Duration="0:0:0.1" FillMode="Forward">
+                            <KeyFrame Cue="0%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerPageYaxisOffset}" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="TranslateTransform.Y" Value="0" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+            </Panel.Styles>
+
+            <pages:MusicCoverPage />
+
+        </Panel>
+
     </Grid>
+
+    <Interaction.Behaviors>
+
+        <EventTriggerBehavior EventName="PointerWheelChanged">
+            <InvokeCommandAction Command="{Binding PointerWheelChangedCommand}" PassEventArgsToCommand="True" />
+        </EventTriggerBehavior>
+
+    </Interaction.Behaviors>
 </Window>

@@ -1,8 +1,6 @@
-using Avalonia;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Utilities.MessageBus;
 
@@ -11,37 +9,38 @@ namespace QwQ_Music.ViewModels;
 public partial class MusicPlayerTrayViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private double _albumCoverCurrentAngle;
+    public partial double AlbumCoverCurrentAngle { get; set; }
 
     [ObservableProperty]
-    private double _albumCoverRecordAngle;
+    public partial double AlbumCoverRecordAngle { get; set; }
 
     [ObservableProperty]
-    private double _playButtonAngle;
-
-    [ObservableProperty]
-    private Thickness _playButtonPadding;
+    public partial string? CurrentViewName { get; set; }
 
     public MusicPlayerTrayViewModel()
     {
         MusicPlayerViewModel.PlaybackStateChanged += MusicPlayerViewModelOnPlaybackStateChanged;
         MusicPlayerViewModel.CurrentMusicItemChanging += AudioPlayOnTrackIndexChanging;
-        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
+        NavigateService.CurrentViewChanged += CurrentViewChanged;
+        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
     }
 
-    private void ExitReminderMessageChanged(ExitReminderMessage message)
+    private void CurrentViewChanged(string name) => CurrentViewName = name;
+
+    private void ExitReminderMessageHandler(ExitReminderMessage message)
     {
         MusicPlayerViewModel.CurrentMusicItemChanging -= AudioPlayOnTrackIndexChanging;
         MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
+        NavigateService.CurrentViewChanged -= CurrentViewChanged;
     }
 
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     [RelayCommand]
-    private static void NavigationToSoundEffectView()
-    {
-        NavigateService.NavigateEvent("音效");
-    }
+    private static void NavigationToSoundEffectView() => NavigateService.NavigateEvent("音效");
+
+    [RelayCommand]
+    private static void ResetPlaybackSpeed() => MusicPlayerViewModel.Speed = 1.0f;
 
     [RelayCommand]
     private static void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs? e)
@@ -55,10 +54,28 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
         {
             // 根据你的需求处理滚轮滚动事件
             case > 0:
-                MusicPlayerViewModel.VolumePercent += 2;
+                MusicPlayerViewModel.Volume += 2;
                 break;
             case < 0:
-                MusicPlayerViewModel.VolumePercent -= 2;
+                MusicPlayerViewModel.Volume -= 2;
+                break;
+        }
+    }
+
+    [RelayCommand]
+    private static void OnSpeedBarPointerWheelChanged(PointerWheelEventArgs? e)
+    {
+        if (e == null)
+            return;
+        e.Handled = true;
+
+        switch (e.Delta.Y)
+        {
+            case > 0:
+                MusicPlayerViewModel.Speed += 0.01f;
+                break;
+            case < 0:
+                MusicPlayerViewModel.Speed -= 0.01f;
                 break;
         }
     }
@@ -69,7 +86,7 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
             AlbumCoverRecordAngle = AlbumCoverCurrentAngle;
     }
 
-    private void AudioPlayOnTrackIndexChanging(object? sender, MusicItemModel musicItemModel)
+    private void AudioPlayOnTrackIndexChanging(object? sender, CurrentMusicItemChangedCancelEventArgs e)
     {
         AlbumCoverRecordAngle = 0;
     }

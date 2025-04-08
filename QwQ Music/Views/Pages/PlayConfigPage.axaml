@@ -1,0 +1,333 @@
+<UserControl
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="QwQ_Music.Views.Pages.PlayConfigPage"
+    x:DataType="viewModel:PlayConfigPageViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:viewModel="clr-namespace:QwQ_Music.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer Margin="10">
+
+        <StackPanel Margin="2,10" Spacing="20">
+
+            <StackPanel.Styles>
+
+                <Style Selector="WrapPanel">
+                    <Setter Property="ItemSpacing" Value="20" />
+                    <Setter Property="LineSpacing" Value="20" />
+                </Style>
+
+                <Style Selector="WrapPanel &gt; Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource BorderCardBorderBrush}" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Setter Property="CornerRadius" Value="10" />
+                    <Setter Property="MinWidth" Value="200" />
+                </Style>
+
+
+                <Style Selector="WrapPanel &gt; Border &gt; StackPanel &gt; StackPanel &gt; TextBlock">
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                </Style>
+
+            </StackPanel.Styles>
+
+            <WrapPanel>
+
+                <WrapPanel.Styles>
+
+                    <Style Selector="WrapPanel &gt; Border &gt; StackPanel">
+                        <Setter Property="Margin" Value="5,15" />
+                        <Setter Property="Spacing" Value="10" />
+                    </Style>
+
+                    <Style Selector="WrapPanel &gt; Border &gt; StackPanel &gt; RadioButton">
+                        <Setter Property="Margin" Value="25,0" />
+                    </Style>
+
+                    <Style Selector="WrapPanel &gt; Border &gt; StackPanel &gt; StackPanel &gt; PathIcon">
+                        <Setter Property="Foreground" Value="{Binding RandomColor}" />
+                        <Setter Property="Width" Value="25" />
+                    </Style>
+
+                    <Style Selector="WrapPanel &gt; Border &gt; StackPanel &gt; StackPanel">
+                        <Setter Property="Height" Value="25" />
+                        <Setter Property="Spacing" Value="2" />
+                        <Setter Property="Orientation" Value="Horizontal" />
+                    </Style>
+
+                </WrapPanel.Styles>
+
+                <Border>
+                    <StackPanel>
+                        <StackPanel>
+                            <PathIcon Data="{StaticResource PlayIconData}" />
+                            <TextBlock Text="播放完成后 : " />
+                        </StackPanel>
+
+                        <RadioButton Content="自动切换" IsChecked="{Binding PlayerConfig.AutoSwitchNext}" />
+                        <RadioButton Content="回到开头" IsChecked="{Binding !PlayerConfig.AutoSwitchNext}" />
+                    </StackPanel>
+                </Border>
+
+                <Border>
+                    <StackPanel>
+                        <StackPanel>
+                            <PathIcon Data="{StaticResource SemiIconChevronUpDown}" Height="14" />
+                            <TextBlock Text="切换音乐时 : " />
+                        </StackPanel>
+
+                        <!--<CheckBox Name="CheckBox2">
+                    <Interaction.Behaviors>
+                        <DataTriggerBehavior Binding="{Binding #CheckBox2.IsChecked}" Value="True">
+                            <ChangePropertyAction PropertyName="Content" Value="从头开始播放" />
+                        </DataTriggerBehavior>
+                        <DataTriggerBehavior Binding="{Binding #CheckBox2.IsChecked}" Value="False">
+                            <ChangePropertyAction PropertyName="Content" Value="继续上次播放时长播放" />
+                        </DataTriggerBehavior>
+                    </Interaction.Behaviors>
+                </CheckBox>-->
+                        <RadioButton Content="从头开始播放" IsChecked="{Binding PlayerConfig.IsRestartPlay}" />
+                        <RadioButton Content="继续上次播放" IsChecked="{Binding !PlayerConfig.IsRestartPlay}" />
+                    </StackPanel>
+                </Border>
+
+                <Border>
+                    <StackPanel>
+                        <StackPanel>
+                            <PathIcon Data="{StaticResource Random}" Height="13.5" />
+                            <TextBlock Text="随机模式 : " />
+                        </StackPanel>
+
+                        <RadioButton Content="随机切换一首" IsChecked="{Binding PlayerConfig.IsRealRandom}" />
+                        <RadioButton Content="打乱播放列表" IsChecked="{Binding !PlayerConfig.IsRealRandom}" />
+                    </StackPanel>
+                </Border>
+
+                <Border>
+                    <StackPanel>
+                        <StackPanel>
+                            <PathIcon Data="{StaticResource SemiIconBytedanceLogo}" Height="12" />
+                            <TextBlock Text="输出采样率 : " />
+                        </StackPanel>
+
+                        <ComboBox
+                            CornerRadius="8"
+                            ItemsSource="{Binding PlayerConfig.AudioOutputSampleRateArray}"
+                            Margin="25,0"
+                            SelectedItem="{Binding PlayerConfig.SampleRate}" />
+
+                    </StackPanel>
+                </Border>
+
+
+            </WrapPanel>
+
+            <WrapPanel>
+
+                <WrapPanel.Styles>
+
+                    <Style Selector="WrapPanel StackPanel">
+                        <Setter Property="Spacing" Value="10" />
+                    </Style>
+
+                    <Style Selector="WrapPanel &gt; Border &gt; StackPanel &gt; StackPanel">
+                        <Setter Property="Height" Value="25" />
+                    </Style>
+
+                </WrapPanel.Styles>
+
+                <Border MinWidth="280" Padding="15">
+
+                    <StackPanel Spacing="0">
+
+                        <StackPanel.Resources>
+
+                            <!--  ReSharper disable once Xaml.RedundantResource  -->
+                            <x:Double x:Key="BannerTitleFontSize">14</x:Double>
+
+                        </StackPanel.Resources>
+
+                        <!--
+                    <u:Banner
+                        Classes="Bordered"
+                        Content="回放增益是一种用于标准化音频播放音量的技术，旨在解决不同音频文件之间音量差异的问题。QWQ Music 通过分析音频文件的内容，计算出一个标准化的响度值，并将该值存储在数据库中，而不会对音频本身进行更改。"
+                        CornerRadius="8"
+                        FontSize="12"
+                        Header="什么是回放增益"
+                        HorizontalContentAlignment="Stretch" />
+                        -->
+
+                        <StackPanel
+                            HorizontalAlignment="Left"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                            <Rectangle
+                                Fill="{Binding RandomColor}"
+                                Margin="0,4"
+                                Width="4" />
+                            <TextBlock FontWeight="Bold" Text="启用回放增益" />
+                            <CheckBox IsChecked="{Binding AudioModifierConfig.ReplayGainModifier.Enabled}" />
+                        </StackPanel>
+
+                        <DockPanel>
+
+                            <StackPanel
+                                DockPanel.Dock="Bottom"
+                                Orientation="Horizontal"
+                                Spacing="10">
+
+                                <Button
+                                    Classes="Icon"
+                                    Command="{Binding ToggleCalculationCommand}"
+                                    Content="{Binding CalculationButtonText}"
+                                    CornerRadius="8"
+                                    FontSize="12"
+                                    Padding="8" />
+
+                                <Button
+                                    Classes="Icon"
+                                    Command="{Binding CancelCalcCallbackGainCommand}"
+                                    Content="取消"
+                                    CornerRadius="8"
+                                    FontSize="12"
+                                    IsEnabled="{Binding TaskHandle, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Padding="8" />
+
+                                <u:IconButton
+                                    Classes="Transparent"
+                                    Command="{Binding ClearCallbackGainCommand}"
+                                    Content="清空"
+                                    CornerRadius="8"
+                                    FontSize="12"
+                                    IsEnabled="{Binding TaskHandle, Converter={x:Static ObjectConverters.IsNull}}">
+                                    <u:IconButton.Icon>
+                                        <PathIcon
+                                            Data="{StaticResource SemiIconDelete}"
+                                            Foreground="#ff6b6b"
+                                            Height="12" />
+                                    </u:IconButton.Icon>
+                                </u:IconButton>
+                            </StackPanel>
+
+                            <StackPanel
+                                DockPanel.Dock="Right"
+                                Margin="15,30,0,30"
+                                Spacing="10"
+                                Width="125">
+
+                                <u:Divider Content="响度标准" FontSize="12" />
+
+                                <ComboBox
+                                    CornerRadius="8"
+                                    HorizontalAlignment="Right"
+                                    ItemsSource="{Binding MusicReplayGainStandardList}"
+                                    SelectedItem="{Binding SelectedMusicReplayGainStandard}"
+                                    Width="125" />
+
+                                <u:NumericIntUpDown
+                                    CornerRadius="8"
+                                    HorizontalAlignment="Right"
+                                    IsVisible="{Binding SelectedMusicReplayGainStandard, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Custom'}"
+                                    Value="{Binding CustomMusicReplayGainStandard}"
+                                    Width="110" />
+
+                            </StackPanel>
+
+                            <Panel>
+
+                                <Panel.Styles>
+                                    <Style Selector="ProgressBar:horizontal /template/ TextBlock#PART_ProgressText">
+                                        <Setter Property="RenderTransform" Value="translateY(-10px)" />
+                                    </Style>
+
+                                </Panel.Styles>
+
+                                <StackPanel
+                                    HorizontalAlignment="Center"
+                                    Orientation="Horizontal"
+                                    RenderTransform="translateY(10px)"
+                                    Spacing="0"
+                                    VerticalAlignment="Center">
+
+                                    <TextBlock
+                                        FontSize="12"
+                                        FontWeight="Bold"
+                                        Text="{Binding NumberOfCompletedCalc}" />
+
+                                    <TextBlock FontSize="12" Text="{Binding MusicPlayerViewModel.MusicItems.Count, StringFormat=' / {0}'}" />
+
+                                </StackPanel>
+
+                                <ProgressBar
+                                    Height="120"
+                                    Margin="5,25"
+                                    Maximum="{Binding MusicPlayerViewModel.MusicItems.Count}"
+                                    ShowProgressText="True"
+                                    Theme="{DynamicResource ProgressRing}"
+                                    Value="{Binding NumberOfCompletedCalc}"
+                                    Width="120" />
+                            </Panel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="15">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Rectangle
+                                Fill="{Binding RandomColor}"
+                                Margin="0,4"
+                                Width="4" />
+                            <TextBlock Text="启用淡入淡出" />
+                            <CheckBox IsChecked="{Binding AudioModifierConfig.FadeModifier.Enabled}" />
+                        </StackPanel>
+
+                        <TextBlock
+                            FontSize="12"
+                            FontWeight="Bold"
+                            Text="淡入时长" />
+                        <u:NumericIntUpDown
+                            CornerRadius="8"
+                            InnerRightContent="ms"
+                            Maximum="60000"
+                            Minimum="0"
+                            Step="200"
+                            Value="{Binding AudioModifierConfig.FadeModifier.FadeInTimeMs}" />
+
+                        <TextBlock
+                            FontSize="12"
+                            FontWeight="Bold"
+                            Text="淡出时长" />
+                        <u:NumericIntUpDown
+                            CornerRadius="8"
+                            InnerRightContent="ms"
+                            Maximum="60000"
+                            Minimum="0"
+                            Step="200"
+                            Value="{Binding AudioModifierConfig.FadeModifier.FadeOutTimeMs}" />
+
+                        <TextBlock
+                            FontSize="12"
+                            FontWeight="Bold"
+                            Text="渐变曲线" />
+                        <ComboBox
+                            CornerRadius="8"
+                            ItemsSource="{Binding FadeCurves}"
+                            MinWidth="150"
+                            SelectedItem="{Binding AudioModifierConfig.FadeModifier.CurveType}" />
+
+                    </StackPanel>
+                </Border>
+            </WrapPanel>
+
+        </StackPanel>
+
+    </ScrollViewer>
+
+</UserControl>

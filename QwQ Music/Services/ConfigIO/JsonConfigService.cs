@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
+using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Services.ConfigIO;
 
@@ -44,14 +45,10 @@ public static class JsonConfigService
     public static void Save<T>(T data, string fileName, JsonSerializerContext jsonSerializerContext)
     {
         string fullPath = GetFullPath(fileName);
-        if (!EnsureDirectoryExists(fullPath))
-        {
-            LoggerService.Error($"无法创建目录: {Path.GetDirectoryName(fullPath)}");
-            return;
-        }
 
         try
         {
+            PathEnsurer.EnsureFileAndDirectoryExist(fullPath);
             // 使用调用者提供的 JsonSerializerContext 进行序列化
             string json = JsonSerializer.Serialize(data, typeof(T), jsonSerializerContext);
             File.WriteAllText(fullPath, json);
@@ -65,17 +62,14 @@ public static class JsonConfigService
     /// <summary>
     /// 异步保存方法
     /// </summary>
-    public async static Task SaveAsync<T>(T data, string fileName, JsonSerializerContext jsonSerializerContext)
+    public static async Task SaveAsync<T>(T data, string fileName, JsonSerializerContext jsonSerializerContext)
     {
         string fullPath = GetFullPath(fileName);
-        if (!EnsureDirectoryExists(fullPath))
-        {
-            LoggerService.Error($"无法创建目录: {Path.GetDirectoryName(fullPath)}");
-            return;
-        }
 
         try
         {
+            PathEnsurer.EnsureFileAndDirectoryExist(fullPath);
+
             // 使用调用者提供的 JsonSerializerContext 进行序列化
             string json = JsonSerializer.Serialize(data, typeof(T), jsonSerializerContext);
             await File.WriteAllTextAsync(fullPath, json);
@@ -95,7 +89,7 @@ public static class JsonConfigService
         if (!File.Exists(fullPath))
         {
             LoggerService.Error($"配置文件未找到: {fullPath}");
-            return default!;
+            return default;
         }
 
         try
@@ -108,20 +102,20 @@ public static class JsonConfigService
         catch (Exception ex)
         {
             LoggerService.Error($"读取配置文件失败: {fullPath}, 错误: {ex.Message}");
-            return default!;
+            return default;
         }
     }
 
     /// <summary>
     /// 异步读取方法
     /// </summary>
-    public async static Task<T?> LoadAsync<T>(string fileName, JsonSerializerContext jsonSerializerContext)
+    public static async Task<T?> LoadAsync<T>(string fileName, JsonSerializerContext jsonSerializerContext)
     {
         string fullPath = GetFullPath(fileName);
         if (!File.Exists(fullPath))
         {
             LoggerService.Error($"配置文件未找到: {fullPath}");
-            return default!;
+            return default;
         }
 
         try
@@ -134,30 +128,7 @@ public static class JsonConfigService
         catch (Exception ex)
         {
             LoggerService.Error($"异步读取配置文件失败: {fullPath}, 错误: {ex.Message}");
-            return default!;
-        }
-    }
-
-    /// <summary>
-    /// 确保目录存在
-    /// </summary>
-    private static bool EnsureDirectoryExists(string path)
-    {
-        try
-        {
-            string? directory = Path.GetDirectoryName(path);
-            if (string.IsNullOrEmpty(directory))
-                return false;
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-            return true;
-        }
-        catch (Exception ex)
-        {
-            LoggerService.Error($"目录创建失败: {path}, 错误: {ex.Message}");
-            return false;
+            return default;
         }
     }
 

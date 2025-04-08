@@ -14,25 +14,25 @@ using QwQ_Music.Utilities.MessageBus;
 
 namespace QwQ_Music.ViewModels;
 
-public partial class MusicPageViewModel : ViewModelBase
+public partial class AllMusicPageViewModel : ViewModelBase
 {
     [ObservableProperty]
     public partial ObservableCollection<MusicItemModel> AllMusicItems { get; set; }
-    
+
     [ObservableProperty]
     public partial string? SearchText { get; set; }
 
     [ObservableProperty]
     public partial MusicItemModel? SelectedItem { get; set; }
 
-    public MusicPageViewModel()
+    public AllMusicPageViewModel()
     {
         AllMusicItems = MusicPlayerViewModel.MusicItems;
         MusicPlayerViewModel.MusicItemsChanged += OnMusicPlayerViewModelOnMusicItemsChanged;
-        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageChanged);
+        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
     }
 
-    private void ExitReminderMessageChanged(ExitReminderMessage message)
+    private void ExitReminderMessageHandler(ExitReminderMessage message)
     {
         MusicPlayerViewModel.MusicItemsChanged -= OnMusicPlayerViewModelOnMusicItemsChanged;
     }
@@ -54,9 +54,9 @@ public partial class MusicPageViewModel : ViewModelBase
         return;
 
         bool MatchesSearchCriteria(MusicItemModel item) =>
-            item.Title.Contains(value, StringComparison.OrdinalIgnoreCase) ||
-            item.Artists.Contains(value, StringComparison.OrdinalIgnoreCase) ||
-            item.Album.Contains(value, StringComparison.OrdinalIgnoreCase);
+            item.Title.Contains(value, StringComparison.OrdinalIgnoreCase)
+            || item.Artists.Contains(value, StringComparison.OrdinalIgnoreCase)
+            || item.Album.Contains(value, StringComparison.OrdinalIgnoreCase);
     }
 
     [RelayCommand]
@@ -75,13 +75,13 @@ public partial class MusicPageViewModel : ViewModelBase
         SelectedItem = null;
         SelectedItem = MusicPlayerViewModel.CurrentMusicItem;
     }
-    
+
     [RelayCommand]
     private async Task SelectedPaths(IReadOnlyList<string> paths)
     {
         if (paths.Count == 0)
             return;
-            
+
         // 直接使用字符串路径列表
         var allFilePaths = await Task.Run(() => GetAllFilePaths(paths)).ConfigureAwait(false);
         await ImportMusicFilesAsync(allFilePaths).ConfigureAwait(false);
@@ -98,20 +98,21 @@ public partial class MusicPageViewModel : ViewModelBase
             return;
 
         // 将 IStorageItem 转换为路径字符串
-        var paths = items.Select(item => 
-        {
-            try 
+        var paths = items
+            .Select(item =>
             {
-                return item.Path.IsAbsoluteUri ? item.Path.LocalPath : null;
-            }
-            catch (InvalidOperationException ex)
-            {
-                Console.WriteLine($"无法解析路径: {item.Path} (错误: {ex.Message})");
-                return null;
-            }
-        })
-        .Where(path => path != null)
-        .ToList();
+                try
+                {
+                    return item.Path.IsAbsoluteUri ? item.Path.LocalPath : null;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine($"无法解析路径: {item.Path} (错误: {ex.Message})");
+                    return null;
+                }
+            })
+            .Where(path => path != null)
+            .ToList();
 
         // 获取所有拖入的文件路径
         var allFilePaths = await Task.Run(() => GetAllFilePaths(paths!)).ConfigureAwait(false);
@@ -126,8 +127,7 @@ public partial class MusicPageViewModel : ViewModelBase
     private async Task ImportMusicFilesAsync(IReadOnlyList<string> filePaths)
     {
         // 过滤出音频文件
-        var audioFilePaths = await Task.Run(() => AudioFileValidator.FilterAudioFiles(filePaths))
-            .ConfigureAwait(false);
+        var audioFilePaths = await Task.Run(() => AudioFileValidator.FilterAudioFiles(filePaths));
 
         if (audioFilePaths == null || audioFilePaths.Count == 0)
             return;
@@ -146,12 +146,10 @@ public partial class MusicPageViewModel : ViewModelBase
 
         // 并行提取音乐信息，并过滤掉 null 结果
         var musicItems = (
-            await Task.WhenAll(
-                newFilePaths.Select(async path =>
-                    await MusicExtractor.ExtractMusicInfoAsync(path).ConfigureAwait(false)
-                )
-            )
-        ).Where(m => m != null).ToList(); // 过滤 null 值
+            await Task.WhenAll(newFilePaths.Select(async path => await MusicExtractor.ExtractMusicInfoAsync(path)))
+        )
+            .Where(m => m != null)
+            .ToList(); // 过滤 null 值
 
         // 批量添加到UI集合
         await Dispatcher.UIThread.InvokeAsync(() =>
@@ -170,12 +168,12 @@ public partial class MusicPageViewModel : ViewModelBase
     private static List<string> GetAllFilePaths(IReadOnlyList<string> paths)
     {
         var allFilePaths = new List<string>();
-        
-        foreach (var path in paths)
+
+        foreach (string path in paths)
         {
             if (string.IsNullOrEmpty(path))
                 continue;
-                
+
             if (Directory.Exists(path))
             {
                 try

@@ -11,8 +11,8 @@ public sealed class SpatialModifier : SoundModifier
     // 状态变量
     private float _currentAngle;
     private float _currentDistance;
-    private float[] _channelWeights = [];
-    
+    private float[] _channelWeights;
+
     // 配置参数
     private float _angle;
     private float _distance = 10f;
@@ -46,11 +46,6 @@ public sealed class SpatialModifier : SoundModifier
     /// </summary>
     public SpatialModifier()
     {
-        Initialize();
-    }
-
-    private void Initialize()
-    {
         int channels = AudioEngine.Channels;
         _channelWeights = new float[channels];
     }
@@ -59,7 +54,7 @@ public sealed class SpatialModifier : SoundModifier
     public override void Process(Span<float> buffer)
     {
         int channels = AudioEngine.Channels;
-        
+
         // 确保通道权重数组大小正确
         if (_channelWeights.Length != channels)
         {
@@ -68,10 +63,10 @@ public sealed class SpatialModifier : SoundModifier
 
         // 预计算音量衰减
         float volumeScale = MathF.Pow(0.1f, _distance / 100f);
-        
+
         // 平滑更新参数
         UpdateSpatialParameters();
-        
+
         // 计算声道权重
         CalculateChannelWeights(channels);
 
@@ -85,23 +80,24 @@ public sealed class SpatialModifier : SoundModifier
     /// <inheritdoc />
     public override float ProcessSample(float sample, int channel)
     {
-        if (!Enabled) return sample;
-        
+        if (!Enabled)
+            return sample;
+
         // 确保通道权重数组大小正确
         if (_channelWeights.Length <= channel)
         {
             Array.Resize(ref _channelWeights, channel + 1);
         }
-        
+
         // 预计算音量衰减
         float volumeScale = MathF.Pow(0.1f, _distance / 100f);
-        
+
         // 平滑更新参数
         UpdateSpatialParameters();
-        
+
         // 计算声道权重
         CalculateChannelWeights(_channelWeights.Length);
-        
+
         return sample * _channelWeights[channel] * volumeScale;
     }
 
@@ -152,13 +148,12 @@ public sealed class SpatialModifier : SoundModifier
             maxWeight = MathF.Max(maxWeight, weight);
         }
 
+        if (!(maxWeight > 0))
+            return;
         // 能量归一化
-        if (maxWeight > 0)
+        for (int c = 0; c < channels; c++)
         {
-            for (int c = 0; c < channels; c++)
-            {
-                _channelWeights[c] /= maxWeight;
-            }
+            _channelWeights[c] /= maxWeight;
         }
     }
 

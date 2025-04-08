@@ -7,7 +7,7 @@ namespace QwQ_Music.ViewModels;
 public partial class MusicPlayListViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private MusicItemModel? _selectedItem;
+    public partial MusicItemModel? SelectedItem { get; set; }
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     [RelayCommand]

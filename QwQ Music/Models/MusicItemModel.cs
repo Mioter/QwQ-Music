@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Microsoft.Data.Sqlite;
 using QwQ_Music.Models.ModelBase;
 using QwQ_Music.Services;
-using QwQ_Music.Services.ConfigIO;
 
 namespace QwQ_Music.Models;
 
-public partial class MusicItemModel(
-    string? title = null,
-    string? artists = null,  
+public class MusicItemModel(
+    string title = "",
+    string? artists = null,
     string? composer = null,
     string? album = null,
     string? coverPath = null,
@@ -19,112 +21,262 @@ public partial class MusicItemModel(
     string fileSize = "",
     TimeSpan? current = null,
     TimeSpan duration = default,
-    string encodingFormat = "",
+    string? encodingFormat = null,
     string? comment = null,
     double gain = -1.0f,
     string[]? coverColor = null
-) : ObservableObject, IEquatable<MusicItemModel>, IModelBase<MusicItemModel>
+) : ObservableObject, IModelBase<MusicItemModel>
 {
-    public bool IsInitialized { get; private set; }
+    public bool IsInitialized { get; private init; }
+
+    public bool IsLoading { get; set; }
+
     public bool IsError { get; private set; }
 
-    public string Title = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
+    public bool IsModified { get; set; } = true;
 
+    public string Title
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
 
-    public string TitleProperty => Title;
+    public string Artists
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = string.IsNullOrWhiteSpace(artists) ? "未知歌手" : artists;
 
+    public string Composer
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = string.IsNullOrWhiteSpace(composer) ? "未知作曲" : composer;
 
-    public string Artists = artists ?? "未知歌手";
-    
-    public string Composer = composer ?? string.Empty;
-    public string ComposerProperty => Composer;
-    
-    public string ArtistsProperty => string.Join(',', Artists);
+    public string Album
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
 
-    public string Album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
-    public string AlbumProperty => Album;
+    public TimeSpan Current
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value, true);
+    } = current ?? TimeSpan.Zero;
+
+    public TimeSpan Duration
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = duration;
+
+    public string FilePath
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = filePath;
+
+    public string FileSize
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = fileSize;
+
+    public double Gain
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = gain;
+
+    public string? EncodingFormat
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = encodingFormat;
+
     public string? CoverPath = coverPath;
 
-    public string? CoverPathProperty => CoverPath;
-
-    public string[]? CoverColors = coverColor;
-
-    [ObservableProperty]
-    private TimeSpan _current = current ?? TimeSpan.Zero;
-    public TimeSpan Duration = duration;
-    public TimeSpan DurationProperty => Duration;
-    public string FilePath = filePath;
-    public string FilePathProperty => FilePath;
-    public string FileSize = fileSize;
-    public string FileSizeProperty => FileSize;
-    public double Gain = gain;
-
-    public string EncodingFormat = encodingFormat;
-    public string EncodingFormatProperty => EncodingFormat;
-    public string? Comment = comment;
-    public string? CommentProperty => Comment;
-
-    [ObservableProperty]
-    private string? _remarks;
-    
-    public async Task<MusicTagExtensions> GetExtensionsInfo() => await MusicExtractor.ExtractExtensionsInfoAsync(FilePath);
-
-    public readonly Lazy<Task<LyricsModel>> Lyrics = new(() => MusicExtractor.ExtractMusicLyricsAsync(filePath));
-
-    public bool Equals(MusicItemModel? other) => other is not null && string.Equals(FilePath, other.FilePath);
-
-    public override bool Equals(object? obj) => obj is MusicItemModel other && Equals(other);
-
-    public override int GetHashCode() => (Title + string.Join(',', Artists)).GetHashCode();
-
-    public static MusicItemModel Parse(in SqliteDataReader config)
+    public string[]? CoverColors
     {
-        MusicItemModel result = new();
-        result.IsError =
-            DataBaseService.TryParse(config, nameof(Title), ref result.Title)
-            | DataBaseService.TryParse(config, nameof(Artists), ref result.Artists)
-            | DataBaseService.TryParse(config, nameof(Album), ref result.Album)
-            | DataBaseService.TryParse(config, nameof(Composer), ref result.Composer)
-            | DataBaseService.TryParse(config, nameof(CoverPath), ref result.CoverPath)
-            | DataBaseService.TryParse(config, nameof(Current), ref result._current)
-            | DataBaseService.TryParse(config, nameof(Duration), ref result.Duration)
-            | DataBaseService.TryParse(config, nameof(FilePath), ref result.FilePath)
-            | DataBaseService.TryParse(config, nameof(FileSize), ref result.FileSize)
-            | DataBaseService.TryParse(config, nameof(Gain), ref result.Gain)
-            | DataBaseService.TryParse(
-                config,
-                nameof(CoverColors),
-                ref result.CoverColors,
-                (string data) => data.Split("\n")
-            )
-            | DataBaseService.TryParse(config, nameof(Comment), ref result.Comment)
-            | DataBaseService.TryParse(config, nameof(EncodingFormat), ref result.EncodingFormat)
-            | DataBaseService.TryParse(config, nameof(Comment), ref result.Comment)
-            | DataBaseService.TryParse(config, nameof(Remarks), ref result._remarks);
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = coverColor;
 
-        result.IsInitialized = true;
-        return result;
+    public string? Comment
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
+    } = comment;
+    
+    // 添加一个标志表示图片是否正在加载
+    private CoverStatus _coverStatus;
+    
+    public Bitmap CoverImage
+    {
+        get
+        {
+            if (CoverPath == null || _coverStatus == CoverStatus.NotExist) 
+                return MusicExtractor.DefaultCover;
+            
+            // 如果已有缓存图片，直接返回
+            if (_coverStatus == CoverStatus.Loaded && MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image))
+                return image;
+            
+            // 标记为正在加载
+            _coverStatus = CoverStatus.Loading;
+
+            // 启动异步加载任务
+            Task.Run(async () =>
+            {
+
+                var bitmap = MusicExtractor.LoadCompressedBitmap(CoverPath); // 尝试从缓存加载
+
+                // 如果缓存中没有找到封面，尝试从音频文件中提取
+                if (bitmap == null && !string.IsNullOrEmpty(FilePath))
+                {
+                    string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(FilePath);
+                    if (newCoverPath != null)
+                    {
+                        CoverPath = newCoverPath;
+                        bitmap = MusicExtractor.LoadCompressedBitmap(newCoverPath);
+                    }
+                }
+
+                // 如果仍然没有找到，使用默认封面
+                if (bitmap != null)
+                {
+                    MusicExtractor.ImageCache[CoverPath] = bitmap;
+                    _coverStatus = CoverStatus.Loaded; // 通知 UI 更新
+                    OnPropertyChanged();
+                }
+                else
+                {
+                    _coverStatus = CoverStatus.NotExist;
+                }
+            });
+
+            // 首次返回默认封面
+            return MusicExtractor.DefaultCover;
+        }
     }
 
-    public Dictionary<string, string> Dump() =>
-        new()
+    public string? Remarks
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value, true);
+    }
+
+    // 通用的设置属性并标记修改的方法
+    private void SetPropertyWithModified<T>(
+        ref T field,
+        T value,
+        bool isNotify = false,
+        [CallerMemberName] string? propertyName = null
+    )
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return;
+
+        field = value;
+
+        if (isNotify)
+            OnPropertyChanged(propertyName);
+
+        if (!IsModified && !IsLoading && propertyName != nameof(IsModified))
+            IsModified = true;
+    }
+
+    public async Task<MusicTagExtensions> GetExtensionsInfo() =>
+        await MusicExtractor.ExtractExtensionsInfoAsync(FilePath);
+
+    public Task<LyricsModel> Lyrics => MusicExtractor.ExtractMusicLyricsAsync(FilePath);
+
+    public static MusicItemModel FromDictionary(Dictionary<string, object> data)
+    {
+        MusicItemModel result = new()
         {
-            [nameof(ConfigInfoModel.Version)] = ConfigInfoModel.Version,
+            IsInitialized = true,
+            IsError = false,
+            IsLoading = true,
+        };
+
+        // 使用辅助方法安全地提取属性
+        SafeExtract(data, nameof(Title), val => result.Title = val?.ToString() ?? "未知标题");
+        SafeExtract(data, nameof(Artists), val => result.Artists = val?.ToString() ?? "未知歌手");
+        SafeExtract(data, nameof(Album), val => result.Album = val?.ToString() ?? "未知专辑");
+        SafeExtract(data, nameof(Composer), val => result.Composer = val?.ToString() ?? "未知作曲");
+        SafeExtract(data, nameof(CoverPath), val => result.CoverPath = val?.ToString() ?? null);
+        SafeExtract(
+            data,
+            nameof(Current),
+            val =>
+                result.Current =
+                    val != null
+                        ? TimeSpan.Parse(val.ToString() ?? "00:00:00", CultureInfo.InvariantCulture)
+                        : TimeSpan.Zero
+        );
+        SafeExtract(
+            data,
+            nameof(Duration),
+            val =>
+                result.Duration =
+                    val != null
+                        ? TimeSpan.Parse(val.ToString() ?? "00:00:00", CultureInfo.InvariantCulture)
+                        : TimeSpan.Zero
+        );
+        SafeExtract(data, nameof(FilePath), val => result.FilePath = val?.ToString() ?? "");
+        SafeExtract(data, nameof(FileSize), val => result.FileSize = val?.ToString() ?? "");
+        SafeExtract(data, nameof(Gain), val => result.Gain = val != null ? Convert.ToDouble(val) : -1.0);
+        SafeExtract(data, nameof(CoverColors), val => result.CoverColors = val?.ToString()?.Split("、"));
+        SafeExtract(data, nameof(Comment), val => result.Comment = val?.ToString());
+        SafeExtract(data, nameof(EncodingFormat), val => result.EncodingFormat = val?.ToString());
+        SafeExtract(data, nameof(Remarks), val => result.Remarks = val?.ToString());
+
+        result.IsLoading = false;
+
+        result.IsModified = false; // 使IsModified为false
+
+        return result;
+
+        // 辅助方法：安全地从字典中提取值并应用转换
+        void SafeExtract(Dictionary<string, object> converter, string key, Action<object?> setter)
+        {
+            try
+            {
+                if (converter.TryGetValue(key, out object? value))
+                {
+                    setter(value);
+                }
+            }
+            catch (Exception)
+            {
+                result.IsError = true;
+            }
+        }
+    }
+
+    public Dictionary<string, string?> Dump()
+    {
+        var result = new Dictionary<string, string?>
+        {
             [nameof(Title)] = Title,
             [nameof(Artists)] = Artists,
             [nameof(Album)] = Album,
-            [nameof(CoverPath)] = CoverPath ?? "",
+            [nameof(Composer)] = Composer,
+            [nameof(CoverPath)] = CoverPath,
             [nameof(Current)] = Current.ToString(),
             [nameof(Duration)] = Duration.ToString(),
             [nameof(FilePath)] = FilePath,
             [nameof(FileSize)] = FileSize,
-            ["BASICINFO"] = $"{Title}\n{string.Join("\n", Artists)}\n{Album}",
-            [nameof(Gain)] = Gain.ToString("G"),
-            [nameof(CoverColors)] = string.Join("\n", CoverColors ?? [""]),
+            [nameof(Gain)] = Gain.ToString(CultureInfo.InvariantCulture),
+            [nameof(CoverColors)] = CoverColors != null ? string.Join("、", CoverColors) : null,
+            [nameof(Comment)] = Comment,
             [nameof(EncodingFormat)] = EncodingFormat,
-            [nameof(Comment)] = Comment ?? "",
-            [nameof(Remarks)] = Remarks ?? "",
+            [nameof(Remarks)] = Remarks,
         };
+        return result;
+    }
 }
 
 public readonly record struct MusicTagExtensions(
@@ -173,3 +325,9 @@ public readonly record struct MusicDetailedInfo(
     long AudioDataSize
 );
 
+internal enum CoverStatus
+{
+    Loading,
+    Loaded,
+    NotExist,
+}

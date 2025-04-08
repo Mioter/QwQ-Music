@@ -17,12 +17,12 @@ public abstract class SoundComponent
     // Connection state
     private readonly List<SoundComponent> _inputs = [];
     private readonly List<SoundComponent> _outputs = [];
-    private readonly object _connectionsLock = new();
+    private readonly Lock _connectionsLock = new();
 
     // Processing state
     private readonly List<ISoundModifier> _modifiers = [];
     private readonly List<AudioAnalyzer> _analyzers = [];
-    private float _pan;
+    private float _pan = 0.5f;
     private bool _solo;
     private float _volume = 1f;
     private Vector2 _volumePanFactors = Vector2.One;
@@ -33,7 +33,7 @@ public abstract class SoundComponent
     ///     Name of the component
     /// </summary>
     public virtual string Name { get; set; } = "Component";
-    
+
     /// <summary>
     ///     Parent mixer of the component
     /// </summary>
@@ -46,7 +46,8 @@ public abstract class SoundComponent
     {
         get
         {
-            lock (_connectionsLock) return new List<SoundComponent>(_inputs);
+            lock (_connectionsLock)
+                return new List<SoundComponent>(_inputs);
         }
     }
 
@@ -57,7 +58,8 @@ public abstract class SoundComponent
     {
         get
         {
-            lock (_connectionsLock) return new List<SoundComponent>(_outputs);
+            lock (_connectionsLock)
+                return new List<SoundComponent>(_outputs);
         }
     }
 
@@ -88,7 +90,8 @@ public abstract class SoundComponent
         get => _pan;
         set
         {
-            if (value is < 0f or > 1f) throw new ArgumentOutOfRangeException(nameof(value));
+            if (value is < 0f or > 1f)
+                throw new ArgumentOutOfRangeException(nameof(value));
             lock (_stateLock)
             {
                 _pan = value;
@@ -113,8 +116,10 @@ public abstract class SoundComponent
             lock (_stateLock)
             {
                 _solo = value;
-                if (_solo) AudioEngine.Instance.SoloComponent(this);
-                else AudioEngine.Instance.UnsoloComponent(this);
+                if (_solo)
+                    AudioEngine.Instance.SoloComponent(this);
+                else
+                    AudioEngine.Instance.UnsoloComponent(this);
             }
         }
     }
@@ -131,7 +136,8 @@ public abstract class SoundComponent
     {
         get
         {
-            lock (_stateLock) return new List<ISoundModifier>(_modifiers);
+            lock (_stateLock)
+                return new List<ISoundModifier>(_modifiers);
         }
     }
 
@@ -142,7 +148,8 @@ public abstract class SoundComponent
     {
         get
         {
-            lock (_stateLock) return new List<AudioAnalyzer>(_analyzers);
+            lock (_stateLock)
+                return new List<AudioAnalyzer>(_analyzers);
         }
     }
 
@@ -150,10 +157,7 @@ public abstract class SoundComponent
     {
         _previousVolumePanFactors = _volumePanFactors;
         float pan = Math.Clamp(_pan, 0f, 1f);
-        _volumePanFactors = new Vector2(
-            _volume * MathF.Sqrt(1f - pan),
-            _volume * MathF.Sqrt(pan)
-        );
+        _volumePanFactors = new Vector2(_volume * MathF.Sqrt(1f - pan), _volume * MathF.Sqrt(pan));
     }
 
     /// <summary>
@@ -164,10 +168,12 @@ public abstract class SoundComponent
     public void ConnectInput(SoundComponent input)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if (input == this) throw new InvalidOperationException("Cannot connect to self");
+        if (input == this)
+            throw new InvalidOperationException("Cannot connect to self");
 
         // Determine lock order to avoid deadlocks
-        SoundComponent first, second;
+        SoundComponent first,
+            second;
         if (GetHashCode() < input.GetHashCode())
         {
             first = this;
@@ -180,16 +186,17 @@ public abstract class SoundComponent
         }
 
         lock (first._connectionsLock)
-        lock (second._connectionsLock)
-        {
-            if (_inputs.Contains(input)) return;
+            lock (second._connectionsLock)
+            {
+                if (_inputs.Contains(input))
+                    return;
 
-            if (IsReachable(input, this))
-                throw new InvalidOperationException("Connection would create a cycle");
+                if (IsReachable(input, this))
+                    throw new InvalidOperationException("Connection would create a cycle");
 
-            _inputs.Add(input);
-            input._outputs.Add(this);
-        }
+                _inputs.Add(input);
+                input._outputs.Add(this);
+            }
     }
 
     /// <summary>
@@ -200,7 +207,8 @@ public abstract class SoundComponent
     {
         lock (_connectionsLock)
         {
-            if (!_inputs.Remove(input)) return;
+            if (!_inputs.Remove(input))
+                return;
 
             lock (input._connectionsLock)
                 input._outputs.Remove(this);
@@ -216,12 +224,14 @@ public abstract class SoundComponent
         while (queue.Count > 0)
         {
             var current = queue.Dequeue();
-            if (current == target) return true;
-            if (!visited.Add(current)) continue;
+            if (current == target)
+                return true;
+            if (!visited.Add(current))
+                continue;
 
             List<SoundComponent> outputs;
             lock (current._connectionsLock)
-                outputs = [..current._outputs];
+                outputs = [.. current._outputs];
 
             foreach (var output in outputs)
                 queue.Enqueue(output);
@@ -242,7 +252,6 @@ public abstract class SoundComponent
             {
                 _modifiers.Add(modifier);
             }
-               
         }
 
         return this;
@@ -252,38 +261,45 @@ public abstract class SoundComponent
     ///     Removes a modifier from the component.
     /// </summary>
     /// <param name="modifier">The modifier to remove.</param>
-    public void RemoveModifier(SoundModifier modifier)
+    public SoundComponent RemoveModifier(SoundModifier modifier)
     {
         lock (_stateLock)
             _modifiers.Remove(modifier);
+
+        return this;
     }
 
     /// <summary>
     ///     Adds an analyzer to the component.
     /// </summary>
     /// <param name="analyzer">The analyzer to add.</param>
-    public void AddAnalyzer(AudioAnalyzer analyzer)
+    public SoundComponent AddAnalyzer(AudioAnalyzer analyzer)
     {
         lock (_stateLock)
         {
             if (!_analyzers.Contains(analyzer))
                 _analyzers.Add(analyzer);
         }
+
+        return this;
     }
 
     /// <summary>
     ///     Removes an analyzer from the component.
     /// </summary>
     /// <param name="analyzer">The analyzer to remove.</param>
-    public void RemoveAnalyzer(AudioAnalyzer analyzer)
+    public SoundComponent RemoveAnalyzer(AudioAnalyzer analyzer)
     {
         lock (_stateLock)
             _analyzers.Remove(analyzer);
+
+        return this;
     }
 
     internal void Process(Span<float> outputBuffer)
     {
-        if (!Enabled || Mute) return;
+        if (!Enabled || Mute)
+            return;
 
         float[]? rentedBuffer = null;
         try
@@ -389,7 +405,8 @@ public abstract class SoundComponent
 
     private static void ApplyMonoVolume(Span<float> buffer, float volume)
     {
-        if (Math.Abs(volume - 1f) < 1e-6) return;
+        if (Math.Abs(volume - 1f) < 1e-6)
+            return;
 
         if (Vector.IsHardwareAccelerated)
         {
@@ -459,7 +476,8 @@ public abstract class SoundComponent
 
     private static void ApplyMultiChannelVolume(Span<float> buffer, int channels, Vector2 volumePan)
     {
-        if (channels < 2) return;
+        if (channels < 2)
+            return;
 
         float[] weights = new float[channels];
         weights[0] = volumePan.X;

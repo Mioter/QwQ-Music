@@ -16,9 +16,8 @@ public class LevelMeterAnalyzer : AudioAnalyzer
     /// Initializes a new instance of the <see cref="LevelMeterAnalyzer"/> class.
     /// </summary>
     /// <param name="visualizer">The visualizer to send data to.</param>
-    public LevelMeterAnalyzer(IVisualizer? visualizer = null) : base(visualizer)
-    {
-    }
+    public LevelMeterAnalyzer(IVisualizer? visualizer = null)
+        : base(visualizer) { }
 
     /// <summary>
     /// Gets the current RMS level.
@@ -60,7 +59,7 @@ public class LevelMeterAnalyzer : AudioAnalyzer
             {
                 Vector<float> vector = new(buffer.Slice(i, vectorSize));
                 var absVector = Vector.Abs(vector);
-                
+
                 // Find the maximum element in absVector
                 float maxInVector = absVector[0];
                 for (int j = 1; j < vectorSize; j++)

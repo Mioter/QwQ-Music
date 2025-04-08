@@ -10,10 +10,10 @@
 
     <ScrollViewer
         HorizontalScrollBarVisibility="Disabled"
-        Margin="20"
+        Margin="10"
         VerticalScrollBarVisibility="Auto">
 
-        <StackPanel Spacing="10">
+        <StackPanel Margin="10" Spacing="10">
 
             <TextBlock Text="{Binding OffsetName}" />
             <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding Config.LyricOffset, Mode=TwoWay}" />

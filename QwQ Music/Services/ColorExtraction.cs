@@ -1,97 +1,220 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using System.Numerics;
+using Avalonia;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using Impressionist.Implementations;
 using Color = Avalonia.Media.Color;
 
 namespace QwQ_Music.Services;
 
+/// <summary>
+/// 颜色提取算法枚举
+/// </summary>
+public enum ColorExtractionAlgorithm
+{
+    /// <summary>
+    /// K-means 聚类算法 —— 精确取色
+    /// </summary>
+    KMeans,
+
+    /// <summary>
+    /// 八叉树算法 —— 快速取色
+    /// </summary>
+    OctTree,
+}
+
+/// <summary>
+/// 颜色提取服务类
+/// </summary>
 public static class ColorExtraction
 {
-    // 新增枚举类型，用于控制提取颜色类型
-    public enum ColorTone
-    {
-        Any, // 任意颜色
-        Bright, // 仅提取亮色
-        Dark, // 仅提取暗色
-    }
-
-    public static List<Color> GetColorPalette(
+    /// <summary>
+    /// 从图像文件路径获取调色板
+    /// </summary>
+    /// <param name="imagePath">图像文件路径</param>
+    /// <param name="colorCount">要提取的颜色数量，默认为5</param>
+    /// <param name="algorithm">颜色提取算法，默认为KMeans</param>
+    /// <param name="ignoreWhite">忽略白色</param>
+    /// <returns>提取的颜色列表，如果缓存不存在则返回null</returns>
+    public static List<Color>? GetColorPalette(
         string imagePath,
         int colorCount = 5,
-        ColorTone tone = ColorTone.Any,
-        double minColorDistance = 50.0
-    ) // 新增颜色差异阈值参数（基于RGB欧氏距离）
+        ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
+        bool ignoreWhite = true
+    )
     {
-        using var image = Image.Load<Rgba32>(imagePath);
-        var frequencies = new Dictionary<Color, int>();
-
-        // 采样像素并量化颜色
-        for (int x = 0; x < image.Width; x += 3)
+        // 检查文件是否存在
+        if (!File.Exists(imagePath))
         {
-            for (int y = 0; y < image.Height; y += 3)
+            return null;
+        }
+
+        // 尝试使用缓存的位图
+        var bitmap = MusicExtractor.LoadCompressedBitmap(imagePath);
+        return bitmap == null
+            ? null
+            : // 缓存不存在直接返回null
+            GetColorPaletteFromBitmap(bitmap, colorCount, algorithm, ignoreWhite);
+    }
+
+    /// <summary>
+    /// 从位图对象获取调色板
+    /// </summary>
+    /// <param name="bitmap">位图对象</param>
+    /// <param name="colorCount">要提取的颜色数量，默认为5</param>
+    /// <param name="algorithm">颜色提取算法，默认为KMeans</param>
+    /// <param name="ignoreWhite">忽略白色</param>
+    /// <returns>提取的颜色列表</returns>
+    public static List<Color> GetColorPaletteFromBitmap(
+        Bitmap bitmap,
+        int colorCount = 5,
+        ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
+        bool ignoreWhite = true
+    )
+    {
+        // 从位图采样颜色
+        var sampledColors = SampleColorsFromBitmap(bitmap);
+        var vectorColors = ConvertToVectorColors(sampledColors);
+
+        // 根据选择的算法生成调色板
+        var paletteResult = algorithm switch
+        {
+            ColorExtractionAlgorithm.KMeans => PaletteGenerators
+                .KMeansPaletteGenerator.CreatePalette(
+                    vectorColors,
+                    colorCount,
+                    ignoreWhite,
+                    toLab: true,
+                    useKMeansPP: true
+                )
+                .GetAwaiter()
+                .GetResult(),
+
+            ColorExtractionAlgorithm.OctTree => PaletteGenerators
+                .OctTreePaletteGenerator.CreatePalette(vectorColors, colorCount, ignoreWhite)
+                .GetAwaiter()
+                .GetResult(),
+
+            _ => throw new ArgumentException("不支持的颜色提取算法", nameof(algorithm)),
+        };
+
+        // 将结果转换回Avalonia颜色格式
+        return paletteResult.Palette.Select(v => Color.FromRgb((byte)v.X, (byte)v.Y, (byte)v.Z)).ToList();
+    }
+
+    /// <summary>
+    /// 从位图采样颜色
+    /// </summary>
+    /// <param name="bitmap">位图对象</param>
+    /// <returns>颜色频率字典</returns>
+    private static Dictionary<Color, int> SampleColorsFromBitmap(Bitmap bitmap)
+    {
+        var colorFrequencies = new Dictionary<Color, int>();
+        int width = bitmap.PixelSize.Width;
+        int height = bitmap.PixelSize.Height;
+
+        // 计算采样步长
+        int sampleStep = CalculateSampleStep(width, height);
+
+        // 使用WriteableBitmap来访问像素数据
+        using var writeableBitmap = new WriteableBitmap(
+            bitmap.PixelSize,
+            bitmap.Dpi,
+            PixelFormat.Bgra8888,
+            AlphaFormat.Premul
+        );
+
+        using (var fb = writeableBitmap.Lock())
+        {
+            unsafe
             {
-                var pixel = image[x, y];
-                if (pixel.A < 200)
-                    continue;
+                byte* pixelData = (byte*)fb.Address;
+                int stride = fb.RowBytes;
 
-                // 量化颜色以减少噪点
-                var quantized = Color.FromArgb(
-                    255,
-                    (byte)(pixel.R / 32 * 32),
-                    (byte)(pixel.G / 32 * 32),
-                    (byte)(pixel.B / 32 * 32)
-                );
+                // 将原始位图数据复制到可写位图
+                bitmap.CopyPixels(new PixelRect(0, 0, width, height), new IntPtr(pixelData), stride * height, stride);
 
-                // 根据亮度过滤
-                if (IsColorMatchTone(quantized, tone))
+                // 遍历像素采样颜色
+                for (int y = 0; y < height; y += sampleStep)
                 {
-                    frequencies[quantized] = frequencies.TryGetValue(quantized, out int v) ? v + 1 : 1;
+                    for (int x = 0; x < width; x += sampleStep)
+                    {
+                        int pixelOffset = y * stride + x * 4; // BGRA格式
+
+                        byte b = pixelData[pixelOffset];
+                        byte g = pixelData[pixelOffset + 1];
+                        byte r = pixelData[pixelOffset + 2];
+                        byte a = pixelData[pixelOffset + 3];
+
+                        // 忽略透明像素
+                        if (a < 200)
+                            continue;
+
+                        // 量化颜色以减少噪点
+                        var quantized = Color.FromArgb(
+                            255,
+                            (byte)(r / 16 * 16),
+                            (byte)(g / 16 * 16),
+                            (byte)(b / 16 * 16)
+                        );
+
+                        // 更新颜色频率
+                        colorFrequencies[quantized] = colorFrequencies.TryGetValue(quantized, out int v) ? v + 1 : 1;
+                    }
                 }
             }
         }
 
-        // 按频率排序并去重相似颜色
-        return frequencies
-            .OrderByDescending(kv => kv.Value)
-            .Select(kv => kv.Key)
-            .Distinct(new ColorComparer(minColorDistance))
-            .Take(colorCount)
-            .ToList();
+        return colorFrequencies;
     }
 
-    // 判断颜色是否符合亮度要求
-    private static bool IsColorMatchTone(Color color, ColorTone tone)
+    /// <summary>
+    /// 计算最佳采样步长
+    /// </summary>
+    /// <param name="width">图像宽度</param>
+    /// <param name="height">图像高度</param>
+    /// <returns>采样步长</returns>
+    private static int CalculateSampleStep(int width, int height)
     {
-        if (tone == ColorTone.Any)
-            return true;
+        int pixelCount = width * height;
 
-        // 计算颜色亮度（公式：0.299*R + 0.587*G + 0.114*B）
-        double brightness = (color.R * 0.299 + color.G * 0.587 + color.B * 0.114) / 255.0;
-
-        return tone switch
+        return pixelCount switch
         {
-            ColorTone.Bright => brightness >= 0.7, // 亮度≥70%为亮色
-            ColorTone.Dark => brightness <= 0.3, // 亮度≤30%为暗色
-            _ => true,
+            // 根据图像大小动态调整采样率
+            > 1000000 => 8, // 大图像使用较大步长
+            > 250000 => 4, // 中等图像使用中等步长
+            _ => 2, // 小图像使用较小步长
         };
     }
 
-    // 颜色比较器（用于去重相似颜色）
-    private class ColorComparer(double minDistance) : IEqualityComparer<Color>
+    /// <summary>
+    /// 将Avalonia颜色字典转换为Vector3颜色字典
+    /// </summary>
+    /// <param name="colors">Avalonia颜色字典</param>
+    /// <returns>Vector3颜色字典</returns>
+    private static Dictionary<Vector3, int> ConvertToVectorColors(Dictionary<Color, int> colors)
     {
-        public bool Equals(Color a, Color b) => CalculateColorDistance(a, b) < minDistance;
+        var result = new Dictionary<Vector3, int>();
 
-        public int GetHashCode(Color color) => color.GetHashCode();
-
-        // 计算RGB颜色差异（欧氏距离）
-        private static double CalculateColorDistance(Color c1, Color c2)
+        foreach (var pair in colors)
         {
-            double dr = c1.R - c2.R;
-            double dg = c1.G - c2.G;
-            double db = c1.B - c2.B;
-            return Math.Sqrt(dr * dr + dg * dg + db * db);
+            var color = pair.Key;
+            var vector = new Vector3(color.R, color.G, color.B);
+
+            if (result.TryGetValue(vector, out int frequency))
+            {
+                result[vector] = frequency + pair.Value;
+            }
+            else
+            {
+                result[vector] = pair.Value;
+            }
         }
+
+        return result;
     }
 }

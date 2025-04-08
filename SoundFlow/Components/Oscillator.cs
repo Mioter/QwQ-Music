@@ -106,14 +106,13 @@ public class Oscillator : SoundComponent
             WaveformType.Sine => MathF.Sin(_currentPhase + Phase),
             WaveformType.Square => _currentPhase + Phase < Math.PI ? 1f : -1f,
             WaveformType.Sawtooth => (float)(2.0 * (_currentPhase + Phase) / (2.0 * Math.PI) - 1.0),
-            WaveformType.Triangle =>
-                (float)(2.0 * Math.Abs(2.0 * (_currentPhase + Phase) / (2.0 * Math.PI) - 1.0) - 1.0),
+            WaveformType.Triangle => (float)(
+                2.0 * Math.Abs(2.0 * (_currentPhase + Phase) / (2.0 * Math.PI) - 1.0) - 1.0
+            ),
             WaveformType.Noise => (float)(_random.NextDouble() * 2.0 - 1.0),
-            WaveformType.Pulse =>
-                _currentPhase + Phase < Math.PI * PulseWidth ? 1f : -1f,
+            WaveformType.Pulse => _currentPhase + Phase < Math.PI * PulseWidth ? 1f : -1f,
             _ => 0f,
         };
-
 
         // Update the phase for the next sample
         _currentPhase += _phaseIncrement;

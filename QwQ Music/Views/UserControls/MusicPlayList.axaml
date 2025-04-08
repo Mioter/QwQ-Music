@@ -69,9 +69,9 @@
                         Command="{Binding $parent[Window].((viewModels:MainWindowViewModel)DataContext).ShowMusicPlaylistCommand}"
                         ToolTip.Tip="隐藏播放列表">
                         <PathIcon
-                            Data="{StaticResource SemiIconChevronRightStroked}"
-                            Height="11"
-                            Width="11" />
+                            Data="{StaticResource RoundedTriangle}"
+                            RenderTransform="rotate(-90deg)"
+                            Width="12" />
                     </Button>
                 </StackPanel>
             </Panel>
@@ -107,11 +107,11 @@
                                 </userControls:MusicAlbumButton>
 
                                 <StackPanel Spacing="5" VerticalAlignment="Center">
-                                    <TextBlock FontWeight="Bold" Text="{Binding TitleProperty}" />
+                                    <TextBlock FontWeight="Bold" Text="{Binding Title}" />
                                     <TextBlock
                                         Classes="Tertiary"
                                         FontSize="12"
-                                        Text="{Binding ArtistsProperty}" />
+                                        Text="{Binding Artists}" />
                                 </StackPanel>
 
                             </StackPanel>

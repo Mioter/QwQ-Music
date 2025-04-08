@@ -5,107 +5,85 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace QwQ_Music.Models.ConfigModel;
 
-public class DesktopLyricConfig : ObservableObject
+public partial class DesktopLyricConfig : ObservableObject
 {
-    public bool LyricIsEnabled
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial bool LyricIsEnabled { get; set; }
 
-    public int LyricOffset
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial int LyricOffset { get; set; }
 
-    public bool LyricIsDoubleLine
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial bool LyricIsDoubleLine { get; set; }
 
-    public bool LyricIsDualLang
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial bool LyricIsDualLang { get; set; }
 
-    public bool LyricIsVertical
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial bool LyricIsVertical { get; set; }
 
-    public int LyricPositionX
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial int LyricPositionX { get; set; }
 
-    public int LyricPositionY
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial int LyricPositionY { get; set; }
 
-    public int LyricWidth
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial int LyricWidth { get; set; }
 
-    public int LyricHeight
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial int LyricHeight { get; set; }
 
-    public Color LyricMainTopColor
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial Color LyricMainTopColor { get; set; }
 
-    public Color LyricMainBottomColor
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial Color LyricMainBottomColor { get; set; }
 
-    public Color LyricMainBorderColor
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial Color LyricMainBorderColor { get; set; }
 
-    public Color LyricAltTopColor
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial Color LyricAltTopColor { get; set; }
 
-    public Color LyricAltBottomColor
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial Color LyricAltBottomColor { get; set; }
 
-    public Color LyricAltBorderColor
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial Color LyricAltBorderColor { get; set; }
 
     public Color LyricBackground { get; set; }
 
+    // 标记原始Size属性为不序列化
+    [JsonIgnore]
     public Size Size { get; set; }
+
+    // 添加用于序列化的辅助属性
+    [JsonPropertyName("Size")]
+    public SizeSerializationHelper SizeHelper
+    {
+        get =>
+            new()
+            {
+                Width = double.IsFinite(Size.Width) ? Size.Width : 0,
+                Height = double.IsFinite(Size.Height) ? Size.Height : 0,
+            };
+        set => Size = new Size(value.Width, value.Height);
+    }
 
     public int LyricMainFontSize { get; set; }
 
     public int LyricAltFontSize { get; set; }
 }
 
+// 用于序列化的辅助类
+public class SizeSerializationHelper
+{
+    public double Width { get; set; }
+    public double Height { get; set; }
+}
+
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(DesktopLyricConfig))]
+[JsonSerializable(typeof(SizeSerializationHelper))]
 internal partial class DesktopLyricConfigJsonSerializerContext : JsonSerializerContext;

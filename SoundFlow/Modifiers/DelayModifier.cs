@@ -44,9 +44,11 @@ public sealed class DelayModifier : SoundModifier
         set
         {
             int newLength = (int)(value * AudioEngine.Instance.SampleRate / 1000f);
-            if (newLength <= 0) newLength = 1;
+            if (newLength <= 0)
+                newLength = 1;
 
-            if (_delayLengthSamples == newLength) return;
+            if (_delayLengthSamples == newLength)
+                return;
             _delayLengthSamples = newLength;
             InitializeDelayLines();
         }
@@ -66,7 +68,7 @@ public sealed class DelayModifier : SoundModifier
 
     private void InitializeDelayLines()
     {
-        for(int i = 0; i < AudioEngine.Channels; i++)
+        for (int i = 0; i < AudioEngine.Channels; i++)
         {
             _delayLines.Add(new float[_delayLengthSamples]);
         }
@@ -80,19 +82,19 @@ public sealed class DelayModifier : SoundModifier
             InitializeDelayLines();
             return sample;
         }
-        
+
         float[] delayLine = _delayLines[channel];
         int index = _delayIndices[channel];
-        
+
         // Get delayed sample
         float delayed = delayLine[index];
-        
+
         // Apply low-pass filter to feedback
         float rc = 1f / (2 * MathF.PI * Cutoff);
         float alpha = AudioEngine.Instance.InverseSampleRate / (rc + AudioEngine.Instance.InverseSampleRate);
         delayed = alpha * delayed + (1 - alpha) * _filterStates[channel];
         _filterStates[channel] = delayed;
-        
+
         // Write to delay line
         delayLine[index] = sample + delayed * Feedback;
         _delayIndices[channel] = (index + 1) % delayLine.Length;

@@ -3,12 +3,10 @@
     d:DesignWidth="800"
     mc:Ignorable="d"
     x:Class="QwQ_Music.Views.Pages.ClassificationPage"
-    x:DataType="viewModels:MusicPageViewModel"
+    x:DataType="viewModels:AllMusicPageViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:pages="clr-namespace:QwQ_Music.Views.Pages"
-    xmlns:u="https://irihi.tech/ursa"
     xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 

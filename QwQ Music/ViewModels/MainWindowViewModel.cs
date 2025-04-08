@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using static QwQ_Music.Models.LanguageModel;
@@ -14,43 +14,99 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
 
     /*
     public ObservableCollection<ViewModelBase> PagesModels { get; } = [
-        new MusicPageViewModel(),
+        new AllMusicPageViewModel(),
         new ClassificationPageViewModel(),
         new StatisticsPageViewModel(),
         new ConfigPageViewModel(),
     ];
     */
 
-    [ObservableProperty]
-    private bool _isMusicPlayerTrayVisible = true;
+
+    public int WindowWidth
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged(nameof(MusicPlayerTrayWidth));
+            OnPropertyChanged(nameof(MusicPlayListWidth));
+        }
+    }
+
+    public int WindowHeight
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged(nameof(MusicCoverPageHeight));
+        }
+    }
+
+    public int MusicPlayerTrayWidth => WindowWidth / 2;
+
+    public int MusicPlayListWidth => IsMusicPlayListVisible ? WindowWidth / 4 : 0;
+
+    public int MusicCoverPageHeight => IsMusicPlayerPageVisible ? WindowHeight : 0;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsBackgroundLayerVisible))]
-    private bool _isMusicPlayListVisible;
+    public partial bool IsMusicPlayerTrayVisible { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isNavigationExpand;
+    [NotifyPropertyChangedFor(nameof(IsBackgroundLayerVisible), nameof(MusicPlayListWidth))]
+    public partial bool IsMusicPlayListVisible { get; set; }
 
     [ObservableProperty]
-    private bool _isWindowMaximizedOrFullScreen;
+    [NotifyPropertyChangedFor(nameof(MusicCoverPageHeight))]
+    public partial bool IsMusicPlayerPageVisible { get; set; }
 
     [ObservableProperty]
-    private WindowState _mainWindowState;
+    [NotifyPropertyChangedFor(nameof(NavigationWidth))]
+    public partial bool IsNavigationExpand { get; set; }
 
     [ObservableProperty]
-    private double _musicPlayerTrayYaxisOffset;
+    public partial double MusicPlayerTrayYaxisOffset { get; set; }
 
     [ObservableProperty]
-    private double _musicPlayListXaxisOffset;
+    public partial double MusicPlayListXaxisOffset { get; set; }
 
-    public bool IsBackgroundLayerVisible => false;
+    [ObservableProperty]
+    public partial double MusicPlayerPageYaxisOffset { get; set; }
 
-    partial void OnMainWindowStateChanged(WindowState value) =>
-        IsWindowMaximizedOrFullScreen = MainWindowState is WindowState.Maximized or WindowState.FullScreen;
+    public double NavigationWidth => IsNavigationExpand ? 150 : 75;
+
+    public static bool IsBackgroundLayerVisible => false;
 
     [RelayCommand]
     private void ShowMusicPlaylist() => IsMusicPlayListVisible = !IsMusicPlayListVisible;
 
     [RelayCommand]
+    private void ShowMusicPlayerPage() => IsMusicPlayerPageVisible = !IsMusicPlayerPageVisible;
+
+    [RelayCommand]
     private void GlobalButtonClick() => IsMusicPlayListVisible = false;
+
+    [RelayCommand]
+    private void PointerWheelChanged(PointerWheelEventArgs e)
+    {
+        IsMusicPlayerTrayVisible = e.Delta.Y switch
+        {
+            // 检查滚动的方向
+            > 0 =>
+            // 向上滚动
+            true,
+            < 0 =>
+            // 向下滚动
+            false,
+            _ => IsMusicPlayerTrayVisible,
+        };
+
+        /*
+        // 如果支持水平滚动，则可以检查Delta.X
+        if (e.Delta.X != 0)
+        {
+            Console.WriteLine($"Mouse wheel scrolled horizontally by {e.Delta.X}.");
+        }
+        */
+    }
 }

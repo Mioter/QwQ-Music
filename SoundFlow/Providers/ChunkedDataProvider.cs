@@ -58,9 +58,7 @@ public sealed class ChunkedDataProvider : ISoundDataProvider, IDisposable
     /// <param name="sampleRate">The sample rate of the audio data.</param>
     /// <param name="chunkSize">The number of samples to read in each chunk.</param>
     public ChunkedDataProvider(string filePath, int? sampleRate = null, int chunkSize = DefaultChunkSize)
-        : this(new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read), sampleRate, chunkSize)
-    {
-    }
+        : this(new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read), sampleRate, chunkSize) { }
 
     /// <inheritdoc />
     public int Position
@@ -73,7 +71,7 @@ public sealed class ChunkedDataProvider : ISoundDataProvider, IDisposable
             }
         }
     }
-    
+
     /// <inheritdoc />
     public int Length => _decoder.Length;
 
@@ -88,7 +86,7 @@ public sealed class ChunkedDataProvider : ISoundDataProvider, IDisposable
 
     /// <inheritdoc />
     public event EventHandler<EventArgs>? EndOfStreamReached;
-    
+
     /// <inheritdoc />
     public event EventHandler<PositionChangedEventArgs>? PositionChanged;
 
@@ -150,13 +148,13 @@ public sealed class ChunkedDataProvider : ISoundDataProvider, IDisposable
 
             // Create a new decoder starting from the new position
             _decoder = AudioEngine.Instance.CreateDecoder(_stream);
-            
+
             _decoder.Seek(sampleOffset);
-            
+
             // Clear the existing buffer
             _buffer.Clear();
             _isEndOfStream = false;
-            
+
             // Update the sample position
             _samplePosition = sampleOffset;
 

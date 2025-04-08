@@ -1,8 +1,8 @@
-﻿using SoundFlow.Enums;
+﻿using System.Buffers;
+using System.Runtime.InteropServices;
+using SoundFlow.Enums;
 using SoundFlow.Interfaces;
 using SoundFlow.Utils;
-using System.Buffers;
-using System.Runtime.InteropServices;
 
 namespace SoundFlow.Providers;
 
@@ -28,7 +28,7 @@ public class RawDataProvider : ISoundDataProvider, IDisposable
     ///     <paramref name="pcmStream"/> cannot be <see langword="null"/>.
     /// </exception>
     /// <exception cref="ArgumentException">
-    ///     <paramref name="sampleFormat"/> cannot be <see cref="SampleFormat.Unknown"/>.
+    ///     <paramref name="sampleFormat"/> cannot be <see cref="Enums.SampleFormat.Unknown"/>.
     /// </exception>
     public RawDataProvider(Stream pcmStream, SampleFormat sampleFormat, int channels, int sampleRate)
     {
@@ -49,7 +49,8 @@ public class RawDataProvider : ISoundDataProvider, IDisposable
     {
         get
         {
-            if (!_pcmStream.CanSeek) return -1;
+            if (!_pcmStream.CanSeek)
+                return -1;
             return (int)(_pcmStream.Length / SampleFormat.GetBytesPerSample() / _channels);
         }
     }
@@ -64,7 +65,11 @@ public class RawDataProvider : ISoundDataProvider, IDisposable
     /// <exception cref="InvalidOperationException">
     ///     Always thrown when setting the SampleRate, as it is determined by the constructor for <see cref="RawDataProvider"/>.
     /// </exception>
-    public int? SampleRate { get => _sampleRate; set => throw new InvalidOperationException("SampleRate is determined by constructor for RawDataProvider."); }
+    public int? SampleRate
+    {
+        get => _sampleRate;
+        set => throw new InvalidOperationException("SampleRate is determined by constructor for RawDataProvider.");
+    }
 
     /// <inheritdoc />
     public event EventHandler<EventArgs>? EndOfStreamReached;
@@ -88,7 +93,6 @@ public class RawDataProvider : ISoundDataProvider, IDisposable
         int bytesActuallyRead = _pcmStream.Read(byteBuffer);
         int samplesActuallyRead = bytesActuallyRead / bytesPerSample;
 
-
         if (samplesActuallyRead == 0)
         {
             EndOfStreamReached?.Invoke(this, EventArgs.Empty);
@@ -104,7 +108,6 @@ public class RawDataProvider : ISoundDataProvider, IDisposable
         ArrayPool<byte>.Shared.Return(rentedBuffer);
         return samplesActuallyRead;
     }
-
 
     private static void ConvertBytesToFloat(Span<byte> byteBuffer, Span<float> floatBuffer, SampleFormat format)
     {
@@ -134,7 +137,10 @@ public class RawDataProvider : ISoundDataProvider, IDisposable
                     int byteIndex = i * 3;
                     if (byteIndex + 2 < byteBuffer.Length)
                     {
-                        int sample24 = byteBuffer[byteIndex] << 0 | byteBuffer[byteIndex + 1] << 8 | byteBuffer[byteIndex + 2] << 16;
+                        int sample24 =
+                            byteBuffer[byteIndex] << 0
+                            | byteBuffer[byteIndex + 1] << 8
+                            | byteBuffer[byteIndex + 2] << 16;
                         if ((sample24 & 0x800000) != 0)
                             sample24 |= unchecked((int)0xFF000000);
                         floatBuffer[i] = sample24 / 8388608f;
@@ -179,7 +185,6 @@ public class RawDataProvider : ISoundDataProvider, IDisposable
         if (byteOffset > _pcmStream.Length)
             byteOffset = _pcmStream.Length;
 
-
         _pcmStream.Seek(byteOffset, SeekOrigin.Begin);
         Position = sampleOffset;
         PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
@@ -194,11 +199,12 @@ public class RawDataProvider : ISoundDataProvider, IDisposable
     /// </param>
     protected virtual void Dispose(bool disposing)
     {
-        if (_isDisposed) return;
-        
-        if (disposing) 
+        if (_isDisposed)
+            return;
+
+        if (disposing)
             _pcmStream.Dispose();
-        
+
         _isDisposed = true;
     }
 

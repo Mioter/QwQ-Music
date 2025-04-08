@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Avalonia;
 using Avalonia.Controls;
@@ -18,24 +19,121 @@ namespace QwQ_Music.Controls;
 /// </summary>
 public class ShaderEffectControl : Control
 {
-    private readonly ShaderService _shaderService;
+    // 添加可绑定的着色器代码属性
+    public static readonly StyledProperty<string> ShaderCodeProperty = AvaloniaProperty.Register<
+        ShaderEffectControl,
+        string
+    >(nameof(ShaderCode));
+
+    // 添加可绑定的动画状态属性
+    public static readonly StyledProperty<bool> IsEnableAnimationProperty = AvaloniaProperty.Register<
+        ShaderEffectControl,
+        bool
+    >(nameof(IsEnableAnimation), true);
+
+    // 添加性能模式属性
+    public static readonly StyledProperty<ShaderPerformanceMode> PerformanceModeProperty = AvaloniaProperty.Register<
+        ShaderEffectControl,
+        ShaderPerformanceMode
+    >(nameof(PerformanceMode), ShaderPerformanceMode.Balanced);
+
+    // 添加颜色列表属性
+    public static readonly StyledProperty<List<Color>> ColorsProperty = AvaloniaProperty.Register<
+        ShaderEffectControl,
+        List<Color>
+    >(nameof(Colors), [Avalonia.Media.Colors.Blue, Avalonia.Media.Colors.Purple]);
+
+    /// <summary>
+    /// 着色器代码
+    /// </summary>
+    public string ShaderCode
+    {
+        get => GetValue(ShaderCodeProperty);
+        set => SetValue(ShaderCodeProperty, value);
+    }
+
+    /// <summary>
+    /// 是否启用动画
+    /// </summary>
+    public bool IsEnableAnimation
+    {
+        get => GetValue(IsEnableAnimationProperty);
+        set => SetValue(IsEnableAnimationProperty, value);
+    }
+
+    /// <summary>
+    /// 着色器性能模式
+    /// </summary>
+    public ShaderPerformanceMode PerformanceMode
+    {
+        get => GetValue(PerformanceModeProperty);
+        set => SetValue(PerformanceModeProperty, value);
+    }
+
+    /// <summary>
+    /// 着色器使用的颜色列表
+    /// </summary>
+    public List<Color> Colors
+    {
+        get => GetValue(ColorsProperty);
+        set => SetValue(ColorsProperty, value);
+    }
+
+    private ShaderService? _shaderService;
     private Vector2? _mousePosition;
-    private bool _animating = true;
     private DateTime _lastRenderTime = DateTime.Now;
+    private bool _isAnimationRunning;
+    private DispatcherTimer? _animationTimer;
 
     /// <summary>
     /// 初始化着色器效果控件
     /// </summary>
-    /// <param name="shaderCode">GLSL着色器代码</param>
-    public ShaderEffectControl(string shaderCode)
+    public ShaderEffectControl()
     {
-        _shaderService = new ShaderService(shaderCode);
         ClipToBounds = true;
-            
+
         // 启用鼠标输入
         PointerMoved += OnPointerMoved;
-        PointerPressed += OnPointerPressed;
-        PointerReleased += OnPointerReleased;
+
+        // 监听着色器代码属性变化
+        this.GetObservable(ShaderCodeProperty).Subscribe(OnShaderCodeChanged);
+
+        // 监听动画状态属性变化
+        this.GetObservable(IsEnableAnimationProperty).Subscribe(OnIsAnimatingChanged);
+
+        // 监听颜色列表属性变化
+        this.GetObservable(ColorsProperty).Subscribe(OnColorsChanged);
+    }
+
+    private void OnShaderCodeChanged(string shaderCode)
+    {
+        if (string.IsNullOrEmpty(shaderCode))
+            return;
+
+        _shaderService = new ShaderService(shaderCode) { Colors = Colors };
+        InvalidateVisual();
+    }
+
+    private void OnColorsChanged(List<Color> colors)
+    {
+        if (_shaderService == null)
+            return;
+
+        _shaderService.Colors = colors;
+        InvalidateVisual();
+    }
+
+    private void OnIsAnimatingChanged(bool isAnimating)
+    {
+        switch (isAnimating)
+        {
+            case true when !_isAnimationRunning:
+                StartAnimation();
+                break;
+            case false when _isAnimationRunning:
+                StopAnimation();
+                break;
+        }
     }
 
     private void OnPointerMoved(object? sender, PointerEventArgs e)
@@ -44,58 +142,106 @@ public class ShaderEffectControl : Control
         InvalidateVisual();
     }
 
-    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        _mousePosition = e.GetPosition(this).ToVector2();
-        InvalidateVisual();
-    }
-
-    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        _mousePosition = null;
-        InvalidateVisual();
-    }
-
-    /// <summary>
-    /// 是否启用动画
-    /// </summary>
-    public new bool IsAnimating
-    {
-        get => _animating;
-        set
-        {
-            _animating = value;
-            if (_animating)
-            {
-                StartAnimation();
-            }
-        }
-    }
-
     private void StartAnimation()
     {
-        if (!_animating) return;
-            
+        if (!IsEnableAnimation || _isAnimationRunning)
+            return;
+
+        _isAnimationRunning = true;
+
+        // 使用DispatcherTimer代替直接递归调用
+        if (_animationTimer == null)
+        {
+            _animationTimer = new DispatcherTimer { Interval = GetTimerInterval() };
+            _animationTimer.Tick += AnimationTimer_Tick;
+        }
+
+        _animationTimer.Start();
+    }
+
+    private void StopAnimation()
+    {
+        _isAnimationRunning = false;
+        _animationTimer?.Stop();
+    }
+
+    private void AnimationTimer_Tick(object? sender, EventArgs e)
+    {
+        if (!_isAnimationRunning)
+        {
+            _animationTimer?.Stop();
+            return;
+        }
+
+        UpdateFrame();
+    }
+
+    private TimeSpan GetTimerInterval()
+    {
+        // 根据性能模式设置不同的刷新率
+        return PerformanceMode switch
+        {
+            ShaderPerformanceMode.HighQuality => TimeSpan.FromMilliseconds(16), // ~60fps
+            ShaderPerformanceMode.Balanced => TimeSpan.FromMilliseconds(33), // ~30fps
+            ShaderPerformanceMode.PowerSaver => TimeSpan.FromMilliseconds(66), // ~15fps
+            _ => TimeSpan.FromMilliseconds(33),
+        };
+    }
+
+    private void UpdateFrame()
+    {
+        if (!IsEnableAnimation)
+        {
+            _isAnimationRunning = false;
+            return;
+        }
+
         var now = DateTime.Now;
         double elapsed = (now - _lastRenderTime).TotalMilliseconds;
-            
-        // 限制帧率，避免过度渲染
-        if (elapsed > 16) // ~60fps
+
+        // 根据性能模式限制帧率
+        double frameInterval = PerformanceMode switch
         {
-            _lastRenderTime = now;
-            InvalidateVisual();
+            ShaderPerformanceMode.HighQuality => 16, // ~60fps
+            ShaderPerformanceMode.Balanced => 33, // ~30fps
+            ShaderPerformanceMode.PowerSaver => 66, // ~15fps
+            _ => 33,
+        };
+
+        // 限制帧率，避免过度渲染
+        if (!(elapsed > frameInterval))
+            return;
+
+        _lastRenderTime = now;
+        InvalidateVisual();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        StopAnimation();
+
+        // 清理资源
+        if (_animationTimer != null)
+        {
+            _animationTimer.Tick -= AnimationTimer_Tick;
+            _animationTimer = null;
         }
-            
-        // 请求下一帧
-        Dispatcher.UIThread.Post(StartAnimation, DispatcherPriority.Render);
+
+        PointerMoved -= OnPointerMoved;
     }
 
     public override void Render(DrawingContext context)
     {
         base.Render(context);
 
+        // 如果没有着色器服务，不进行渲染
+        if (_shaderService == null)
+            return;
+
         var size = Bounds.Size;
-        if (size.Width <= 0 || size.Height <= 0) return;
+        if (size.Width <= 0 || size.Height <= 0)
+            return;
 
         // 使用自定义绘制操作
         var customDrawOp = new ShaderDrawOperation(
@@ -111,16 +257,10 @@ public class ShaderEffectControl : Control
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
-        if (_animating)
+        if (IsEnableAnimation)
         {
             StartAnimation();
         }
-    }
-
-    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        base.OnDetachedFromVisualTree(e);
-        _animating = false;
     }
 
     /// <summary>
@@ -129,7 +269,6 @@ public class ShaderEffectControl : Control
     private class ShaderDrawOperation(Rect bounds, ShaderService shaderService, Size size, Vector2? mousePosition)
         : ICustomDrawOperation
     {
-
         public void Dispose() { }
 
         public Rect Bounds => bounds;
@@ -138,28 +277,22 @@ public class ShaderEffectControl : Control
 
         public bool Equals(ICustomDrawOperation? other) => false;
 
-        // 修复Render方法，使用新的API获取SkiaSharp画布
         public void Render(ImmediateDrawingContext context)
         {
-            // 使用新的API获取SkiaSharp画布
+            // 获取SkiaSharp画布
             var leaseFeature = context.PlatformImpl.GetFeature<ISkiaSharpApiLeaseFeature>();
             if (leaseFeature == null)
                 return;
 
             using var lease = leaseFeature.Lease();
             var canvas = lease.SkCanvas;
-                
-            using var shader = shaderService.CreateShader(size, mousePosition);
-            using var paint = new SKPaint
-            {
-                Shader = shader,
-                IsAntialias = true,
-            };
 
-            canvas.DrawRect(
-                new SKRect(0, 0, (float)size.Width, (float)size.Height),
-                paint
-            );
+            using var shader = shaderService.CreateShader(size, mousePosition);
+            using var paint = new SKPaint();
+            paint.Shader = shader;
+            paint.IsAntialias = true;
+
+            canvas.DrawRect(new SKRect(0, 0, (float)size.Width, (float)size.Height), paint);
         }
     }
 }
@@ -173,4 +306,25 @@ public static class PointExtensions
     {
         return new Vector2((float)point.X, (float)point.Y);
     }
+}
+
+/// <summary>
+/// 着色器性能模式
+/// </summary>
+public enum ShaderPerformanceMode
+{
+    /// <summary>
+    /// 高质量模式 (~60fps)
+    /// </summary>
+    HighQuality,
+
+    /// <summary>
+    /// 平衡模式 (~30fps)
+    /// </summary>
+    Balanced,
+
+    /// <summary>
+    /// 省电模式 (~15fps)
+    /// </summary>
+    PowerSaver,
 }

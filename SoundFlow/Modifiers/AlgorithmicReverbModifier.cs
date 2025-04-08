@@ -1,5 +1,5 @@
-﻿using SoundFlow.Abstracts;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
+using SoundFlow.Abstracts;
 
 namespace SoundFlow.Modifiers;
 
@@ -41,7 +41,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
     [
         [1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617], // Channel 0
         [1139, 1211, 1298, 1379, 1445, 1514, 1580, 1640], // Channel 1
-        [1150, 1222, 1311, 1392, 1460, 1529, 1597, 1657], // Channel 2 
+        [1150, 1222, 1311, 1392, 1460, 1529, 1597, 1657], // Channel 2
         [1163, 1235, 1324, 1405, 1475, 1544, 1614, 1674], // Channel 3
         [1176, 1248, 1337, 1418, 1490, 1559, 1631, 1691], // Channel 4
         [1189, 1261, 1350, 1431, 1505, 1574, 1648, 1708], // Channel 5
@@ -91,8 +91,9 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
             _allPassFilters[channel] = new AllPassFilter[NumAllPasses];
             for (int i = 0; i < NumAllPasses; i++)
             {
-                _allPassFilters[channel][i] =
-                    new AllPassFilter((int)AllPassTunings[channel % AllPassTunings.Length][i]);
+                _allPassFilters[channel][i] = new AllPassFilter(
+                    (int)AllPassTunings[channel % AllPassTunings.Length][i]
+                );
             }
         }
 
@@ -168,7 +169,13 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         set
         {
             _preDelay = Math.Clamp(value, 0, 100);
-            _preDelaySamples = (int)(_preDelay * AudioEngine.Instance.SampleRate / 1000f);
+            int newPreDelaySamples = (int)(_preDelay * AudioEngine.Instance.SampleRate / 1000f);
+
+            // 确保索引不会越界
+            if (newPreDelaySamples > _preDelayBuffers[0].Length)
+                newPreDelaySamples = _preDelayBuffers[0].Length;
+
+            _preDelaySamples = newPreDelaySamples;
         }
     }
 
@@ -185,7 +192,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
     private void UpdateCombFilterParameters()
     {
         int numChannels = AudioEngine.Channels;
-        
+
         for (int channel = 0; channel < numChannels && channel < _combFilters.Length; channel++)
         {
             for (int i = 0; i < NumCombs && i < _combFilters[channel].Length; i++)
@@ -198,7 +205,6 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
 
     private void UpdateParameters()
     {
-
         int numChannels = AudioEngine.Channels;
 
         // Ensure filter arrays are the correct size
@@ -231,15 +237,18 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
 
             for (int i = 0; i < NumAllPasses; i++)
             {
-                _allPassFilters[channel][i] =
-                    new AllPassFilter((int)AllPassTunings[channel % AllPassTunings.Length][i]);
+                _allPassFilters[channel][i] = new AllPassFilter(
+                    (int)AllPassTunings[channel % AllPassTunings.Length][i]
+                );
             }
         }
 
         // Reinitialize pre-delay buffers if necessary
         int maxPreDelaySamples = (int)(AudioEngine.Instance.SampleRate * 0.1f); // Maximum pre-delay of 100ms
-        if (_preDelayBuffers.Length != numChannels ||
-            _preDelayBuffers.Length > 0 && _preDelayBuffers[0].Length != maxPreDelaySamples)
+        if (
+            _preDelayBuffers.Length != numChannels
+            || _preDelayBuffers.Length > 0 && _preDelayBuffers[0].Length != maxPreDelaySamples
+        )
         {
             _preDelayBuffers = new float[numChannels][];
             for (int channel = 0; channel < numChannels; channel++)
@@ -267,7 +276,6 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
             _lfoPhase = newLfoPhase;
         }
     }
- 
 
     /// <inheritdoc />
     public override float ProcessSample(float sample, int channel)
@@ -279,7 +287,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         // 添加额外的安全检查
         if (channel >= _combFilters.Length || channel >= _allPassFilters.Length)
             return sample;
-        
+
         try
         {
             // Calculate LFO value for modulation
@@ -293,12 +301,13 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
             float input = sample * FixedGain;
 
             // Apply pre-delay
-            if (channel < _preDelayBuffers.Length)
+            if (channel < _preDelayBuffers.Length && _preDelaySamples < _preDelayBuffers[channel].Length)
             {
                 _preDelayBuffers[channel][_preDelayIndices[channel]] = input;
                 input = _preDelayBuffers[channel][
-                    (_preDelayIndices[channel] - _preDelaySamples + _preDelayBuffers[channel].Length) %
-                    _preDelayBuffers[channel].Length];
+                    (_preDelayIndices[channel] - _preDelaySamples + _preDelayBuffers[channel].Length)
+                        % _preDelayBuffers[channel].Length
+                ];
             }
 
             float earlyReflectionsOutput = 0;
@@ -307,7 +316,6 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
             // Process comb filters with modulation
             for (int i = 0; i < NumCombs && i < _combFilters[channel].Length; i++)
             {
-
                 // Modulate comb filter delay lengths
                 float modulatedDelay = _modulatedCombTuning[channel * NumCombs + i] * (1 + lfo);
                 _combFilters[channel][i].SetDelay((int)modulatedDelay);
@@ -343,7 +351,6 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
             return sample;
         }
     }
-
 
     private class CombFilter
     {
@@ -387,9 +394,9 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
             // Clamp the delay to a reasonable range
             delay = Math.Clamp(delay, 1, int.MaxValue);
 
-            if (_buffer != null && delay == _buffer.Length) 
+            if (_buffer != null && delay == _buffer.Length)
                 return;
-            
+
             _buffer = new float[delay];
             if (resetBuffer)
             {
@@ -398,7 +405,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
             }
         }
     }
-    
+
     private class AllPassFilter(int delay)
     {
         private readonly float[] _buffer = new float[delay];

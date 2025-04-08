@@ -33,9 +33,7 @@ public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
     /// <param name="data">The audio data to read.</param>
     /// <param name="sampleRate">The sample rate of the audio data.</param>
     public AssetDataProvider(byte[] data, int? sampleRate = null)
-        : this(new MemoryStream(data), sampleRate)
-    {
-    }
+        : this(new MemoryStream(data), sampleRate) { }
 
     /// <inheritdoc />
     public int Position { get; private set; }
@@ -48,13 +46,13 @@ public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
 
     /// <inheritdoc />
     public SampleFormat SampleFormat { get; private set; }
-    
+
     /// <inheritdoc />
     public int? SampleRate { get; set; }
 
     /// <inheritdoc />
     public event EventHandler<EventArgs>? EndOfStreamReached;
-    
+
     /// <inheritdoc />
     public event EventHandler<PositionChangedEventArgs>? PositionChanged;
 
@@ -66,7 +64,7 @@ public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
 
         Position += samplesToRead;
 
-        if (Position >= _data.Length) 
+        if (Position >= _data.Length)
             EndOfStreamReached?.Invoke(this, EventArgs.Empty);
 
         PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
@@ -105,7 +103,8 @@ public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
         {
             float[] block = new float[blockSize * AudioEngine.Channels];
             samplesRead = decoder.Decode(block);
-            if (samplesRead > 0) blocks.Add(block);
+            if (samplesRead > 0)
+                blocks.Add(block);
         } while (samplesRead == blockSize * AudioEngine.Channels);
 
         int totalSamples = blocks.Sum(block => block.Length);
@@ -117,17 +116,16 @@ public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
             offset += block.Length;
         }
         return samples;
-
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_isDisposed) return;
+        if (_isDisposed)
+            return;
 
         // Dispose of _data
         _data = null!;
         _isDisposed = true;
     }
-
 }

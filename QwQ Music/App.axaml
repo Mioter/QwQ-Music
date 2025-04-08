@@ -29,6 +29,8 @@
 
         <Style Selector="u|IconButton.Transparent">
             <Setter Property="Background" Value="Transparent" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinWidth" Value="0" />
 
             <Style Selector="^:pressed">
                 <Setter Property="RenderTransform" Value="scale(0.98)" />
@@ -57,7 +59,6 @@
         </ResourceDictionary>
 
         <converter:CalcConverter x:Key="CalcConverter" />
-        <converter:AlbumImageConverter x:Key="AlbumImageConverter" />
         <converter:TruncateDecimalConverter x:Key="TruncateDecimalConverter" />
         <converter:SecondsToStringConverter x:Key="SecondsToStringConverter" />
         <converter:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
@@ -65,6 +66,9 @@
 
         <FontFamily x:Key="VivoSans">/Assets/Fonts#VivoSans</FontFamily>
         <FontFamily x:Key="Consolab">/Assets/Fonts#Consola</FontFamily>
+
+        <!--  ReSharper disable once Xaml.RedundantResource  -->
+        <CornerRadius x:Key="FlyoutCornerRadius">8</CornerRadius>
 
     </Application.Resources>
 

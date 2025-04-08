@@ -111,7 +111,6 @@ public class EnvelopeGenerator : SoundComponent
     /// </summary>
     public event Action<float>? LevelChanged;
 
-
     /// <inheritdoc/>
     public override string Name { get; set; } = "Envelope Generator";
 
@@ -151,12 +150,10 @@ public class EnvelopeGenerator : SoundComponent
     {
         // Calculate rates per sample for each stage
         _attackRate = AttackTime > 0 ? 1f / (AttackTime * AudioEngine.Instance.SampleRate) : float.MaxValue;
-        _decayRate = DecayTime > 0
-            ? (1f - SustainLevel) / (DecayTime * AudioEngine.Instance.SampleRate)
-            : float.MaxValue;
-        _releaseRate = ReleaseTime > 0
-            ? _currentLevel / (ReleaseTime * AudioEngine.Instance.SampleRate)
-            : float.MaxValue;
+        _decayRate =
+            DecayTime > 0 ? (1f - SustainLevel) / (DecayTime * AudioEngine.Instance.SampleRate) : float.MaxValue;
+        _releaseRate =
+            ReleaseTime > 0 ? _currentLevel / (ReleaseTime * AudioEngine.Instance.SampleRate) : float.MaxValue;
     }
 
     /// <inheritdoc/>

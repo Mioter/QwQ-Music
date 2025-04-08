@@ -23,9 +23,9 @@ public interface IAudioPlay : IDisposable
     bool IsMute { get; set; }
 
     /// <summary>
-    /// 设置音量（范围：0.0 到 1.0）
+    /// 音量（范围：0 到 100）
     /// </summary>
-    void SetVolume(float volume);
+    float Volume { get; set; }
 
     /// <summary>
     /// 开始播放
@@ -48,8 +48,12 @@ public interface IAudioPlay : IDisposable
     void Seek(double positionInSeconds);
 
     /// <summary>
+    /// 播放速度（需 > 0f）
+    /// </summary>
+    float Speed { get; set; }
+
+    /// <summary>
     /// 设置音频文件并初始化
     /// </summary>
-    void InitializeAudio(string filePath, double channelGains);
-    
+    void InitializeAudio(string filePath, double replayGain);
 }

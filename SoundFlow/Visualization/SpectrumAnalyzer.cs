@@ -1,7 +1,7 @@
-﻿using SoundFlow.Abstracts;
-using SoundFlow.Utils;
-using System.Numerics;
+﻿using System.Numerics;
+using SoundFlow.Abstracts;
 using SoundFlow.Interfaces;
+using SoundFlow.Utils;
 
 namespace SoundFlow.Visualization
 {
@@ -24,7 +24,8 @@ namespace SoundFlow.Visualization
         /// <param name="fftSize">The size of the FFT. Must be a power of 2.</param>
         /// <param name="visualizer">The visualizer to send data to.</param>
         /// <exception cref="ArgumentException"></exception>
-        public SpectrumAnalyzer(int fftSize, IVisualizer? visualizer = null) : base(visualizer)
+        public SpectrumAnalyzer(int fftSize, IVisualizer? visualizer = null)
+            : base(visualizer)
         {
             if ((fftSize & fftSize - 1) != 0) // Check if fftSize is a power of 2
             {

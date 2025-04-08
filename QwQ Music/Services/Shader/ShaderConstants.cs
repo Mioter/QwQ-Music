@@ -1,3 +1,7 @@
+using System;
+using System.IO;
+using Avalonia.Platform;
+
 namespace QwQ_Music.Services.Shader;
 
 /// <summary>
@@ -5,100 +9,45 @@ namespace QwQ_Music.Services.Shader;
 /// </summary>
 public static class ShaderConstants
 {
+    private const string ResourcePrefix = "avares://QwQ Music/Assets/Shaders/";
+
     /// <summary>
-    /// 波浪扭曲着色器
+    /// 波浪扭曲着色器（支持自定义颜色）
     /// </summary>
-    public const string WaveWarpShader = """
+    public static string WaveWarpShader => LoadShaderFromAvaloniaResource("WaveWarpShader.glsl");
 
-                                         uniform vec3 iResolution;
-                                         uniform float iTime;
-                                         uniform float iTimeDelta;
-                                         uniform float iFrameRate;
-                                         uniform int iFrame;
-                                         uniform vec4 iMouse;
+    /// <summary>
+    /// 从Avalonia资源加载着色器代码
+    /// </summary>
+    /// <param name="resourceName">资源名称</param>
+    /// <returns>着色器代码</returns>
+    private static string LoadShaderFromAvaloniaResource(string resourceName)
+    {
+        string fullResourceName = $"{ResourcePrefix}{resourceName}";
 
-                                         // 平滑过渡函数
-                                         float smoothstep(float edge0, float edge1, float x) {
-                                             float t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
-                                             return t * t * (3.0 - 2.0 * t);
-                                         }
+        try
+        {
+            using var stream = AssetLoader.Open(new Uri(fullResourceName));
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"无法加载着色器资源: {fullResourceName}", ex);
+        }
+    }
 
-                                         #define S(a,b,t) smoothstep(a,b,t)
+    /// <summary>
+    /// 获取所有可用的着色器名称
+    /// </summary>
+    /// <returns>着色器名称列表</returns>
+    public static string[] GetAvailableShaders()
+    {
+        // 注意：Avalonia资源系统不提供直接列出所有资源的方法
+        // 这里返回已知的着色器列表
+        return ["WaveWarpShader.glsl"];
 
-                                         mat2 Rot(float a)
-                                         {
-                                             float s = sin(a);
-                                             float c = cos(a);
-                                             return mat2(c, -s, s, c);
-                                         }
-
-                                         // Created by inigo quilez - iq/2014
-                                         // License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
-                                         vec2 hash(vec2 p)
-                                         {
-                                             p = vec2(dot(p,vec2(2127.1,81.17)), dot(p,vec2(1269.5,283.37)));
-                                             return fract(sin(p)*43758.5453);
-                                         }
-
-                                         float noise(in vec2 p)
-                                         {
-                                             vec2 i = floor(p);
-                                             vec2 f = fract(p);
-                                             
-                                             vec2 u = f*f*(3.0-2.0*f);
-                                         
-                                             float n = mix(
-                                                         mix(
-                                                             dot(-1.0+2.0*hash(i + vec2(0.0,0.0)), f - vec2(0.0,0.0)),
-                                                             dot(-1.0+2.0*hash(i + vec2(1.0,0.0)), f - vec2(1.0,0.0)),
-                                                             u.x
-                                                         ),
-                                                         mix(
-                                                             dot(-1.0+2.0*hash(i + vec2(0.0,1.0)), f - vec2(0.0,1.0)),
-                                                             dot(-1.0+2.0*hash(i + vec2(1.0,1.0)), f - vec2(1.0,1.0)),
-                                                             u.x
-                                                         ),
-                                                         u.y
-                                                       );
-                                             return 0.5 + 0.5*n;
-                                         }
-
-                                         vec4 main(vec2 fragCoord) {
-                                             vec2 uv = fragCoord/iResolution.xy;
-                                             float ratio = iResolution.x / iResolution.y;
-                                         
-                                             vec2 tuv = uv;
-                                             tuv -= 0.5;
-                                         
-                                             // rotate with Noise
-                                             float degree = noise(vec2(iTime*0.1, tuv.x*tuv.y));
-                                         
-                                             tuv.y *= 1.0/ratio;
-                                             tuv *= Rot(radians((degree-0.5)*720.0+180.0));
-                                             tuv.y *= ratio;
-                                         
-                                             // Wave warp with sin
-                                             float frequency = 5.0;
-                                             float amplitude = 30.0;
-                                             float speed = iTime * 2.0;
-                                             tuv.x += sin(tuv.y*frequency+speed)/amplitude;
-                                             tuv.y += sin(tuv.x*frequency*1.5+speed)/(amplitude*0.5);
-                                             
-                                             // draw the image
-                                             vec3 colorYellow = vec3(0.957, 0.804, 0.623);
-                                             vec3 colorDeepBlue = vec3(0.192, 0.384, 0.933);
-                                             vec3 layer1 = mix(colorYellow, colorDeepBlue, S(-0.3, 0.2, (tuv*Rot(radians(-5.0))).x));
-                                             
-                                             vec3 colorRed = vec3(0.910, 0.510, 0.8);
-                                             vec3 colorBlue = vec3(0.350, 0.71, 0.953);
-                                             vec3 layer2 = mix(colorRed, colorBlue, S(-0.3, 0.2, (tuv*Rot(radians(-5.0))).x));
-                                             
-                                             vec3 finalComp = mix(layer1, layer2, S(0.5, -0.3, tuv.y));
-                                             
-                                             vec3 col = finalComp;
-                                             
-                                             return vec4(col, 1.0);
-                                         }
-
-                                         """;
+        // 如果将来有更多着色器，可以手动添加到列表中
+        // return new[] { "WaveWarpShader.glsl", "OtherShader.glsl", ... };
+    }
 }

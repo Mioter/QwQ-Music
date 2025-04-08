@@ -97,7 +97,5 @@ public class LevelMeterVisualizer : IVisualizer
     public event EventHandler? VisualizationUpdated;
 
     /// <inheritdoc />
-    public void Dispose()
-    {
-    }
+    public void Dispose() { }
 }

@@ -8,7 +8,7 @@ namespace SoundFlow.Providers;
 /// <summary>
 ///     Provides audio data from a stream.
 /// </summary>
-public sealed class StreamDataProvider : ISoundDataProvider
+public sealed class StreamDataProvider : ISoundDataProvider, IDisposable
 {
     private readonly ISoundDecoder _decoder;
     private readonly Stream _stream;
@@ -24,8 +24,7 @@ public sealed class StreamDataProvider : ISoundDataProvider
         _decoder = AudioEngine.Instance.CreateDecoder(stream);
         SampleRate = sampleRate;
 
-        _decoder.EndOfStreamReached += (_, args) =>
-            EndOfStreamReached?.Invoke(this, args);
+        _decoder.EndOfStreamReached += (_, args) => EndOfStreamReached?.Invoke(this, args);
     }
 
     /// <inheritdoc />
@@ -70,5 +69,12 @@ public sealed class StreamDataProvider : ISoundDataProvider
         Position = (int)_stream.Position * SampleFormat.GetBytesPerSample();
 
         PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _decoder.Dispose();
+        _stream.Dispose();
     }
 }

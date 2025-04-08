@@ -15,7 +15,7 @@
 
     <Border ClipToBounds="True" CornerRadius="{Binding $parent[userControls:MusicAlbumButton].CornerRadius}">
         <Panel>
-            <Image Source="{Binding CoverPathProperty, Converter={StaticResource AlbumImageConverter}}" />
+            <Image Source="{Binding CoverImage}" />
             <Border Background="#33000000" IsHitTestVisible="False">
                 <Border.IsVisible>
                     <MultiBinding Converter="{x:Static BoolConverters.Or}">

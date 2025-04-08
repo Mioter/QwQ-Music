@@ -11,20 +11,20 @@ public interface ISoundModifier
     /// Name of the modifier
     /// </summary>
     public string Name { get; set; }
-    
+
     /// <summary>
     /// 修饰器启用状态<br />
     /// Enabled state of the modifier
     /// </summary>
     public bool Enabled { get; set; }
-    
+
     /// <summary>
     /// 对音频样本缓冲区应用修饰效果<br />
     /// Applies the modifier to a buffer of audio samples
     /// </summary>
     /// <param name="buffer">包含要修改的音频样本的缓冲区<br />The buffer containing the audio samples to modify</param>
     public void Process(Span<float> buffer);
-    
+
     /// <summary>
     /// 处理单个音频样本<br />
     /// Processes a single audio sample

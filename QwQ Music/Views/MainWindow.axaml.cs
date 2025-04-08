@@ -1,42 +1,50 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
+using QwQ_Music.Services;
 using QwQ_Music.ViewModels;
 
 namespace QwQ_Music.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly MainWindowViewModel _viewModel = new();
-    private readonly Window _desktopLyricsWindow;
+    private readonly HotkeyService _hotkeyService;
 
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = _viewModel;
-        _desktopLyricsWindow = new DesktopLyricsWindow();
-        PointerWheelChanged += OnPointerWheelChanged;
+
+        // 获取MusicPlayerViewModel
+        var musicPlayerViewModel = MusicPlayerViewModel.Instance;
+
+        // 初始化热键服务
+        _hotkeyService = new HotkeyService(musicPlayerViewModel);
+
+        // 注册按键事件
+        KeyDown += MainWindow_KeyDown;
+
+        Width = 1200;
+        Height = 800;
+
+        DataContext = new MainWindowViewModel();
+        MusicPlayerPagePanel.PointerPressed += MusicPlayerPagePanelOnPointerPressed;
+        Closed += OnClosed;
     }
 
-    private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    private void OnClosed(object? sender, EventArgs e)
     {
-        _viewModel.IsMusicPlayerTrayVisible = e.Delta.Y switch
-        {
-            // 检查滚动的方向
-            > 0 =>
-            // 向上滚动
-            true,
-            < 0 =>
-            // 向下滚动
-            false,
-            _ => _viewModel.IsMusicPlayerTrayVisible,
-        };
+        Closed -= OnClosed;
+        MusicPlayerPagePanel.PointerPressed -= MusicPlayerPagePanelOnPointerPressed;
+    }
 
-        /*
-        // 如果支持水平滚动，则可以检查Delta.X
-        if (e.Delta.X != 0)
-        {
-            Console.WriteLine($"Mouse wheel scrolled horizontally by {e.Delta.X}.");
-        }
-        */
+    private void MusicPlayerPagePanelOnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        BeginMoveDrag(e);
+    }
+
+    private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
+    {
+        // 使用热键服务处理按键事件
+        _hotkeyService.HandleKeyDown(e);
     }
 }

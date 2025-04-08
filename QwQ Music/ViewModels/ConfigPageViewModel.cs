@@ -1,6 +1,8 @@
-﻿namespace QwQ_Music.ViewModels;
+﻿using QwQ_Music.Models;
 
-using static Models.LanguageModel;
+namespace QwQ_Music.ViewModels;
+
+using static LanguageModel;
 
 public class ConfigPageViewModel() : NavigationViewModel("设置")
 {

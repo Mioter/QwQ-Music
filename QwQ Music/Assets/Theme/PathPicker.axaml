@@ -12,7 +12,7 @@
             </ControlTemplate>
         </Setter>
         <Style Selector="^ /template/ Button#PART_Button:pressed">
-            <Setter Property="RenderTransform" Value="{x:Null}" />
+            <Setter Property="RenderTransform" Value="scale(0.98)" />
         </Style>
     </ControlTheme>
 </ResourceDictionary>
