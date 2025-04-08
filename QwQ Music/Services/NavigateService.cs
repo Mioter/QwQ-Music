@@ -5,36 +5,13 @@ namespace QwQ_Music.Services;
 
 public static class NavigateService
 {
-    private static Dictionary<string, (string?, int)> ViewIndex { get; set; } =
-        new()
-        {
-            { "窗口", (null, -1) },
-            { "主页", ("窗口", 0) },
-            { "分类", ("窗口", 1) },
-            { "统计", ("窗口", 2) },
-            { "设置", ("窗口", 3) },
-            { "播放", ("设置", 0) },
-            { "歌词", ("设置", 1) },
-            { "音效", ("设置", 2) },
-            { "立体增强", ("音效", 0) },
-            { "空间效果", ("音效", 1) },
-            { "环绕效果", ("音效", 1) },
-            { "混响效果", ("音效", 1) },
-            { "延迟效果", ("音效", 1) },
-            { "失真效果", ("音效", 1) },
-            { "颤音效果", ("音效", 1) },
-            { "压缩器", ("音效", 1) },
-            { "均衡器", ("音效", 1) },
-            { "噪音减少", ("音效", 1) },
-        };
-
     private static readonly Dictionary<string, string[]?> ViewTree = new()
     {
         { "窗口", ["主页", "分类", "统计", "设置"] },
         { "主页", null },
         { "分类", null },
         { "统计", null },
-        { "设置", ["播放", "歌词", "音效"] },
+        { "设置", ["界面", "播放", "歌词", "音效"] },
         {
             "音效",
             [
@@ -43,7 +20,6 @@ public static class NavigateService
                 "环绕效果",
                 "混响效果",
                 "延迟效果",
-                "合唱效果",
                 "失真效果",
                 "颤音效果",
                 "压缩器",
@@ -53,13 +29,60 @@ public static class NavigateService
         },
     };
 
+    // 自动根据ViewTree生成ViewIndex
+    private static Dictionary<string, (string?, int, int)> ViewIndex { get; set; } = GenerateViewIndex();
+
+    private static Dictionary<string, (string?, int, int)> GenerateViewIndex()
+    {
+        var result = new Dictionary<string, (string?, int, int)>
+        {
+            { "窗口", (null, -1, 0) }, // 添加根节点
+        };
+
+        // 递归处理所有节点
+        foreach ((string? parent, string[]? children) in ViewTree)
+        {
+            if (children == null)
+                continue;
+
+            for (int i = 0; i < children.Length; i++)
+            {
+                string child = children[i];
+                // 如果子节点还没有添加到结果中
+                if (!result.ContainsKey(child))
+                {
+                    result.Add(child, (parent, i, 0));
+                }
+            }
+        }
+
+        return result;
+    }
+
     public static Dictionary<string, Action<int>?> NavigateEvents { get; set; } = new();
+
+    public static Action<string?>? CurrentViewChanged { get; set; }
 
     public static string? CurrentView { get; private set; }
 
     public static void NavigateTo(string view, int toIndex)
     {
         CurrentView = ViewTree[view]?[toIndex];
+
+        if (ViewIndex.TryGetValue(view, out var index))
+        {
+            ViewIndex[view] = (index.Item1, index.Item2, toIndex);
+
+            if (
+                ViewTree.TryGetValue(view, out string[]? child)
+                && child?[toIndex] is { } childView
+                && ViewIndex[childView].Item3 is var childIndex and > 0
+            )
+            {
+                NavigateTo(childView, childIndex);
+            }
+        }
+        CurrentViewChanged?.Invoke(CurrentView);
     }
 
     public static void NavigateEvent(string eventName)

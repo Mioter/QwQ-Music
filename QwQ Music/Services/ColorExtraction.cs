@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using Avalonia;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Impressionist.Implementations;
 using Color = Avalonia.Media.Color;
 
@@ -36,11 +38,13 @@ public static class ColorExtraction
     /// <param name="imagePath">图像文件路径</param>
     /// <param name="colorCount">要提取的颜色数量，默认为5</param>
     /// <param name="algorithm">颜色提取算法，默认为KMeans</param>
+    /// <param name="ignoreWhite">忽略白色</param>
     /// <returns>提取的颜色列表，如果缓存不存在则返回null</returns>
     public static List<Color>? GetColorPalette(
         string imagePath,
         int colorCount = 5,
-        ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans
+        ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
+        bool ignoreWhite = true
     )
     {
         // 检查文件是否存在
@@ -50,11 +54,11 @@ public static class ColorExtraction
         }
 
         // 尝试使用缓存的位图
-        var bitmap = MusicExtractor.LoadCompressedBitmapFromCache(imagePath);
+        var bitmap = MusicExtractor.LoadCompressedBitmap(imagePath);
         return bitmap == null
             ? null
             : // 缓存不存在直接返回null
-            GetColorPaletteFromBitmap(bitmap, colorCount, algorithm);
+            GetColorPaletteFromBitmap(bitmap, colorCount, algorithm, ignoreWhite);
     }
 
     /// <summary>
@@ -63,11 +67,13 @@ public static class ColorExtraction
     /// <param name="bitmap">位图对象</param>
     /// <param name="colorCount">要提取的颜色数量，默认为5</param>
     /// <param name="algorithm">颜色提取算法，默认为KMeans</param>
+    /// <param name="ignoreWhite">忽略白色</param>
     /// <returns>提取的颜色列表</returns>
     public static List<Color> GetColorPaletteFromBitmap(
         Bitmap bitmap,
         int colorCount = 5,
-        ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans
+        ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
+        bool ignoreWhite = true
     )
     {
         // 从位图采样颜色
@@ -81,7 +87,7 @@ public static class ColorExtraction
                 .KMeansPaletteGenerator.CreatePalette(
                     vectorColors,
                     colorCount,
-                    ignoreWhite: true,
+                    ignoreWhite,
                     toLab: true,
                     useKMeansPP: true
                 )
@@ -89,7 +95,7 @@ public static class ColorExtraction
                 .GetResult(),
 
             ColorExtractionAlgorithm.OctTree => PaletteGenerators
-                .OctTreePaletteGenerator.CreatePalette(vectorColors, colorCount, ignoreWhite: true)
+                .OctTreePaletteGenerator.CreatePalette(vectorColors, colorCount, ignoreWhite)
                 .GetAwaiter()
                 .GetResult(),
 
@@ -118,8 +124,8 @@ public static class ColorExtraction
         using var writeableBitmap = new WriteableBitmap(
             bitmap.PixelSize,
             bitmap.Dpi,
-            Avalonia.Platform.PixelFormat.Bgra8888,
-            Avalonia.Platform.AlphaFormat.Premul
+            PixelFormat.Bgra8888,
+            AlphaFormat.Premul
         );
 
         using (var fb = writeableBitmap.Lock())
@@ -130,12 +136,7 @@ public static class ColorExtraction
                 int stride = fb.RowBytes;
 
                 // 将原始位图数据复制到可写位图
-                bitmap.CopyPixels(
-                    new Avalonia.PixelRect(0, 0, width, height),
-                    new IntPtr(pixelData),
-                    stride * height,
-                    stride
-                );
+                bitmap.CopyPixels(new PixelRect(0, 0, width, height), new IntPtr(pixelData), stride * height, stride);
 
                 // 遍历像素采样颜色
                 for (int y = 0; y < height; y += sampleStep)

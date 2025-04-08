@@ -53,7 +53,6 @@
       <AdditionalFiles Include="Views\Pages\ClassificationPage.axaml" />
       <AdditionalFiles Include="Views\Pages\ConfigMainPage.axaml" />
       <AdditionalFiles Include="Views\Pages\LyricConfigPage.axaml" />
-      <AdditionalFiles Include="Views\Pages\MusicPage.axaml" />
       <AdditionalFiles Include="Views\Pages\SoundEffectConfigPage.axaml" />
       <AdditionalFiles Include="Views\Pages\StatisticsPage.axaml" />
     </ItemGroup>

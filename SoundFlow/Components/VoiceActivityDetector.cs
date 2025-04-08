@@ -49,59 +49,59 @@ public sealed class VoiceActivityDetector : AudioAnalyzer
         /// Must be a power of 2. Larger sizes provide finer frequency resolution but increase computational cost.
         /// Default is 1024.
         /// </summary>
-        public int FftSize = 1024;
+        public readonly int FftSize = 1024;
 
         /// <summary>
         /// Initial threshold for energy-based voice detection.
         /// It represents the starting noise floor level. Adjust based on the expected noise environment.
         /// Default is 0.05f.
         /// </summary>
-        public float InitialThreshold = 0.05f;
+        public readonly float InitialThreshold = 0.05f;
 
         /// <summary>
         /// Rate at which the noise floor decays over time.
         /// A higher rate allows the detector to adapt to changing noise levels more quickly but may be less stable.
         /// Default is 0.01f.
         /// </summary>
-        public float NoiseFloorDecayRate = 0.01f;
+        public readonly float NoiseFloorDecayRate = 0.01f;
 
         /// <summary>
         /// Lower frequency bound of the speech band in Hz.
         /// Frequencies below this are considered non-speech. Default is 300Hz.
         /// </summary>
-        public float SpeechBandLow = 300f;
+        public readonly float SpeechBandLow = 300f;
 
         /// <summary>
         /// Upper frequency bound of the speech band in Hz.
         /// Frequencies above this are considered non-speech. Default is 3400Hz.
         /// </summary>
-        public float SpeechBandHigh = 3400f;
+        public readonly float SpeechBandHigh = 3400f;
 
         /// <summary>
         /// Size of the history buffer used to smooth energy levels and stabilize detection.
         /// A larger buffer provides more smoothing but increases memory usage and latency.
         /// Default is 50.
         /// </summary>
-        public int HistoryBufferSize = 50;
+        public readonly int HistoryBufferSize = 50;
 
         /// <summary>
         /// Ratio of the dynamic threshold used for hysteresis.
         /// Hysteresis prevents rapid toggling of voice detection around the threshold.
         /// Default is 0.2f.
         /// </summary>
-        public float HysteresisRatio = 0.2f;
+        public readonly float HysteresisRatio = 0.2f;
 
         /// <summary>
         /// Detection mode to use for voice activity detection.
         /// Selects the algorithm used to determine voice activity. Default is EnergyBased.
         /// </summary>
-        public DetectionMode Mode = DetectionMode.EnergyBased;
+        public readonly DetectionMode Mode = DetectionMode.EnergyBased;
 
         /// <summary>
         /// Minimum confidence level required to trigger voice activity detection in combined mode.
         /// Higher values require stronger signal presence to be considered voice. Default is 0.1f.
         /// </summary>
-        public float MinSignalConfidence = 0.1f;
+        public readonly float MinSignalConfidence = 0.1f;
 
         /// <summary>
         /// Attack time for the noise gate, determining how quickly the gate opens when signal is detected.

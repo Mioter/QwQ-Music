@@ -23,7 +23,7 @@ namespace Impressionist.Implementations
                 quantizer.AddColorRange(color.Key, color.Value);
             }
             quantizer.Quantize(1);
-            var index = new List<Vector3>() { targetColor.Keys.FirstOrDefault() };
+            var index = new List<Vector3> { targetColor.Keys.FirstOrDefault() };
             var result = quantizer.GetThemeResult();
             bool colorIsDark = result.RGBVectorToHSVColor().sRGBColorIsDark();
             return Task.FromResult(new ThemeColorResult(result, colorIsDark));
@@ -176,7 +176,7 @@ namespace Impressionist.Implementations
             private readonly PaletteQuantizer parent;
             private Node[] Children = new Node[8];
             private Vector3 Color { get; set; }
-            private int Count { get; set; } = 0;
+            private int Count { get; set; }
 
             public int ChildrenCount => Children.Count(c => c != null);
 
@@ -231,11 +231,8 @@ namespace Impressionist.Implementations
                 {
                     return Color;
                 }
-                else
-                {
-                    byte index = GetIndex(color, level);
-                    return Children[index].GetColor(color, level + 1);
-                }
+                byte index = GetIndex(color, level);
+                return Children[index].GetColor(color, level + 1);
             }
 
             public Vector3 GetThemeResult()
@@ -260,10 +257,7 @@ namespace Impressionist.Implementations
                 {
                     foreach (var child in Children)
                     {
-                        if (child != null)
-                        {
-                            child.NodeGetResult(result);
-                        }
+                        child?.NodeGetResult(result);
                     }
                 }
                 return result;
@@ -277,10 +271,7 @@ namespace Impressionist.Implementations
                 {
                     foreach (var child in Children)
                     {
-                        if (child != null)
-                        {
-                            child.NodeGetResult(result);
-                        }
+                        child?.NodeGetResult(result);
                     }
                 }
             }

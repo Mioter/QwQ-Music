@@ -14,7 +14,7 @@ using QwQ_Music.Utilities.MessageBus;
 
 namespace QwQ_Music.ViewModels;
 
-public partial class MusicPageViewModel : ViewModelBase
+public partial class AllMusicPageViewModel : ViewModelBase
 {
     [ObservableProperty]
     public partial ObservableCollection<MusicItemModel> AllMusicItems { get; set; }
@@ -25,7 +25,7 @@ public partial class MusicPageViewModel : ViewModelBase
     [ObservableProperty]
     public partial MusicItemModel? SelectedItem { get; set; }
 
-    public MusicPageViewModel()
+    public AllMusicPageViewModel()
     {
         AllMusicItems = MusicPlayerViewModel.MusicItems;
         MusicPlayerViewModel.MusicItemsChanged += OnMusicPlayerViewModelOnMusicItemsChanged;

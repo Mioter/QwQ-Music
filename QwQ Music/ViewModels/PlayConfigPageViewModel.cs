@@ -63,9 +63,9 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     public partial string CalculationButtonText { get; set; } = "开始 ▶";
 
     [RelayCommand]
-    private Task ClearCallbackGain()
+    private async Task ClearCallbackGain()
     {
-        Task.Run(() =>
+        await Task.Run(() =>
         {
             foreach (var musicItem in MusicPlayerViewModel.MusicItems)
             {
@@ -75,8 +75,6 @@ public partial class PlayConfigPageViewModel : ViewModelBase
                 NumberOfCompletedCalc--;
             }
         });
-
-        return Task.CompletedTask;
     }
 
     [RelayCommand]

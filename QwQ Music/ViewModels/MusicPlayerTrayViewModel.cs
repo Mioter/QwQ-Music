@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -16,22 +15,23 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
     public partial double AlbumCoverRecordAngle { get; set; }
 
     [ObservableProperty]
-    public partial double PlayButtonAngle { get; set; }
-
-    [ObservableProperty]
-    public partial Thickness PlayButtonPadding { get; set; }
+    public partial string? CurrentViewName { get; set; }
 
     public MusicPlayerTrayViewModel()
     {
         MusicPlayerViewModel.PlaybackStateChanged += MusicPlayerViewModelOnPlaybackStateChanged;
         MusicPlayerViewModel.CurrentMusicItemChanging += AudioPlayOnTrackIndexChanging;
+        NavigateService.CurrentViewChanged += CurrentViewChanged;
         StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
     }
+
+    private void CurrentViewChanged(string name) => CurrentViewName = name;
 
     private void ExitReminderMessageHandler(ExitReminderMessage message)
     {
         MusicPlayerViewModel.CurrentMusicItemChanging -= AudioPlayOnTrackIndexChanging;
         MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
+        NavigateService.CurrentViewChanged -= CurrentViewChanged;
     }
 
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
@@ -67,12 +67,10 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
     {
         if (e == null)
             return;
-        // 阻止事件冒泡到父级元素
         e.Handled = true;
 
         switch (e.Delta.Y)
         {
-            // 根据你的需求处理滚轮滚动事件
             case > 0:
                 MusicPlayerViewModel.Speed += 0.01f;
                 break;

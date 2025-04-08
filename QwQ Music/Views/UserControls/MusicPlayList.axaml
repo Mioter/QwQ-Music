@@ -107,11 +107,11 @@
                                 </userControls:MusicAlbumButton>
 
                                 <StackPanel Spacing="5" VerticalAlignment="Center">
-                                    <TextBlock FontWeight="Bold" Text="{Binding TitleProperty}" />
+                                    <TextBlock FontWeight="Bold" Text="{Binding Title}" />
                                     <TextBlock
                                         Classes="Tertiary"
                                         FontSize="12"
-                                        Text="{Binding ArtistsProperty}" />
+                                        Text="{Binding Artists}" />
                                 </StackPanel>
 
                             </StackPanel>

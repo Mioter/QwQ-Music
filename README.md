@@ -13,7 +13,7 @@
 如果你看不到，可能需要更好的网络~  
 <br><br>
 
-![主界面](https://github.com/Mioter/QwQ.Docs/blob/Mioter/QwQ-Music/UI%E5%B1%95%E7%A4%BA1.png "这是主界面")
+![主界面](.\.doc\UI_Home_1.png "这是主界面")
 
 ## ✨ 值得注意的
 
@@ -22,11 +22,18 @@
 请勿日常使用！！！
 <br><br>
 
-## 🎀 听我说谢谢  
+## 🎀 听我说谢谢
 
 ### 💎 本项目最佳 <br><br>
 
 🔸 元初 [@metaone01](https://github.com/metaone01 "最好的元初")
+<br><br>
+
+### 📖 使用的项目 <br><br>
+
+⚡ 音频处理 [SoundFlow](https://github.com/LSXPrime/SoundFlow)
+<br><br>
+⚡ 取色算法 [Impressionist](https://github.com/Storyteller-Studios/Impressionist)
 <br><br>
 
 ### 📗 被引入的包 <br><br>
@@ -35,16 +42,16 @@
 <br><br>
 🔹 行为包 [Avalonia.Xaml.Behaviors](https://github.com/AvaloniaUI/Avalonia.Xaml.Behaviors)
 <br><br>
-🔹 [NAudio](https://github.com/naudio/NAudio "音频处理")
-🔹 [SonicBoom](https://github.com/nightblade9/SonicBoom "NAudio的最小化分支")
-🔹 [TagLibSharp](https://github.com/mono/taglib-sharp "元数据读取")
+🔹 读取音频元数据 [ALT](https://github.com/Zeugma440/atldotnet)
+<br><br>
+🔹 着色器渲染 [SkiaSharp](https://github.com/mono/SkiaSharp)
 <br><br>
 
 ### 🍁 特别感谢泥 <br><br>
 
-🔺 好用的界面 [Avalonia](https://avaloniaui.net/) 
+🔺 好用的界面 [Avalonia](https://avaloniaui.net/)
 <br><br>
-🔺 好看的主题 [Semi](https://github.com/irihitech/Semi.Avalonia) 
+🔺 好看的主题 [Semi](https://github.com/irihitech/Semi.Avalonia)
 <br><br>
 🔺 好用的控件 [Ursa](https://github.com/irihitech/Ursa.Avalonia)
 <br><br>

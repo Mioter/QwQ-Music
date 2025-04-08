@@ -37,6 +37,7 @@
                 </Style>
             </u:SelectionList.Styles>
 
+            <TextBlock Text="界面" />
             <TextBlock Text="播放" />
             <TextBlock Text="歌词" />
             <TextBlock Text="音效" />
@@ -56,6 +57,7 @@
                 </CompositePageTransition>
             </control:IndexControl.PageTransition>
 
+            <pages:InterfaceConfigPage />
             <pages:PlayConfigPage />
             <pages:LyricConfigPage />
             <pages:SoundEffectConfigPage />

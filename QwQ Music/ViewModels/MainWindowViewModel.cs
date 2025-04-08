@@ -14,26 +14,40 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
 
     /*
     public ObservableCollection<ViewModelBase> PagesModels { get; } = [
-        new MusicPageViewModel(),
+        new AllMusicPageViewModel(),
         new ClassificationPageViewModel(),
         new StatisticsPageViewModel(),
         new ConfigPageViewModel(),
     ];
     */
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MusicPlayerTrayWidth), nameof(MusicPlayListWidth))]
-    public partial int WindowWidth { get; set; }
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MusicPlayerPageHeight))]
-    public partial int WindowHeight { get; set; }
+    public int WindowWidth
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged(nameof(MusicPlayerTrayWidth));
+            OnPropertyChanged(nameof(MusicPlayListWidth));
+        }
+    }
+
+    public int WindowHeight
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged(nameof(MusicCoverPageHeight));
+        }
+    }
 
     public int MusicPlayerTrayWidth => WindowWidth / 2;
 
     public int MusicPlayListWidth => IsMusicPlayListVisible ? WindowWidth / 4 : 0;
 
-    public int MusicPlayerPageHeight => IsMusicPlayerPageVisible ? WindowHeight : 0;
+    public int MusicCoverPageHeight => IsMusicPlayerPageVisible ? WindowHeight : 0;
 
     [ObservableProperty]
     public partial bool IsMusicPlayerTrayVisible { get; set; } = true;
@@ -43,7 +57,7 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
     public partial bool IsMusicPlayListVisible { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MusicPlayerPageHeight))]
+    [NotifyPropertyChangedFor(nameof(MusicCoverPageHeight))]
     public partial bool IsMusicPlayerPageVisible { get; set; }
 
     [ObservableProperty]

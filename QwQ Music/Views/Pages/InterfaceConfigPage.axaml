@@ -1,0 +1,63 @@
+<UserControl
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="QwQ_Music.Views.Pages.InterfaceConfigPage"
+    x:DataType="viewModel:InterfaceConfigPageViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModel="using:QwQ_Music.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer Margin="10">
+        <StackPanel Margin="0,0,10,0">
+
+            <StackPanel.Styles>
+
+                <Style Selector="Expander:down /template/ LayoutTransformControl#ExpanderHeaderLayoutContainer">
+                    <Setter Property="Margin" Value="0" />
+                </Style>
+
+                <Style Selector="Expander:down /template/ ToggleButton#ExpanderHeader">
+                    <Setter Property="Padding" Value="10" />
+                </Style>
+
+                <Style Selector="Expander:down:expanded /template/ ContentPresenter#PART_ContentPresenter">
+                    <Setter Property="Margin" Value="10" />
+                </Style>
+
+                <Style Selector="Expander:down /template/ ToggleButton#ExpanderHeader /template/ ContentPresenter">
+                    <Setter Property="CornerRadius" Value="8" />
+                </Style>
+
+            </StackPanel.Styles>
+
+            <Expander Header="封面">
+
+                <StackPanel Spacing="10">
+
+                    <Panel>
+                        <TextBlock Text="颜色缓存 : " VerticalAlignment="Center" />
+                        <Button
+                            Command="{Binding ClearCoverColorCommand}"
+                            Content="清空"
+                            CornerRadius="8"
+                            HorizontalAlignment="Right" />
+                    </Panel>
+
+                    <Panel>
+                        <TextBlock Text="取色算法 : " VerticalAlignment="Center" />
+                        <ComboBox
+                            CornerRadius="8"
+                            HorizontalAlignment="Right"
+                            ItemsSource="{Binding ColorExtractionAlgorithms}"
+                            SelectedItem="{Binding InterfaceConfig.SelectedColorExtractionAlgorithm}" />
+                    </Panel>
+
+                </StackPanel>
+
+            </Expander>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

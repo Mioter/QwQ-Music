@@ -3,11 +3,11 @@ using QwQ_Music.ViewModels;
 
 namespace QwQ_Music.Views.Pages;
 
-public partial class MusicPage : UserControl
+public partial class AllMusicPage : UserControl
 {
-    public MusicPage()
+    public AllMusicPage()
     {
         InitializeComponent();
-        DataContext = new MusicPageViewModel();
+        DataContext = new AllMusicPageViewModel();
     }
 }

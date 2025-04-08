@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -55,9 +56,10 @@ public partial class MusicPlayerViewModel : ViewModelBase
     [ObservableProperty]
     public partial ObservableCollection<MusicItemModel> MusicItems { get; set; } = [];
 
-    public PlayerConfig PlayerConfig { get; } = ConfigInfoModel.PlayerConfig;
+    public static PlayerConfig PlayerConfig { get; } = ConfigInfoModel.PlayerConfig;
 
-    public static PlaylistModel Playlist { get; } = new(PlayerConfig.LatestPlayListName);
+    [ObservableProperty]
+    public partial PlaylistModel Playlist { get; set; } = new(PlayerConfig.LatestPlayListName);
 
     private bool _isAutoChange;
 
@@ -106,7 +108,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
     #endregion
 
     #region 事件
-
     public event EventHandler<bool>? PlaybackStateChanged;
     public event EventHandler<CurrentMusicItemChangedCancelEventArgs>? CurrentMusicItemChanging;
     public event EventHandler<MusicItemModel>? CurrentMusicItemChanged;
@@ -125,19 +126,24 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         try
         {
-            /*var wait = Playlist.LoadAsync();*/
+            var wait = Playlist.LoadAsync();
 
-            await foreach (var item in DataBaseService.LoadFromDatabaseAsync<MusicItemModel>())
+            await foreach (var item in DataBaseService.LoadDataAsync())
             {
-                MusicItems.Add(item);
+                MusicItems.Add(MusicItemModel.FromDictionary(item));
             }
 
-            /*await wait;
+            await wait;
+
+            if (Playlist.LatestPlayedMusic == null)
+                return;
+
             var currentMusicItem = Playlist.MusicItems.FirstOrDefault(model =>
                 model.FilePath == Playlist.LatestPlayedMusic
             );
+
             if (currentMusicItem != null)
-                await SetCurrentMusicItem(currentMusicItem);*/
+                await SetCurrentMusicItem(currentMusicItem);
         }
         catch (Exception ex)
         {
@@ -166,6 +172,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
             return;
 
         _audioPlay.Seek(value);
+    }
+
+    partial void OnPlaylistChanged(PlaylistModel value)
+    {
+        PlaylistModel.ClearPlayedIndices(); // 当播放列表发生变化时，重置已播放索引列表
     }
 
     #endregion
@@ -214,7 +225,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
         _audioEngine.Dispose();
         _audioPlay.Dispose();
-        SaveConfig();
+        Save();
     }
 
     #endregion
@@ -276,7 +287,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private static void RemoveInMusicList(MusicItemModel musicItem) => Playlist.MusicItems.Remove(musicItem);
+    private void RemoveInMusicList(MusicItemModel musicItem) => Playlist.MusicItems.Remove(musicItem);
 
     [RelayCommand]
     private void ClearMusicItemCurrentDuration(MusicItemModel musicItem)
@@ -344,12 +355,14 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             <= 0 => -1,
             1 => 0,
-            _ => PlayerConfig is { PlayMode: PlayMode.Random, IsRealRandom: true } ? RandomMusicItemIndex(current)
+            _ => PlayerConfig is { PlayMode: PlayMode.Random, IsRealRandom: true }
+                ? PlaylistModel.GetNonRepeatingRandomIndex(current, Playlist.Count)
             : isNext ? (current + 1) % Playlist.Count
             : (current - 1 + Playlist.Count) % Playlist.Count,
         };
 
-    private static int RandomMusicItemIndex(int current)
+    // 保留原来的RandomMusicItemIndex方法作为备用
+    private int RandomMusicItemIndex(int current)
     {
         var random = new Random();
         int randomIndex;
@@ -392,7 +405,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         Playlist.MusicItems = new ObservableCollection<MusicItemModel>(tempList);
     }
 
-    public string PlayModeName =>
+    public static string PlayModeName =>
         PlayerConfig.PlayMode switch
         {
             PlayMode.Sequential => "顺序播放",
@@ -408,11 +421,118 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     #region 数据持久化
 
-    private void SaveConfig()
+
+    private async void Save()
     {
-        foreach (var item in MusicItems)
+        try
         {
-            DataBaseService.SaveToDatabaseAsync(item, DataBaseService.Table.MUSICS).Wait();
+            foreach (var item in MusicItems)
+            {
+                if (!item.IsModified || item.IsError)
+                    continue;
+                SaveMusicItemAsync(item).Wait();
+            } // 保存音乐项
+
+            await SavePlaylistAsync(); // 保存播放列表
+        }
+        catch (Exception e)
+        {
+            Log.Error($"数据库保存失败 : {e.Message}");
+        }
+    }
+
+    private static async Task SaveMusicItemAsync(MusicItemModel item)
+    {
+        try
+        {
+            var data = item.Dump();
+            string filePath = item.FilePath;
+
+            // 检查记录是否存在，决定是更新还是插入
+            bool exists = await DataBaseService.RecordExistsAsync(
+                DataBaseService.Table.MUSICS,
+                nameof(MusicItemModel.FilePath),
+                filePath
+            );
+
+            if (exists)
+            {
+                // 更新现有记录
+                await DataBaseService.UpdateDataAsync(
+                    data,
+                    DataBaseService.Table.MUSICS,
+                    nameof(MusicItemModel.FilePath),
+                    filePath
+                );
+            }
+            else
+            {
+                // 插入新记录
+                await DataBaseService.InsertDataAsync(data, DataBaseService.Table.MUSICS);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"保存音乐项失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 保存当前播放列表到数据库
+    /// </summary>
+    private async Task SavePlaylistAsync()
+    {
+        // 如果为未命名（临时）播放列表，则不保存
+        if (Playlist.Name == string.Empty)
+            return;
+
+        try
+        {
+            // 首先删除当前播放列表的所有记录
+            await DataBaseService.DeleteDataAsync(
+                DataBaseService.Table.PLAYLISTS,
+                nameof(PlaylistModel.Name),
+                Playlist.Name
+            );
+
+            // 保存播放列表中的每首歌曲
+            foreach (var musicItem in Playlist.MusicItems)
+            {
+                var playlistData = new Dictionary<string, string?>
+                {
+                    [nameof(PlaylistModel.Name)] = Playlist.Name,
+                    [nameof(MusicItemModel.FilePath)] = musicItem.FilePath,
+                };
+
+                await DataBaseService.InsertDataAsync(playlistData, DataBaseService.Table.PLAYLISTS);
+            }
+
+            // 更新或插入播放列表名称记录
+            var listNameData = Playlist.Dump();
+
+            bool exists = await DataBaseService.RecordExistsAsync(
+                DataBaseService.Table.LISTNAMES,
+                nameof(PlaylistModel.Name),
+                Playlist.Name
+            );
+
+            if (exists)
+            {
+                await DataBaseService.UpdateDataAsync(
+                    listNameData,
+                    DataBaseService.Table.LISTNAMES,
+                    nameof(PlaylistModel.Name),
+                    Playlist.Name
+                );
+            }
+            else
+            {
+                await DataBaseService.InsertDataAsync(listNameData, DataBaseService.Table.LISTNAMES);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"保存播放列表失败: {ex.Message}");
         }
     }
 
@@ -424,7 +544,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         if (!Playlist.MusicItems.Contains(musicItem))
         {
-            Playlist.MusicItems = new ObservableCollection<MusicItemModel>(MusicItems);
+            Playlist = new PlaylistModel { MusicItems = new ObservableCollection<MusicItemModel>(MusicItems) };
         }
 
         if (restart || IsNearEnd(musicItem))
@@ -450,6 +570,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
             CurrentMusicItem = musicItem;
             CurrentDurationInSeconds = musicItem.Current.TotalSeconds;
             CurrentMusicItemChanged?.Invoke(this, musicItem);
+            Playlist.LatestPlayedMusic = CurrentMusicItem.FilePath;
         }
         catch (Exception ex)
         {

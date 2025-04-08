@@ -20,7 +20,7 @@ public partial class PlayerConfig : ObservableObject
 
     public bool IsRealRandom { get; set; }
 
-    public static string LatestPlayListName => string.Empty;
+    public string LatestPlayListName { get; set; } = "默认播放列表";
 
     public static int[] AudioOutputSampleRateArray { get; } =
         [44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000];

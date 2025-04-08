@@ -59,7 +59,6 @@
         </ResourceDictionary>
 
         <converter:CalcConverter x:Key="CalcConverter" />
-        <converter:AlbumImageConverter x:Key="AlbumImageConverter" />
         <converter:TruncateDecimalConverter x:Key="TruncateDecimalConverter" />
         <converter:SecondsToStringConverter x:Key="SecondsToStringConverter" />
         <converter:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />

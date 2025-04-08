@@ -2,8 +2,8 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d"
-    x:Class="QwQ_Music.Views.Pages.MusicPage"
-    x:DataType="viewModels:MusicPageViewModel"
+    x:Class="QwQ_Music.Views.Pages.AllMusicPage"
+    x:DataType="viewModels:AllMusicPageViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -112,7 +112,7 @@
                             <ContextMenu>
                                 <!--  ReSharper disable once Xaml.PossibleNullReferenceException  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
                                     CommandParameter="{Binding}"
                                     Header="立即播放">
                                     <MenuItem.Icon>
@@ -121,7 +121,7 @@
                                 </MenuItem>
                                 <!--  ReSharper disable once Xaml.PossibleNullReferenceException  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.AddToMusicListNextItemCommand}"
+                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.AddToMusicListNextItemCommand}"
                                     CommandParameter="{Binding}"
                                     Header="添加到下一首">
                                     <MenuItem.Icon>
@@ -133,7 +133,7 @@
                                 </MenuItem>
 
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.ClearMusicItemCurrentDurationCommand}"
+                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ClearMusicItemCurrentDurationCommand}"
                                     CommandParameter="{Binding}"
                                     Header="清空播放时长">
                                     <MenuItem.Icon>
@@ -200,12 +200,12 @@
 
                                 <!--  ReSharper disable Xaml.PossibleNullReferenceException  -->
                                 <userControls:MusicAlbumButton
-                                    Command="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
                                     CommandParameter="{Binding}"
                                     CornerRadius="8"
-                                    CurrentMusicItem="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
+                                    CurrentMusicItem="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
                                     ExternalMouseTouch="{Binding $parent[DataGridRow].IsPointerOver}"
-                                    IsPlaying="{Binding $parent[UserControl].((viewModels:MusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
+                                    IsPlaying="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
                                     <!--  ReSharper restore Xaml.PossibleNullReferenceException  -->
                                     <Button.Effect>
                                         <DropShadowEffect
@@ -218,11 +218,11 @@
                                 </userControls:MusicAlbumButton>
 
                                 <StackPanel Spacing="5" VerticalAlignment="Center">
-                                    <TextBlock FontWeight="Bold" Text="{Binding TitleProperty}" />
+                                    <TextBlock FontWeight="Bold" Text="{Binding Title}" />
                                     <TextBlock
                                         Classes="Tertiary"
                                         FontSize="12"
-                                        Text="{Binding ArtistsProperty}" />
+                                        Text="{Binding Artists}" />
                                 </StackPanel>
 
                             </StackPanel>
@@ -232,7 +232,7 @@
                 </DataGridTemplateColumn>
 
                 <DataGridTextColumn
-                    Binding="{Binding AlbumProperty}"
+                    Binding="{Binding Album}"
                     Header="专辑"
                     Width="1*" />
 
@@ -245,7 +245,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Spacing="5" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding DurationProperty, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}}" />
+                                <TextBlock Text="{Binding Duration, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}}" />
 
                                 <TextBlock
                                     Classes="Tertiary"
@@ -257,7 +257,7 @@
                 </DataGridTemplateColumn>
 
                 <DataGridTextColumn
-                    Binding="{Binding FileSizeProperty}"
+                    Binding="{Binding FileSize}"
                     Header="大小"
                     IsVisible="{Binding IsChecked, ElementName=MoreColumn2}"
                     MinWidth="100" />

@@ -189,10 +189,10 @@ namespace Impressionist.Implementations
             return lab.LABVectorToXYZVector().XYZVectorToRGBVector();
         }
 
-        internal static float A = 0.17883277f;
-        internal static float B = 0.28466892f;
-        internal static float C = 0.55991073f;
-        internal static float HLGGap = 1f / 12f;
+        internal static readonly float A = 0.17883277f;
+        internal static readonly float B = 0.28466892f;
+        internal static readonly float C = 0.55991073f;
+        internal static readonly float HLGGap = 1f / 12f;
 
         internal static float HLGFunction1(float s)
         {
@@ -221,7 +221,7 @@ namespace Impressionist.Implementations
             }
         }
 
-        internal static float BT709Gap = 0.018f;
+        internal static readonly float BT709Gap = 0.018f;
 
         internal static float BT709Function1(float s)
         {
@@ -250,7 +250,7 @@ namespace Impressionist.Implementations
             }
         }
 
-        internal static float sRGBGap = 0.0031308f;
+        internal static readonly float sRGBGap = 0.0031308f;
 
         internal static float sRGBFunction1(float s)
         {

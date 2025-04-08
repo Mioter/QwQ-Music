@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ATL;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using QwQ_Music.Models;
+using QwQ_Music.Utilities;
 using File = System.IO.File;
 using PlayerConfig = QwQ_Music.Models.ConfigModel.PlayerConfig;
 
@@ -13,11 +16,13 @@ namespace QwQ_Music.Services;
 
 public static class MusicExtractor
 {
-    // 添加缓存大小限制和LRU跟踪
-    private static readonly Dictionary<string, Bitmap> ImageCache = new();
-    private static readonly LinkedList<string> CacheOrder = [];
-    private const int MaxCacheSize = 50; // 最大缓存图片数量
     private const int DefaultThumbnailWidth = 128; // 默认缩略图宽度，降低了原来的256
+    
+    private const int DefaultCacheCapacity = 100;  // 默认缓存容量
+    
+    public static readonly Dictionary<string, Bitmap> ImageCache = new();
+    
+    public static readonly Bitmap DefaultCover = GetDefaultCover();
 
     /// <summary>
     /// 异步保存专辑封面图片。
@@ -90,7 +95,7 @@ public static class MusicExtractor
                 track.Language ?? string.Empty,
                 // 添加技术信息
                 track.IsVBR,
-                track.AudioFormat.ShortName,
+                track.AudioFormat.DataFormat.Name,
                 track.Encoder ?? string.Empty
             );
         });
@@ -165,40 +170,25 @@ public static class MusicExtractor
             string album = track.Album;
             var duration = TimeSpan.FromMilliseconds(track.DurationMs);
             string comment = track.Comment;
-            string encodingFormat = track.Description;
+            string encodingFormat = track.AudioFormat.ShortName;
 
-            if (track.EmbeddedPictures.Count <= 0)
+            string? coverFileName = null;
+
+            if (track.EmbeddedPictures.Count > 0)
             {
-                return new MusicItemModel(
-                    title,
-                    artists,
-                    composer,
-                    album,
-                    null,
-                    filePath,
-                    fileSize,
-                    null,
-                    duration,
-                    encodingFormat,
-                    comment
-                );
-            }
-            string coverFileName = CleanFileName(
-                $"{(artists.Length > 20 ? artists[..20] : artists)}-{(album?.Length > 20 ? album[..20] : album)
-                }.jpg"
-            );
-
-            await SaveCoverAsync(
+                coverFileName = GetCoverFileName(artists, album);
+                await SaveCoverAsync(
                     new Lazy<Bitmap>(new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData))),
                     coverFileName
-                )
-                .ConfigureAwait(false);
+                );
+            }
+
             return new MusicItemModel(
                 title,
                 artists,
                 composer,
                 album,
-                Path.Combine(PlayerConfig.CoverSavePath, coverFileName),
+                coverFileName,
                 filePath,
                 fileSize,
                 null,
@@ -212,6 +202,15 @@ public static class MusicExtractor
             LoggerService.Error($"Error reading metadata from {filePath}: {ex.Message}");
             return null;
         }
+    }
+
+    private static string GetCoverFileName(string artists, string album)
+    {
+        string coverFileName = CleanFileName(
+            $"{(artists.Length > 20 ? artists[..20] : artists)}-{(album.Length > 20 ? album[..20] : album)
+            }.jpg"
+        );
+        return Path.Combine(PlayerConfig.CoverSavePath, coverFileName);
     }
 
     /// <summary>
@@ -228,7 +227,9 @@ public static class MusicExtractor
         }
         try
         {
-            return new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return Task.Run(() => new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                .GetAwaiter()
+                .GetResult();
         }
         catch (Exception ex)
         {
@@ -238,46 +239,17 @@ public static class MusicExtractor
     }
 
     /// <summary>
-    /// 从缓存中加载压缩的位图。
+    /// 加载压缩的位图。
     /// </summary>
     /// <param name="coverPath">专辑封面索引。</param>
     /// <returns>压缩后的位图。</returns>
-    public static Bitmap? LoadCompressedBitmapFromCache(string coverPath)
+    public static Bitmap? LoadCompressedBitmap(string coverPath)
     {
-        // 尝试从缓存中加载
-        if (ImageCache.TryGetValue(coverPath, out var cachedImage))
-        {
-            // 更新LRU顺序
-            CacheOrder.Remove(coverPath);
-            CacheOrder.AddFirst(coverPath);
-            return cachedImage;
-        }
-
         using var stream = GetFileStream(coverPath);
-        if (stream == null)
-        {
-            return null;
-        }
 
         try
         {
-            // 解码并缩放图片，使用较小的宽度
-            var bitmap = Bitmap.DecodeToWidth(stream, DefaultThumbnailWidth);
-
-            // 管理缓存大小
-            if (ImageCache.Count >= MaxCacheSize && CacheOrder is { Count: > 0, Last: not null })
-            // 移除最久未使用的图片
-            {
-                string oldestKey = CacheOrder.Last.Value;
-                CacheOrder.RemoveLast();
-                ImageCache.Remove(oldestKey);
-            }
-
-            // 更新缓存
-            ImageCache[coverPath] = bitmap;
-            CacheOrder.AddFirst(coverPath);
-
-            return bitmap;
+            return stream == null ? null : Bitmap.DecodeToWidth(stream, DefaultThumbnailWidth); // 解码并缩放图片，使用较小的宽度
         }
         catch (Exception ex)
         {
@@ -297,15 +269,10 @@ public static class MusicExtractor
     {
         // 获取文件流
         using var stream = GetFileStream(coverPath);
-        if (stream == null)
-        {
-            return null;
-        }
 
         try
         {
-            // 直接解码图片
-            return new Bitmap(stream);
+            return stream == null ? null : new Bitmap(stream); // 直接解码图片
         }
         catch (Exception ex)
         {
@@ -315,6 +282,9 @@ public static class MusicExtractor
             return null;
         }
     }
+
+    public static Bitmap GetDefaultCover() =>
+        new(AssetLoader.Open(new Uri("avares://QwQ Music/Assets/Images/看我.png")));
 
     /// <summary>
     /// 格式化文件大小为人类可读的形式。
@@ -344,4 +314,38 @@ public static class MusicExtractor
     /// <returns>清理后的文件名。</returns>
     private static string CleanFileName(string fileName) =>
         Path.GetInvalidFileNameChars().Aggregate(fileName, (current, c) => current.Replace(c, '&'));
+
+    /// <summary>
+    /// 从音频文件中提取专辑封面并保存
+    /// </summary>
+    /// <param name="filePath">音频文件路径</param>
+    /// <returns>保存后的封面图片路径，如果没有封面则返回null</returns>
+    public static async Task<string?> ExtractAndSaveCoverFromAudioAsync(string filePath)
+    {
+        try
+        {
+            var track = new Track(filePath);
+
+            if (track.EmbeddedPictures.Count > 0)
+            {
+                string artists = track.Artist;
+                string album = track.Album;
+                string coverFileName = GetCoverFileName(artists, album);
+
+                await SaveCoverAsync(
+                    new Lazy<Bitmap>(new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData))),
+                    coverFileName
+                );
+
+                return coverFileName;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            LoggerService.Error($"Error extracting cover from audio file {filePath}: {ex.Message}");
+            return null;
+        }
+    }
 }

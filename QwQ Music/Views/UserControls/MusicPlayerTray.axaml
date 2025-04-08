@@ -11,6 +11,7 @@
     xmlns:enums="clr-namespace:QwQ_Music.Enums"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:u="https://irihi.tech/ursa"
+    xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
     xmlns:viewModel="clr-namespace:QwQ_Music.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
@@ -58,10 +59,7 @@
                         Margin="5"
                         behaviors:DynamicCornerBehavior.IsEnabled="True">
                         <!--  专辑封面 Image 控件  -->
-                        <Image
-                            Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}"
-                            RenderOptions.BitmapBlendingMode="Source"
-                            Source="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty, Converter={StaticResource AlbumImageConverter}}">
+                        <Image Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}" Source="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverImage}">
 
                             <Image.RenderTransform>
                                 <RotateTransform Angle="{Binding AlbumCoverCurrentAngle, Mode=OneWayToSource}" />
@@ -83,23 +81,23 @@
 
                 <TextBlock
                     FontWeight="DemiBold"
-                    Text="{Binding MusicPlayerViewModel.CurrentMusicItem.TitleProperty}"
+                    Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Title}"
                     TextTrimming="CharacterEllipsis"
                     ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
                 <TextBlock
                     Classes="Tertiary"
                     FontSize="12"
-                    Text="{Binding MusicPlayerViewModel.CurrentMusicItem.ArtistsProperty}"
+                    Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Artists}"
                     TextTrimming="CharacterEllipsis"
                     ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
 
             </StackPanel>
 
-            <!--  播放信息  -->
+            <!--  播放控制  -->
             <Grid
                 ColumnDefinitions="*,Auto"
                 Grid.Column="2"
-                Margin="0,5,0,10"
+                Margin="0,0,0,10"
                 RowDefinitions="*,Auto">
 
                 <!--  播放控制  -->
@@ -120,7 +118,7 @@
                         Command="{Binding MusicPlayerViewModel.RefreshCurrentMusicItemCommand}"
                         Foreground="{DynamicResource TextBlockDefaultForeground}"
                         Height="25"
-                        IsEnabled="{Binding MusicPlayerViewModel.CurrentMusicItem.FilePathProperty, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=''}"
+                        IsEnabled="{Binding MusicPlayerViewModel.CurrentMusicItem.FilePath, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=''}"
                         behaviors:DynamicCornerBehavior.IsEnabled="True">
                         <PathIcon Data="{StaticResource SemiIconRefresh2}" Margin="5" />
                     </Button>
@@ -138,88 +136,7 @@
                     </Button>
 
                     <!--  播放/暂停 按钮  -->
-                    <Button
-                        Classes="None"
-                        Command="{Binding MusicPlayerViewModel.TogglePlaybackCommand}"
-                        Name="PlayButton">
-
-                        <Panel>
-                            <Border
-                                Background="#FF51C5FF"
-                                Classes.Reduction="{Binding !#PlayButton.IsPointerOver}"
-                                Classes.Run="{Binding #PlayButton.IsPointerOver}"
-                                ClipToBounds="True"
-                                Padding="{Binding PlayButtonPadding, Mode=OneWayToSource}"
-                                behaviors:DynamicCornerBehavior.IsEnabled="True">
-                                <Border.RenderTransform>
-                                    <RotateTransform Angle="{Binding PlayButtonAngle, Mode=OneWayToSource}" />
-                                </Border.RenderTransform>
-
-                                <Border.Styles>
-
-                                    <Style Selector="Border.Reduction">
-                                        <Style.Animations>
-                                            <Animation
-                                                Duration="0:0:1"
-                                                Easing="QuadraticEaseIn"
-                                                FillMode="Forward">
-                                                <KeyFrame Cue="0%" KeySpline="0.3,1.3,1,0.13">
-                                                    <Setter Property="RotateTransform.Angle" Value="{Binding PlayButtonAngle}" />
-                                                    <Setter Property="Padding" Value="{Binding PlayButtonPadding}" />
-                                                </KeyFrame>
-                                                <KeyFrame Cue="100%" KeySpline="0.3,1.3,1,1.13">
-                                                    <Setter Property="RotateTransform.Angle" Value="0" />
-                                                    <Setter Property="Padding" Value="0" />
-                                                </KeyFrame>
-                                            </Animation>
-                                        </Style.Animations>
-                                    </Style>
-
-                                    <Style Selector="Border.Run">
-                                        <Style.Animations>
-                                            <Animation
-                                                Duration="0:0:1"
-                                                Easing="QuadraticEaseIn"
-                                                FillMode="Forward">
-                                                <KeyFrame Cue="0%" KeySpline="0.3,1.3,1,0.13">
-                                                    <Setter Property="RotateTransform.Angle" Value="{Binding PlayButtonAngle}" />
-                                                    <Setter Property="Padding" Value="{Binding PlayButtonPadding}" />
-                                                </KeyFrame>
-                                                <KeyFrame Cue="100%" KeySpline="0.3,1.3,1,1.13">
-                                                    <Setter Property="RotateTransform.Angle" Value="180" />
-                                                    <Setter Property="Padding" Value="5" />
-                                                </KeyFrame>
-                                            </Animation>
-                                        </Style.Animations>
-                                    </Style>
-
-                                </Border.Styles>
-
-                                <Ellipse Fill="#FF7BE0FF" Margin="3">
-                                    <Ellipse.RenderTransform>
-                                        <TranslateTransform X="-8" Y="8" />
-                                    </Ellipse.RenderTransform>
-                                </Ellipse>
-
-                            </Border>
-
-                            <control:SwitchControl
-                                Condition="{Binding MusicPlayerViewModel.IsPlaying}"
-                                Height="30"
-                                Width="30">
-
-                                <control:SwitchControl.TrueContent>
-                                    <PathIcon Data="{StaticResource PauseIconData}" Foreground="White" />
-                                </control:SwitchControl.TrueContent>
-
-                                <control:SwitchControl.FalseContent>
-                                    <PathIcon Data="{StaticResource PlayIconData}" Foreground="White" />
-                                </control:SwitchControl.FalseContent>
-
-                            </control:SwitchControl>
-
-                        </Panel>
-                    </Button>
+                    <userControls:MusicPlayButton />
 
                     <!--  下一首  -->
                     <Button
@@ -265,14 +182,13 @@
                     Grid.Column="0"
                     Grid.Row="1"
                     Margin="10,0"
-                    Maximum="{Binding MusicPlayerViewModel.CurrentMusicItem.DurationProperty.TotalSeconds}"
+                    Maximum="{Binding MusicPlayerViewModel.CurrentMusicItem.Duration.TotalSeconds}"
                     Value="{Binding MusicPlayerViewModel.CurrentDurationInSeconds}" />
 
                 <!--  播放时长 / 总时长  -->
                 <StackPanel
                     Grid.Column="1"
                     Grid.Row="1"
-                    Margin="0,0,10,0"
                     Orientation="Horizontal">
 
                     <TextBlock
@@ -282,7 +198,7 @@
 
                     <TextBlock
                         FontSize="11"
-                        Text="{Binding MusicPlayerViewModel.CurrentMusicItem.DurationProperty, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}, StringFormat=' / {0}'}"
+                        Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Duration, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}, StringFormat=' / {0}'}"
                         VerticalAlignment="Center" />
 
                     <StackPanel.Styles>
@@ -377,7 +293,8 @@
                                             Classes="Transparent"
                                             Command="{Binding NavigationToSoundEffectViewCommand}"
                                             CornerRadius="8"
-                                            Icon="{StaticResource SemiIconBox}" />
+                                            Icon="{StaticResource SemiIconBox}"
+                                            IsEnabled="{Binding CurrentViewName, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter='音效'}" />
 
                                         <u:IconButton
                                             Classes="Transparent"

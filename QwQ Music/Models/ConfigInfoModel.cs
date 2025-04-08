@@ -46,15 +46,26 @@ public static class ConfigInfoModel
 
     // SoundEffectConfig 实现
     // ReSharper disable once InconsistentNaming
-    private static readonly Lazy<AudioModifierConfig> _soundEffectConfig = new(
+    private static readonly Lazy<AudioModifierConfig> _audioModifierConfig = new(
         () =>
             JsonConfigService.Load<AudioModifierConfig>(
                 nameof(AudioModifierConfig).ToLower(),
-                SoundEffectConfigModelJsonSerializerContext.Default
+                AudioModifierConfigJsonSerializerContext.Default
             ) ?? new AudioModifierConfig()
     );
 
-    public static AudioModifierConfig AudioModifierConfig => _soundEffectConfig.Value;
+    public static AudioModifierConfig AudioModifierConfig => _audioModifierConfig.Value;
+
+    // ReSharper disable once InconsistentNaming
+    private static readonly Lazy<InterfaceConfig> _interfaceConfig = new(
+        () =>
+            JsonConfigService.Load<InterfaceConfig>(
+                nameof(InterfaceConfig).ToLower(),
+                InterfaceConfigJsonSerializerContext.Default
+            ) ?? new InterfaceConfig()
+    );
+
+    public static InterfaceConfig InterfaceConfig => _interfaceConfig.Value;
 
     #endregion
 
@@ -65,7 +76,7 @@ public static class ConfigInfoModel
         if (_mainConfig.IsValueCreated)
         {
             JsonConfigService
-                .SaveAsync(MainConfig, nameof(MainConfig).ToLower(), MainConfigJsonSerializerContext.Default)
+                .SaveAsync(MainConfig, nameof(MainConfig).ToLower(), InterfaceConfigJsonSerializerContext.Default)
                 .Wait();
         }
     }
@@ -73,13 +84,13 @@ public static class ConfigInfoModel
     public static void SaveSoundEffectConfig()
     {
         // 只有当SoundEffectConfig已经被初始化时才保存
-        if (_soundEffectConfig.IsValueCreated)
+        if (_audioModifierConfig.IsValueCreated)
         {
             JsonConfigService
                 .SaveAsync(
                     AudioModifierConfig,
                     nameof(AudioModifierConfig).ToLower(),
-                    SoundEffectConfigModelJsonSerializerContext.Default
+                    AudioModifierConfigJsonSerializerContext.Default
                 )
                 .ConfigureAwait(false);
         }
@@ -109,10 +120,25 @@ public static class ConfigInfoModel
         }
     }
 
+    public static void SaveInterfaceConfig()
+    {
+        if (_interfaceConfig.IsValueCreated)
+        {
+            JsonConfigService
+                .SaveAsync(
+                    InterfaceConfig,
+                    nameof(InterfaceConfig).ToLower(),
+                    InterfaceConfigJsonSerializerContext.Default
+                )
+                .Wait();
+        }
+    }
+
     // 添加保存所有已加载配置的方法
     public static void SaveAll()
     {
         SaveMainConfig();
+        SaveInterfaceConfig();
         SavePlayerConfig();
         SaveDesktopLyricConfig();
         SaveSoundEffectConfig();

@@ -2,6 +2,7 @@
 using Avalonia;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
+using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities.MessageBus;
 
 namespace QwQ_Music;
@@ -35,6 +36,7 @@ public static class Program
             StrongMessageBus.Instance.Publish(new ExitReminderMessage { Success = true });
             StrongMessageBus.Instance.Dispose();
 
+            DataBaseService.CloseConnectionAsync().Wait();
             LoggerService.Shutdown();
         }
         catch (Exception ex)

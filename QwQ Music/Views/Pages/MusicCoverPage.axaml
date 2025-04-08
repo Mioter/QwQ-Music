@@ -1,0 +1,216 @@
+<UserControl
+    d:DesignHeight="600"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="QwQ_Music.Views.Pages.MusicCoverPage"
+    x:DataType="viewModels:MusicCoverPageViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
+    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+    xmlns:controls="clr-namespace:QwQ_Music.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enums="clr-namespace:QwQ_Music.Enums"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Panel>
+
+        <Panel.Styles>
+            <Style Selector="u|IconButton">
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+        </Panel.Styles>
+
+        <controls:ShaderEffectControl
+            Colors="{Binding ColorsList}"
+            IsEnableAnimation="{Binding IsShaderAnimationEnabled}"
+            PerformanceMode="HighQuality"
+            ShaderCode="{Binding ShaderCode}" />
+
+        <!--  内容层  -->
+        <Grid RowDefinitions="40,*,Auto">
+
+            <u:IconButton
+                Command="{Binding $parent[Window].((viewModels:MainWindowViewModel)DataContext).ShowMusicPlayerPageCommand}"
+                Height="30"
+                Icon="{StaticResource SemiIconChevronDown}"
+                Margin="5"
+                VerticalAlignment="Top"
+                Width="30" />
+
+            <Grid ColumnDefinitions="Auto,Auto" Grid.Row="1">
+
+                <Grid
+                    Margin="30,0"
+                    RowDefinitions="*,Auto"
+                    RowSpacing="10">
+                    <Border CornerRadius="20">
+                        <Border ClipToBounds="True" CornerRadius="{Binding $parent[Border].CornerRadius}">
+                            <!--  专辑封面 Image 控件  -->
+                            <Image Source="{Binding CoverImage}" />
+                        </Border>
+                    </Border>
+
+                    <!--  音乐信息  -->
+                    <StackPanel
+                        Grid.Row="1"
+                        HorizontalAlignment="Left"
+                        Margin="10,0"
+                        Spacing="5"
+                        VerticalAlignment="Center">
+
+                        <TextBlock
+                            FontSize="16"
+                            FontWeight="DemiBold"
+                            Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Title}"
+                            TextTrimming="CharacterEllipsis"
+                            ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
+                        <TextBlock
+                            Classes="Tertiary"
+                            FontSize="14"
+                            Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Artists}"
+                            TextTrimming="CharacterEllipsis"
+                            ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
+
+                    </StackPanel>
+
+                </Grid>
+
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*,Auto" Grid.Row="2">
+
+                <!--  播放控制  -->
+                <StackPanel
+                    Grid.Column="1"
+                    Margin="20"
+                    VerticalAlignment="Bottom">
+
+                    <!--  播放控制  -->
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Margin="20"
+                        Orientation="Horizontal"
+                        Spacing="30">
+
+                        <StackPanel.Styles>
+                            <Style Selector="StackPanel &gt; Button">
+                                <Setter Property="Padding" Value="0" />
+                            </Style>
+                        </StackPanel.Styles>
+
+                        <!--  刷新播放  -->
+                        <Button
+                            Classes="Icon"
+                            Command="{Binding MusicPlayerViewModel.RefreshCurrentMusicItemCommand}"
+                            Foreground="{DynamicResource TextBlockDefaultForeground}"
+                            Height="25"
+                            IsEnabled="{Binding MusicPlayerViewModel.CurrentMusicItem.FilePath, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=''}"
+                            behaviors:DynamicCornerBehavior.IsEnabled="True">
+                            <PathIcon Data="{StaticResource SemiIconRefresh2}" Margin="5" />
+                        </Button>
+
+                        <!--  上一首  -->
+                        <Button
+                            Classes="Icon"
+                            Command="{Binding MusicPlayerViewModel.TogglePreviousSongCommand}"
+                            Foreground="{DynamicResource TextBlockDefaultForeground}"
+                            behaviors:DynamicCornerBehavior.IsEnabled="True">
+                            <PathIcon
+                                Data="{StaticResource PlayIconData}"
+                                Height="30"
+                                RenderTransform="rotate(180deg)" />
+                        </Button>
+
+                        <!--  播放/暂停 按钮  -->
+                        <userControls:MusicPlayButton />
+
+                        <!--  下一首  -->
+                        <Button
+                            Classes="Icon"
+                            Command="{Binding MusicPlayerViewModel.ToggleNextSongCommand}"
+                            Foreground="{DynamicResource TextBlockDefaultForeground}"
+                            behaviors:DynamicCornerBehavior.IsEnabled="True">
+                            <PathIcon Data="{StaticResource PlayIconData}" Height="30" />
+                        </Button>
+
+                        <!--  播放模式  -->
+                        <Button
+                            Classes="Icon"
+                            Command="{Binding MusicPlayerViewModel.TogglePlayModeCommand}"
+                            Foreground="{DynamicResource TextBlockDefaultForeground}"
+                            Height="25"
+                            ToolTip.Placement="Top"
+                            ToolTip.Tip="{Binding MusicPlayerViewModel.PlayModeName}"
+                            ToolTip.VerticalOffset="-10"
+                            behaviors:DynamicCornerBehavior.IsEnabled="True">
+                            <control:ChoiceControl Selected="{Binding MusicPlayerViewModel.PlayerConfig.PlayMode}" TargetType="{x:Type enums:PlayMode}">
+                                <PathIcon
+                                    Data="{StaticResource Sequential}"
+                                    Margin="3.6"
+                                    control:ChoiceControl.SelectName="Sequential" />
+
+                                <PathIcon
+                                    Data="{StaticResource Random}"
+                                    Margin="4.8"
+                                    control:ChoiceControl.SelectName="Random" />
+
+                                <PathIcon
+                                    Data="{StaticResource SingleLoop}"
+                                    Margin="4"
+                                    control:ChoiceControl.SelectName="SingleLoop" />
+                            </control:ChoiceControl>
+                        </Button>
+
+                    </StackPanel>
+
+                    <!--  进度条  -->
+                    <Slider Maximum="{Binding MusicPlayerViewModel.CurrentMusicItem.Duration.TotalSeconds}" Value="{Binding MusicPlayerViewModel.CurrentDurationInSeconds}" />
+
+                    <!--  播放时长 / 总时长  -->
+                    <Panel>
+
+                        <TextBlock FontSize="13" Text="{Binding MusicPlayerViewModel.CurrentDurationInSeconds, Mode=OneWay, Converter={StaticResource SecondsToStringConverter}}" />
+
+                        <TextBlock
+                            FontSize="13"
+                            HorizontalAlignment="Right"
+                            Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Duration, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}}" />
+
+                        <Panel.Styles>
+                            <Style Selector="Panel &gt; TextBlock">
+                                <Setter Property="FontFamily" Value="{StaticResource Consolab}" />
+                            </Style>
+                        </Panel.Styles>
+
+                    </Panel>
+
+                </StackPanel>
+
+            </Grid>
+
+        </Grid>
+
+        <!--
+        ~1~  动态颜色遮罩  @1@
+        <Rectangle Opacity="1">
+            <Rectangle.Fill>
+                <RadialGradientBrush Center="25%,70%" GradientOrigin="20%,70%" RadiusX="50%" RadiusY="70%">
+                    <GradientStop Color="{Binding ColorsList[0]}" Offset="0" />
+                    <GradientStop Color="{Binding ColorsList[1]}" Offset="0.9" />
+                    <GradientStop Color="{Binding ColorsList[2]}" Offset="1" />
+                </RadialGradientBrush>
+            </Rectangle.Fill>
+            <Rectangle.Effect>
+                <BlurEffect Radius="250" />
+            </Rectangle.Effect>
+        </Rectangle>
+        -->
+
+    </Panel>
+
+</UserControl>

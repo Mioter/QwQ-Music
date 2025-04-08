@@ -225,7 +225,7 @@
                     </DataTemplate>
                 </control:IndexControl.DataTemplates>-->
 
-                <pages:MusicPage />
+                <pages:AllMusicPage />
                 <pages:ClassificationPage />
                 <pages:StatisticsPage />
                 <pages:ConfigMainPage />
@@ -382,9 +382,9 @@
             Classes.Visible="{Binding IsMusicPlayerPageVisible}"
             Grid.Row="0"
             Grid.RowSpan="2"
-            Height="{Binding MusicPlayerPageHeight}"
+            Height="{Binding MusicCoverPageHeight}"
             Margin="{Binding $parent[Window].OffScreenMargin}"
-            MinHeight="800"
+            MinHeight="{Binding $parent[Window].MinHeight}"
             Name="MusicPlayerPagePanel"
             VerticalAlignment="Bottom">
             <Panel.RenderTransform>
@@ -421,8 +421,7 @@
                 </Style>
             </Panel.Styles>
 
-            <pages:MusicPlayerPage />
-
+            <pages:MusicCoverPage />
 
         </Panel>
 

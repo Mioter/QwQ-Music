@@ -15,7 +15,7 @@ public sealed class StereoEnhancementModifier : SoundModifier
     private float _enhancementFactor = 1.5f;
     private float _stereoWidth = 1.0f;
     private float _highFrequencyBoost = 1.0f;
-    private float _dynamicRangeCompression = 0.0f;
+    private float _dynamicRangeCompression;
 
     /// <inheritdoc />
     public override string Name { get; set; } = "Stereo Enhancement";

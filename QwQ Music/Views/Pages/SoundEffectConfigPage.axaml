@@ -16,7 +16,6 @@
 
     <Grid ColumnDefinitions="Auto,*" Margin="0,10,10,10">
 
-
         <ScrollViewer>
 
             <u:SelectionList Margin="0,0,10,0" SelectedIndex="{Binding SelectedIndex}">
@@ -245,7 +244,7 @@
                                     Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}"
                                     Height="30"
                                     RenderOptions.BitmapBlendingMode="Source"
-                                    Source="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverPathProperty, Converter={StaticResource AlbumImageConverter}}"
+                                    Source="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverImage}"
                                     Width="30" />
                             </Border>
 

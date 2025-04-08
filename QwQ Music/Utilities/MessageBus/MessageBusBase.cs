@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -54,7 +55,7 @@ public abstract class MessageBusBase : IMessageBus
     protected virtual void OnHandlerException(Exception exception, Type messageType, object message)
     {
         // 默认实现只是记录异常，子类可以覆盖此方法提供自定义异常处理
-        System.Diagnostics.Debug.WriteLine($"MessageBus处理器异常: {exception.Message}, 消息类型: {messageType.Name}");
+        Debug.WriteLine($"MessageBus处理器异常: {exception.Message}, 消息类型: {messageType.Name}");
     }
 
     /// <summary>
