@@ -360,7 +360,7 @@ public static class DataBaseService
     /// <summary>
     /// 检查记录是否存在
     /// </summary>
-    public static async Task<bool> RecordExistsAsync(Table table, string columnName, string value)
+    public static async Task<bool> RecordExistsAsync(Table table, string columnName, string? value)
     {
         await EnsureTableExistsAsync();
         await using var command = Command;
@@ -398,7 +398,7 @@ public static class DataBaseService
         Dictionary<string, string?> data,
         Table table,
         string whereColumn,
-        string whereValue
+        string? whereValue
     )
     {
         try
@@ -565,7 +565,7 @@ public static class DataBaseService
     /// <summary>
     /// 异步删除数据
     /// </summary>
-    public static async Task<bool> DeleteDataAsync(Table table, string whereColumn, string whereValue)
+    public static async Task<bool> DeleteDataAsync(Table table, string whereColumn, string? whereValue)
     {
         try
         {

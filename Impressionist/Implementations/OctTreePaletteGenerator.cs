@@ -154,7 +154,7 @@ namespace Impressionist.Implementations
                             toBreak = true;
                             continue;
                         }
-                        nodesToRemove -= (leaf.ChildrenCount - 1);
+                        nodesToRemove -= leaf.ChildrenCount - 1;
                         leaf.Merge();
                         if (nodesToRemove <= 0)
                         {

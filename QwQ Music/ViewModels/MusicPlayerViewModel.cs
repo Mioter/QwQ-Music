@@ -13,8 +13,11 @@ using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Audio;
 using QwQ_Music.Services.ConfigIO;
+using QwQ_Music.Utilities;
 using QwQ_Music.Utilities.MessageBus;
+using QwQ_Music.Views.UserControls;
 using SoundFlow.Backends.MiniAudio;
+using Ursa.Controls;
 using Log = QwQ_Music.Services.LoggerService;
 
 namespace QwQ_Music.ViewModels;
@@ -126,14 +129,27 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         try
         {
-            var wait = Playlist.LoadAsync();
-
+            // 先加载所有音乐项到 MusicItems 集合
             await foreach (var item in DataBaseService.LoadDataAsync())
             {
                 MusicItems.Add(MusicItemModel.FromDictionary(item));
             }
 
-            await wait;
+            // 加载播放列表并获取文件路径列表
+            var filePaths = await Playlist.LoadAsync();
+
+            // 根据文件路径从 MusicItems 中查找对应项目并添加到播放列表
+            foreach (
+                var musicItem in filePaths
+                    .Select(filePath =>
+                        MusicItems.FirstOrDefault(item => filePath != null && item.FilePath == filePath)
+                    )
+                    .OfType<MusicItemModel>()
+                    .Where(musicItem => !Playlist.MusicItems.Contains(musicItem))
+            )
+            {
+                Playlist.MusicItems.Add(musicItem);
+            }
 
             if (Playlist.LatestPlayedMusic == null)
                 return;
@@ -300,6 +316,40 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     #endregion
 
+    #region 音乐信息展示
+
+    [RelayCommand]
+    private static async Task ShowDialog(MusicItemModel musicItem)
+    {
+        var options = new OverlayDialogOptions
+        {
+            Title = "详细信息",
+            CanLightDismiss = true,
+            CanDragMove = true,
+            IsCloseButtonVisible = true,
+            CanResize = false,
+        };
+
+        await OverlayDialog.ShowCustomModal<AudioDetailedInfo, AudioDetailedInfoViewModel, object>(
+            new AudioDetailedInfoViewModel(musicItem, await musicItem.GetExtensionsInfo()),
+            options: options
+        );
+    }
+
+    [RelayCommand]
+    private static void OpenInExplorer(MusicItemModel musicItem)
+    {
+        if (string.IsNullOrEmpty(musicItem.FilePath) || !File.Exists(musicItem.FilePath))
+        {
+            Log.Warning("无法打开文件位置：文件不存在");
+            return;
+        }
+
+        PathEnsurer.OpenInExplorer(musicItem.FilePath);
+    }
+
+    #endregion
+
     #region 辅助方法
 
     private void OnPlayingChanged(bool value)
@@ -360,19 +410,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
             : isNext ? (current + 1) % Playlist.Count
             : (current - 1 + Playlist.Count) % Playlist.Count,
         };
-
-    // 保留原来的RandomMusicItemIndex方法作为备用
-    private int RandomMusicItemIndex(int current)
-    {
-        var random = new Random();
-        int randomIndex;
-        do
-        {
-            randomIndex = random.Next(0, Playlist.Count);
-        } while (randomIndex == current && Playlist.Count > 1);
-
-        return randomIndex;
-    }
 
     private void ShufflePlaylist()
     {
@@ -559,10 +596,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
             await SetOutputSampleRate(PlayerConfig.SampleRate);
         }
 
-        var args = new CurrentMusicItemChangedCancelEventArgs(musicItem);
-
         try
         {
+            var args = new CurrentMusicItemChangedCancelEventArgs(musicItem);
             CurrentMusicItemChanging?.Invoke(this, args);
             if (args.Cancel)
                 return;

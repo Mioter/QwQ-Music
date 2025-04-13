@@ -2,6 +2,7 @@
     <!--  Add Styles Here  -->
     <StyleInclude Source="Button.axaml" />
     <StyleInclude Source="Slider.axaml" />
+    <StyleInclude Source="Dialog.axaml" />
+    <StyleInclude Source="IconButton.axaml" />
     <StyleInclude Source="ToggleButton.axaml" />
-    <!--<StyleInclude Source="FlyoutPresenter.axaml"/>-->
 </Style>

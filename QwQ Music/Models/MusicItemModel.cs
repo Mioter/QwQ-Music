@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -108,28 +107,27 @@ public class MusicItemModel(
         get;
         set => SetPropertyWithModified(ref field, value);
     } = comment;
-    
+
     // 添加一个标志表示图片是否正在加载
     private CoverStatus _coverStatus;
-    
+
     public Bitmap CoverImage
     {
         get
         {
-            if (CoverPath == null || _coverStatus == CoverStatus.NotExist) 
+            if (CoverPath == null || _coverStatus == CoverStatus.NotExist)
                 return MusicExtractor.DefaultCover;
-            
+
             // 如果已有缓存图片，直接返回
-            if (_coverStatus == CoverStatus.Loaded && MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image))
-                return image;
-            
+            if (_coverStatus == CoverStatus.Loaded && MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image) && image != null)
+                    return image;
+
             // 标记为正在加载
             _coverStatus = CoverStatus.Loading;
 
             // 启动异步加载任务
             Task.Run(async () =>
             {
-
                 var bitmap = MusicExtractor.LoadCompressedBitmap(CoverPath); // 尝试从缓存加载
 
                 // 如果缓存中没有找到封面，尝试从音频文件中提取
@@ -282,7 +280,6 @@ public class MusicItemModel(
 public readonly record struct MusicTagExtensions(
     string Genre,
     int? Year,
-    string[] Composers,
     string Copyright,
     uint Disc,
     uint Track,

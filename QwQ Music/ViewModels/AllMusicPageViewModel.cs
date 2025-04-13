@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Input;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -16,6 +17,8 @@ namespace QwQ_Music.ViewModels;
 
 public partial class AllMusicPageViewModel : ViewModelBase
 {
+    private const string FilePickerTitle = "选择音乐文件";
+
     [ObservableProperty]
     public partial ObservableCollection<MusicItemModel> AllMusicItems { get; set; }
 
@@ -60,13 +63,13 @@ public partial class AllMusicPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ToggleMusic()
+    private async Task ToggleMusicAsync()
     {
         if (SelectedItem == null)
             return;
 
         MusicPlayerViewModel.IsPlaying = false;
-        MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem).ConfigureAwait(false);
+        await MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
     }
 
     [RelayCommand]
@@ -75,18 +78,7 @@ public partial class AllMusicPageViewModel : ViewModelBase
         SelectedItem = null;
         SelectedItem = MusicPlayerViewModel.CurrentMusicItem;
     }
-
-    [RelayCommand]
-    private async Task SelectedPaths(IReadOnlyList<string> paths)
-    {
-        if (paths.Count == 0)
-            return;
-
-        // 直接使用字符串路径列表
-        var allFilePaths = await Task.Run(() => GetAllFilePaths(paths)).ConfigureAwait(false);
-        await ImportMusicFilesAsync(allFilePaths).ConfigureAwait(false);
-    }
-
+    
     [RelayCommand]
     private async Task DropFilesAsync(DragEventArgs? e)
     {
@@ -94,30 +86,66 @@ public partial class AllMusicPageViewModel : ViewModelBase
             return;
 
         var items = e.Data.GetFiles()?.ToList();
-        if (items == null)
+        if (items == null || items.Count == 0)
             return;
 
-        // 将 IStorageItem 转换为路径字符串
-        var paths = items
+        await ProcessStorageItemsAsync(items);
+    }
+
+    [RelayCommand]
+    private async Task OpenFileAsync()
+    {
+        var topLevel = App.TopLevel;
+        if (topLevel == null) return;
+        
+        var items = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = FilePickerTitle,
+            AllowMultiple = true,
+        });
+
+        if (items.Count == 0)
+            return;
+
+        await ProcessStorageItemsAsync(items);
+    }
+
+    /// <summary>
+    /// 处理存储项目并导入音乐文件
+    /// </summary>
+    private async Task ProcessStorageItemsAsync(IReadOnlyList<IStorageItem> items)
+    {
+        var paths = ConvertStorageItemsToPathStrings(items);
+        if (paths.Count == 0)
+            return;
+
+        var allFilePaths = await Task.Run(() => GetAllFilePaths(paths)).ConfigureAwait(false);
+        await ImportMusicFilesAsync(allFilePaths).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 将存储项目转换为路径字符串列表
+    /// </summary>
+    private static List<string> ConvertStorageItemsToPathStrings(IEnumerable<IStorageItem> items)
+    {
+        return items
             .Select(item =>
             {
                 try
                 {
                     return item.Path.IsAbsoluteUri ? item.Path.LocalPath : null;
                 }
-                catch (InvalidOperationException ex)
+                catch (Exception ex) when (ex is InvalidOperationException || ex is UriFormatException)
                 {
                     Console.WriteLine($"无法解析路径: {item.Path} (错误: {ex.Message})");
                     return null;
                 }
             })
-            .Where(path => path != null)
-            .ToList();
-
-        // 获取所有拖入的文件路径
-        var allFilePaths = await Task.Run(() => GetAllFilePaths(paths!)).ConfigureAwait(false);
-        await ImportMusicFilesAsync(allFilePaths).ConfigureAwait(false);
+            .Where(path => !string.IsNullOrEmpty(path))
+            .ToList()!;
     }
+
+
 
     /// <summary>
     /// 导入音乐文件到播放列表
@@ -133,7 +161,7 @@ public partial class AllMusicPageViewModel : ViewModelBase
             return;
 
         // 预加载现有路径集合
-        var existingPaths = new HashSet<string>(
+        var existingPaths = new HashSet<string?>(
             MusicPlayerViewModel.MusicItems.Select(x => x.FilePath),
             StringComparer.OrdinalIgnoreCase
         );
@@ -154,9 +182,10 @@ public partial class AllMusicPageViewModel : ViewModelBase
         // 批量添加到UI集合
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var tempList = MusicPlayerViewModel.MusicItems.ToList();
-            tempList.AddRange(musicItems!);
-            MusicPlayerViewModel.MusicItems = new ObservableCollection<MusicItemModel>(tempList);
+            foreach (var musicItem in musicItems)
+            {
+                MusicPlayerViewModel.MusicItems.Add(musicItem!);
+            }
         });
     }
 

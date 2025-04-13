@@ -27,24 +27,8 @@
             <Setter Property="FontSize" Value="12" />
         </Style>
 
-        <Style Selector="u|IconButton.Transparent">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="MinHeight" Value="0" />
-            <Setter Property="MinWidth" Value="0" />
-
-            <Style Selector="^:pressed">
-                <Setter Property="RenderTransform" Value="scale(0.98)" />
-            </Style>
-
-            <Style Selector="^:pointerover">
-                <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultPointeroverBorderBrush}" />
-                <Setter Property="Background" Value="{DynamicResource ButtonDefaultPointeroverBackground}" />
-            </Style>
-
-            <Style Selector="^:pressed">
-                <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultPressedBorderBrush}" />
-                <Setter Property="Background" Value="{DynamicResource ButtonDefaultPressedBackground}" />
-            </Style>
+        <Style Selector="u|ScrollToButton /template/ Border#PART_Background">
+            <Setter Property="CornerRadius" Value="5" />
         </Style>
 
     </Application.Styles>

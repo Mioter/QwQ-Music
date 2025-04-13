@@ -25,7 +25,7 @@ public partial class PlaylistModel(string name = "") : ObservableObject, IEnumer
     // 添加一个列表来跟踪已播放的歌曲索引
     private static readonly List<int> PlayedIndices = [];
 
-    public async Task LoadAsync()
+    public async Task<List<string?>> LoadAsync()
     {
         // 获取最近播放的音乐列表
         var latestPlayedMusicList = await DataBaseService.LoadSpecifyFieldsAsync(
@@ -36,17 +36,14 @@ public partial class PlaylistModel(string name = "") : ObservableObject, IEnumer
             search: $"{nameof(Name)} = '{Name.Replace("'", "''")}'"
         );
 
-        // 加载播放列表中的音乐
-        await foreach (
-            var itemDict in DataBaseService.LoadDataAsync(
-                DataBaseService.Table.PLAYLISTS,
-                search: $"{nameof(Name)} = '{Name.Replace("'", "''")}'",
-                table2: DataBaseService.Table.MUSICS
-            )
-        )
-        {
-            MusicItems.Add(MusicItemModel.FromDictionary(itemDict));
-        }
+        // 创建一个列表来存储文件路径
+        var filePaths = await DataBaseService.LoadSpecifyFieldsAsync(
+            DataBaseService.Table.PLAYLISTS,
+            [nameof(MusicItemModel.FilePath)],
+            dict =>
+                dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? value) ? value.ToString() ?? null : null,
+            search: $"{nameof(Name)} = '{Name.Replace("'", "''")}'"
+        );
 
         // 设置最近播放的音乐
         if (latestPlayedMusicList.Count > 0)
@@ -54,6 +51,8 @@ public partial class PlaylistModel(string name = "") : ObservableObject, IEnumer
 
         IsError = false;
         IsInitialized = true;
+
+        return filePaths;
     }
 
     public Dictionary<string, string?> Dump() =>

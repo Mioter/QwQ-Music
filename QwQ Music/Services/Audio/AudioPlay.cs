@@ -249,6 +249,7 @@ public class AudioPlay : IAudioPlay
             .AddModifier(_audioModifierConfig.SpatialModifier)
             .AddModifier(_audioModifierConfig.CompressorModifier)
             .AddModifier(_audioModifierConfig.StereoEnhancementModifier)
+            .AddModifier(_audioModifierConfig.SurroundSoundModifier)
             .AddModifier(_audioModifierConfig.TremoloModifier)
             .AddModifier(_audioModifierConfig.DistortionModifier)
             .AddModifier(_audioModifierConfig.ParametricEqualizer)

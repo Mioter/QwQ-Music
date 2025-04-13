@@ -42,32 +42,7 @@
                     Watermark="搜索音乐"
                     Width="200" />
 
-                <u:PathPicker
-                    AllowMultiple="True"
-                    Command="{Binding SelectedPathsCommand}"
-                    IsClearSelectionOnCancel="True"
-                    Theme="{DynamicResource ButtonPathPicker}"
-                    Title="添加音乐"
-                    UsePickerType="OpenFolder">
-                    <u:PathPicker.Styles>
-                        <Style Selector="u|PathPicker /template/ Button">
-                            <Setter Property="Padding" Value="3" />
-                            <Setter Property="CornerRadius" Value="8" />
-                            <Setter Property="Content">
-                                <Template>
-                                    <PathIcon Data="{StaticResource SemiIconPlus}" Height="13.5" />
-                                </Template>
-                            </Setter>
-                        </Style>
-
-                    </u:PathPicker.Styles>
-                </u:PathPicker>
-
-                <!--<u:IconButton
-                    Classes="Icon"
-                    Command="{Binding SelectedCurrentMusicItemCommand}"
-                    Icon="{StaticResource SemiIconPlus}"
-                    ToolTip.Tip="添加音乐" />-->
+                <u:IconButton Command="{Binding OpenFileCommand}" Icon="{StaticResource SemiIconPlus}" />
 
                 <u:IconButton
                     Command="{Binding SelectedCurrentMusicItemCommand}"
@@ -138,6 +113,25 @@
                                     Header="清空播放时长">
                                     <MenuItem.Icon>
                                         <PathIcon Data="{StaticResource ClearEmpty}" Margin="2" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+
+                                <!--  在文件中打开  -->
+                                <MenuItem
+                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="在文件中打开">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconFolder}" Margin="2" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+
+                                <MenuItem
+                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="详细信息">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
                                     </MenuItem.Icon>
                                 </MenuItem>
                             </ContextMenu>

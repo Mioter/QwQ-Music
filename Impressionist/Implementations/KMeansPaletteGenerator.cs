@@ -144,9 +144,9 @@ namespace Impressionist.Implementations
                         count += colors[color];
                     }
 
-                    float x = (sumX / count);
-                    float y = (sumY / count);
-                    float z = (sumZ / count);
+                    float x = sumX / count;
+                    float y = sumY / count;
+                    float z = sumZ / count;
                     var newCenter = new Vector3(x, y, z);
                     if (!newCenter.Equals(centers[i]))
                     {
