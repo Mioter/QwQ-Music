@@ -58,8 +58,33 @@ public static class MusicExtractor
         }
     }
 
-    public static async Task<LyricsModel> ExtractMusicLyricsAsync(string? filePath) =>
-        await Task.Run(() => LyricsModel.ParseAsync(new Track(filePath).Lyricist));
+    public static async Task<LyricsData> ExtractMusicLyricsAsync(string? filePath)
+    {
+        var lyricsData = new LyricsData();
+        var track = new Track(filePath);
+        string? lyric = track.Lyricist;
+        if (!string.IsNullOrEmpty(lyric))
+            return await Task.Run(() => LyricsService.ParseLrcFile(lyric)) ?? lyricsData;
+
+        // 获取目录路径
+        string? directoryPath = Path.GetDirectoryName(filePath);
+
+        // 获取文件名（不含扩展名）
+        string? fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
+
+        // 拼接完整路径（不含扩展名）
+        if (directoryPath == null || fileNameWithoutExtension == null) 
+            return lyricsData;
+        
+        string fullPathWithoutExtension = Path.Combine(directoryPath, fileNameWithoutExtension);
+        string lyricPath = fullPathWithoutExtension + ".lrc";
+        
+        if (!Path.Exists(lyricPath)) 
+            return lyricsData;
+        
+        lyric = await File.ReadAllTextAsync(lyricPath);
+        return await Task.Run(() => LyricsService.ParseLrcFile(lyric)) ?? lyricsData;
+    }
 
     /// <summary>
     /// 异步获取扩展信息
@@ -213,7 +238,7 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="filePath">文件路径。</param>
     /// <returns>文件流，如果文件不存在则返回 null。</returns>
-    private static FileStream? GetFileStream(string filePath)
+    private static async Task<FileStream?> GetFileStream(string filePath)
     {
         if (!File.Exists(filePath))
         {
@@ -222,9 +247,7 @@ public static class MusicExtractor
         }
         try
         {
-            return Task.Run(() => new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                .GetAwaiter()
-                .GetResult();
+            return await Task.Run(() => new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
         catch (Exception ex)
         {
@@ -238,9 +261,9 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="coverPath">专辑封面索引。</param>
     /// <returns>压缩后的位图。</returns>
-    public static Bitmap? LoadCompressedBitmap(string coverPath)
+    public static async Task<Bitmap?> LoadCompressedBitmap(string coverPath)
     {
-        using var stream = GetFileStream(coverPath);
+        await using var stream = await GetFileStream(coverPath);
 
         try
         {
@@ -260,10 +283,10 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="coverPath">专辑封面索引。</param>
     /// <returns>原始位图。</returns>
-    public static Bitmap? LoadOriginalBitmap(string coverPath)
+    public static async Task<Bitmap?> LoadOriginalBitmap(string coverPath)
     {
         // 获取文件流
-        using var stream = GetFileStream(coverPath);
+        await using var stream = await GetFileStream(coverPath);
 
         try
         {

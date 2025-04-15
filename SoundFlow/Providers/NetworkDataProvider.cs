@@ -407,7 +407,8 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
             else if (!trimmedLine.StartsWith('#'))
             {
                 string segmentUri = CombineUri(baseUrl, trimmedLine);
-                _hlsSegments.Add(new HlsSegment { Uri = segmentUri, Duration = segmentDuration });
+                _hlsSegments.Add(new HlsSegment
+                    { Uri = segmentUri, Duration = segmentDuration });
                 _hlsTotalDuration += segmentDuration;
                 segmentDuration = 0;
             }

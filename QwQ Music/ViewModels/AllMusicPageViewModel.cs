@@ -78,7 +78,7 @@ public partial class AllMusicPageViewModel : ViewModelBase
         SelectedItem = null;
         SelectedItem = MusicPlayerViewModel.CurrentMusicItem;
     }
-    
+
     [RelayCommand]
     private async Task DropFilesAsync(DragEventArgs? e)
     {
@@ -96,13 +96,13 @@ public partial class AllMusicPageViewModel : ViewModelBase
     private async Task OpenFileAsync()
     {
         var topLevel = App.TopLevel;
-        if (topLevel == null) return;
-        
-        var items = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = FilePickerTitle,
-            AllowMultiple = true,
-        });
+        if (topLevel == null)
+            return;
+
+        var items = await topLevel.StorageProvider.OpenFilePickerAsync(
+            new FilePickerOpenOptions
+                { Title = FilePickerTitle, AllowMultiple = true }
+        );
 
         if (items.Count == 0)
             return;
@@ -144,8 +144,6 @@ public partial class AllMusicPageViewModel : ViewModelBase
             .Where(path => !string.IsNullOrEmpty(path))
             .ToList()!;
     }
-
-
 
     /// <summary>
     /// 导入音乐文件到播放列表

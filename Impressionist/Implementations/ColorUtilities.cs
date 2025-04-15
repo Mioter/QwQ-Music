@@ -8,7 +8,7 @@ namespace Impressionist.Implementations
     {
         public static HSVColor RGBVectorToHSVColor(this Vector3 color)
         {
-            HSVColor hsv = new HSVColor();
+            var hsv = new HSVColor();
 
             float max = Math.Max(Math.Max(color.X, color.Y), color.Z);
             float min = Math.Min(Math.Min(color.X, color.Y), color.Z);
@@ -63,7 +63,7 @@ namespace Impressionist.Implementations
             q *= 255;
             t *= 255;
 
-            Vector3 rgb = Vector3.Zero;
+            var rgb = Vector3.Zero;
 
             switch (Hi)
             {
@@ -152,7 +152,7 @@ namespace Impressionist.Implementations
 
         public static Vector3 XYZVectorToLABVector(this Vector3 xyz)
         {
-            Vector3 lab = new Vector3();
+            var lab = new Vector3();
             float x = xyz.X;
             float y = xyz.Y;
             float z = xyz.Z;

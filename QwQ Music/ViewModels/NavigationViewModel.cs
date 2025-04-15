@@ -14,10 +14,10 @@ public class NavigationViewModel : ViewModelBase
 
     private void NavigateEvent(int index)
     {
-        SelectedIndex = index;
+        NavigationIndex = index;
     }
 
-    public int SelectedIndex
+    public int NavigationIndex
     {
         get;
         set

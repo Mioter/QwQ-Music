@@ -151,7 +151,14 @@ public partial class PlayConfigPageViewModel : ViewModelBase
                         continue;
 
                     // 使用较小的任务单元，以便能够及时响应暂停
-                    await Task.Run(() => AudioHelper.CalcGainOfMusicItem(item), ct);
+                    await Task.Run(
+                        async () =>
+                        {
+                            var ex = await item.GetExtensionsInfo();
+                            item.Gain = AudioHelper.CalcGainOfMusicItem(item.FilePath, ex.SamplingRate, ex.Channels);
+                        },
+                        ct
+                    );
                 }
             },
             CleanupTask,

@@ -13,7 +13,7 @@
         <u:SelectionList
             HorizontalAlignment="Left"
             Margin="10,0,0,0"
-            SelectedIndex="{Binding SelectedIndex}">
+            SelectedIndex="{Binding NavigationIndex}">
 
             <u:SelectionList.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -44,7 +44,7 @@
 
         </u:SelectionList>
 
-        <control:IndexControl Grid.Row="1" Index="{Binding SelectedIndex}">
+        <control:IndexControl Grid.Row="1" Index="{Binding NavigationIndex}">
 
             <control:IndexControl.PageTransition>
                 <CompositePageTransition>

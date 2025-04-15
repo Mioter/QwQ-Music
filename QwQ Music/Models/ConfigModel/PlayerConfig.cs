@@ -20,6 +20,9 @@ public partial class PlayerConfig : ObservableObject
 
     public bool IsRealRandom { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsAutoSetSampleRate { get; set; } = true;
+
     public string LatestPlayListName { get; set; } = "默认播放列表";
 
     public static int[] AudioOutputSampleRateArray { get; } =

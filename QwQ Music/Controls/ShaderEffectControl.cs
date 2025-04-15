@@ -152,7 +152,8 @@ public class ShaderEffectControl : Control
         // 使用DispatcherTimer代替直接递归调用
         if (_animationTimer == null)
         {
-            _animationTimer = new DispatcherTimer { Interval = GetTimerInterval() };
+            _animationTimer = new DispatcherTimer
+                { Interval = GetTimerInterval() };
             _animationTimer.Tick += AnimationTimer_Tick;
         }
 

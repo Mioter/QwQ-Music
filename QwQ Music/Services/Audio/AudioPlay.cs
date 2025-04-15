@@ -229,7 +229,8 @@ public class AudioPlay : IAudioPlay
         _soundPlayer.PlaybackEnded += OnPlaybackCompleted;
 
         // 初始化进度定时器
-        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _progressTimer = new DispatcherTimer
+            { Interval = TimeSpan.FromMilliseconds(500) };
         _progressTimer.Tick += OnProgressTimerTick;
     }
 

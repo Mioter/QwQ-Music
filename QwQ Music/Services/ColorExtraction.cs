@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -40,7 +41,7 @@ public static class ColorExtraction
     /// <param name="algorithm">颜色提取算法，默认为KMeans</param>
     /// <param name="ignoreWhite">忽略白色</param>
     /// <returns>提取的颜色列表，如果缓存不存在则返回null</returns>
-    public static List<Color>? GetColorPalette(
+    public static async Task<List<Color>?> GetColorPalette(
         string imagePath,
         int colorCount = 5,
         ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
@@ -54,7 +55,7 @@ public static class ColorExtraction
         }
 
         // 尝试使用缓存的位图
-        var bitmap = MusicExtractor.LoadCompressedBitmap(imagePath);
+        var bitmap = await MusicExtractor.LoadCompressedBitmap(imagePath);
         return bitmap == null
             ? null
             : // 缓存不存在直接返回null

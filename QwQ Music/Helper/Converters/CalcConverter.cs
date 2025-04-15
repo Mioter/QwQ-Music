@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using Avalonia.Data.Converters;
 
-namespace QwQ_Music.Helper.Converter;
+namespace QwQ_Music.Helper.Converters;
 
 public class CalcConverter : IValueConverter
 {

@@ -43,12 +43,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     #region 属性和字段
 
-    private MiniAudioEngine _audioEngine = new();
+    private MiniAudioEngine _audioEngine = new(PlayerConfig.SampleRate);
 
     private readonly AudioPlay _audioPlay = new();
-
-    [ObservableProperty]
-    public partial double CurrentDurationInSeconds { get; set; }
 
     [ObservableProperty]
     public partial MusicItemModel CurrentMusicItem { get; set; } = new("听你想听~", "YOU");
@@ -63,8 +60,26 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial PlaylistModel Playlist { get; set; } = new(PlayerConfig.LatestPlayListName);
+    
+    public double CurrentDurationInSeconds
+    {
+        get;
+        set
+        {
+            if (_isSlideCutting || !SetProperty(ref field, value)) 
+                return;
+            
+            CurrentMusicItem.Current = TimeSpan.FromSeconds(value);
+            if (_isAutoChange)
+                return;
+
+            _audioPlay.Seek(value);
+        }
+    }
 
     private bool _isAutoChange;
+
+    private bool _isSlideCutting;
 
     private int CurrentIndex => Playlist.MusicItems.IndexOf(CurrentMusicItem);
 
@@ -180,16 +195,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         MusicItemsChanged?.Invoke(this, value);
     }
-
-    partial void OnCurrentDurationInSecondsChanged(double value)
-    {
-        CurrentMusicItem.Current = TimeSpan.FromSeconds(value);
-        if (_isAutoChange)
-            return;
-
-        _audioPlay.Seek(value);
-    }
-
+    
     partial void OnPlaylistChanged(PlaylistModel value)
     {
         PlaylistModel.ClearPlayedIndices(); // 当播放列表发生变化时，重置已播放索引列表
@@ -581,7 +587,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         if (!Playlist.MusicItems.Contains(musicItem))
         {
-            Playlist = new PlaylistModel { MusicItems = new ObservableCollection<MusicItemModel>(MusicItems) };
+            Playlist = new PlaylistModel
+                { MusicItems = new ObservableCollection<MusicItemModel>(MusicItems) };
         }
 
         if (restart || IsNearEnd(musicItem))
@@ -591,11 +598,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
         _audioPlay.Stop();
 
-        if (PlayerConfig.SampleRate != _audioEngine.SampleRate)
-        {
-            await SetOutputSampleRate(PlayerConfig.SampleRate);
-        }
-
         try
         {
             var args = new CurrentMusicItemChangedCancelEventArgs(musicItem);
@@ -603,7 +605,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
             if (args.Cancel)
                 return;
             await InitializeAudioTrackAsync(musicItem);
+            _isSlideCutting = true;
             CurrentMusicItem = musicItem;
+            _isSlideCutting = false;
             CurrentDurationInSeconds = musicItem.Current.TotalSeconds;
             CurrentMusicItemChanged?.Invoke(this, musicItem);
             Playlist.LatestPlayedMusic = CurrentMusicItem.FilePath;
@@ -616,11 +620,37 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private async Task InitializeAudioTrackAsync(MusicItemModel musicItem)
     {
-        await Task.Run(() =>
+        await Task.Run(async () =>
         {
-            if (musicItem.Gain <= 0f)
-                AudioHelper.CalcGainOfMusicItem(musicItem);
+            // 如果采样率匹配且增益值已设置，直接初始化音频并返回
+            if (
+                musicItem.Gain > 0f
+                && !PlayerConfig.IsAutoSetSampleRate
+                && PlayerConfig.SampleRate == _audioEngine.SampleRate
+            )
+            {
+                _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
+                return;
+            }
 
+            // 获取音频扩展信息
+            var ex = await musicItem.GetExtensionsInfo();
+
+            // 处理采样率
+            int targetSampleRate = PlayerConfig.IsAutoSetSampleRate ? ex.SamplingRate : PlayerConfig.SampleRate;
+
+            if (targetSampleRate != _audioEngine.SampleRate)
+            {
+                await SetOutputSampleRate(targetSampleRate);
+            }
+
+            // 处理增益值
+            if (musicItem.Gain <= 0f)
+            {
+                musicItem.Gain = AudioHelper.CalcGainOfMusicItem(musicItem.FilePath, ex.SamplingRate, ex.Channels);
+            }
+
+            // 初始化音频
             _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
         });
     }

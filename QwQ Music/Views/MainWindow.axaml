@@ -111,7 +111,7 @@
                     </ToggleButton.Content>
                 </ToggleButton>
 
-                <u:SelectionList Grid.Row="1" SelectedIndex="{Binding SelectedIndex}">
+                <u:SelectionList Grid.Row="1" SelectedIndex="{Binding NavigationIndex}">
 
                     <u:SelectionList.Indicator>
                         <Border
@@ -188,7 +188,7 @@
                 </u:SelectionList>
             </Grid>
 
-            <control:IndexControl Grid.Column="1" Index="{Binding SelectedIndex}">
+            <control:IndexControl Grid.Column="1" Index="{Binding NavigationIndex}">
                 <control:IndexControl.PageTransition>
                     <CompositePageTransition>
                         <CrossFade Duration="0:0:0.5" />

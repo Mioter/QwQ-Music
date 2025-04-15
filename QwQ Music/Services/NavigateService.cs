@@ -83,7 +83,7 @@ public static class NavigateService
                 NavigateTo(childView, childIndex);
             }
         }
-        
+
         if (CurrentView != null && CurrentViewChanged != null)
         {
             CurrentViewChanged.Invoke(CurrentView);

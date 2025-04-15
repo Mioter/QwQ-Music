@@ -36,49 +36,31 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
     [ObservableProperty]
     public partial Bitmap CoverImage { get; set; } = MusicExtractor.DefaultCover;
 
+    public double SelectLyricsTimePoint
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value))
+            {
+                MusicPlayerViewModel.CurrentDurationInSeconds = field;
+            }
+        }
+    }
+
+    public LyricsData LyricsData { get; set; } = new();
+
+
     private const int ColorCount = 4;
+    
 
     private async void MusicPlayerViewModelOnCurrentMusicItemChanged(object? sender, MusicItemModel musicItem)
     {
         try
         {
-            CoverImage =
-                musicItem.CoverPath != null
-                    ? MusicExtractor.LoadOriginalBitmap(musicItem.CoverPath) ?? MusicExtractor.DefaultCover
-                    : CoverImage = MusicExtractor.DefaultCover;
-
-            if (!string.IsNullOrWhiteSpace(musicItem.CoverPath))
-            {
-                List<Color>? colorsList = null;
-                await Task.Run(() =>
-                {
-                    if (musicItem.CoverColors is { Length: >= ColorCount })
-                    {
-                        colorsList = [.. musicItem.CoverColors.Select(Color.Parse)];
-                    }
-                    else
-                    {
-                        colorsList = ColorExtraction.GetColorPalette(
-                            musicItem.CoverPath,
-                            ColorCount,
-                            ConfigInfoModel.InterfaceConfig.SelectedColorExtractionAlgorithm
-                        );
-
-                        if (colorsList != null)
-                        {
-                            musicItem.CoverColors = colorsList.Select(x => x.ToString()).ToArray();
-                        }
-                    }
-                });
-
-                ColorsList = colorsList ?? DefaultColors;
-            }
-            else
-            {
-                ColorsList = DefaultColors;
-            }
-
-            OnPropertyChanged(nameof(ColorsList));
+            await UpdateCoverImage(musicItem);
+            await UpdateColorsList(musicItem);
+            await UpdateLyrics(musicItem);
         }
         catch (Exception ex)
         {
@@ -86,6 +68,56 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         }
     }
 
+    private async Task UpdateCoverImage(MusicItemModel musicItem)
+    {
+        CoverImage = musicItem.CoverPath != null ? 
+            await MusicExtractor.LoadOriginalBitmap(musicItem.CoverPath) ?? MusicExtractor.DefaultCover : 
+            MusicExtractor.DefaultCover;
+    }
+
+    private async Task UpdateColorsList(MusicItemModel musicItem)
+    {
+        // 如果没有封面路径，直接使用默认颜色
+        if (string.IsNullOrWhiteSpace(musicItem.CoverPath))
+        {
+            ColorsList = DefaultColors;
+            OnPropertyChanged(nameof(ColorsList));
+            return;
+        }
+
+        // 尝试从已缓存的颜色中获取
+        if (musicItem.CoverColors is { Length: >= ColorCount })
+        {
+            ColorsList = [.. musicItem.CoverColors.Select(Color.Parse)];
+            OnPropertyChanged(nameof(ColorsList));
+            return;
+        }
+
+        // 提取新的颜色
+        var colorsList = await ColorExtraction.GetColorPalette(
+            musicItem.CoverPath,
+            ColorCount,
+            ConfigInfoModel.InterfaceConfig.SelectedColorExtractionAlgorithm
+        );
+
+        // 缓存提取的颜色
+        if (colorsList != null)
+        {
+            musicItem.CoverColors = colorsList.Select(x => x.ToString()).ToArray();
+        }
+
+        // 使用提取的颜色，为null则使用默认颜色
+        ColorsList = colorsList ?? DefaultColors;
+        OnPropertyChanged(nameof(ColorsList));
+    }
+
+    private async Task UpdateLyrics(MusicItemModel musicItem)
+    {
+        LyricsData = await musicItem.Lyrics;
+        
+        OnPropertyChanged(nameof(LyricsData));
+    }
+    
     public List<Color> ColorsList { get; set; } = DefaultColors;
 
     private static readonly List<Color> DefaultColors =

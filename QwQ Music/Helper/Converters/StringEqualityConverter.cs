@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
 
-namespace QwQ_Music.Helper.Converter;
+namespace QwQ_Music.Helper.Converters;
 
 public class StringEqualityConverter : IValueConverter
 {

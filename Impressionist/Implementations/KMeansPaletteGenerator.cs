@@ -180,7 +180,7 @@ namespace Impressionist.Implementations
 
         static List<Vector3> KMeansPlusPlusCluster(Dictionary<Vector3, int> colors, int numClusters)
         {
-            Random random = new Random();
+            var random = new Random();
             int clusterCount = Math.Min(numClusters, colors.Count);
             var clusters = new List<Vector3>();
             var targetColor = colors.Keys.ToList();

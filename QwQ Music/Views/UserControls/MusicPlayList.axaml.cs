@@ -11,12 +11,11 @@ public partial class MusicPlayList : UserControl
         InitializeComponent();
         DataContext = new MusicPlayListViewModel();
     }
-    
-    public static readonly StyledProperty<bool> IsTransparentProperty = AvaloniaProperty.Register<
-        MusicPlayList,
-        bool
-    >(nameof(IsTransparent));
-    
+
+    public static readonly StyledProperty<bool> IsTransparentProperty = AvaloniaProperty.Register<MusicPlayList, bool>(
+        nameof(IsTransparent)
+    );
+
     public bool IsTransparent
     {
         get => GetValue(IsTransparentProperty);

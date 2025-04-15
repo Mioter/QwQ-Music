@@ -22,7 +22,7 @@ public class AudioModifierConfig : ObservableObject
     public CompressorModifier CompressorModifier { get; set; } = new();
 
     public StereoEnhancementModifier StereoEnhancementModifier { get; set; } = new();
-    
+
     public SurroundSoundModifier SurroundSoundModifier { get; set; } = new();
 
     public TremoloModifier TremoloModifier { get; set; } = new();

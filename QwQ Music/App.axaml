@@ -3,9 +3,8 @@
     x:Class="QwQ_Music.App"
     x:CompileBindings="True"
     xmlns="https://github.com/avaloniaui"
-    xmlns:converter="clr-namespace:QwQ_Music.Helper.Converter"
+    xmlns:converters="clr-namespace:QwQ_Music.Helper.Converters"
     xmlns:semi="https://irihi.tech/semi"
-    xmlns:u="https://irihi.tech/ursa"
     xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
@@ -27,31 +26,26 @@
             <Setter Property="FontSize" Value="12" />
         </Style>
 
-        <Style Selector="u|ScrollToButton /template/ Border#PART_Background">
-            <Setter Property="CornerRadius" Value="5" />
-        </Style>
-
     </Application.Styles>
 
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="Assets/Theme/_indexes.axaml" />
+                <ResourceInclude Source="Assets/Themes/_indexes.axaml" />
                 <ResourceInclude Source="Assets/Icons/_indexes.axaml" />
                 <ResourceInclude Source="avares://QwQ.Avalonia.Control/Theme/_indexes.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
 
-        <converter:CalcConverter x:Key="CalcConverter" />
-        <converter:TruncateDecimalConverter x:Key="TruncateDecimalConverter" />
-        <converter:SecondsToStringConverter x:Key="SecondsToStringConverter" />
-        <converter:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
-        <converter:StringEqualityConverter x:Key="StringEqualityConverter" />
+        <converters:CalcConverter x:Key="CalcConverter" />
+        <converters:TruncateDecimalConverter x:Key="TruncateDecimalConverter" />
+        <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
+        <converters:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
+        <converters:StringEqualityConverter x:Key="StringEqualityConverter" />
 
         <FontFamily x:Key="VivoSans">/Assets/Fonts#VivoSans</FontFamily>
         <FontFamily x:Key="Consolab">/Assets/Fonts#Consola</FontFamily>
 
-        <!--  ReSharper disable once Xaml.RedundantResource  -->
         <CornerRadius x:Key="FlyoutCornerRadius">8</CornerRadius>
 
     </Application.Resources>

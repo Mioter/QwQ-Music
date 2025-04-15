@@ -41,7 +41,6 @@ public class App : Application
             BindingPlugins.DataValidators.Remove(plugin);
         }
     }
-    
+
     public static TopLevel? TopLevel { get; private set; }
-    
 }

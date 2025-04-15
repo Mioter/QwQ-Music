@@ -17,7 +17,7 @@ public sealed class StereoEnhancementModifier : SoundModifier
     private float _stereoWidth = 1.0f;
     private float _highFrequencyBoost = 1.0f;
     private float _dynamicRangeCompression;
-    private float _crossfeedAmount = 0.0f; // 添加交叉反馈参数
+    private float _crossfeedAmount; // 添加交叉反馈参数
 
     /// <inheritdoc />
     public override string Name { get; set; } = "Stereo Enhancement";
@@ -89,7 +89,6 @@ public sealed class StereoEnhancementModifier : SoundModifier
     /// Bass filter coefficient
     /// </summary>
     private const float BassFilterFreq = 200f; // 200Hz截止频率
-    
 
     /// <inheritdoc />
     public override void Process(Span<float> buffer)
@@ -202,7 +201,7 @@ public sealed class StereoEnhancementModifier : SoundModifier
         // 使用更高效的软限幅算法
         float sign = MathF.Sign(sample);
         float delta = absSample - threshold;
-        float scale = (1 - threshold);
+        float scale = 1 - threshold;
         return sign * (threshold + scale * (1 - MathF.Exp(-delta / scale)));
     }
 }

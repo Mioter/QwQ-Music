@@ -94,7 +94,26 @@ public class MusicItemModel(
         set => SetPropertyWithModified(ref field, value);
     } = encodingFormat;
 
-    public string? CoverPath = coverPath;
+    public string? CoverPath
+    {
+        get
+        {
+            if (field != null && !System.IO.File.Exists(field))
+            {
+                // 如果封面路径不为空但文件不存在，尝试异步提取
+                Task.Run(async () =>
+                {
+                    string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(FilePath);
+                    if (newCoverPath != null)
+                    {
+                        CoverPath = newCoverPath;
+                    }
+                });
+            }
+            return field;
+        }
+        set => SetPropertyWithModified(ref field, value);
+    } = coverPath;
 
     public string[]? CoverColors
     {
@@ -119,8 +138,8 @@ public class MusicItemModel(
                 return MusicExtractor.DefaultCover;
 
             // 如果已有缓存图片，直接返回
-            if (_coverStatus == CoverStatus.Loaded && MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image) && image != null)
-                    return image;
+            if (_coverStatus == CoverStatus.Loaded && MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image))
+                return image;
 
             // 标记为正在加载
             _coverStatus = CoverStatus.Loading;
@@ -128,28 +147,17 @@ public class MusicItemModel(
             // 启动异步加载任务
             Task.Run(async () =>
             {
-                var bitmap = MusicExtractor.LoadCompressedBitmap(CoverPath); // 尝试从缓存加载
+                var bitmap = await MusicExtractor.LoadCompressedBitmap(CoverPath); // 尝试从缓存加载
 
-                // 如果缓存中没有找到封面，尝试从音频文件中提取
-                if (bitmap == null && !string.IsNullOrEmpty(FilePath))
-                {
-                    string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(FilePath);
-                    if (newCoverPath != null)
-                    {
-                        CoverPath = newCoverPath;
-                        bitmap = MusicExtractor.LoadCompressedBitmap(newCoverPath);
-                    }
-                }
-
-                // 如果仍然没有找到，使用默认封面
                 if (bitmap != null)
                 {
                     MusicExtractor.ImageCache[CoverPath] = bitmap;
-                    _coverStatus = CoverStatus.Loaded; // 通知 UI 更新
-                    OnPropertyChanged();
+                    _coverStatus = CoverStatus.Loaded;
+                    OnPropertyChanged(); // 通知 UI 更新
                 }
                 else
                 {
+                    // 如果仍然没有找到，使用默认封面
                     _coverStatus = CoverStatus.NotExist;
                 }
             });
@@ -188,7 +196,7 @@ public class MusicItemModel(
     public async Task<MusicTagExtensions> GetExtensionsInfo() =>
         await MusicExtractor.ExtractExtensionsInfoAsync(FilePath);
 
-    public Task<LyricsModel> Lyrics => MusicExtractor.ExtractMusicLyricsAsync(FilePath);
+    public Task<LyricsData> Lyrics => MusicExtractor.ExtractMusicLyricsAsync(FilePath);
 
     public static MusicItemModel FromDictionary(Dictionary<string, object> data)
     {

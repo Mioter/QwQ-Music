@@ -6,7 +6,7 @@ using QwQ_Music.Models;
 
 namespace QwQ_Music.ViewModels;
 
-public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem,MusicTagExtensions musicTagExtensions)
+public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem, MusicTagExtensions musicTagExtensions)
     : ViewModelBase
 {
     public ObservableCollection<MusicInfoKeyValuePair> MusicInfoKeyValuePairs { get; } =
@@ -47,9 +47,7 @@ public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem,MusicTa
 
         if (musicTagExtensions.Year.HasValue)
         {
-            MusicInfoKeyValuePairs.Add(
-                new MusicInfoKeyValuePair("年份", musicTagExtensions.Year.Value.ToString())
-            );
+            MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("年份", musicTagExtensions.Year.Value.ToString()));
         }
 
         if (!string.IsNullOrEmpty(musicTagExtensions.Copyright))
@@ -59,37 +57,27 @@ public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem,MusicTa
 
         if (musicTagExtensions.Disc > 0)
         {
-            MusicInfoKeyValuePairs.Add(
-                new MusicInfoKeyValuePair("光盘编号", musicTagExtensions.Disc.ToString())
-            );
+            MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("光盘编号", musicTagExtensions.Disc.ToString()));
         }
 
         if (musicTagExtensions.Track > 0)
         {
-            MusicInfoKeyValuePairs.Add(
-                new MusicInfoKeyValuePair("音轨编号", musicTagExtensions.Track.ToString())
-            );
+            MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("音轨编号", musicTagExtensions.Track.ToString()));
         }
 
         if (!string.IsNullOrEmpty(musicTagExtensions.OriginalAlbum))
         {
-            MusicInfoKeyValuePairs.Add(
-                new MusicInfoKeyValuePair("原始专辑", musicTagExtensions.OriginalAlbum)
-            );
+            MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("原始专辑", musicTagExtensions.OriginalAlbum));
         }
 
         if (!string.IsNullOrEmpty(musicTagExtensions.OriginalArtist))
         {
-            MusicInfoKeyValuePairs.Add(
-                new MusicInfoKeyValuePair("原始艺术家", musicTagExtensions.OriginalArtist)
-            );
+            MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("原始艺术家", musicTagExtensions.OriginalArtist));
         }
 
         if (!string.IsNullOrEmpty(musicTagExtensions.AlbumArtist))
         {
-            MusicInfoKeyValuePairs.Add(
-                new MusicInfoKeyValuePair("专辑艺术家", musicTagExtensions.AlbumArtist)
-            );
+            MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("专辑艺术家", musicTagExtensions.AlbumArtist));
         }
 
         if (!string.IsNullOrEmpty(musicTagExtensions.Publisher))
@@ -114,9 +102,7 @@ public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem,MusicTa
 
         if (!string.IsNullOrEmpty(musicTagExtensions.EncoderInfo))
         {
-            MusicInfoKeyValuePairs.Add(
-                new MusicInfoKeyValuePair("编码器信息", musicTagExtensions.EncoderInfo)
-            );
+            MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("编码器信息", musicTagExtensions.EncoderInfo));
         }
         return this;
     }
@@ -140,9 +126,4 @@ public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem,MusicTa
     }
 }
 
-public class MusicInfoKeyValuePair(string key, string value)
-{
-    public string Key { get; set; } = key;
-
-    public string Value { get; set; } = value;
-}
+public record struct MusicInfoKeyValuePair(string Key, string Value);

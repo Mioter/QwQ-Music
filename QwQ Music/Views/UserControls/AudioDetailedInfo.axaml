@@ -35,8 +35,7 @@
             <ListBox.Styles>
 
                 <Style Selector="ListBoxItem">
-                    <Setter Property="CornerRadius" Value="8" />
-                    <Setter Property="Padding" Value="10,10" />
+                    <Setter Property="Padding" Value="10" />
                     <Setter Property="Background" Value="{x:Null}" />
 
                     <Style Selector="^:selected">

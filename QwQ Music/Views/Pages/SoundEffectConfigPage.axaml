@@ -18,7 +18,7 @@
 
         <ScrollViewer>
 
-            <u:SelectionList Margin="0,0,10,0" SelectedIndex="{Binding SelectedIndex}">
+            <u:SelectionList Margin="0,0,10,0" SelectedIndex="{Binding NavigationIndex}">
 
                 <u:SelectionList.Styles>
                     <Style Selector="u|SelectionListItem">
@@ -123,7 +123,7 @@
 
         <ScrollViewer Grid.Column="1">
 
-            <control:IndexControl Index="{Binding SelectedIndex}" Margin="10">
+            <control:IndexControl Index="{Binding NavigationIndex}" Margin="10">
 
                 <control:IndexControl.PageTransition>
                     <CompositePageTransition>

@@ -126,10 +126,10 @@ public sealed class NoiseReductionModifier : SoundModifier
     {
         _channels = AudioEngine.Channels;
         _currentSampleRate = AudioEngine.Instance.SampleRate;
-        
+
         // 计算所需的输入缓冲区大小，确保足够大以容纳噪声估计所需的所有帧
         int requiredBufferSize = _fftSize + _noiseFrames * _hopSize;
-        
+
         _window = MathHelper.HanningWindow(_fftSize);
         _windowSumSq = CalculateWindowSumSq();
 
@@ -207,8 +207,7 @@ public sealed class NoiseReductionModifier : SoundModifier
     public override void Process(Span<float> buffer)
     {
         // 检查采样率是否变化或是否需要初始化
-        if (!_initialized || _channels != AudioEngine.Channels || 
-            _currentSampleRate != AudioEngine.Instance.SampleRate)
+        if (!_initialized || _channels != AudioEngine.Channels || _currentSampleRate != AudioEngine.Instance.SampleRate)
         {
             Initialize();
         }
@@ -228,7 +227,7 @@ public sealed class NoiseReductionModifier : SoundModifier
 
         // Copy new samples into buffer
         int samplesToCopy = buffer.Length / _channels;
-        
+
         // 确保输入缓冲区足够大
         if (samplesToCopy + _hopSize > inputBuffer.Length)
         {
@@ -258,7 +257,7 @@ public sealed class NoiseReductionModifier : SoundModifier
                         EstimateNoise(c);
                     _noiseEstimationDone = true;
                 }
-                
+
                 // 如果仍在收集噪声，则移动缓冲区并继续
                 if (!_noiseEstimationDone)
                 {
@@ -321,7 +320,7 @@ public sealed class NoiseReductionModifier : SoundModifier
             totalProcessed += _hopSize;
         }
     }
-    
+
     /// <summary>
     /// 重置噪声估计状态，强制重新进行噪声估计<br />
     /// Reset noise estimation state, forcing re-estimation of noise profile
