@@ -48,11 +48,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         }
     }
 
-    public LyricsData LyricsData { get; set; } = new();
-
-
     private const int ColorCount = 4;
-    
 
     private async void MusicPlayerViewModelOnCurrentMusicItemChanged(object? sender, MusicItemModel musicItem)
     {
@@ -60,7 +56,6 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         {
             await UpdateCoverImage(musicItem);
             await UpdateColorsList(musicItem);
-            await UpdateLyrics(musicItem);
         }
         catch (Exception ex)
         {
@@ -70,9 +65,10 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
     private async Task UpdateCoverImage(MusicItemModel musicItem)
     {
-        CoverImage = musicItem.CoverPath != null ? 
-            await MusicExtractor.LoadOriginalBitmap(musicItem.CoverPath) ?? MusicExtractor.DefaultCover : 
-            MusicExtractor.DefaultCover;
+        CoverImage =
+            musicItem.CoverPath != null
+                ? await MusicExtractor.LoadOriginalBitmap(musicItem.CoverPath) ?? MusicExtractor.DefaultCover
+                : MusicExtractor.DefaultCover;
     }
 
     private async Task UpdateColorsList(MusicItemModel musicItem)
@@ -111,13 +107,6 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         OnPropertyChanged(nameof(ColorsList));
     }
 
-    private async Task UpdateLyrics(MusicItemModel musicItem)
-    {
-        LyricsData = await musicItem.Lyrics;
-        
-        OnPropertyChanged(nameof(LyricsData));
-    }
-    
     public List<Color> ColorsList { get; set; } = DefaultColors;
 
     private static readonly List<Color> DefaultColors =

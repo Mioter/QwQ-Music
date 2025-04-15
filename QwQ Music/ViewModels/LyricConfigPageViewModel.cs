@@ -24,5 +24,5 @@ public class LyricConfigPageViewModel : ViewModelBase
     public static string LyricAltBottomColorName => Lang[nameof(LyricAltBottomColorName)];
     public static string LyricAltBorderColorName => Lang[nameof(LyricAltBorderColorName)];
 
-    public static DesktopLyricConfig Config => ConfigInfoModel.DesktopLyricConfig;
+    public static DesktopLyricConfig Config => ConfigInfoModel.LyricConfig.DesktopLyric;
 }

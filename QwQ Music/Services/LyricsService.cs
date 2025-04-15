@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using QwQ_Music.Models;
+using QwQ_Music.Utilities;
 using Log = QwQ_Music.Services.LoggerService;
 
 namespace QwQ_Music.Services;
@@ -39,7 +39,7 @@ public partial record LyricsService
                 foreach (string line in lines)
                 {
                     string trimmedLine = line.Trim();
-                    
+
                     // 跳过空行
                     if (string.IsNullOrWhiteSpace(trimmedLine))
                         continue;
@@ -53,11 +53,19 @@ public partial record LyricsService
 
                         switch (key)
                         {
-                            case "ti": lyricsData.Title = value; break;
-                            case "ar": lyricsData.Artist = value; break;
-                            case "al": lyricsData.Album = value; break;
-                            case "by": lyricsData.Creator = value; break;
-                            case "offset": 
+                            case "ti":
+                                lyricsData.Title = value;
+                                break;
+                            case "ar":
+                                lyricsData.Artist = value;
+                                break;
+                            case "al":
+                                lyricsData.Album = value;
+                                break;
+                            case "by":
+                                lyricsData.Creator = value;
+                                break;
+                            case "offset":
                                 if (double.TryParse(value, out double offset))
                                     lyricsData.Offset = offset;
                                 break;
@@ -76,7 +84,8 @@ public partial record LyricsService
 
                     // 处理时间戳和歌词
                     var matches = TimeRegex().Matches(trimmedLine);
-                    if (matches.Count <= 0) continue;
+                    if (matches.Count <= 0)
+                        continue;
 
                     // 提取歌词部分（去掉时间戳）
                     string lyric = TimeRegex().Replace(trimmedLine, "").Trim();
@@ -86,7 +95,7 @@ public partial record LyricsService
                         // 解析时间戳并转换为秒数
                         int minutes = int.Parse(match.Groups[1].Value);
                         int seconds = int.Parse(match.Groups[2].Value);
-                        
+
                         // 处理毫秒，支持两位或三位
                         string msStr = match.Groups[3].Value;
                         double milliseconds = int.Parse(msStr);
@@ -101,7 +110,7 @@ public partial record LyricsService
                                 milliseconds /= 1000.0; // 三位数，如 [00:00.000]
                                 break;
                         }
-                        
+
                         double timeInSeconds = minutes * 60 + seconds + milliseconds;
 
                         // 根据是否为翻译部分，将歌词存入相应的字典
@@ -112,8 +121,12 @@ public partial record LyricsService
                     }
                 }
 
-                lyricsData.PrimaryLyrics = primaryLyrics;
-                lyricsData.TranslationLyrics = translationLyrics.Count > 0 ? translationLyrics : null;
+                // 处理主歌词和翻译歌词
+                if (primaryLyrics.Count > 0)
+                    lyricsData.PrimaryLyrics = CleanLyrics(primaryLyrics);
+
+                if (translationLyrics.Count > 0)
+                    lyricsData.TranslationLyrics = CleanLyrics(translationLyrics);
 
                 return lyricsData;
             });
@@ -123,5 +136,49 @@ public partial record LyricsService
             Log.Error($"解析歌词文件出错：{ex.Message}");
             return null;
         }
+    }
+
+    // 清理歌词，处理连续的空白歌词时间点
+    private static Dictionary<double, string> CleanLyrics(Dictionary<double, string> lyrics)
+    {
+        if (lyrics.Count <= 0)
+            return new Dictionary<double, string>();
+
+        var cleanedLyrics = new Dictionary<double, string>();
+        var sortedTimes = new List<double>(lyrics.Keys);
+        sortedTimes.Sort();
+
+        for (int i = 0; i < sortedTimes.Count; i++)
+        {
+            double currentTime = sortedTimes[i];
+            string currentLyric = lyrics[currentTime];
+
+            // 如果当前歌词为空且不是最后一个时间点
+            if (string.IsNullOrWhiteSpace(currentLyric) && i < sortedTimes.Count - 1)
+            {
+                // 查找连续的空白歌词
+                int j = i + 1;
+                while (
+                    j < sortedTimes.Count
+                    && string.IsNullOrWhiteSpace(lyrics[sortedTimes[j]])
+                    && sortedTimes[j] - sortedTimes[i] < 1.0
+                ) // 1秒内的连续空白
+                {
+                    j++;
+                }
+
+                // 如果找到了连续的空白歌词，跳过它们
+                if (j > i + 1)
+                {
+                    cleanedLyrics[currentTime] = currentLyric;
+                    i = j - 1; // 跳过连续的空白歌词
+                    continue;
+                }
+            }
+
+            cleanedLyrics[currentTime] = currentLyric;
+        }
+
+        return cleanedLyrics;
     }
 }

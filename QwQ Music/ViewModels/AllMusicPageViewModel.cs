@@ -100,8 +100,7 @@ public partial class AllMusicPageViewModel : ViewModelBase
             return;
 
         var items = await topLevel.StorageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions
-                { Title = FilePickerTitle, AllowMultiple = true }
+            new FilePickerOpenOptions { Title = FilePickerTitle, AllowMultiple = true }
         );
 
         if (items.Count == 0)

@@ -73,15 +73,15 @@ public static class MusicExtractor
         string? fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
 
         // 拼接完整路径（不含扩展名）
-        if (directoryPath == null || fileNameWithoutExtension == null) 
+        if (directoryPath == null || fileNameWithoutExtension == null)
             return lyricsData;
-        
+
         string fullPathWithoutExtension = Path.Combine(directoryPath, fileNameWithoutExtension);
         string lyricPath = fullPathWithoutExtension + ".lrc";
-        
-        if (!Path.Exists(lyricPath)) 
+
+        if (!Path.Exists(lyricPath))
             return lyricsData;
-        
+
         lyric = await File.ReadAllTextAsync(lyricPath);
         return await Task.Run(() => LyricsService.ParseLrcFile(lyric)) ?? lyricsData;
     }

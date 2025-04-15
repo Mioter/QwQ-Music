@@ -59,17 +59,21 @@ public partial class MusicPlayerViewModel : ViewModelBase
     public static PlayerConfig PlayerConfig { get; } = ConfigInfoModel.PlayerConfig;
 
     [ObservableProperty]
+    public partial LyricsModel LyricsModel { get; private set; } = new(new LyricsData());
+
+    [ObservableProperty]
     public partial PlaylistModel Playlist { get; set; } = new(PlayerConfig.LatestPlayListName);
-    
+
     public double CurrentDurationInSeconds
     {
         get;
         set
         {
-            if (_isSlideCutting || !SetProperty(ref field, value)) 
+            if (_isSlideCutting || !SetProperty(ref field, value))
                 return;
-            
-            CurrentMusicItem.Current = TimeSpan.FromSeconds(value);
+
+            CurrentMusicItem.Current = TimeSpan.FromSeconds(field);
+            LyricsModel.UpdateLyricsIndex(field);
             if (_isAutoChange)
                 return;
 
@@ -114,7 +118,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         get => PlayerConfig.PlaybackSpeed;
         set
         {
-            if (value <= 0.5 || value >= 1.5)
+            if (value < 0.5 || value > 1.5)
                 return;
 
             PlayerConfig.PlaybackSpeed = value;
@@ -195,7 +199,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         MusicItemsChanged?.Invoke(this, value);
     }
-    
+
     partial void OnPlaylistChanged(PlaylistModel value)
     {
         PlaylistModel.ClearPlayedIndices(); // 当播放列表发生变化时，重置已播放索引列表
@@ -587,8 +591,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         if (!Playlist.MusicItems.Contains(musicItem))
         {
-            Playlist = new PlaylistModel
-                { MusicItems = new ObservableCollection<MusicItemModel>(MusicItems) };
+            Playlist = new PlaylistModel { MusicItems = new ObservableCollection<MusicItemModel>(MusicItems) };
         }
 
         if (restart || IsNearEnd(musicItem))
@@ -608,6 +611,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
             _isSlideCutting = true;
             CurrentMusicItem = musicItem;
             _isSlideCutting = false;
+
+            LyricsModel = new LyricsModel(await musicItem.Lyrics);
+
             CurrentDurationInSeconds = musicItem.Current.TotalSeconds;
             CurrentMusicItemChanged?.Invoke(this, musicItem);
             Playlist.LatestPlayedMusic = CurrentMusicItem.FilePath;

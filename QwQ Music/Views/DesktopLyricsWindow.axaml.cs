@@ -1,7 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using static QwQ_Music.Models.ConfigInfoModel;
+using QwQ_Music.Models;
+using QwQ_Music.Models.ConfigModel;
 using static QwQ_Music.Models.LanguageModel;
 using static QwQ_Music.Services.MousePenetrateService;
 
@@ -9,6 +10,8 @@ namespace QwQ_Music.Views;
 
 public partial class DesktopLyricsWindow : Window
 {
+    public static DesktopLyricConfig DesktopLyricConfig => ConfigInfoModel.LyricConfig.DesktopLyric;
+
     public DesktopLyricsWindow()
     {
         if (!DesktopLyricConfig.LyricIsEnabled)

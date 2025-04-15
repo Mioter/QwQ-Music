@@ -41,7 +41,7 @@
         CornerRadius="25"
         Margin="20">
 
-        <Grid ColumnDefinitions="Auto,Auto,*">
+        <Grid ColumnDefinitions="Auto,Auto,6*">
             <!--  专辑按钮  -->
             <Button
                 Background="{x:Null}"
@@ -80,16 +80,38 @@
                 Width="60">
 
                 <TextBlock
-                    FontWeight="DemiBold"
+                    FontWeight="Bold"
                     Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Title}"
                     TextTrimming="CharacterEllipsis"
                     ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
-                <TextBlock
-                    Classes="Tertiary"
-                    FontSize="12"
-                    Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Artists}"
-                    TextTrimming="CharacterEllipsis"
-                    ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
+
+                <control:SwitchControl Condition="{Binding MusicPlayerViewModel.IsPlaying}">
+                    <control:SwitchControl.FalseContent>
+
+                        <TextBlock
+                            Classes="Tertiary"
+                            FontSize="12"
+                            MaxLines="2"
+                            Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Artists}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap"
+                            ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
+
+                    </control:SwitchControl.FalseContent>
+
+                    <control:SwitchControl.TrueContent>
+                        <TextBlock
+                            Classes="Tertiary"
+                            FontSize="12"
+                            MaxLines="2"
+                            Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap"
+                            ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"
+                            behaviors:PlaceholderBehavior.Placeholder="● ● ●" />
+                    </control:SwitchControl.TrueContent>
+
+                </control:SwitchControl>
 
             </StackPanel>
 

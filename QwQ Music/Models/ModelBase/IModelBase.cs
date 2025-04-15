@@ -7,6 +7,6 @@ public interface IModelBase<out TConfig>
 {
     bool IsInitialized { get; }
     bool IsError { get; }
-    abstract static TConfig FromDictionary(Dictionary<string, object> data);
+    static abstract TConfig FromDictionary(Dictionary<string, object> data);
     Dictionary<string, string?> Dump();
 }

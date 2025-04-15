@@ -5,6 +5,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace QwQ_Music.Models.ConfigModel;
 
+public partial class LyricConfig : ObservableObject
+{
+    [ObservableProperty]
+    public partial int Offset { get; set; }
+
+    public DesktopLyricConfig DesktopLyric { get; set; } = new();
+}
+
 public partial class DesktopLyricConfig : ObservableObject
 {
     [ObservableProperty]
@@ -84,6 +92,6 @@ public class SizeSerializationHelper
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(DesktopLyricConfig))]
+[JsonSerializable(typeof(LyricConfig))]
 [JsonSerializable(typeof(SizeSerializationHelper))]
-internal partial class DesktopLyricConfigJsonSerializerContext : JsonSerializerContext;
+internal partial class LyricConfigJsonSerializerContext : JsonSerializerContext;
