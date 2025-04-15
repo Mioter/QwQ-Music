@@ -229,7 +229,8 @@ public class AudioPlay : IAudioPlay
         _soundPlayer.PlaybackEnded += OnPlaybackCompleted;
 
         // 初始化进度定时器
-        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _progressTimer = new DispatcherTimer
+            { Interval = TimeSpan.FromMilliseconds(500) };
         _progressTimer.Tick += OnProgressTimerTick;
     }
 
@@ -249,6 +250,7 @@ public class AudioPlay : IAudioPlay
             .AddModifier(_audioModifierConfig.SpatialModifier)
             .AddModifier(_audioModifierConfig.CompressorModifier)
             .AddModifier(_audioModifierConfig.StereoEnhancementModifier)
+            .AddModifier(_audioModifierConfig.SurroundSoundModifier)
             .AddModifier(_audioModifierConfig.TremoloModifier)
             .AddModifier(_audioModifierConfig.DistortionModifier)
             .AddModifier(_audioModifierConfig.ParametricEqualizer)

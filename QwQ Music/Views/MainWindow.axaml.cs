@@ -27,17 +27,17 @@ public partial class MainWindow : Window
         Height = 800;
 
         DataContext = new MainWindowViewModel();
-        MusicPlayerPagePanel.PointerPressed += MusicPlayerPagePanelOnPointerPressed;
+        MusicCoverPagePanel.PointerPressed += MusicCoverPagePanelOnPointerPressed;
         Closed += OnClosed;
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
         Closed -= OnClosed;
-        MusicPlayerPagePanel.PointerPressed -= MusicPlayerPagePanelOnPointerPressed;
+        MusicCoverPagePanel.PointerPressed -= MusicCoverPagePanelOnPointerPressed;
     }
 
-    private void MusicPlayerPagePanelOnPointerPressed(object? sender, PointerPressedEventArgs e)
+    private void MusicCoverPagePanelOnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         BeginMoveDrag(e);
     }

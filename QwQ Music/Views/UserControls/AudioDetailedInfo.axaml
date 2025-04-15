@@ -1,0 +1,88 @@
+<UserControl
+    Height="400"
+    Width="600"
+    mc:Ignorable="d"
+    x:Class="QwQ_Music.Views.UserControls.AudioDetailedInfo"
+    x:DataType="vm:AudioDetailedInfoViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:QwQ_Music.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid
+        Margin="10"
+        RowDefinitions="40,*"
+        RowSpacing="10">
+
+        <StackPanel
+            Margin="10,0"
+            Orientation="Horizontal"
+            Spacing="10"
+            VerticalAlignment="Center">
+            <PathIcon
+                Data="{StaticResource SemiIconInfoCircle}"
+                Foreground="{DynamicResource SemiBlue5}"
+                Height="18" />
+            <TextBlock
+                FontWeight="Bold"
+                Text="详细信息"
+                VerticalAlignment="Center" />
+        </StackPanel>
+
+        <ListBox Grid.Row="1" ItemsSource="{Binding MusicInfoKeyValuePairs}">
+
+            <ListBox.Styles>
+
+                <Style Selector="ListBoxItem">
+                    <Setter Property="Padding" Value="10" />
+                    <Setter Property="Background" Value="{x:Null}" />
+
+                    <Style Selector="^:selected">
+                        <Setter Property="Background" Value="{x:Null}" />
+                    </Style>
+
+                    <Style Selector="^:pointerover">
+                        <Setter Property="Background" Value="{x:Null}" />
+                    </Style>
+
+                    <Style Selector="^:pressed">
+                        <Setter Property="Background" Value="{x:Null}" />
+                    </Style>
+                </Style>
+
+            </ListBox.Styles>
+
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel ItemSpacing="10" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <SelectableTextBlock
+                        MinWidth="260"
+                        SelectedText="{Binding $parent[UserControl].((vm:AudioDetailedInfoViewModel)DataContext).SelectedText}"
+                        TextWrapping="Wrap"
+                        VerticalAlignment="Center">
+                        <Run FontWeight="Bold" Text="{Binding Key}" />
+                        <Run Text=" : " />
+                        <Run Text="{Binding Value}" />
+                        <SelectableTextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem
+                                    Command="{Binding $parent[UserControl].((vm:AudioDetailedInfoViewModel)DataContext).CopyTextCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="{DynamicResource STRING_MENU_COPY}"
+                                    InputGesture="{x:Static TextBox.CopyGesture}" />
+                            </ContextMenu>
+                        </SelectableTextBlock.ContextMenu>
+                    </SelectableTextBlock>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+
+        </ListBox>
+
+    </Grid>
+</UserControl>

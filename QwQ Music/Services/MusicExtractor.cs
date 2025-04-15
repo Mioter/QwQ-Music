@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using ATL;
 using Avalonia.Media.Imaging;
@@ -17,11 +15,9 @@ namespace QwQ_Music.Services;
 public static class MusicExtractor
 {
     private const int DefaultThumbnailWidth = 128; // 默认缩略图宽度，降低了原来的256
-    
-    private const int DefaultCacheCapacity = 100;  // 默认缓存容量
-    
-    public static readonly Dictionary<string, Bitmap> ImageCache = new();
-    
+
+    public static readonly Dictionary<string, Bitmap> ImageCache = [];
+
     public static readonly Bitmap DefaultCover = GetDefaultCover();
 
     /// <summary>
@@ -29,7 +25,7 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="cover">专辑封面图片。</param>
     /// <param name="coverName">专辑封面索引。</param>
-    private static async Task<bool> SaveCoverAsync(Lazy<Bitmap> cover, string coverName)
+    public static async Task<bool> SaveCoverAsync(Bitmap cover, string coverName)
     {
         // 构造完整文件路径
         string filePath = Path.Combine(PlayerConfig.CoverSavePath, coverName);
@@ -49,7 +45,7 @@ public static class MusicExtractor
             await Task.Run(async () =>
                 {
                     await using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
-                    cover.Value.Save(fs); // 指定格式
+                    cover.Save(fs); // 指定格式
                 })
                 .ConfigureAwait(false);
 
@@ -62,15 +58,40 @@ public static class MusicExtractor
         }
     }
 
-    public static async Task<LyricsModel> ExtractMusicLyricsAsync(string filePath) =>
-        await Task.Run(() => LyricsModel.ParseAsync(new Track(filePath).Lyricist));
+    public static async Task<LyricsData> ExtractMusicLyricsAsync(string? filePath)
+    {
+        var lyricsData = new LyricsData();
+        var track = new Track(filePath);
+        string? lyric = track.Lyricist;
+        if (!string.IsNullOrEmpty(lyric))
+            return await Task.Run(() => LyricsService.ParseLrcFile(lyric)) ?? lyricsData;
+
+        // 获取目录路径
+        string? directoryPath = Path.GetDirectoryName(filePath);
+
+        // 获取文件名（不含扩展名）
+        string? fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
+
+        // 拼接完整路径（不含扩展名）
+        if (directoryPath == null || fileNameWithoutExtension == null) 
+            return lyricsData;
+        
+        string fullPathWithoutExtension = Path.Combine(directoryPath, fileNameWithoutExtension);
+        string lyricPath = fullPathWithoutExtension + ".lrc";
+        
+        if (!Path.Exists(lyricPath)) 
+            return lyricsData;
+        
+        lyric = await File.ReadAllTextAsync(lyricPath);
+        return await Task.Run(() => LyricsService.ParseLrcFile(lyric)) ?? lyricsData;
+    }
 
     /// <summary>
     /// 异步获取扩展信息
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>包含扩展信息的字典。</returns>
-    public static async Task<MusicTagExtensions> ExtractExtensionsInfoAsync(string filePath)
+    public static async Task<MusicTagExtensions> ExtractExtensionsInfoAsync(string? filePath)
     {
         return await Task.Run(() =>
         {
@@ -78,7 +99,6 @@ public static class MusicExtractor
             return new MusicTagExtensions(
                 track.Genre ?? string.Empty,
                 track.Year,
-                track.Composer?.Split(',').Select(c => c.Trim()).ToArray() ?? [],
                 track.Copyright ?? string.Empty,
                 track.DiscNumber.HasValue ? (uint)track.DiscNumber.Value : 0,
                 track.TrackNumber.HasValue ? (uint)track.TrackNumber.Value : 0,
@@ -178,7 +198,7 @@ public static class MusicExtractor
             {
                 coverFileName = GetCoverFileName(artists, album);
                 await SaveCoverAsync(
-                    new Lazy<Bitmap>(new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData))),
+                    new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData)),
                     coverFileName
                 );
             }
@@ -204,9 +224,9 @@ public static class MusicExtractor
         }
     }
 
-    private static string GetCoverFileName(string artists, string album)
+    public static string GetCoverFileName(string artists, string album)
     {
-        string coverFileName = CleanFileName(
+        string coverFileName = PathEnsurer.CleanFileName(
             $"{(artists.Length > 20 ? artists[..20] : artists)}-{(album.Length > 20 ? album[..20] : album)
             }.jpg"
         );
@@ -218,7 +238,7 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="filePath">文件路径。</param>
     /// <returns>文件流，如果文件不存在则返回 null。</returns>
-    private static FileStream? GetFileStream(string filePath)
+    private static async Task<FileStream?> GetFileStream(string filePath)
     {
         if (!File.Exists(filePath))
         {
@@ -227,9 +247,7 @@ public static class MusicExtractor
         }
         try
         {
-            return Task.Run(() => new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                .GetAwaiter()
-                .GetResult();
+            return await Task.Run(() => new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
         catch (Exception ex)
         {
@@ -243,9 +261,9 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="coverPath">专辑封面索引。</param>
     /// <returns>压缩后的位图。</returns>
-    public static Bitmap? LoadCompressedBitmap(string coverPath)
+    public static async Task<Bitmap?> LoadCompressedBitmap(string coverPath)
     {
-        using var stream = GetFileStream(coverPath);
+        await using var stream = await GetFileStream(coverPath);
 
         try
         {
@@ -265,10 +283,10 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="coverPath">专辑封面索引。</param>
     /// <returns>原始位图。</returns>
-    public static Bitmap? LoadOriginalBitmap(string coverPath)
+    public static async Task<Bitmap?> LoadOriginalBitmap(string coverPath)
     {
         // 获取文件流
-        using var stream = GetFileStream(coverPath);
+        await using var stream = await GetFileStream(coverPath);
 
         try
         {
@@ -308,19 +326,11 @@ public static class MusicExtractor
     }
 
     /// <summary>
-    /// 清理文件名中的非法字符。
-    /// </summary>
-    /// <param name="fileName">原始文件名。</param>
-    /// <returns>清理后的文件名。</returns>
-    private static string CleanFileName(string fileName) =>
-        Path.GetInvalidFileNameChars().Aggregate(fileName, (current, c) => current.Replace(c, '&'));
-
-    /// <summary>
     /// 从音频文件中提取专辑封面并保存
     /// </summary>
     /// <param name="filePath">音频文件路径</param>
     /// <returns>保存后的封面图片路径，如果没有封面则返回null</returns>
-    public static async Task<string?> ExtractAndSaveCoverFromAudioAsync(string filePath)
+    public static async Task<string?> ExtractAndSaveCoverFromAudioAsync(string? filePath)
     {
         try
         {
@@ -333,7 +343,7 @@ public static class MusicExtractor
                 string coverFileName = GetCoverFileName(artists, album);
 
                 await SaveCoverAsync(
-                    new Lazy<Bitmap>(new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData))),
+                    new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData)),
                     coverFileName
                 );
 

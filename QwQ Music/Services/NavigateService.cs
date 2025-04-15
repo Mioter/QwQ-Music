@@ -16,6 +16,7 @@ public static class NavigateService
             "音效",
             [
                 "立体增强",
+                "全景效果",
                 "空间效果",
                 "环绕效果",
                 "混响效果",
@@ -61,7 +62,7 @@ public static class NavigateService
 
     public static Dictionary<string, Action<int>?> NavigateEvents { get; set; } = new();
 
-    public static Action<string?>? CurrentViewChanged { get; set; }
+    public static Action<string>? CurrentViewChanged { get; set; }
 
     public static string? CurrentView { get; private set; }
 
@@ -82,7 +83,11 @@ public static class NavigateService
                 NavigateTo(childView, childIndex);
             }
         }
-        CurrentViewChanged?.Invoke(CurrentView);
+
+        if (CurrentView != null && CurrentViewChanged != null)
+        {
+            CurrentViewChanged.Invoke(CurrentView);
+        }
     }
 
     public static void NavigateEvent(string eventName)

@@ -13,8 +13,11 @@ using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Audio;
 using QwQ_Music.Services.ConfigIO;
+using QwQ_Music.Utilities;
 using QwQ_Music.Utilities.MessageBus;
+using QwQ_Music.Views.UserControls;
 using SoundFlow.Backends.MiniAudio;
+using Ursa.Controls;
 using Log = QwQ_Music.Services.LoggerService;
 
 namespace QwQ_Music.ViewModels;
@@ -40,12 +43,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     #region 属性和字段
 
-    private MiniAudioEngine _audioEngine = new();
+    private MiniAudioEngine _audioEngine = new(PlayerConfig.SampleRate);
 
     private readonly AudioPlay _audioPlay = new();
-
-    [ObservableProperty]
-    public partial double CurrentDurationInSeconds { get; set; }
 
     [ObservableProperty]
     public partial MusicItemModel CurrentMusicItem { get; set; } = new("听你想听~", "YOU");
@@ -60,8 +60,26 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial PlaylistModel Playlist { get; set; } = new(PlayerConfig.LatestPlayListName);
+    
+    public double CurrentDurationInSeconds
+    {
+        get;
+        set
+        {
+            if (_isSlideCutting || !SetProperty(ref field, value)) 
+                return;
+            
+            CurrentMusicItem.Current = TimeSpan.FromSeconds(value);
+            if (_isAutoChange)
+                return;
+
+            _audioPlay.Seek(value);
+        }
+    }
 
     private bool _isAutoChange;
+
+    private bool _isSlideCutting;
 
     private int CurrentIndex => Playlist.MusicItems.IndexOf(CurrentMusicItem);
 
@@ -126,14 +144,27 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         try
         {
-            var wait = Playlist.LoadAsync();
-
+            // 先加载所有音乐项到 MusicItems 集合
             await foreach (var item in DataBaseService.LoadDataAsync())
             {
                 MusicItems.Add(MusicItemModel.FromDictionary(item));
             }
 
-            await wait;
+            // 加载播放列表并获取文件路径列表
+            var filePaths = await Playlist.LoadAsync();
+
+            // 根据文件路径从 MusicItems 中查找对应项目并添加到播放列表
+            foreach (
+                var musicItem in filePaths
+                    .Select(filePath =>
+                        MusicItems.FirstOrDefault(item => filePath != null && item.FilePath == filePath)
+                    )
+                    .OfType<MusicItemModel>()
+                    .Where(musicItem => !Playlist.MusicItems.Contains(musicItem))
+            )
+            {
+                Playlist.MusicItems.Add(musicItem);
+            }
 
             if (Playlist.LatestPlayedMusic == null)
                 return;
@@ -164,16 +195,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         MusicItemsChanged?.Invoke(this, value);
     }
-
-    partial void OnCurrentDurationInSecondsChanged(double value)
-    {
-        CurrentMusicItem.Current = TimeSpan.FromSeconds(value);
-        if (_isAutoChange)
-            return;
-
-        _audioPlay.Seek(value);
-    }
-
+    
     partial void OnPlaylistChanged(PlaylistModel value)
     {
         PlaylistModel.ClearPlayedIndices(); // 当播放列表发生变化时，重置已播放索引列表
@@ -300,6 +322,40 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     #endregion
 
+    #region 音乐信息展示
+
+    [RelayCommand]
+    private static async Task ShowDialog(MusicItemModel musicItem)
+    {
+        var options = new OverlayDialogOptions
+        {
+            Title = "详细信息",
+            CanLightDismiss = true,
+            CanDragMove = true,
+            IsCloseButtonVisible = true,
+            CanResize = false,
+        };
+
+        await OverlayDialog.ShowCustomModal<AudioDetailedInfo, AudioDetailedInfoViewModel, object>(
+            new AudioDetailedInfoViewModel(musicItem, await musicItem.GetExtensionsInfo()),
+            options: options
+        );
+    }
+
+    [RelayCommand]
+    private static void OpenInExplorer(MusicItemModel musicItem)
+    {
+        if (string.IsNullOrEmpty(musicItem.FilePath) || !File.Exists(musicItem.FilePath))
+        {
+            Log.Warning("无法打开文件位置：文件不存在");
+            return;
+        }
+
+        PathEnsurer.OpenInExplorer(musicItem.FilePath);
+    }
+
+    #endregion
+
     #region 辅助方法
 
     private void OnPlayingChanged(bool value)
@@ -360,19 +416,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
             : isNext ? (current + 1) % Playlist.Count
             : (current - 1 + Playlist.Count) % Playlist.Count,
         };
-
-    // 保留原来的RandomMusicItemIndex方法作为备用
-    private int RandomMusicItemIndex(int current)
-    {
-        var random = new Random();
-        int randomIndex;
-        do
-        {
-            randomIndex = random.Next(0, Playlist.Count);
-        } while (randomIndex == current && Playlist.Count > 1);
-
-        return randomIndex;
-    }
 
     private void ShufflePlaylist()
     {
@@ -544,7 +587,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         if (!Playlist.MusicItems.Contains(musicItem))
         {
-            Playlist = new PlaylistModel { MusicItems = new ObservableCollection<MusicItemModel>(MusicItems) };
+            Playlist = new PlaylistModel
+                { MusicItems = new ObservableCollection<MusicItemModel>(MusicItems) };
         }
 
         if (restart || IsNearEnd(musicItem))
@@ -554,20 +598,16 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
         _audioPlay.Stop();
 
-        if (PlayerConfig.SampleRate != _audioEngine.SampleRate)
-        {
-            await SetOutputSampleRate(PlayerConfig.SampleRate);
-        }
-
-        var args = new CurrentMusicItemChangedCancelEventArgs(musicItem);
-
         try
         {
+            var args = new CurrentMusicItemChangedCancelEventArgs(musicItem);
             CurrentMusicItemChanging?.Invoke(this, args);
             if (args.Cancel)
                 return;
             await InitializeAudioTrackAsync(musicItem);
+            _isSlideCutting = true;
             CurrentMusicItem = musicItem;
+            _isSlideCutting = false;
             CurrentDurationInSeconds = musicItem.Current.TotalSeconds;
             CurrentMusicItemChanged?.Invoke(this, musicItem);
             Playlist.LatestPlayedMusic = CurrentMusicItem.FilePath;
@@ -580,11 +620,37 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private async Task InitializeAudioTrackAsync(MusicItemModel musicItem)
     {
-        await Task.Run(() =>
+        await Task.Run(async () =>
         {
-            if (musicItem.Gain <= 0f)
-                AudioHelper.CalcGainOfMusicItem(musicItem);
+            // 如果采样率匹配且增益值已设置，直接初始化音频并返回
+            if (
+                musicItem.Gain > 0f
+                && !PlayerConfig.IsAutoSetSampleRate
+                && PlayerConfig.SampleRate == _audioEngine.SampleRate
+            )
+            {
+                _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
+                return;
+            }
 
+            // 获取音频扩展信息
+            var ex = await musicItem.GetExtensionsInfo();
+
+            // 处理采样率
+            int targetSampleRate = PlayerConfig.IsAutoSetSampleRate ? ex.SamplingRate : PlayerConfig.SampleRate;
+
+            if (targetSampleRate != _audioEngine.SampleRate)
+            {
+                await SetOutputSampleRate(targetSampleRate);
+            }
+
+            // 处理增益值
+            if (musicItem.Gain <= 0f)
+            {
+                musicItem.Gain = AudioHelper.CalcGainOfMusicItem(musicItem.FilePath, ex.SamplingRate, ex.Channels);
+            }
+
+            // 初始化音频
             _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
         });
     }

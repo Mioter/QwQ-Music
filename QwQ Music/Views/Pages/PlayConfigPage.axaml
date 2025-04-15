@@ -118,9 +118,16 @@
 
                         <ComboBox
                             CornerRadius="8"
+                            IsEnabled="{Binding !PlayerConfig.IsAutoSetSampleRate}"
                             ItemsSource="{Binding PlayerConfig.AudioOutputSampleRateArray}"
                             Margin="25,0"
+                            MinWidth="100"
                             SelectedItem="{Binding PlayerConfig.SampleRate}" />
+
+                        <CheckBox
+                            Content="自动采样率"
+                            IsChecked="{Binding PlayerConfig.IsAutoSetSampleRate}"
+                            Margin="25,0" />
 
                     </StackPanel>
                 </Border>

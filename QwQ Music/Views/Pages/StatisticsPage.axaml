@@ -11,7 +11,8 @@
     <Design.DataContext>
         <viewModels:StatisticsPageViewModel />
     </Design.DataContext>
-    <Grid>
+    <StackPanel>
         <Button Click="Button_OnClick" Content="点我" />
-    </Grid>
+
+    </StackPanel>
 </UserControl>

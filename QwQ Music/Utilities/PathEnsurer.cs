@@ -1,4 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using QwQ_Music.Services;
 
 namespace QwQ_Music.Utilities;
 
@@ -32,5 +36,37 @@ public static class PathEnsurer
         }
 
         return filePath;
+    }
+
+    /// <summary>
+    /// 清理文件名中的非法字符。
+    /// </summary>
+    /// <param name="fileName">原始文件名。</param>
+    /// <returns>清理后的文件名。</returns>
+    public static string CleanFileName(string fileName) =>
+        Path.GetInvalidFileNameChars().Aggregate(fileName, (current, c) => current.Replace(c, '&'));
+
+    /// <summary>
+    /// 在文件资源管理器中打开
+    /// </summary>
+    /// <param name="filePath">文件路径</param>
+    public static void OpenInExplorer(string filePath)
+    {
+        try
+        {
+            // 使用 explorer.exe 打开文件所在的文件夹并选中该文件
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{filePath}\"",
+                    UseShellExecute = true,
+                }
+            );
+        }
+        catch (Exception ex)
+        {
+            LoggerService.Error($"打开文件位置失败: {ex.Message}");
+        }
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using QwQ_Music.Models;
 using QwQ_Music.Utilities;
 using SoundFlow.Providers;
 
@@ -9,13 +8,12 @@ namespace QwQ_Music.Services.Audio;
 
 public static class AudioHelper
 {
-    public static void CalcGainOfMusicItem(MusicItemModel item)
+    public static double CalcGainOfMusicItem(string filePath, int samplingRate, int channels)
     {
-        var ex = item.GetExtensionsInfo().GetAwaiter().GetResult();
-        item.Gain = ReplayGainCalculator.CalculateGain(
-            ReadAudioBlocks(item.FilePath, ex.SamplingRate, ex.Channels),
-            ex.SamplingRate,
-            ex.Channels
+        return ReplayGainCalculator.CalculateGain(
+            ReadAudioBlocks(filePath, samplingRate, channels),
+            samplingRate,
+            channels
         );
     }
 

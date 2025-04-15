@@ -43,11 +43,21 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
         }
     }
 
+    public int MusicPlayerListHeight
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged();
+        }
+    }
+
     public int MusicPlayerTrayWidth => WindowWidth / 2;
 
     public int MusicPlayListWidth => IsMusicPlayListVisible ? WindowWidth / 4 : 0;
 
-    public int MusicCoverPageHeight => IsMusicPlayerPageVisible ? WindowHeight : 0;
+    public int MusicCoverPageHeight => IsMusicCoverPageVisible ? WindowHeight : 0;
 
     [ObservableProperty]
     public partial bool IsMusicPlayerTrayVisible { get; set; } = true;
@@ -58,7 +68,7 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MusicCoverPageHeight))]
-    public partial bool IsMusicPlayerPageVisible { get; set; }
+    public partial bool IsMusicCoverPageVisible { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(NavigationWidth))]
@@ -71,7 +81,7 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
     public partial double MusicPlayListXaxisOffset { get; set; }
 
     [ObservableProperty]
-    public partial double MusicPlayerPageYaxisOffset { get; set; }
+    public partial double MusicCoverPageYaxisOffset { get; set; }
 
     public double NavigationWidth => IsNavigationExpand ? 150 : 75;
 
@@ -81,7 +91,7 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
     private void ShowMusicPlaylist() => IsMusicPlayListVisible = !IsMusicPlayListVisible;
 
     [RelayCommand]
-    private void ShowMusicPlayerPage() => IsMusicPlayerPageVisible = !IsMusicPlayerPageVisible;
+    private void ShowMusicPlayerPage() => IsMusicCoverPageVisible = !IsMusicCoverPageVisible;
 
     [RelayCommand]
     private void GlobalButtonClick() => IsMusicPlayListVisible = false;

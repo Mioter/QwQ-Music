@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QwQ Music", "QwQ Music\QwQ 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoundFlow", "SoundFlow\SoundFlow.csproj", "{1CB02449-0FB7-41B7-B88F-E63349155BEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Impressionist", "Impressionist\Impressionist.csproj", "{0016A620-917D-401B-980D-E5203E91CA3E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Impressionist", "Impressionist\Impressionist.csproj", "{42AE5625-3356-4597-8495-C81125D3D6D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,9 +20,9 @@ Global
 		{1CB02449-0FB7-41B7-B88F-E63349155BEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1CB02449-0FB7-41B7-B88F-E63349155BEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1CB02449-0FB7-41B7-B88F-E63349155BEB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0016A620-917D-401B-980D-E5203E91CA3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0016A620-917D-401B-980D-E5203E91CA3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0016A620-917D-401B-980D-E5203E91CA3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0016A620-917D-401B-980D-E5203E91CA3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42AE5625-3356-4597-8495-C81125D3D6D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42AE5625-3356-4597-8495-C81125D3D6D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42AE5625-3356-4597-8495-C81125D3D6D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42AE5625-3356-4597-8495-C81125D3D6D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

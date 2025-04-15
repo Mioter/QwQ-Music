@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using QwQ_Music.Utilities;
 
-namespace QwQ_Music.Helper.Converter;
+namespace QwQ_Music.Helper.Converters;
 
 public class SecondsToStringConverter : IValueConverter
 {

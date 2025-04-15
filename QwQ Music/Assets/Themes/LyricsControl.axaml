@@ -1,0 +1,25 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:controls="clr-namespace:QwQ_Music.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTheme TargetType="controls:LyricsControl" x:Key="{x:Type controls:LyricsControl}">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Padding="{TemplateBinding Padding}">
+                    <ScrollViewer
+                        HorizontalScrollBarVisibility="Disabled"
+                        Name="PART_ScrollViewer"
+                        VerticalScrollBarVisibility="Auto">
+                        <Canvas Name="PART_LyricsCanvas" />
+                    </ScrollViewer>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

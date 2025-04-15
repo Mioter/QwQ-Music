@@ -1,5 +1,6 @@
 using System.Linq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
@@ -21,7 +22,7 @@ public class App : Application
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
-            desktop.MainWindow = new MainWindow();
+            TopLevel = desktop.MainWindow = new MainWindow();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -40,4 +41,6 @@ public class App : Application
             BindingPlugins.DataValidators.Remove(plugin);
         }
     }
+
+    public static TopLevel? TopLevel { get; private set; }
 }

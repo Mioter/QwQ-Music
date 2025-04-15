@@ -14,13 +14,13 @@
         <AvaloniaResource Include="Assets\**"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.3.0-beta1" />
-        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.0-beta1" />
-        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.0-beta1" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.0-beta1" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.0-beta1" />
+        <PackageReference Include="Avalonia" Version="11.3.0-beta2" />
+        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.0-beta2" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.0-beta2" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.0-beta2" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.0-beta2" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.0-beta1">
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.0-beta2">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
@@ -34,7 +34,7 @@
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.6" />
         <PackageReference Include="SkiaSharp" Version="3.119.0-preview.1.2" />
         <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.0-preview.1.2" />
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.2.25163.8" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.3.25171.6" />
         <PackageReference Include="z440.atl.core" Version="6.20.0" />
     </ItemGroup>
 

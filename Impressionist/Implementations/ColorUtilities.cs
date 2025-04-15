@@ -8,7 +8,7 @@ namespace Impressionist.Implementations
     {
         public static HSVColor RGBVectorToHSVColor(this Vector3 color)
         {
-            HSVColor hsv = new HSVColor();
+            var hsv = new HSVColor();
 
             float max = Math.Max(Math.Max(color.X, color.Y), color.Z);
             float min = Math.Min(Math.Min(color.X, color.Y), color.Z);
@@ -22,25 +22,25 @@ namespace Impressionist.Implementations
             }
             else
             {
-                hsv.S = (((max - min) / max) * 100);
+                hsv.S = (max - min) / max * 100;
 
                 hsv.H = 0;
 
                 if (max == color.X)
                 {
-                    hsv.H = (60 * (color.Y - color.Z) / (max - min));
+                    hsv.H = 60 * (color.Y - color.Z) / (max - min);
                     if (hsv.H < 0)
                         hsv.H += 360;
                 }
                 else if (max == color.Y)
                 {
-                    hsv.H = (60 * (2 + (color.Z - color.X) / (max - min)));
+                    hsv.H = 60 * (2 + (color.Z - color.X) / (max - min));
                     if (hsv.H < 0)
                         hsv.H += 360;
                 }
                 else if (max == color.Z)
                 {
-                    hsv.H = (60 * (4 + (color.X - color.Y) / (max - min)));
+                    hsv.H = 60 * (4 + (color.X - color.Y) / (max - min));
                     if (hsv.H < 0)
                         hsv.H += 360;
                 }
@@ -54,16 +54,16 @@ namespace Impressionist.Implementations
                 hsv.H = 0;
             int Hi = (int)Math.Floor(hsv.H / 60) % 6;
 
-            float f = (hsv.H / 60) - Hi;
-            float p = (hsv.V / 100) * (1 - (hsv.S / 100));
-            float q = (hsv.V / 100) * (1 - f * (hsv.S / 100));
-            float t = (hsv.V / 100) * (1 - (1 - f) * (hsv.S / 100));
+            float f = hsv.H / 60 - Hi;
+            float p = hsv.V / 100 * (1 - hsv.S / 100);
+            float q = hsv.V / 100 * (1 - f * (hsv.S / 100));
+            float t = hsv.V / 100 * (1 - (1 - f) * (hsv.S / 100));
 
             p *= 255;
             q *= 255;
             t *= 255;
 
-            Vector3 rgb = Vector3.Zero;
+            var rgb = Vector3.Zero;
 
             switch (Hi)
             {
@@ -102,17 +102,17 @@ namespace Impressionist.Implementations
 
             // convert to a sRGB form
             float r =
-                (rLinear > 0.04045) ? (float)Math.Pow((rLinear + 0.055) / (1 + 0.055), 2.2) : (float)(rLinear / 12.92);
+                rLinear > 0.04045 ? (float)Math.Pow((rLinear + 0.055) / (1 + 0.055), 2.2) : (float)(rLinear / 12.92);
             float g =
-                (gLinear > 0.04045) ? (float)Math.Pow((gLinear + 0.055) / (1 + 0.055), 2.2) : (float)(gLinear / 12.92);
+                gLinear > 0.04045 ? (float)Math.Pow((gLinear + 0.055) / (1 + 0.055), 2.2) : (float)(gLinear / 12.92);
             float b =
-                (bLinear > 0.04045) ? (float)Math.Pow((bLinear + 0.055) / (1 + 0.055), 2.2) : (float)(bLinear / 12.92);
+                bLinear > 0.04045 ? (float)Math.Pow((bLinear + 0.055) / (1 + 0.055), 2.2) : (float)(bLinear / 12.92);
 
             // converts
             return new Vector3(
-                (r * 0.4124f + g * 0.3576f + b * 0.1805f),
-                (r * 0.2126f + g * 0.7152f + b * 0.0722f),
-                (r * 0.0193f + g * 0.1192f + b * 0.9505f)
+                r * 0.4124f + g * 0.3576f + b * 0.1805f,
+                r * 0.2126f + g * 0.7152f + b * 0.0722f,
+                r * 0.0193f + g * 0.1192f + b * 0.9505f
             );
         }
 
@@ -129,9 +129,9 @@ namespace Impressionist.Implementations
             for (int i = 0; i < 3; i++)
             {
                 Clinear[i] =
-                    (Clinear[i] <= 0.0031308)
+                    Clinear[i] <= 0.0031308
                         ? 12.92f * Clinear[i]
-                        : (float)((1 + 0.055) * Math.Pow(Clinear[i], (1.0 / 2.4)) - 0.055);
+                        : (float)((1 + 0.055) * Math.Pow(Clinear[i], 1.0 / 2.4) - 0.055);
             }
 
             return new Vector3(
@@ -147,12 +147,12 @@ namespace Impressionist.Implementations
 
         private static float Fxyz(float t)
         {
-            return ((t > 0.008856) ? (float)Math.Pow(t, (1.0 / 3.0)) : (7.787f * t + 16.0f / 116.0f));
+            return t > 0.008856 ? (float)Math.Pow(t, 1.0 / 3.0) : 7.787f * t + 16.0f / 116.0f;
         }
 
         public static Vector3 XYZVectorToLABVector(this Vector3 xyz)
         {
-            Vector3 lab = new Vector3();
+            var lab = new Vector3();
             float x = xyz.X;
             float y = xyz.Y;
             float z = xyz.Z;
@@ -169,13 +169,13 @@ namespace Impressionist.Implementations
             float a = lab.Y;
             float b = lab.Z;
             float fy = (l + 16f) / 116.0f;
-            float fx = fy + (a / 500.0f);
-            float fz = fy - (b / 200.0f);
+            float fx = fy + a / 500.0f;
+            float fz = fy - b / 200.0f;
 
             return new Vector3(
-                (fx > delta) ? D65X * (fx * fx * fx) : (fx - 16.0f / 116.0f) * 3 * (delta * delta) * D65X,
-                (fy > delta) ? D65Y * (fy * fy * fy) : (fy - 16.0f / 116.0f) * 3 * (delta * delta) * D65Y,
-                (fz > delta) ? D65Z * (fz * fz * fz) : (fz - 16.0f / 116.0f) * 3 * (delta * delta) * D65Z
+                fx > delta ? D65X * (fx * fx * fx) : (fx - 16.0f / 116.0f) * 3 * (delta * delta) * D65X,
+                fy > delta ? D65Y * (fy * fy * fy) : (fy - 16.0f / 116.0f) * 3 * (delta * delta) * D65Y,
+                fz > delta ? D65Z * (fz * fz * fz) : (fz - 16.0f / 116.0f) * 3 * (delta * delta) * D65Z
             );
         }
 

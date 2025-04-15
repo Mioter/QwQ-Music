@@ -13,20 +13,26 @@
     xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <UserControl.Styles>
+        <Style Selector="Border.NotTransparent">
+            <Setter Property="BoxShadow" Value="0 0 10 0 LightGray" />
+            <Setter Property="Background" Value="{DynamicResource BorderCardBackground}" />
+        </Style>
+    </UserControl.Styles>
+
     <Border
-        Background="{DynamicResource BorderCardBackground}"
-        BoxShadow="0 0 10 0 LightGray"
+        Classes.NotTransparent="{Binding !$parent[userControls:MusicPlayList].IsTransparent}"
         CornerRadius="10"
         Margin="5,5,10,20"
         Padding="10">
 
         <Grid RowDefinitions="Auto,*">
 
-            <Panel>
+            <Panel VerticalAlignment="Top">
                 <TextBlock
                     FontFamily="{StaticResource VivoSans}"
                     FontSize="15"
-                    Margin="8"
+                    Margin="8,5"
                     Text="播放列表" />
 
                 <StackPanel
@@ -130,6 +136,7 @@
 
                             <Setter.Value>
                                 <ContextMenu>
+
                                     <MenuItem
                                         Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
                                         CommandParameter="{Binding}"
@@ -138,6 +145,7 @@
                                             <PathIcon Data="{StaticResource SemiIconPlay}" Margin="2" />
                                         </MenuItem.Icon>
                                     </MenuItem>
+
                                     <MenuItem
                                         Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.AddToMusicListNextItemCommand}"
                                         CommandParameter="{Binding}"
@@ -149,6 +157,7 @@
                                                 RenderTransform="rotate(180deg)" />
                                         </MenuItem.Icon>
                                     </MenuItem>
+
                                     <MenuItem
                                         Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.RemoveInMusicListCommand}"
                                         CommandParameter="{Binding}"
@@ -161,6 +170,26 @@
                                                 RenderTransform="rotate(180deg)" />
                                         </MenuItem.Icon>
                                     </MenuItem>
+
+                                    <!--  在文件中打开  -->
+                                    <MenuItem
+                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
+                                        CommandParameter="{Binding}"
+                                        Header="在文件中打开">
+                                        <MenuItem.Icon>
+                                            <PathIcon Data="{StaticResource SemiIconFolder}" Margin="2" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem
+                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
+                                        CommandParameter="{Binding}"
+                                        Header="详细信息">
+                                        <MenuItem.Icon>
+                                            <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
                                 </ContextMenu>
                             </Setter.Value>
                         </Setter>

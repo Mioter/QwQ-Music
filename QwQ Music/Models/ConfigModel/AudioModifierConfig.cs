@@ -23,6 +23,8 @@ public class AudioModifierConfig : ObservableObject
 
     public StereoEnhancementModifier StereoEnhancementModifier { get; set; } = new();
 
+    public SurroundSoundModifier SurroundSoundModifier { get; set; } = new();
+
     public TremoloModifier TremoloModifier { get; set; } = new();
 
     public DistortionModifier DistortionModifier { get; set; } = new();

@@ -111,7 +111,7 @@
                     </ToggleButton.Content>
                 </ToggleButton>
 
-                <u:SelectionList Grid.Row="1" SelectedIndex="{Binding SelectedIndex}">
+                <u:SelectionList Grid.Row="1" SelectedIndex="{Binding NavigationIndex}">
 
                     <u:SelectionList.Indicator>
                         <Border
@@ -188,7 +188,7 @@
                 </u:SelectionList>
             </Grid>
 
-            <control:IndexControl Grid.Column="1" Index="{Binding SelectedIndex}">
+            <control:IndexControl Grid.Column="1" Index="{Binding NavigationIndex}">
                 <control:IndexControl.PageTransition>
                     <CompositePageTransition>
                         <CrossFade Duration="0:0:0.5" />
@@ -274,9 +274,7 @@
                         </Animation>
                     </Style.Animations>
                 </Style>
-            </Panel.Styles>
 
-            <Panel.Styles>
                 <Style Selector="Panel#MusicPlayerTrayPanel.Visible">
                     <Style.Animations>
                         <Animation
@@ -312,19 +310,77 @@
         </Panel>
 
         <Panel
+            Classes.Hide="{Binding !IsMusicCoverPageVisible}"
+            Classes.Visible="{Binding IsMusicCoverPageVisible}"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Height="{Binding MusicCoverPageHeight}"
+            Margin="{Binding $parent[Window].OffScreenMargin}"
+            MinHeight="{Binding $parent[Window].MinHeight}"
+            Name="MusicCoverPagePanel"
+            VerticalAlignment="Bottom">
+            <Panel.RenderTransform>
+                <TranslateTransform Y="{Binding MusicCoverPageYaxisOffset, Mode=OneWayToSource}" />
+            </Panel.RenderTransform>
+
+            <Panel.Styles>
+                <Style Selector="Panel#MusicCoverPagePanel.Hide">
+                    <Style.Animations>
+                        <Animation Duration="0:0:0.3" FillMode="Forward">
+                            <KeyFrame Cue="0%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicCoverPageYaxisOffset}" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding #MusicCoverPagePanel.Bounds.Height}" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+
+                <Style Selector="Panel#MusicCoverPagePanel.Visible">
+                    <Style.Animations>
+                        <Animation Duration="0:0:0.1" FillMode="Forward">
+                            <KeyFrame Cue="0%">
+                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicCoverPageYaxisOffset}" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="TranslateTransform.Y" Value="0" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+            </Panel.Styles>
+
+            <pages:MusicCoverPage />
+
+        </Panel>
+
+        <Panel
             Classes.Hide="{Binding !IsMusicPlayListVisible}"
+            Classes.Normal="{Binding !IsMusicCoverPageVisible}"
+            Classes.Retract="{Binding IsMusicCoverPageVisible}"
             Classes.Visible="{Binding IsMusicPlayListVisible}"
             Grid.Row="1"
             HorizontalAlignment="Right"
             MaxWidth="400"
             MinWidth="250"
             Name="MusicPlayListPanel"
+            VerticalAlignment="Top"
             Width="{Binding MusicPlayListWidth}">
             <Panel.RenderTransform>
                 <TranslateTransform X="{Binding MusicPlayListXaxisOffset, Mode=OneWayToSource}" />
             </Panel.RenderTransform>
 
             <Panel.Styles>
+
+                <Style Selector="Panel#MusicPlayListPanel.Normal">
+                    <Setter Property="Height" Value="{Binding MusicCoverPageHeight, Mode=OneWayToSource}" />
+                </Style>
+
+                <Style Selector="Panel#MusicPlayListPanel.Retract">
+                    <Setter Property="Height" Value="{Binding MusicCoverPageHeight, Converter={StaticResource CalcConverter}, ConverterParameter='@VALUE - 150'}" />
+                </Style>
+
                 <Style Selector="Panel#MusicPlayListPanel.Hide">
                     <Style.Animations>
                         <Animation
@@ -340,9 +396,7 @@
                         </Animation>
                     </Style.Animations>
                 </Style>
-            </Panel.Styles>
 
-            <Panel.Styles>
                 <Style Selector="Panel#MusicPlayListPanel.Visible">
                     <Style.Animations>
                         <Animation
@@ -365,65 +419,15 @@
                     <DoubleTransition
                         Duration="0:0:0.5"
                         Easing="CircularEaseOut"
-                        Property="Height" />
-                    <DoubleTransition
-                        Duration="0:0:0.5"
-                        Easing="CircularEaseOut"
                         Property="Width" />
                 </Transitions>
             </Panel.Transitions>
 
-            <userControls:MusicPlayList />
+            <userControls:MusicPlayList IsTransparent="{Binding $parent[Window].((viewModels:MainWindowViewModel)DataContext).IsMusicCoverPageVisible}" />
 
         </Panel>
 
-        <Panel
-            Classes.Hide="{Binding !IsMusicPlayerPageVisible}"
-            Classes.Visible="{Binding IsMusicPlayerPageVisible}"
-            Grid.Row="0"
-            Grid.RowSpan="2"
-            Height="{Binding MusicCoverPageHeight}"
-            Margin="{Binding $parent[Window].OffScreenMargin}"
-            MinHeight="{Binding $parent[Window].MinHeight}"
-            Name="MusicPlayerPagePanel"
-            VerticalAlignment="Bottom">
-            <Panel.RenderTransform>
-                <TranslateTransform Y="{Binding MusicPlayerPageYaxisOffset, Mode=OneWayToSource}" />
-            </Panel.RenderTransform>
-
-            <Panel.Styles>
-                <Style Selector="Panel#MusicPlayerPagePanel.Hide">
-                    <Style.Animations>
-                        <Animation Duration="0:0:0.1" FillMode="Forward">
-                            <KeyFrame Cue="0%">
-                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerPageYaxisOffset}" />
-                            </KeyFrame>
-                            <KeyFrame Cue="100%">
-                                <Setter Property="TranslateTransform.Y" Value="{Binding #MusicPlayerPagePanel.Bounds.Height}" />
-                            </KeyFrame>
-                        </Animation>
-                    </Style.Animations>
-                </Style>
-            </Panel.Styles>
-
-            <Panel.Styles>
-                <Style Selector="Panel#MusicPlayerPagePanel.Visible">
-                    <Style.Animations>
-                        <Animation Duration="0:0:0.1" FillMode="Forward">
-                            <KeyFrame Cue="0%">
-                                <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerPageYaxisOffset}" />
-                            </KeyFrame>
-                            <KeyFrame Cue="100%">
-                                <Setter Property="TranslateTransform.Y" Value="0" />
-                            </KeyFrame>
-                        </Animation>
-                    </Style.Animations>
-                </Style>
-            </Panel.Styles>
-
-            <pages:MusicCoverPage />
-
-        </Panel>
+        <u:OverlayDialogHost Grid.Row="0" Grid.RowSpan="2" />
 
     </Grid>
 
@@ -434,4 +438,6 @@
         </EventTriggerBehavior>
 
     </Interaction.Behaviors>
+
+
 </Window>
