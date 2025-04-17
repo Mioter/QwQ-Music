@@ -5,12 +5,22 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace QwQ_Music.Models.ConfigModel;
 
-public partial class LyricConfig : ObservableObject
+public class LyricConfig : ObservableObject
+{
+    public RolledLyricsConfig RolledLyricsConfig { get; set; } = new();
+    public DesktopLyricConfig DesktopLyric { get; set; } = new();
+}
+
+public partial class RolledLyricsConfig : ObservableObject
 {
     [ObservableProperty]
-    public partial int Offset { get; set; }
+    public partial int LyricOffset { get; set; }
 
-    public DesktopLyricConfig DesktopLyric { get; set; } = new();
+    [ObservableProperty]
+    public partial TextAlignment LyricTextAlignment { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowTranslation { get; set; }
 }
 
 public partial class DesktopLyricConfig : ObservableObject

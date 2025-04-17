@@ -47,7 +47,6 @@
           <DependentUpon>DesktopLyric.axaml</DependentUpon>
           <SubType>Code</SubType>
         </Compile>
-        <Compile Remove="Models\LyricsData.cs" />
     </ItemGroup>
 
     <ItemGroup>

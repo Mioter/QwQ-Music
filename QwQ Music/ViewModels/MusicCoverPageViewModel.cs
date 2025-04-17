@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Models;
+using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Shader;
 using QwQ_Music.Utilities.MessageBus;
@@ -15,6 +16,8 @@ namespace QwQ_Music.ViewModels;
 public partial class MusicCoverPageViewModel : NavigationViewModel
 {
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
+
+    public static RolledLyricsConfig RolledLyricsConfig { get; } = ConfigInfoModel.LyricConfig.RolledLyricsConfig;
 
     public MusicCoverPageViewModel()
         : base("播放")

@@ -82,66 +82,7 @@
                     </StackPanel>
 
                 </Grid>
-
-                <!--<ListBox
-                    Grid.Column="1"
-                    ItemsSource="{Binding LyricsModel.Lyrics}"
-                    Margin="30,20,10,20"
-                    SelectedIndex="{Binding CurrentLyricIndex}">
-
-                    <ListBox.Styles>
-
-                        <Style Selector="ListBoxItem">
-                            <Setter Property="CornerRadius" Value="10" />
-                            <Setter Property="Padding" Value="30,10" />
-                            <Setter Property="Margin" Value="0,0,20,0" />
-                            <Setter Property="Background" Value="{x:Null}" />
-
-                            <Style Selector="^:selected">
-                                <Setter Property="Background" Value="{x:Null}" />
-                            </Style>
-
-                            ~1~<Style Selector="^:pointerover">
-                                <Setter Property="Background" Value="{x:Null}" />
-                            </Style>
-
-                            <Style Selector="^:pressed">
-                                <Setter Property="Background" Value="{x:Null}" />
-                            </Style>@1@
-                        </Style>
-
-                        <Style Selector="TextBlock.CurrentLyrics">
-                            <Setter Property="RenderTransform" Value="scale(1.12)" />
-                            <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
-                        </Style>
-
-                    </ListBox.Styles>
-
-
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock
-                                Classes.CurrentLyrics="{Binding $parent[ListBoxItem].IsSelected}"
-                                FontFamily="{StaticResource VivoSans}"
-                                FontSize="15"
-                                Foreground="{DynamicResource TextBlockSecondaryForeground}"
-                                LetterSpacing="1.5"
-                                RenderTransformOrigin="0.5,1"
-                                Text="{Binding}"
-                                TextWrapping="Wrap">
-                                <TextBlock.Transitions>
-                                    <Transitions>
-                                        <TransformOperationsTransition
-                                            Duration="0:0:0.3"
-                                            Easing="CircularEaseOut"
-                                            Property="RenderTransform" />
-                                    </Transitions>
-                                </TextBlock.Transitions>
-                            </TextBlock>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>-->
-
+                
                 <controls:LyricsControl
                     ClickedLyricTime="{Binding SelectLyricsTimePoint}"
                     CurrentLyricFontSize="18"
@@ -149,27 +90,32 @@
                     CurrentLyricIndex="{Binding MusicPlayerViewModel.LyricsModel.LyricsIndex}"
                     FontFamily="{StaticResource VivoSans}"
                     Grid.Column="1"
-                    LineHeight="40"
-                    LineSpacing="10"
-                    LyricTextAlignment="Left"
+                    LineSpacing="20"
+                    LyricTextAlignment="{Binding RolledLyricsConfig.LyricTextAlignment}"
                     LyricsData="{Binding MusicPlayerViewModel.LyricsModel.LyricsData}"
-                    Margin="30,20,10,20"
+                    Margin="10,20"
                     NormalLyricFontSize="15"
                     NormalLyricForeground="{DynamicResource TextBlockSecondaryForeground}"
                     ScrollAnimationDuration="0:0:0.5"
-                    ShowTranslation="True"
-                    TranslationFontSize="14">
+                    ShowTranslation="{Binding RolledLyricsConfig.ShowTranslation}"
+                    TextMargin="20,0"
+                    TranslationFontSize="14"
+                    TranslationSpacing="10">
                     <controls:LyricsControl.LyricTransitions>
+
                         <Transitions>
                             <DoubleTransition
                                 Duration="00:00:0.5"
                                 Easing="CircularEaseOut"
                                 Property="FontSize" />
                         </Transitions>
+
                     </controls:LyricsControl.LyricTransitions>
+
                     <controls:LyricsControl.LyricEffect>
                         <DropShadowEffect BlurRadius="5" Color="{Binding ColorsList[0]}" />
                     </controls:LyricsControl.LyricEffect>
+
                 </controls:LyricsControl>
 
             </Grid>
