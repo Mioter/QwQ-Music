@@ -104,11 +104,11 @@
                             Classes="Tertiary"
                             FontSize="12"
                             MaxLines="2"
-                            Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric}"
+                            Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric.Primary}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="Wrap"
                             ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"
-                            behaviors:PlaceholderBehavior.Placeholder="● ● ●" />
+                            behaviors:PlaceholderBehavior.Placeholder="♪ ♪ ♪" />
                     </control:SwitchControl.TrueContent>
 
                 </control:SwitchControl>

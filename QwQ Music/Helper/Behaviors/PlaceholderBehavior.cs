@@ -1,7 +1,6 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Data;
 
 namespace QwQ_Music.Helper.Behaviors;
 

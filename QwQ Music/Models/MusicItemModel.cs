@@ -7,7 +7,6 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Models.ModelBase;
 using QwQ_Music.Services;
-using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Models;
 

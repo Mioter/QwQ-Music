@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using QwQ_Music.Utilities;
+using QwQ_Music.Models;
 using Log = QwQ_Music.Services.LoggerService;
 
 namespace QwQ_Music.Services;
@@ -27,10 +28,12 @@ public partial record LyricsService
                     return null;
 
                 var lyricsData = new LyricsData();
-                var primaryLyrics = new Dictionary<double, string>();
-                var translationLyrics = new Dictionary<double, string>();
-                bool isTranslation = false;
-                bool hasFoundTranslation = false;
+                var mergedLyrics = new List<LyricLine>();
+
+                // 修改：使用两个独立的字典来分别存储原始歌词和翻译歌词
+                var firstPartLyrics = new Dictionary<double, string>();
+                var secondPartLyrics = new Dictionary<double, string>();
+                bool isSecondPart = false;
 
                 // 读取文件的所有行
                 string[] lines = lyrics.Split('\n');
@@ -51,34 +54,36 @@ public partial record LyricsService
                         string key = metadataMatch.Groups[1].Value.ToLower();
                         string value = metadataMatch.Groups[2].Value;
 
-                        switch (key)
+                        // 检测是否为翻译歌词部分的开始
+                        // 如果发现重复的元数据，标记为第二部分
+                        if (key == "ti" && isSecondPart == false && firstPartLyrics.Count > 0)
                         {
-                            case "ti":
-                                lyricsData.Title = value;
-                                break;
-                            case "ar":
-                                lyricsData.Artist = value;
-                                break;
-                            case "al":
-                                lyricsData.Album = value;
-                                break;
-                            case "by":
-                                lyricsData.Creator = value;
-                                break;
-                            case "offset":
-                                if (double.TryParse(value, out double offset))
-                                    lyricsData.Offset = offset;
-                                break;
+                            isSecondPart = true;
+                            continue;
                         }
-                        continue;
-                    }
 
-                    // 检测是否为翻译歌词部分的开始
-                    // 如果发现重复的元数据，可能是翻译部分的开始
-                    if (trimmedLine.StartsWith("[ti:") && hasFoundTranslation == false)
-                    {
-                        isTranslation = true;
-                        hasFoundTranslation = true;
+                        if (!isSecondPart)
+                        {
+                            switch (key)
+                            {
+                                case "ti":
+                                    lyricsData.Title = value;
+                                    break;
+                                case "ar":
+                                    lyricsData.Artist = value;
+                                    break;
+                                case "al":
+                                    lyricsData.Album = value;
+                                    break;
+                                case "by":
+                                    lyricsData.Creator = value;
+                                    break;
+                                case "offset":
+                                    if (double.TryParse(value, out double offset))
+                                        lyricsData.Offset = offset;
+                                    break;
+                            }
+                        }
                         continue;
                     }
 
@@ -113,20 +118,61 @@ public partial record LyricsService
 
                         double timeInSeconds = minutes * 60 + seconds + milliseconds;
 
-                        // 根据是否为翻译部分，将歌词存入相应的字典
-                        if (isTranslation)
-                            translationLyrics[timeInSeconds] = lyric;
+                        // 根据是否为第二部分，将歌词存入相应的字典
+                        if (isSecondPart)
+                            secondPartLyrics[timeInSeconds] = lyric;
                         else
-                            primaryLyrics[timeInSeconds] = lyric;
+                            firstPartLyrics[timeInSeconds] = lyric;
                     }
                 }
 
-                // 处理主歌词和翻译歌词
-                if (primaryLyrics.Count > 0)
-                    lyricsData.PrimaryLyrics = CleanLyrics(primaryLyrics);
+                // 清理歌词
+                var cleanedFirstPart = CleanLyrics(firstPartLyrics);
+                var cleanedSecondPart = CleanLyrics(secondPartLyrics);
 
-                if (translationLyrics.Count > 0)
-                    lyricsData.TranslationLyrics = CleanLyrics(translationLyrics);
+                switch (cleanedFirstPart.Count)
+                {
+                    // 合并歌词
+                    case > 0 when cleanedSecondPart.Count > 0:
+                        {
+                            // 合并两部分歌词
+                            var allTimePoints = new HashSet<double>(cleanedFirstPart.Keys);
+                            allTimePoints.UnionWith(cleanedSecondPart.Keys);
+
+                            foreach (double timePoint in allTimePoints)
+                            {
+                                cleanedFirstPart.TryGetValue(timePoint, out string? primary);
+                                cleanedSecondPart.TryGetValue(timePoint, out string? translation);
+
+                                // 如果主歌词为空但翻译存在，则交换
+                                if (string.IsNullOrEmpty(primary) && !string.IsNullOrEmpty(translation))
+                                {
+                                    primary = translation;
+                                    translation = null;
+                                }
+
+                                mergedLyrics.Add(new LyricLine(timePoint, primary ?? string.Empty, translation));
+                            }
+                            break;
+                        }
+                    case > 0:
+                        // 只有主歌词
+                        mergedLyrics.AddRange(cleanedFirstPart.Select(pair => new LyricLine(pair.Key, pair.Value)));
+                        break;
+                    default:
+                        {
+                            if (cleanedSecondPart.Count > 0)
+                            {
+                                // 只有第二部分，作为主歌词
+                                mergedLyrics.AddRange(cleanedSecondPart.Select(pair => new LyricLine(pair.Key, pair.Value)));
+                            }
+                            break;
+                        }
+                }
+
+                // 设置歌词数据并按时间点排序
+                if (mergedLyrics.Count > 0)
+                    lyricsData.Lyrics = mergedLyrics.OrderBy(l => l.TimePoint).ToList();
 
                 return lyricsData;
             });
@@ -158,11 +204,7 @@ public partial record LyricsService
             {
                 // 查找连续的空白歌词
                 int j = i + 1;
-                while (
-                    j < sortedTimes.Count
-                    && string.IsNullOrWhiteSpace(lyrics[sortedTimes[j]])
-                    && sortedTimes[j] - sortedTimes[i] < 1.0
-                ) // 1秒内的连续空白
+                while (j < sortedTimes.Count && string.IsNullOrWhiteSpace(lyrics[sortedTimes[j]])) // 1秒内的连续空白
                 {
                     j++;
                 }

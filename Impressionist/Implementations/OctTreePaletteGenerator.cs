@@ -23,7 +23,6 @@ namespace Impressionist.Implementations
                 quantizer.AddColorRange(color.Key, color.Value);
             }
             quantizer.Quantize(1);
-            var index = new List<Vector3> { targetColor.Keys.FirstOrDefault() };
             var result = quantizer.GetThemeResult();
             bool colorIsDark = result.RGBVectorToHSVColor().sRGBColorIsDark();
             return Task.FromResult(new ThemeColorResult(result, colorIsDark));
@@ -61,7 +60,6 @@ namespace Impressionist.Implementations
                 quantizer.AddColorRange(color.Key, color.Value);
             }
             quantizer.Quantize(clusterCount);
-            var index = targetColor.Keys.ToList();
             List<Vector3> quantizeResult;
             if (colorIsDark)
             {
