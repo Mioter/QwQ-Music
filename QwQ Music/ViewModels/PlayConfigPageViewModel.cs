@@ -18,18 +18,25 @@ namespace QwQ_Music.ViewModels;
 
 public partial class PlayConfigPageViewModel : ViewModelBase
 {
-    public PlayerConfig PlayerConfig { get; set; } = ConfigInfoModel.PlayerConfig;
+    public PlayerConfig PlayerConfig { get; } = ConfigInfoModel.PlayerConfig;
 
-    public MusicPlayerViewModel MusicPlayerViewModel { get; set; } = MusicPlayerViewModel.Instance;
+    public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     public AudioModifierConfig AudioModifierConfig { get; } = ConfigInfoModel.AudioModifierConfig;
 
     public PlayConfigPageViewModel()
     {
-        _ = RefreshNumberOfCompletedCalc();
-
         ReplayGainCalculator.CalcCompletedChanged += ReplayGainCalculatorOnCalcCompletedChanged;
         StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
+        StrongMessageBus.Instance.Subscribe<LoadCompletedMessage>(LoadCompletedMessageHandler);
+    }
+
+    private async void LoadCompletedMessageHandler(LoadCompletedMessage obj)
+    {
+        if (obj.Name == nameof(MusicPlayerViewModel.MusicItems))
+        {
+            await RefreshNumberOfCompletedCalc();
+        }
     }
 
     private void ReplayGainCalculatorOnCalcCompletedChanged(object? sender, EventArgs e) => NumberOfCompletedCalc++;
@@ -107,7 +114,7 @@ public partial class PlayConfigPageViewModel : ViewModelBase
                     break;
                 case AsyncTaskStatus.Cancelled:
                 default:
-                    LoggerService.Error($"不存在的任务状态: {TaskHandle.Status}");
+                    await LoggerService.ErrorAsync($"不存在的任务状态: {TaskHandle.Status}");
                     break;
             }
         }

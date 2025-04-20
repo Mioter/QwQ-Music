@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
@@ -98,7 +99,7 @@ public class MusicItemModel(
     {
         get
         {
-            if (field != null && !System.IO.File.Exists(field))
+            if (field != null && !File.Exists(field))
             {
                 // 如果封面路径不为空但文件不存在，尝试异步提取
                 Task.Run(async () =>

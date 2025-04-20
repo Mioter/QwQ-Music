@@ -11,7 +11,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
-using QwQ_Music.Utilities.MessageBus;
 
 namespace QwQ_Music.ViewModels;
 
@@ -20,32 +19,15 @@ public partial class AllMusicPageViewModel : ViewModelBase
     private const string FilePickerTitle = "选择音乐文件";
 
     [ObservableProperty]
-    public partial ObservableCollection<MusicItemModel> AllMusicItems { get; set; }
+    public partial ObservableCollection<MusicItemModel> AllMusicItems { get; set; } = MusicPlayerViewModel.MusicItems;
 
     [ObservableProperty]
     public partial string? SearchText { get; set; }
 
     [ObservableProperty]
     public partial MusicItemModel? SelectedItem { get; set; }
-
-    public AllMusicPageViewModel()
-    {
-        AllMusicItems = MusicPlayerViewModel.MusicItems;
-        MusicPlayerViewModel.MusicItemsChanged += OnMusicPlayerViewModelOnMusicItemsChanged;
-        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
-    }
-
-    private void ExitReminderMessageHandler(ExitReminderMessage message)
-    {
-        MusicPlayerViewModel.MusicItemsChanged -= OnMusicPlayerViewModelOnMusicItemsChanged;
-    }
-
-    public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
-
-    private void OnMusicPlayerViewModelOnMusicItemsChanged(object? _, ObservableCollection<MusicItemModel> musicItems)
-    {
-        AllMusicItems = musicItems;
-    }
+    
+    public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     partial void OnSearchTextChanged(string? value)
     {

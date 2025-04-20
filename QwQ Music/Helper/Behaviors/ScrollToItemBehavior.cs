@@ -11,6 +11,7 @@ using Avalonia.Layout;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using QwQ.Avalonia.Helper;
 
 namespace QwQ_Music.Helper.Behaviors;
 
@@ -71,11 +72,11 @@ public class ScrollToItemBehavior
                     {
                         var duration = GetScrollDuration(listBox);
                         var easing = GetScrollEasing(listBox);
-                        
+
                         // 创建新的取消令牌
                         _CurrentScrollCts = new CancellationTokenSource();
                         var token = _CurrentScrollCts.Token;
-                        
+
                         Dispatcher.UIThread.Post(async void () =>
                         {
                             /*// 确保项目可见 为保证滚动效果，先不使用
@@ -108,13 +109,19 @@ public class ScrollToItemBehavior
     {
         if (_CurrentScrollCts is not { IsCancellationRequested: false })
             return;
-        
+
         _CurrentScrollCts.Cancel();
         _CurrentScrollCts.Dispose();
         _CurrentScrollCts = null;
     }
 
-    private static async Task SmoothScrollToItemCenterAsync(Control control, object item, TimeSpan duration, Easing easing, CancellationToken cancellationToken)
+    private static async Task SmoothScrollToItemCenterAsync(
+        Control control,
+        object item,
+        TimeSpan duration,
+        Easing easing,
+        CancellationToken cancellationToken
+    )
     {
         // 获取滚动查看器
         var scrollViewer = control.FindDescendantOfType<ScrollViewer>();
@@ -145,13 +152,14 @@ public class ScrollToItemBehavior
 
             // 使用Avalonia动画系统
             await AnimateScrollOffsetAsync(
-                scrollViewer, 
-                scrollViewer.Offset.Y, 
-                targetOffset, 
-                duration, 
-                easing, 
+                scrollViewer,
+                scrollViewer.Offset.Y,
+                targetOffset,
+                duration,
+                easing,
                 Orientation.Vertical,
-                cancellationToken);
+                cancellationToken
+            );
         }
         else if (scrollViewer.HorizontalScrollBarVisibility != ScrollBarVisibility.Disabled)
         {
@@ -161,13 +169,14 @@ public class ScrollToItemBehavior
 
             // 使用Avalonia动画系统
             await AnimateScrollOffsetAsync(
-                scrollViewer, 
-                scrollViewer.Offset.X, 
-                targetOffset, 
-                duration, 
-                easing, 
+                scrollViewer,
+                scrollViewer.Offset.X,
+                targetOffset,
+                duration,
+                easing,
                 Orientation.Horizontal,
-                cancellationToken);
+                cancellationToken
+            );
         }
     }
 
@@ -178,47 +187,53 @@ public class ScrollToItemBehavior
         TimeSpan duration,
         Easing easing,
         Orientation orientation,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         // 创建动画
         var animation = new Animation
         {
             Duration = duration,
             FillMode = FillMode.Forward,
-            Easing = easing
+            Easing = easing,
         };
-    
+
         // 添加关键帧
-        animation.Children.Add(new KeyFrame
-        {
-            Cue = new Cue(0d),
-            Setters =
+        animation.Children.Add(
+            new KeyFrame
             {
-                new Setter(
-                    ScrollViewer.OffsetProperty,
-                    orientation == Orientation.Vertical
-                        ? new Vector(scrollViewer.Offset.X, fromValue)
-                        : new Vector(fromValue, scrollViewer.Offset.Y))
+                Cue = new Cue(0d),
+                Setters =
+                {
+                    new Setter(
+                        ScrollViewer.OffsetProperty,
+                        orientation == Orientation.Vertical
+                            ? new Vector(scrollViewer.Offset.X, fromValue)
+                            : new Vector(fromValue, scrollViewer.Offset.Y)
+                    ),
+                },
             }
-        });
-    
-        animation.Children.Add(new KeyFrame
-        {
-            Cue = new Cue(1d),
-            Setters =
+        );
+
+        animation.Children.Add(
+            new KeyFrame
             {
-                new Setter(
-                    ScrollViewer.OffsetProperty,
-                    orientation == Orientation.Vertical
-                        ? new Vector(scrollViewer.Offset.X, toValue)
-                        : new Vector(toValue, scrollViewer.Offset.Y))
+                Cue = new Cue(1d),
+                Setters =
+                {
+                    new Setter(
+                        ScrollViewer.OffsetProperty,
+                        orientation == Orientation.Vertical
+                            ? new Vector(scrollViewer.Offset.X, toValue)
+                            : new Vector(toValue, scrollViewer.Offset.Y)
+                    ),
+                },
             }
-        });
-        
+        );
+
         // 创建一个TaskCompletionSource来跟踪动画完成
         var tcs = new TaskCompletionSource<bool>();
-        
-        
+
         // 运行动画
         await animation.RunAsync(scrollViewer, cancellationToken);
     }
@@ -254,7 +269,7 @@ public class ScrollToItemBehavior
     {
         return element.GetValue(SmoothScrollingEnabledProperty);
     }
-    
+
     public static void SetScrollEasing(Control element, Easing value)
     {
         element.SetValue(ScrollEasingProperty, value);

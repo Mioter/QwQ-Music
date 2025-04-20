@@ -1,6 +1,8 @@
 using System;
+using System.Threading.Tasks;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services.ConfigIO;
+using QwQ_Music.ViewModels;
 
 namespace QwQ_Music.Models;
 
@@ -136,6 +138,8 @@ public static class ConfigInfoModel
         SavePlayerConfig();
         SaveDesktopLyricConfig();
         SaveSoundEffectConfig();
+
+        MusicPlayerViewModel.Instance.Save().Wait();
     }
 
     #endregion

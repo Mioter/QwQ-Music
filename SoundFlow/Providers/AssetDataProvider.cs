@@ -110,7 +110,7 @@ public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
         int totalSamples = blocks.Sum(block => block.Length);
         float[] samples = new float[totalSamples];
         int offset = 0;
-        foreach (float[]? block in blocks)
+        foreach (float[] block in blocks)
         {
             block.CopyTo(samples, offset);
             offset += block.Length;

@@ -330,7 +330,7 @@ public abstract class AudioEngine : IDisposable
     /// </summary>
     /// <param name="input">A pointer to the input buffer.</param>
     /// <param name="length">The length of the input buffer in samples.</param>
-    protected void ProcessAudioInput(nint input, int length)
+    protected static void ProcessAudioInput(nint input, int length)
     {
         if (length <= 0 || input == nint.Zero)
             return;

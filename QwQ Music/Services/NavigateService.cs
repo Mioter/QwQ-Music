@@ -31,7 +31,7 @@ public static class NavigateService
     };
 
     // 自动根据ViewTree生成ViewIndex
-    private static Dictionary<string, (string?, int, int)> ViewIndex { get; set; } = GenerateViewIndex();
+    private static Dictionary<string, (string?, int, int)> ViewIndex { get; } = GenerateViewIndex();
 
     private static Dictionary<string, (string?, int, int)> GenerateViewIndex()
     {
@@ -41,7 +41,7 @@ public static class NavigateService
         };
 
         // 递归处理所有节点
-        foreach ((string? parent, string[]? children) in ViewTree)
+        foreach ((string parent, string[]? children) in ViewTree)
         {
             if (children == null)
                 continue;

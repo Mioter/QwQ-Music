@@ -298,7 +298,7 @@ public class DraggableContainer : TemplatedControl
         return (newX, newY);
     }
 
-    private double Distance(Point p1, Point p2)
+    private static double Distance(Point p1, Point p2)
     {
         return Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
     }
@@ -383,7 +383,7 @@ public class DraggableContainer : TemplatedControl
         return (x, y);
     }
 
-    private double Distance(double x1, double y1, double x2, double y2)
+    private static double Distance(double x1, double y1, double x2, double y2)
     {
         return Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
     }

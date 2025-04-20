@@ -27,5 +27,5 @@ public partial class InterfaceConfigPageViewModel() : NavigationViewModel("ç•Œé
         });
     }
 
-    public ColorExtractionAlgorithm[] ColorExtractionAlgorithms => EnumHelper<ColorExtractionAlgorithm>.ToArray();
+    public static ColorExtractionAlgorithm[] ColorExtractionAlgorithms => EnumHelper<ColorExtractionAlgorithm>.ToArray();
 }

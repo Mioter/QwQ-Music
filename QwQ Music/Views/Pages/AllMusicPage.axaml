@@ -116,6 +116,16 @@
                                     </MenuItem.Icon>
                                 </MenuItem>
 
+
+                                <MenuItem
+                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="详细信息">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                
                                 <!--  在文件中打开  -->
                                 <MenuItem
                                     Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
@@ -126,14 +136,16 @@
                                     </MenuItem.Icon>
                                 </MenuItem>
 
+                                <!--  删除  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
+                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.DeleteMusicItemCommand}"
                                     CommandParameter="{Binding}"
-                                    Header="详细信息">
+                                    Header="删除音乐">
                                     <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
+                                        <PathIcon Data="{StaticResource SemiIconDelete}" Margin="2" />
                                     </MenuItem.Icon>
                                 </MenuItem>
+
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>

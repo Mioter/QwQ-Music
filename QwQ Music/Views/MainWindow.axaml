@@ -365,7 +365,6 @@
             MaxWidth="400"
             MinWidth="250"
             Name="MusicPlayListPanel"
-            VerticalAlignment="Top"
             Width="{Binding MusicPlayListWidth}">
             <Panel.RenderTransform>
                 <TranslateTransform X="{Binding MusicPlayListXaxisOffset, Mode=OneWayToSource}" />
@@ -379,6 +378,7 @@
 
                 <Style Selector="Panel#MusicPlayListPanel.Retract">
                     <Setter Property="Height" Value="{Binding MusicCoverPageHeight, Converter={StaticResource CalcConverter}, ConverterParameter='@VALUE - 150'}" />
+                    <Setter Property="VerticalAlignment" Value="Top"/>
                 </Style>
 
                 <Style Selector="Panel#MusicPlayListPanel.Hide">

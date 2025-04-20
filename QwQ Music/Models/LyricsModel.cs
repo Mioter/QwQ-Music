@@ -12,10 +12,9 @@ public partial class LyricsModel(LyricsData lyricsData) : ObservableObject
     public delegate void CurrentLyricsChangedEventHandler(object sender, int lyricsIndex, LyricLine lyricsLine);
 
     public event CurrentLyricsChangedEventHandler? CurrentLyrics;
-    
+
     private readonly List<double> _timePoints =
         lyricsData.Lyrics.Count > 0 ? lyricsData.Lyrics.Select(l => l.TimePoint).OrderBy(t => t).ToList() : [];
-    
 
     [ObservableProperty]
     public partial int LyricsIndex { get; set; }
@@ -28,15 +27,15 @@ public partial class LyricsModel(LyricsData lyricsData) : ObservableObject
     public void UpdateLyricsIndex(double timePoints)
     {
         LyricsIndex = CalculateIndex(timePoints);
-        
+
         // 确保索引有效
-        if (LyricsIndex < 0 || LyricsIndex >= LyricsData.Lyrics.Count) 
+        if (LyricsIndex < 0 || LyricsIndex >= LyricsData.Lyrics.Count)
             return;
-        
+
         CurrentLyric = LyricsData.Lyrics[LyricsIndex];
         CurrentLyrics?.Invoke(this, LyricsIndex, CurrentLyric);
     }
-    
+
     /// <summary>
     /// 根据当前播放时间计算当前歌词索引
     /// </summary>
@@ -94,7 +93,7 @@ public partial class LyricsModel(LyricsData lyricsData) : ObservableObject
 
         return _timePoints[index];
     }
-    
+
     /// <summary>
     /// 获取时间点列表
     /// </summary>
@@ -107,7 +106,6 @@ public partial class LyricsModel(LyricsData lyricsData) : ObservableObject
     public int Count => _timePoints.Count;
 }
 
-
 public class LyricsData
 {
     // 歌词元数据
@@ -116,7 +114,7 @@ public class LyricsData
     public string? Album { get; set; }
     public string? Creator { get; set; }
     public double Offset { get; set; }
-    
+
     public List<LyricLine> Lyrics { get; set; } = [new(0, "暂无歌词")];
 
     /// 判断是否有翻译

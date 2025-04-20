@@ -462,12 +462,7 @@ public class LyricsControl : TemplatedControl
     /// </summary>
     private void RenderLyrics()
     {
-        if (
-            _lyricsCanvas == null
-            || _lyrics == null
-            || _lyrics.Count == 0
-            || _lyricsCanvas.Bounds.Width == 0
-        )
+        if (_lyricsCanvas == null || _lyrics == null || _lyrics.Count == 0 || _lyricsCanvas.Bounds.Width == 0)
             return;
 
         _lyricsCanvas.Children.Clear();
@@ -678,6 +673,7 @@ public class LyricsControl : TemplatedControl
             return;
 
         // 取消正在进行的滚动动画
+        // ReSharper disable once MethodHasAsyncOverload
         _scrollAnimationCts?.Cancel();
         _scrollAnimationCts = new CancellationTokenSource();
         var cancellationToken = _scrollAnimationCts.Token;

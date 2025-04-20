@@ -4,7 +4,7 @@ namespace QwQ_Music.ViewModels;
 
 public class NavigationViewModel : ViewModelBase
 {
-    private string NavViewName { get; set; }
+    private string NavViewName { get; }
 
     protected NavigationViewModel(string navViewName)
     {

@@ -53,7 +53,7 @@ public static class MusicExtractor
         }
         catch (Exception ex)
         {
-            LoggerService.Error($"Failed to save cover {filePath}: {ex.Message}, TypeName: {ex.GetType().Name}");
+            await LoggerService.ErrorAsync($"Failed to save cover {filePath}: {ex.Message}, TypeName: {ex.GetType().Name}");
             return false;
         }
     }
@@ -219,7 +219,7 @@ public static class MusicExtractor
         }
         catch (Exception ex)
         {
-            LoggerService.Error($"Error reading metadata from {filePath}: {ex.Message}");
+            await LoggerService.ErrorAsync($"Error reading metadata from {filePath}: {ex.Message}");
             return null;
         }
     }
@@ -242,7 +242,7 @@ public static class MusicExtractor
     {
         if (!File.Exists(filePath))
         {
-            LoggerService.Warning($"File not found: {filePath}");
+            await LoggerService.WarningAsync($"File not found: {filePath}");
             return null;
         }
         try
@@ -251,7 +251,7 @@ public static class MusicExtractor
         }
         catch (Exception ex)
         {
-            LoggerService.Error($"Failed to open file stream for: {filePath}. Error: {ex.Message}");
+            await LoggerService.ErrorAsync($"Failed to open file stream for: {filePath}. Error: {ex.Message}");
             return null;
         }
     }
@@ -271,7 +271,7 @@ public static class MusicExtractor
         }
         catch (Exception ex)
         {
-            LoggerService.Error(
+            await LoggerService.ErrorAsync(
                 $"Unexpected {ex.GetType()} occurred when loading compressed cover image from cache: {coverPath}. Error: {ex.Message}"
             );
             return null;
@@ -294,7 +294,7 @@ public static class MusicExtractor
         }
         catch (Exception ex)
         {
-            LoggerService.Error(
+            await LoggerService.ErrorAsync(
                 $"Unexpected {ex.GetType()} occurred when loading original cover image: {coverPath}. Error: {ex.Message}"
             );
             return null;
@@ -354,7 +354,7 @@ public static class MusicExtractor
         }
         catch (Exception ex)
         {
-            LoggerService.Error($"Error extracting cover from audio file {filePath}: {ex.Message}");
+            await LoggerService.ErrorAsync($"Error extracting cover from audio file {filePath}: {ex.Message}");
             return null;
         }
     }

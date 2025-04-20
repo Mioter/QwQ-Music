@@ -382,7 +382,7 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
         _isEndList = false;
         _hlsTargetDuration = 5;
 
-        foreach (string? line in lines)
+        foreach (string line in lines)
         {
             string trimmedLine = line.Trim();
 

@@ -46,7 +46,7 @@ public class Love
         "📯",
     ];
 
-    private IEnumerable<PixelPoint> GenerateHeartPoints()
+    private static IEnumerable<PixelPoint> GenerateHeartPoints()
     {
         var points = new List<PixelPoint>();
 

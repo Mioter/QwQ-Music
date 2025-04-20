@@ -134,40 +134,42 @@ public partial record LyricsService
                 {
                     // 合并歌词
                     case > 0 when cleanedSecondPart.Count > 0:
+                    {
+                        // 合并两部分歌词
+                        var allTimePoints = new HashSet<double>(cleanedFirstPart.Keys);
+                        allTimePoints.UnionWith(cleanedSecondPart.Keys);
+
+                        foreach (double timePoint in allTimePoints)
                         {
-                            // 合并两部分歌词
-                            var allTimePoints = new HashSet<double>(cleanedFirstPart.Keys);
-                            allTimePoints.UnionWith(cleanedSecondPart.Keys);
+                            cleanedFirstPart.TryGetValue(timePoint, out string? primary);
+                            cleanedSecondPart.TryGetValue(timePoint, out string? translation);
 
-                            foreach (double timePoint in allTimePoints)
+                            // 如果主歌词为空但翻译存在，则交换
+                            if (string.IsNullOrEmpty(primary) && !string.IsNullOrEmpty(translation))
                             {
-                                cleanedFirstPart.TryGetValue(timePoint, out string? primary);
-                                cleanedSecondPart.TryGetValue(timePoint, out string? translation);
-
-                                // 如果主歌词为空但翻译存在，则交换
-                                if (string.IsNullOrEmpty(primary) && !string.IsNullOrEmpty(translation))
-                                {
-                                    primary = translation;
-                                    translation = null;
-                                }
-
-                                mergedLyrics.Add(new LyricLine(timePoint, primary ?? string.Empty, translation));
+                                primary = translation;
+                                translation = null;
                             }
-                            break;
+
+                            mergedLyrics.Add(new LyricLine(timePoint, primary ?? string.Empty, translation));
                         }
+                        break;
+                    }
                     case > 0:
                         // 只有主歌词
                         mergedLyrics.AddRange(cleanedFirstPart.Select(pair => new LyricLine(pair.Key, pair.Value)));
                         break;
                     default:
+                    {
+                        if (cleanedSecondPart.Count > 0)
                         {
-                            if (cleanedSecondPart.Count > 0)
-                            {
-                                // 只有第二部分，作为主歌词
-                                mergedLyrics.AddRange(cleanedSecondPart.Select(pair => new LyricLine(pair.Key, pair.Value)));
-                            }
-                            break;
+                            // 只有第二部分，作为主歌词
+                            mergedLyrics.AddRange(
+                                cleanedSecondPart.Select(pair => new LyricLine(pair.Key, pair.Value))
+                            );
                         }
+                        break;
+                    }
                 }
 
                 // 设置歌词数据并按时间点排序
@@ -179,7 +181,7 @@ public partial record LyricsService
         }
         catch (Exception ex)
         {
-            Log.Error($"解析歌词文件出错：{ex.Message}");
+            await Log.ErrorAsync($"解析歌词文件出错：{ex.Message}");
             return null;
         }
     }

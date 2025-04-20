@@ -96,7 +96,7 @@ namespace Impressionist.Implementations
             return new PaletteResult(result, colorIsDark, colorResult);
         }
 
-        static Vector3[] KMeansCluster(Dictionary<Vector3, int> colors, int numClusters, bool useKMeansPP)
+        private static Vector3[] KMeansCluster(Dictionary<Vector3, int> colors, int numClusters, bool useKMeansPP)
         {
             // Initialize the clusters, reduces the total number when total colors is less than clusters
             int clusterCount = Math.Min(numClusters, colors.Count);
@@ -160,7 +160,7 @@ namespace Impressionist.Implementations
             return centers;
         }
 
-        static Vector3 FindNearestCenter(Vector3 color, Vector3[] centers)
+        private static Vector3 FindNearestCenter(Vector3 color, Vector3[] centers)
         {
             var nearest = centers[0];
             float minDist = float.MaxValue;
@@ -178,7 +178,7 @@ namespace Impressionist.Implementations
             return nearest;
         }
 
-        static List<Vector3> KMeansPlusPlusCluster(Dictionary<Vector3, int> colors, int numClusters)
+        private static List<Vector3> KMeansPlusPlusCluster(Dictionary<Vector3, int> colors, int numClusters)
         {
             var random = new Random();
             int clusterCount = Math.Min(numClusters, colors.Count);

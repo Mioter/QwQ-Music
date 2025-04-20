@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
+using QwQ.Avalonia.Helper;
 
 namespace QwQ_Music.Helper.Behaviors;
 

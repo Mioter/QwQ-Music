@@ -23,7 +23,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         : base("播放")
     {
         MusicPlayerViewModel.CurrentMusicItemChanged += MusicPlayerViewModelOnCurrentMusicItemChanged;
-        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
+        StrongMessageBus.Instance.SubscribeOnce<ExitReminderMessage>(ExitReminderMessageHandler);
     }
 
     private void ExitReminderMessageHandler(ExitReminderMessage message)
@@ -62,7 +62,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         }
         catch (Exception ex)
         {
-            LoggerService.Error($"{nameof(MusicPlayerViewModelOnCurrentMusicItemChanged)} 发生错误 : {ex.Message}");
+            await LoggerService.ErrorAsync($"{nameof(MusicPlayerViewModelOnCurrentMusicItemChanged)} 发生错误 : {ex.Message}");
         }
     }
 

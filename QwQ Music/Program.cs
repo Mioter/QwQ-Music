@@ -4,6 +4,7 @@ using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities.MessageBus;
+using QwQ_Music.ViewModels;
 
 namespace QwQ_Music;
 
@@ -33,7 +34,7 @@ public static class Program
         {
             ConfigInfoModel.SaveAll();
 
-            StrongMessageBus.Instance.Publish(new ExitReminderMessage { Success = true });
+            StrongMessageBus.Instance.Publish(new ExitReminderMessage(true));
             StrongMessageBus.Instance.Dispose();
 
             DataBaseService.CloseConnectionAsync().Wait();
@@ -42,7 +43,8 @@ public static class Program
         catch (Exception ex)
         {
             // Log the exception or handle it as needed
-            LoggerService.Error($"An error occurred: {ex.Message}");
+             LoggerService.ErrorAsync($"An error occurred: {ex.Message}");
+             LoggerService.Shutdown();
         }
     }
 
