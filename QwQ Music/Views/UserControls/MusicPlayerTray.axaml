@@ -17,7 +17,7 @@
 
     <UserControl.Styles>
 
-        <Style Selector="Image.AlbumCoverRotate">
+        <Style Selector="userControls|MusicAlbumCover.AlbumCoverRotate">
             <Style.Animations>
                 <Animation
                     Duration="0:0:15"
@@ -47,28 +47,16 @@
                 Background="{x:Null}"
                 Classes="None"
                 Command="{Binding $parent[Window].((viewModel:MainWindowViewModel)DataContext).ShowMusicPlayerPageCommand}">
-                <Border
-                    Background="Black"
-                    BorderBrush="White"
-                    BorderThickness="3"
-                    BoxShadow="0 0 10 0 DarkGray"
-                    Margin="10"
-                    behaviors:DynamicCornerBehavior.IsEnabled="True">
-                    <Border
-                        ClipToBounds="True"
-                        Margin="5"
-                        behaviors:DynamicCornerBehavior.IsEnabled="True">
-                        <!--  专辑封面 Image 控件  -->
-                        <Image Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}" Source="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverImage}">
 
-                            <Image.RenderTransform>
-                                <RotateTransform Angle="{Binding AlbumCoverCurrentAngle, Mode=OneWayToSource}" />
-                            </Image.RenderTransform>
+                <userControls:MusicAlbumCover
+                    Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}"
+                    CoverImage="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverImage}">
+                    
+                    <userControls:MusicAlbumCover.RenderTransform>
+                        <RotateTransform Angle="{Binding AlbumCoverCurrentAngle, Mode=OneWayToSource}" />
+                    </userControls:MusicAlbumCover.RenderTransform>
 
-                        </Image>
-                    </Border>
-
-                </Border>
+                </userControls:MusicAlbumCover>
             </Button>
 
             <!--  音乐信息  -->

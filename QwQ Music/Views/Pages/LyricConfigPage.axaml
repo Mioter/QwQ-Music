@@ -1,4 +1,7 @@
 ﻿<UserControl
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     PointerEntered="SetLyricBackground"
     PointerExited="UnsetLyricBackground"
     x:Class="QwQ_Music.Views.Pages.LyricConfigPage"
@@ -13,106 +16,99 @@
         Margin="10"
         VerticalScrollBarVisibility="Auto">
 
-        <StackPanel Margin="10" Spacing="20">
+        <StackPanel Spacing="20" Margin="0,0,10,0">
 
-            <StackPanel Spacing="10">
-                <TextBlock
-                    FontSize="15"
-                    FontWeight="Bold"
-                    Text="滚动歌词" />
-                <u:Divider />
+            <Expander Header="滚动歌词">
 
-                <Panel>
-                    <TextBlock Text="歌词文本对齐方式" VerticalAlignment="Center" />
-                    <ComboBox
-                        CornerRadius="8"
-                        HorizontalAlignment="Right"
-                        ItemsSource="{Binding TextAlignments}"
-                        SelectedItem="{Binding RolledLyricsConfig.LyricTextAlignment}" />
-                </Panel>
+                <StackPanel Spacing="10">
+                    <Panel>
+                        <TextBlock Text="歌词文本对齐方式" VerticalAlignment="Center" />
+                        <ComboBox
+                            CornerRadius="8"
+                            HorizontalAlignment="Right"
+                            ItemsSource="{Binding TextAlignments}"
+                            SelectedItem="{Binding RolledLyricsConfig.LyricTextAlignment}" />
+                    </Panel>
 
-                <CheckBox Content="显示翻译" IsChecked="{Binding RolledLyricsConfig.ShowTranslation}" />
+                    <CheckBox Content="显示翻译" IsChecked="{Binding RolledLyricsConfig.ShowTranslation}" />
 
-                <TextBlock Text="{Binding OffsetName}" />
-                <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding DesktopLyric.LyricOffset}" />
+                    <TextBlock Text="{Binding OffsetName}" />
+                    <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding DesktopLyric.LyricOffset}" />
+                </StackPanel>
 
-            </StackPanel>
+            </Expander>
 
-            <StackPanel Spacing="10">
-                <TextBlock
-                    FontSize="15"
-                    FontWeight="Bold"
-                    Text="桌面歌词" />
-                <u:Divider />
+            <Expander Header="桌面歌词">
 
-                <TextBlock Text="{Binding OffsetName}" />
-                <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding DesktopLyric.LyricOffset}" />
+                <StackPanel Spacing="10">
 
-                <CheckBox Content="{Binding IsEnabledName}" IsChecked="{Binding DesktopLyric.LyricIsEnabled}" />
-                <CheckBox Content="{Binding IsDoubleLineName}" IsChecked="{Binding DesktopLyric.LyricIsDoubleLine}" />
-                <CheckBox Content="{Binding IsDualLangName}" IsChecked="{Binding DesktopLyric.LyricIsDualLang}" />
-                <CheckBox Content="{Binding IsVerticalName}" IsChecked="{Binding DesktopLyric.LyricIsVertical}" />
+                    <TextBlock Text="{Binding OffsetName}" />
+                    <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding DesktopLyric.LyricOffset}" />
 
-                <TextBlock Text="{Binding PositionXName}" />
-                <u:NumericIntUpDown InnerRightContent="px" Value="{Binding DesktopLyric.LyricPositionX}" />
+                    <CheckBox Content="{Binding IsEnabledName}" IsChecked="{Binding DesktopLyric.LyricIsEnabled}" />
+                    <CheckBox Content="{Binding IsDoubleLineName}" IsChecked="{Binding DesktopLyric.LyricIsDoubleLine}" />
+                    <CheckBox Content="{Binding IsDualLangName}" IsChecked="{Binding DesktopLyric.LyricIsDualLang}" />
+                    <CheckBox Content="{Binding IsVerticalName}" IsChecked="{Binding DesktopLyric.LyricIsVertical}" />
 
-                <TextBlock Text="{Binding PositionYName}" />
-                <u:NumericIntUpDown InnerRightContent="px" Value="{Binding DesktopLyric.LyricPositionY}" />
+                    <TextBlock Text="{Binding PositionXName}" />
+                    <u:NumericIntUpDown InnerRightContent="px" Value="{Binding DesktopLyric.LyricPositionX}" />
 
-                <TextBlock Text="{Binding WidthName}" />
-                <u:NumericIntUpDown InnerRightContent="px" Value="{Binding DesktopLyric.LyricWidth}" />
+                    <TextBlock Text="{Binding PositionYName}" />
+                    <u:NumericIntUpDown InnerRightContent="px" Value="{Binding DesktopLyric.LyricPositionY}" />
 
-                <Button
-                    Click="MaximizeLyricWidth"
-                    Content="{Binding MaximizeName}"
-                    IsVisible="{Binding !DesktopLyric.LyricIsVertical}" />
-                <Button
-                    Click="ResetLyricWidth"
-                    Content="{Binding ResetName}"
-                    IsVisible="{Binding DesktopLyric.LyricIsVertical}" />
+                    <TextBlock Text="{Binding WidthName}" />
+                    <u:NumericIntUpDown InnerRightContent="px" Value="{Binding DesktopLyric.LyricWidth}" />
 
-                <TextBlock Text="{Binding HeightName}" />
-                <u:NumericIntUpDown InnerRightContent="px" Value="{Binding DesktopLyric.LyricHeight}" />
+                    <Button
+                        Click="MaximizeLyricWidth"
+                        Content="{Binding MaximizeName}"
+                        IsVisible="{Binding !DesktopLyric.LyricIsVertical}" />
+                    <Button
+                        Click="ResetLyricWidth"
+                        Content="{Binding ResetName}"
+                        IsVisible="{Binding DesktopLyric.LyricIsVertical}" />
 
-                <Button
-                    Click="MaximizeLyricHeight"
-                    Content="{Binding MaximizeName}"
-                    IsVisible="{Binding DesktopLyric.LyricIsVertical}" />
-                <Button
-                    Click="ResetLyricHeight"
-                    Content="{Binding ResetName}"
-                    IsVisible="{Binding !DesktopLyric.LyricIsVertical}" />
+                    <TextBlock Text="{Binding HeightName}" />
+                    <u:NumericIntUpDown InnerRightContent="px" Value="{Binding DesktopLyric.LyricHeight}" />
 
-                <WrapPanel>
+                    <Button
+                        Click="MaximizeLyricHeight"
+                        Content="{Binding MaximizeName}"
+                        IsVisible="{Binding DesktopLyric.LyricIsVertical}" />
+                    <Button
+                        Click="ResetLyricHeight"
+                        Content="{Binding ResetName}"
+                        IsVisible="{Binding !DesktopLyric.LyricIsVertical}" />
 
                     <WrapPanel>
 
-                        <TextBlock Text="{Binding LyricMainTopColorName}" />
-                        <ColorView Color="{Binding DesktopLyric.LyricMainTopColor}" />
-                        <TextBlock Text="{Binding LyricMainBottomColorName}" />
-                        <ColorView Color="{Binding DesktopLyric.LyricMainBottomColor}" />
-                        <TextBlock Text="{Binding LyricMainBorderColorName}" />
-                        <ColorView Color="{Binding DesktopLyric.LyricMainBorderColor}" />
+                        <WrapPanel>
 
+                            <TextBlock Text="{Binding LyricMainTopColorName}" />
+                            <ColorView Color="{Binding DesktopLyric.LyricMainTopColor}" />
+                            <TextBlock Text="{Binding LyricMainBottomColorName}" />
+                            <ColorView Color="{Binding DesktopLyric.LyricMainBottomColor}" />
+                            <TextBlock Text="{Binding LyricMainBorderColorName}" />
+                            <ColorView Color="{Binding DesktopLyric.LyricMainBorderColor}" />
+
+                        </WrapPanel>
+
+                        <WrapPanel>
+
+                            <TextBlock Text="{Binding LyricAltTopColorName}" />
+                            <ColorView Color="{Binding DesktopLyric.LyricAltTopColor}" />
+                            <TextBlock Text="{Binding LyricAltBottomColorName}" />
+                            <ColorView Color="{Binding DesktopLyric.LyricAltBottomColor}" />
+                            <TextBlock Text="{Binding LyricAltBorderColorName}" />
+                            <ColorView Color="{Binding DesktopLyric.LyricAltBorderColor}" />
+
+                        </WrapPanel>
                     </WrapPanel>
 
-                    <WrapPanel>
-
-                        <TextBlock Text="{Binding LyricAltTopColorName}" />
-                        <ColorView Color="{Binding DesktopLyric.LyricAltTopColor}" />
-                        <TextBlock Text="{Binding LyricAltBottomColorName}" />
-                        <ColorView Color="{Binding DesktopLyric.LyricAltBottomColor}" />
-                        <TextBlock Text="{Binding LyricAltBorderColorName}" />
-                        <ColorView Color="{Binding DesktopLyric.LyricAltBorderColor}" />
-
-                    </WrapPanel>
-                </WrapPanel>
-
-            </StackPanel>
-
+                </StackPanel>
+                
+            </Expander>
         </StackPanel>
-
-
 
     </ScrollViewer>
 </UserControl>

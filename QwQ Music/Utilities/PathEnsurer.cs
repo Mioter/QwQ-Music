@@ -69,4 +69,22 @@ public static class PathEnsurer
             LoggerService.Error($"打开文件位置失败: {ex.Message}");
         }
     }
+    
+    /// <summary>
+    /// 确保字符串是完整路径。如果不是，则拼接基础路径。
+    /// </summary>
+    /// <param name="input">输入字符串</param>
+    /// <param name="basePath">基础路径</param>
+    /// <returns>完整路径</returns>
+    public static string EnsureFullPath(string input, string basePath)
+    {
+        // 检查是否包含目录信息
+        string? directory = Path.GetDirectoryName(input);
+        return string.IsNullOrEmpty(directory) ?
+            // 不包含目录信息，拼接基础路径
+            Path.Combine(basePath, input) :
+            // 已经是完整路径，直接返回
+            Path.GetFullPath(input);
+
+    }
 }

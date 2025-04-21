@@ -81,6 +81,9 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
     public partial double MusicPlayListXaxisOffset { get; set; }
 
     [ObservableProperty]
+    public partial double MusicAlbumCoverPanelXaxisOffset { get; set; }
+    
+    [ObservableProperty]
     public partial double MusicCoverPageYaxisOffset { get; set; }
 
     public double NavigationWidth => IsNavigationExpand ? 150 : 75;

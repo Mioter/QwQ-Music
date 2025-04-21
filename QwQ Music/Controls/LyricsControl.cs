@@ -9,8 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.Media;
-using Avalonia.Media.Immutable;
+using Avalonia.Layout;
 using Avalonia.Styling;
 using QwQ_Music.Models;
 
@@ -50,43 +49,7 @@ public class LyricsControl : TemplatedControl
     public static readonly StyledProperty<double> LineSpacingProperty = AvaloniaProperty.Register<
         LyricsControl,
         double
-    >(nameof(LineSpacing), 10.0);
-
-    // 当前歌词字体大小
-    public static readonly StyledProperty<double> CurrentLyricFontSizeProperty = AvaloniaProperty.Register<
-        LyricsControl,
-        double
-    >(nameof(CurrentLyricFontSize), 18.0);
-
-    // 普通歌词字体大小
-    public static readonly StyledProperty<double> NormalLyricFontSizeProperty = AvaloniaProperty.Register<
-        LyricsControl,
-        double
-    >(nameof(NormalLyricFontSize), 16.0);
-
-    // 翻译歌词字体大小
-    public static readonly StyledProperty<double> TranslationFontSizeProperty = AvaloniaProperty.Register<
-        LyricsControl,
-        double
-    >(nameof(TranslationFontSize), 14.0);
-
-    // 当前歌词前景色
-    public static readonly StyledProperty<IBrush> CurrentLyricForegroundProperty = AvaloniaProperty.Register<
-        LyricsControl,
-        IBrush
-    >(nameof(CurrentLyricForeground), new ImmutableSolidColorBrush(Colors.Black));
-
-    // 普通歌词前景色
-    public static readonly StyledProperty<IBrush> NormalLyricForegroundProperty = AvaloniaProperty.Register<
-        LyricsControl,
-        IBrush
-    >(nameof(NormalLyricForeground), new ImmutableSolidColorBrush(Color.FromRgb(200, 200, 200)));
-
-    // 翻译歌词前景色
-    public static readonly StyledProperty<IBrush> TranslationForegroundProperty = AvaloniaProperty.Register<
-        LyricsControl,
-        IBrush
-    >(nameof(TranslationForeground), new ImmutableSolidColorBrush(Color.FromRgb(180, 180, 180)));
+    >(nameof(LineSpacing));
 
     // 滚动动画持续时间
     public static readonly StyledProperty<TimeSpan> ScrollAnimationDurationProperty = AvaloniaProperty.Register<
@@ -101,30 +64,18 @@ public class LyricsControl : TemplatedControl
     >(nameof(ScrollEasing), new CubicEaseOut());
 
     // 歌词文本对齐方式
-    public static readonly StyledProperty<TextAlignment> LyricTextAlignmentProperty = AvaloniaProperty.Register<
+    public static readonly StyledProperty<HorizontalAlignment> LyricTextAlignmentProperty = AvaloniaProperty.Register<
         LyricsControl,
-        TextAlignment
-    >(nameof(LyricTextAlignment), TextAlignment.Center);
-
-    // 歌词文本过渡动画
-    public static readonly StyledProperty<Transitions?> LyricTransitionsProperty = AvaloniaProperty.Register<
-        LyricsControl,
-        Transitions?
-    >(nameof(LyricTransitions));
-
-    // 歌词文本特效
-    public static readonly StyledProperty<IEffect?> LyricEffectProperty = AvaloniaProperty.Register<
-        LyricsControl,
-        IEffect?
-    >(nameof(LyricEffect));
+        HorizontalAlignment
+    >(nameof(LyricTextAlignment), HorizontalAlignment.Center);
 
     // 歌词文本边距
     public static readonly StyledProperty<Thickness> TextMarginProperty = AvaloniaProperty.Register<
         LyricsControl,
         Thickness
-    >(nameof(TextMargin), new Thickness(10, 0, 10, 0));
+    >(nameof(TextMargin), new Thickness(20,10));
 
-    // 歌词文本边距
+    // 翻译文本间距
     public static readonly StyledProperty<double> TranslationSpacingProperty = AvaloniaProperty.Register<
         LyricsControl,
         double
@@ -193,42 +144,6 @@ public class LyricsControl : TemplatedControl
         set => SetValue(LineSpacingProperty, value);
     }
 
-    public double CurrentLyricFontSize
-    {
-        get => GetValue(CurrentLyricFontSizeProperty);
-        set => SetValue(CurrentLyricFontSizeProperty, value);
-    }
-
-    public double NormalLyricFontSize
-    {
-        get => GetValue(NormalLyricFontSizeProperty);
-        set => SetValue(NormalLyricFontSizeProperty, value);
-    }
-
-    public double TranslationFontSize
-    {
-        get => GetValue(TranslationFontSizeProperty);
-        set => SetValue(TranslationFontSizeProperty, value);
-    }
-
-    public IBrush CurrentLyricForeground
-    {
-        get => GetValue(CurrentLyricForegroundProperty);
-        set => SetValue(CurrentLyricForegroundProperty, value);
-    }
-
-    public IBrush NormalLyricForeground
-    {
-        get => GetValue(NormalLyricForegroundProperty);
-        set => SetValue(NormalLyricForegroundProperty, value);
-    }
-
-    public IBrush TranslationForeground
-    {
-        get => GetValue(TranslationForegroundProperty);
-        set => SetValue(TranslationForegroundProperty, value);
-    }
-
     public TimeSpan ScrollAnimationDuration
     {
         get => GetValue(ScrollAnimationDurationProperty);
@@ -241,22 +156,10 @@ public class LyricsControl : TemplatedControl
         set => SetValue(ScrollEasingProperty, value);
     }
 
-    public TextAlignment LyricTextAlignment
+    public HorizontalAlignment LyricTextAlignment
     {
         get => GetValue(LyricTextAlignmentProperty);
         set => SetValue(LyricTextAlignmentProperty, value);
-    }
-
-    public Transitions? LyricTransitions
-    {
-        get => GetValue(LyricTransitionsProperty);
-        set => SetValue(LyricTransitionsProperty, value);
-    }
-
-    public IEffect? LyricEffect
-    {
-        get => GetValue(LyricEffectProperty);
-        set => SetValue(LyricEffectProperty, value);
     }
 
     public Thickness TextMargin
@@ -289,7 +192,7 @@ public class LyricsControl : TemplatedControl
 
     private Canvas? _lyricsCanvas;
     private ScrollViewer? _scrollViewer;
-    private readonly List<LyricLineView> _lyricLines = [];
+    private readonly List<LyricLineControl> _lyricLines = [];
     private bool _isUserScrolling;
     private DateTime _lastUserScrollTime = DateTime.MinValue;
     private readonly TimeSpan _userScrollTimeout = TimeSpan.FromSeconds(3);
@@ -302,9 +205,6 @@ public class LyricsControl : TemplatedControl
     // 添加动画取消令牌源
     private CancellationTokenSource? _scrollAnimationCts;
 
-    // 空白歌词的占位符
-    private const string EmptyLyricPlaceholder = "● ● ●";
-
     #endregion
 
     static LyricsControl()
@@ -316,14 +216,6 @@ public class LyricsControl : TemplatedControl
             LineHeightProperty,
             LineSpacingProperty,
             LyricTextAlignmentProperty,
-            LyricTransitionsProperty,
-            LyricEffectProperty,
-            CurrentLyricFontSizeProperty,
-            NormalLyricFontSizeProperty,
-            TranslationFontSizeProperty,
-            CurrentLyricForegroundProperty,
-            NormalLyricForegroundProperty,
-            TranslationForegroundProperty,
             TextMarginProperty
         );
 
@@ -336,8 +228,6 @@ public class LyricsControl : TemplatedControl
         {
             ShowTranslationProperty,
             LyricTextAlignmentProperty,
-            LyricTransitionsProperty,
-            LyricEffectProperty,
             LineHeightProperty,
             LineSpacingProperty,
             TextMarginProperty,
@@ -469,71 +359,48 @@ public class LyricsControl : TemplatedControl
         _lyricLines.Clear();
 
         double yPosition = 0;
-        double textBlockWidth = _lyricsCanvas.Bounds.Width - (TextMargin.Left + TextMargin.Right);
+        double availableWidth = _lyricsCanvas.Bounds.Width;
         bool autoHeight = LineHeight <= 0;
 
         // 渲染每一行歌词
-        foreach (var lyricLine in _lyrics)
+        foreach ((double timePoint, string primaryText, string? translation) in _lyrics)
         {
-            string primaryText = lyricLine.Primary;
-            string? translationText = ShowTranslation ? lyricLine.Translation : null;
+            string? translationText = ShowTranslation ? translation : null;
 
-            // 创建并添加主歌词文本块
-            var primaryTextBlock = CreateTextBlock(
-                primaryText,
-                NormalLyricFontSize,
-                NormalLyricForeground,
-                textBlockWidth,
-                yPosition
-            );
-
-            _lyricsCanvas.Children.Add(primaryTextBlock);
-
-            // 测量文本块实际高度（如果需要自动计算）
-            double primaryHeight = autoHeight ? MeasureTextBlockHeight(primaryTextBlock) : LineHeight;
-
-            // 记录歌词行信息
-            var lyricLineView = new LyricLineView
+            // 创建歌词行控件
+            var lyricLineControl = new LyricLineControl
             {
-                TimePoint = lyricLine.TimePoint,
                 Text = primaryText,
-                TextBlock = primaryTextBlock,
-                TranslationTextBlock = null,
-                Bounds = new Rect(0, yPosition, textBlockWidth, primaryHeight),
+                Translation = translationText,
+                TimePoint = timePoint,
+                ShowTranslation = ShowTranslation && !string.IsNullOrEmpty(translationText),
+                TextAlignment = LyricTextAlignment,
+                Width = availableWidth,
+                TextMargin = TextMargin,
+                TranslationSpacing = TranslationSpacing,
             };
 
-            _lyricLines.Add(lyricLineView);
-
-            yPosition += primaryHeight + TranslationSpacing;
-
-            // 如果有翻译，添加翻译文本块
-            if (ShowTranslation && !string.IsNullOrEmpty(translationText))
+            if (string.IsNullOrWhiteSpace(primaryText))
             {
-                var translationTextBlock = CreateTextBlock(
-                    translationText,
-                    TranslationFontSize,
-                    TranslationForeground,
-                    textBlockWidth,
-                    yPosition
-                );
-
-                _lyricsCanvas.Children.Add(translationTextBlock);
-
-                // 测量翻译文本块实际高度（如果需要自动计算）
-                double translationHeight = autoHeight ? MeasureTextBlockHeight(translationTextBlock) : LineHeight;
-
-                lyricLineView.TranslationTextBlock = translationTextBlock;
-                lyricLineView.Bounds = new Rect(
-                    0,
-                    lyricLineView.Bounds.Y,
-                    textBlockWidth,
-                    primaryHeight + translationHeight + TranslationSpacing
-                );
-
-                yPosition += translationHeight;
+                lyricLineControl.Classes.Add("empty");
+ 
             }
 
-            yPosition += LineSpacing;
+            _lyricsCanvas.Children.Add(lyricLineControl);
+
+            // 测量控件实际高度
+            lyricLineControl.Measure(new Size(availableWidth, double.PositiveInfinity));
+            double lineHeight = autoHeight ? lyricLineControl.DesiredSize.Height : LineHeight;
+
+            // 设置位置
+            Canvas.SetLeft(lyricLineControl, 0);
+            Canvas.SetTop(lyricLineControl, yPosition);
+
+            // 记录歌词行信息
+            _lyricLines.Add(lyricLineControl);
+
+            // 更新下一行的位置
+            yPosition += lineHeight + LineSpacing;
         }
 
         // 确保内容高度至少等于控件高度，以便滚动正常工作
@@ -544,48 +411,6 @@ public class LyricsControl : TemplatedControl
         {
             UpdateLyricStyles(CurrentLyricIndex);
         }
-    }
-
-    /// <summary>
-    /// 测量文本块的实际高度
-    /// </summary>
-    private static double MeasureTextBlockHeight(TextBlock textBlock)
-    {
-        // 确保文本块已经布局
-        textBlock.Measure(new Size(textBlock.Width, double.PositiveInfinity));
-
-        // 返回测量后的高度
-        return textBlock.DesiredSize.Height;
-    }
-
-    /// <summary>
-    /// 创建文本块
-    /// </summary>
-    private TextBlock CreateTextBlock(
-        string text,
-        double fontSize,
-        IBrush foreground,
-        double maxWidth,
-        double yPosition
-    )
-    {
-        var textBlock = new TextBlock
-        {
-            Text = text,
-            FontSize = fontSize,
-            TextWrapping = TextWrapping.Wrap,
-            Foreground = foreground,
-            TextAlignment = LyricTextAlignment,
-            Width = maxWidth,
-            Effect = LyricEffect,
-            Transitions = LyricTransitions,
-            Margin = TextMargin,
-        };
-
-        Canvas.SetLeft(textBlock, 0);
-        Canvas.SetTop(textBlock, yPosition);
-
-        return textBlock;
     }
 
     /// <summary>
@@ -628,36 +453,14 @@ public class LyricsControl : TemplatedControl
         if (_lastHighlightedIndex >= 0 && _lastHighlightedIndex < _lyricLines.Count)
         {
             var lastLine = _lyricLines[_lastHighlightedIndex];
-            if (lastLine.TextBlock != null)
-            {
-                // 如果是空白行且是当前行，恢复原始文本
-                if (string.IsNullOrWhiteSpace(lastLine.Text) && lastLine.TextBlock.Text == EmptyLyricPlaceholder)
-                {
-                    lastLine.TextBlock.Text = lastLine.Text;
-                }
-
-                // 恢复默认样式
-                lastLine.TextBlock.FontSize = NormalLyricFontSize;
-                lastLine.TextBlock.Foreground = NormalLyricForeground;
-            }
+            lastLine.Classes.Remove("current");
         }
 
         // 设置当前歌词样式
         if (currentIndex >= 0)
         {
             var currentLine = _lyricLines[currentIndex];
-            if (currentLine.TextBlock != null)
-            {
-                // 如果当前行是空白行，替换为占位符
-                if (string.IsNullOrWhiteSpace(currentLine.Text))
-                {
-                    currentLine.TextBlock.Text = EmptyLyricPlaceholder;
-                }
-
-                // 应用高亮样式
-                currentLine.TextBlock.FontSize = CurrentLyricFontSize;
-                currentLine.TextBlock.Foreground = CurrentLyricForeground;
-            }
+            currentLine.Classes.Add("current");
         }
 
         // 更新上一个高亮索引
@@ -673,7 +476,6 @@ public class LyricsControl : TemplatedControl
             return;
 
         // 取消正在进行的滚动动画
-        // ReSharper disable once MethodHasAsyncOverload
         _scrollAnimationCts?.Cancel();
         _scrollAnimationCts = new CancellationTokenSource();
         var cancellationToken = _scrollAnimationCts.Token;
@@ -742,10 +544,12 @@ public class LyricsControl : TemplatedControl
     /// <summary>
     /// 计算滚动目标偏移量
     /// </summary>
-    private double CalculateScrollTargetOffset(LyricLineView lyricLineView, double viewportHeight)
+    private double CalculateScrollTargetOffset(LyricLineControl lyricLineControl, double viewportHeight)
     {
         double centerY = viewportHeight / 2;
-        double lyricCenterY = lyricLineView.Bounds.Y + lyricLineView.Bounds.Height / 2;
+        double lyricY = Canvas.GetTop(lyricLineControl);
+        double lyricHeight = lyricLineControl.DesiredSize.Height;
+        double lyricCenterY = lyricY + lyricHeight / 2;
         double targetOffset;
 
         if (lyricCenterY <= centerY && _lyricsCanvas!.Height <= viewportHeight)
@@ -761,7 +565,7 @@ public class LyricsControl : TemplatedControl
         else
         {
             // 歌词位置超过中心线，需要将歌词滚动到中心
-            targetOffset = lyricLineView.Bounds.Y - (viewportHeight - lyricLineView.Bounds.Height) / 2;
+            targetOffset = lyricY - (viewportHeight - lyricHeight) / 2;
         }
 
         return targetOffset;
@@ -803,16 +607,6 @@ public class LyricsControl : TemplatedControl
         {
             ScrollToLyric(CurrentLyricIndex);
         }
-    }
-
-    // 歌词行信息类
-    private class LyricLineView
-    {
-        public double TimePoint { get; init; }
-        public string Text { get; init; } = string.Empty;
-        public TextBlock? TextBlock { get; init; }
-        public TextBlock? TranslationTextBlock { get; set; }
-        public Rect Bounds { get; set; }
     }
 
     #region 辅助方法

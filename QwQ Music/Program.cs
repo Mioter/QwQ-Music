@@ -4,7 +4,6 @@ using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities.MessageBus;
-using QwQ_Music.ViewModels;
 
 namespace QwQ_Music;
 
@@ -36,6 +35,8 @@ public static class Program
 
             StrongMessageBus.Instance.Publish(new ExitReminderMessage(true));
             StrongMessageBus.Instance.Dispose();
+            
+            ViewModels.MusicPlayerViewModel.Instance.Save().Wait();
 
             DataBaseService.CloseConnectionAsync().Wait();
             LoggerService.Shutdown();

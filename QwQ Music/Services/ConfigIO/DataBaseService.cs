@@ -604,7 +604,7 @@ public static class DataBaseService
             await Log.ErrorAsync($"加载特定字段失败: {ex.Message}");
             await Log.DebugAsync($"SQL: {sqlCommand}");
             await Log.DebugAsync($"异常详情: {ex}");
-            return new List<TResult>();
+            return [];
         }
     }
 
@@ -682,7 +682,7 @@ public static class DataBaseService
             Log.Error($"加载特定字段失败（同步）: {ex.Message}");
             Log.Debug($"SQL: {sqlCommand}");
             Log.Debug($"异常详情: {ex}");
-            return new List<TResult>();
+            return [];
         }
     }
 

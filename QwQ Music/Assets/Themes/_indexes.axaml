@@ -3,7 +3,6 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="DataGrid.axaml" />
         <ResourceInclude Source="ScrollTo.axaml" />
-        <ResourceInclude Source="LyricsControl.axaml" />
         <ResourceInclude Source="DraggableContainer.axaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

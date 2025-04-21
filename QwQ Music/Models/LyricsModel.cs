@@ -17,7 +17,7 @@ public partial class LyricsModel(LyricsData lyricsData) : ObservableObject
         lyricsData.Lyrics.Count > 0 ? lyricsData.Lyrics.Select(l => l.TimePoint).OrderBy(t => t).ToList() : [];
 
     [ObservableProperty]
-    public partial int LyricsIndex { get; set; }
+    public partial int LyricsIndex { get; private set; }
 
     [ObservableProperty]
     public partial LyricLine CurrentLyric { get; private set; } = lyricsData.Lyrics.FirstOrDefault();

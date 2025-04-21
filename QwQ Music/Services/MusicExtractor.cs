@@ -24,14 +24,26 @@ public static class MusicExtractor
     /// 异步保存专辑封面图片。
     /// </summary>
     /// <param name="cover">专辑封面图片。</param>
-    /// <param name="coverName">专辑封面索引。</param>
-    public static async Task<bool> SaveCoverAsync(Bitmap cover, string coverName)
+    /// <param name="coverFileName">专辑封面文件名 (不含路径)。</param> // 修改注释
+    public static async Task<bool> SaveCoverAsync(Bitmap cover, string coverFileName)
     {
         // 构造完整文件路径
-        string filePath = Path.Combine(PlayerConfig.CoverSavePath, coverName);
+        string filePath = Path.Combine(PlayerConfig.CoverSavePath, coverFileName); // 在这里拼接路径
 
         // 确保目录存在
-        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        // 注意：如果 CoverSavePath 本身就不存在，CreateDirectory 需要能创建多级目录
+        string? directoryPath = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(directoryPath))
+        {
+            Directory.CreateDirectory(directoryPath);
+        }
+        else
+        {
+            // 如果无法获取目录路径（例如 coverFileName 是根路径下的文件名），记录错误或采取其他措施
+            await LoggerService.ErrorAsync($"Invalid cover file path generated: {filePath}");
+            return false;
+        }
+
 
         // 检查文件是否存在
         if (File.Exists(filePath))
@@ -42,12 +54,13 @@ public static class MusicExtractor
 
         try
         {
-            await Task.Run(async () =>
-                {
-                    await using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
-                    cover.Save(fs); // 指定格式
-                })
-                .ConfigureAwait(false);
+            // 将文件流的创建和保存操作移至 Task.Run 内部
+            await Task.Run(() =>
+            {
+                // 在后台线程中创建、使用和释放文件流
+                using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
+                cover.Save(fs); // Bitmap.Save 是同步操作
+            }).ConfigureAwait(false); // 继续使用 ConfigureAwait(false)
 
             return true;
         }
@@ -192,11 +205,13 @@ public static class MusicExtractor
             string comment = track.Comment;
             string encodingFormat = track.AudioFormat.ShortName;
 
-            string? coverFileName = null;
+            string? coverFileName = null; // 存储文件名，而非完整路径
 
             if (track.EmbeddedPictures.Count > 0)
             {
+                // 获取清理后的文件名
                 coverFileName = GetCoverFileName(artists, album);
+                // 异步保存封面，传递文件名
                 await SaveCoverAsync(
                     new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData)),
                     coverFileName
@@ -208,7 +223,7 @@ public static class MusicExtractor
                 artists,
                 composer,
                 album,
-                coverFileName,
+                coverFileName, // 传递文件名
                 filePath,
                 fileSize,
                 null,
@@ -224,13 +239,19 @@ public static class MusicExtractor
         }
     }
 
-    public static string GetCoverFileName(string artists, string album)
+    /// <summary>
+    /// 生成并清理封面文件名。
+    /// </summary>
+    /// <param name="artists">艺术家</param>
+    /// <param name="album">专辑</param>
+    /// <returns>清理后的封面文件名 (例如 "Artist-Album.jpg")</returns>
+    private static string GetCoverFileName(string artists, string album)
     {
+        // 截断并清理文件名
         string coverFileName = PathEnsurer.CleanFileName(
-            $"{(artists.Length > 20 ? artists[..20] : artists)}-{(album.Length > 20 ? album[..20] : album)
-            }.jpg"
+            $"{(artists.Length > 20 ? artists[..20] : artists)}-{(album.Length > 20 ? album[..20] : album)}.jpg"
         );
-        return Path.Combine(PlayerConfig.CoverSavePath, coverFileName);
+        return coverFileName; // 只返回文件名
     }
 
     /// <summary>
@@ -240,14 +261,16 @@ public static class MusicExtractor
     /// <returns>文件流，如果文件不存在则返回 null。</returns>
     private static async Task<FileStream?> GetFileStream(string filePath)
     {
-        if (!File.Exists(filePath))
+        string fullFilePath = PathEnsurer.EnsureFullPath(filePath, PlayerConfig.CoverSavePath);
+
+        if (!File.Exists(fullFilePath))
         {
-            await LoggerService.WarningAsync($"File not found: {filePath}");
+            await LoggerService.WarningAsync($"File not found: {fullFilePath}");
             return null;
         }
         try
         {
-            return await Task.Run(() => new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read));
+            return await Task.Run(() => new FileStream(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
         catch (Exception ex)
         {
@@ -329,9 +352,11 @@ public static class MusicExtractor
     /// 从音频文件中提取专辑封面并保存
     /// </summary>
     /// <param name="filePath">音频文件路径</param>
-    /// <returns>保存后的封面图片路径，如果没有封面则返回null</returns>
+    /// <returns>保存后的封面文件名，如果没有封面则返回null</returns> // 返回文件名
     public static async Task<string?> ExtractAndSaveCoverFromAudioAsync(string? filePath)
     {
+        if (string.IsNullOrEmpty(filePath)) return null; // 添加空检查
+
         try
         {
             var track = new Track(filePath);
@@ -340,16 +365,23 @@ public static class MusicExtractor
             {
                 string artists = track.Artist;
                 string album = track.Album;
+                // 获取清理后的文件名
                 string coverFileName = GetCoverFileName(artists, album);
 
-                await SaveCoverAsync(
+                // 异步保存封面，传递文件名
+                bool saved = await SaveCoverAsync(
                     new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData)),
                     coverFileName
                 );
 
-                return coverFileName;
+                return saved ? coverFileName : null; // 返回文件名或null
             }
 
+            return null;
+        }
+        catch (FileNotFoundException) // 更具体地处理文件未找到异常
+        {
+            await LoggerService.WarningAsync($"Audio file not found for cover extraction: {filePath}");
             return null;
         }
         catch (Exception ex)
@@ -358,4 +390,6 @@ public static class MusicExtractor
             return null;
         }
     }
+
 }
+

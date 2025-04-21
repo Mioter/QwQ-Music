@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
@@ -97,24 +96,9 @@ public class MusicItemModel(
 
     public string? CoverPath
     {
-        get
-        {
-            if (field != null && !File.Exists(field))
-            {
-                // 如果封面路径不为空但文件不存在，尝试异步提取
-                Task.Run(async () =>
-                {
-                    string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(FilePath);
-                    if (newCoverPath != null)
-                    {
-                        CoverPath = newCoverPath;
-                    }
-                });
-            }
-            return field;
-        }
+        get;
         set => SetPropertyWithModified(ref field, value);
-    } = coverPath;
+    } = coverPath; // 初始值来自构造函数
 
     public string[]? CoverColors
     {
@@ -129,18 +113,26 @@ public class MusicItemModel(
     } = comment;
 
     // 添加一个标志表示图片是否正在加载
-    private CoverStatus _coverStatus;
+    private CoverStatus? _coverStatus;
 
     public Bitmap CoverImage
     {
         get
         {
-            if (CoverPath == null || _coverStatus == CoverStatus.NotExist)
+
+
+            if (string.IsNullOrEmpty(CoverPath) || _coverStatus == CoverStatus.NotExist)
                 return MusicExtractor.DefaultCover;
 
-            // 如果已有缓存图片，直接返回
-            if (_coverStatus == CoverStatus.Loaded && MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image))
-                return image;
+            switch (_coverStatus)
+            {
+                // 如果已有缓存图片，直接返回
+                case CoverStatus.Loaded when MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image):
+                    return image;
+                // 如果正在加载中，暂时返回默认封面，等待后台任务完成
+                case CoverStatus.Loading:
+                    return MusicExtractor.DefaultCover;
+            }
 
             // 标记为正在加载
             _coverStatus = CoverStatus.Loading;
@@ -148,22 +140,31 @@ public class MusicItemModel(
             // 启动异步加载任务
             Task.Run(async () =>
             {
-                var bitmap = await MusicExtractor.LoadCompressedBitmap(CoverPath); // 尝试从缓存加载
+                var bitmap = await MusicExtractor.LoadCompressedBitmap(CoverPath);
 
                 if (bitmap != null)
                 {
                     MusicExtractor.ImageCache[CoverPath] = bitmap;
                     _coverStatus = CoverStatus.Loaded;
-                    OnPropertyChanged(); // 通知 UI 更新
                 }
                 else
                 {
-                    // 如果仍然没有找到，使用默认封面
-                    _coverStatus = CoverStatus.NotExist;
+                    string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(FilePath);
+                    
+                    if (newCoverPath != null)
+                    {
+                        CoverPath = newCoverPath;
+                    }
+                    else
+                    {
+                        _coverStatus = CoverStatus.NotExist;
+                    }
                 }
+
+                OnPropertyChanged(); // 通知 UI 更新
             });
 
-            // 首次返回默认封面
+            // 首次或加载中时返回默认封面
             return MusicExtractor.DefaultCover;
         }
     }
@@ -213,7 +214,7 @@ public class MusicItemModel(
         SafeExtract(data, nameof(Artists), val => result.Artists = val?.ToString() ?? "未知歌手");
         SafeExtract(data, nameof(Album), val => result.Album = val?.ToString() ?? "未知专辑");
         SafeExtract(data, nameof(Composer), val => result.Composer = val?.ToString() ?? "未知作曲");
-        SafeExtract(data, nameof(CoverPath), val => result.CoverPath = val?.ToString() ?? null);
+        SafeExtract(data, nameof(CoverPath), val => result.CoverPath = val?.ToString()); // CoverPath 现在是文件名或null
         SafeExtract(
             data,
             nameof(Current),
@@ -271,7 +272,7 @@ public class MusicItemModel(
             [nameof(Artists)] = Artists,
             [nameof(Album)] = Album,
             [nameof(Composer)] = Composer,
-            [nameof(CoverPath)] = CoverPath,
+            [nameof(CoverPath)] = CoverPath, // 保存文件名或null
             [nameof(Current)] = Current.ToString(),
             [nameof(Duration)] = Duration.ToString(),
             [nameof(FilePath)] = FilePath,

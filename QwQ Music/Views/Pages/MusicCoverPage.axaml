@@ -85,37 +85,15 @@
                 
                 <controls:LyricsControl
                     ClickedLyricTime="{Binding SelectLyricsTimePoint}"
-                    CurrentLyricFontSize="18"
-                    CurrentLyricForeground="{DynamicResource TextBlockDefaultForeground}"
                     CurrentLyricIndex="{Binding MusicPlayerViewModel.LyricsModel.LyricsIndex}"
                     FontFamily="{StaticResource VivoSans}"
                     Grid.Column="1"
-                    LineSpacing="20"
+                    Margin="10,20"
                     LyricTextAlignment="{Binding RolledLyricsConfig.LyricTextAlignment}"
                     LyricsData="{Binding MusicPlayerViewModel.LyricsModel.LyricsData}"
-                    Margin="10,20"
-                    NormalLyricFontSize="15"
-                    NormalLyricForeground="{DynamicResource TextBlockSecondaryForeground}"
-                    ScrollAnimationDuration="0:0:0.5"
                     ShowTranslation="{Binding RolledLyricsConfig.ShowTranslation}"
-                    TextMargin="20,0"
-                    TranslationFontSize="14"
-                    TranslationSpacing="10">
-                    <controls:LyricsControl.LyricTransitions>
-
-                        <Transitions>
-                            <DoubleTransition
-                                Duration="00:00:0.5"
-                                Easing="CircularEaseOut"
-                                Property="FontSize" />
-                        </Transitions>
-
-                    </controls:LyricsControl.LyricTransitions>
-
-                    <controls:LyricsControl.LyricEffect>
-                        <DropShadowEffect BlurRadius="5" Color="{Binding ColorsList[0]}" />
-                    </controls:LyricsControl.LyricEffect>
-
+                    TextMargin="30,10"
+                    TranslationSpacing="5">
                 </controls:LyricsControl>
 
             </Grid>

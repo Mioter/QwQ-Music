@@ -11,28 +11,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <ScrollViewer Margin="10">
-        <StackPanel Margin="0,0,10,0">
-
-            <StackPanel.Styles>
-
-                <Style Selector="Expander:down /template/ LayoutTransformControl#ExpanderHeaderLayoutContainer">
-                    <Setter Property="Margin" Value="0" />
-                </Style>
-
-                <Style Selector="Expander:down /template/ ToggleButton#ExpanderHeader">
-                    <Setter Property="Padding" Value="10" />
-                </Style>
-
-                <Style Selector="Expander:down:expanded /template/ ContentPresenter#PART_ContentPresenter">
-                    <Setter Property="Margin" Value="10" />
-                </Style>
-
-                <Style Selector="Expander:down /template/ ToggleButton#ExpanderHeader /template/ ContentPresenter">
-                    <Setter Property="CornerRadius" Value="8" />
-                </Style>
-
-            </StackPanel.Styles>
-
+        <StackPanel Spacing="20"  Margin="0,0,10,0">
+            
             <Expander Header="封面">
 
                 <StackPanel Spacing="10">

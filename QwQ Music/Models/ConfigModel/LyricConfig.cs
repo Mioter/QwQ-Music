@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Avalonia;
+using Avalonia.Layout;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -17,7 +18,7 @@ public partial class RolledLyricsConfig : ObservableObject
     public partial int LyricOffset { get; set; }
 
     [ObservableProperty]
-    public partial TextAlignment LyricTextAlignment { get; set; }
+    public partial HorizontalAlignment LyricTextAlignment { get; set; }
 
     [ObservableProperty]
     public partial bool ShowTranslation { get; set; }
