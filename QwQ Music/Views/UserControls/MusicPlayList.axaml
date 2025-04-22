@@ -67,7 +67,7 @@
                         Classes="Icon"
                         Command="{Binding ClearMusicPlayListCommand}"
                         ToolTip.Tip="清空播放列表">
-                        <PathIcon Data="{StaticResource ClearEmpty}" Foreground="#ff6b6b" />
+                        <PathIcon Data="{StaticResource ClearEmpty}" Foreground="{StaticResource EmphasizePink3}" />
                     </Button>
 
                     <Button
@@ -167,7 +167,7 @@
                                         <MenuItem.Icon>
                                             <PathIcon
                                                 Data="{StaticResource SemiIconForward}"
-                                                Foreground="#ff6b6b"
+                                                Foreground="{StaticResource EmphasizePink3}"
                                                 Margin="2"
                                                 RenderTransform="rotate(180deg)" />
                                         </MenuItem.Icon>

@@ -330,15 +330,17 @@ public partial class MusicPlayerViewModel : ViewModelBase
         var options = new OverlayDialogOptions
         {
             Title = "详细信息",
+            Buttons = DialogButton.None,
             CanLightDismiss = true,
+            Mode = DialogMode.Info,
             CanDragMove = true,
-            IsCloseButtonVisible = true,
             CanResize = false,
         };
 
-        await OverlayDialog.ShowCustomModal<AudioDetailedInfo, AudioDetailedInfoViewModel, object>(
+        await OverlayDialog.ShowModal<AudioDetailedInfo, AudioDetailedInfoViewModel>(
             new AudioDetailedInfoViewModel(musicItem, await musicItem.GetExtensionsInfo()),
             options: options
+            
         );
     }
 
@@ -347,29 +349,50 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(musicItem.FilePath) || !File.Exists(musicItem.FilePath))
         {
-            Log.Warning("无法打开文件位置：文件不存在");
+            NotificationService.Show(
+                new Notification("坏欸", $"无法打开《{musicItem.Title}》文件位置：文件不存在"), NotificationType.Error,
+                showIcon: true,
+                showClose: false,
+                classes: ["Light"]);
             return;
         }
 
         PathEnsurer.OpenInExplorer(musicItem.FilePath);
     }
-    
+
     [RelayCommand]
     private async Task DeleteMusicItem(MusicItemModel musicItem)
     {
 
-        var result = await MessageBox.ShowOverlayAsync($"你真的要删除 {musicItem.Title} 吗?", "警告", icon:MessageBoxIcon.Warning,button: MessageBoxButton.YesNo);
+        var result = await MessageBox.ShowOverlayAsync($"你真的要删除《{musicItem.Title}》吗?", "警告", icon: MessageBoxIcon.Warning, button: MessageBoxButton.YesNo);
         if (result == MessageBoxResult.Yes)
         {
-            MusicItems.Remove(musicItem);
-            await DataBaseService.DeleteDataAsync(DataBaseService.Table.MUSICS,nameof(MusicItemModel.FilePath), musicItem.FilePath);
-            
-            NotificationService.Show(
-                new Notification("好欸", $"{musicItem.Title} 已经从音乐列表中移除了！"),
-                NotificationType.Success,
-                showIcon: true,
-                showClose: false,
-                classes: ["Light"]);
+            bool isSuccess =
+                await DataBaseService.DeleteDataAsync(DataBaseService.Table.MUSICS, nameof(MusicItemModel.FilePath), musicItem.FilePath) != DataBaseService.OperationResult.Failure
+             || await DataBaseService.DeleteDataAsync(DataBaseService.Table.LISTNAMES, nameof(MusicItemModel.FilePath), musicItem.FilePath) != DataBaseService.OperationResult.Failure;
+
+            if (isSuccess)
+            {
+                MusicItems.Remove(musicItem);
+                Playlist.MusicItems.Remove(musicItem);
+
+                NotificationService.Show(
+                    new Notification("好欸", $"《{musicItem.Title}》已经从音乐列表中移除了！"),
+                    NotificationType.Success,
+                    showIcon: true,
+                    showClose: true,
+                    classes: ["Light"]);
+            }
+            else
+            {
+                NotificationService.Show(
+                    new Notification("坏欸", $"《{musicItem.Title}》删除失败了！"),
+                    NotificationType.Error,
+                    showIcon: true,
+                    showClose: true,
+                    classes: ["Light"]);
+            }
+
         }
     }
 

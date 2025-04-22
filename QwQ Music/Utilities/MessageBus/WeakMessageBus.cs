@@ -66,7 +66,7 @@ public sealed class WeakMessageBus : MessageBusBase
         
         foreach (var subscription in entry.GetSubscriptionsSnapshot())
         {
-            if (subscription is WeakReference weakRef && weakRef.Target is Action<TMessage> handler)
+            if (subscription is WeakReference { Target: Action<TMessage> handler })
             {
                 handlers.Add(handler);
             }
@@ -95,9 +95,8 @@ public sealed class WeakMessageBus : MessageBusBase
     {
         return entry
             .GetSubscriptionsSnapshot()
-            .Where(sub => sub is WeakReference weakRef && 
-                          weakRef.Target is Action<TMessage> action && 
-                          action.Equals(handler))
+            .Where(sub => sub is WeakReference { Target: Action<TMessage> action } && 
+                action.Equals(handler))
             .ToList();
     }
     
@@ -123,7 +122,7 @@ public sealed class WeakMessageBus : MessageBusBase
         {
             var subscriptions = entry.GetSubscriptionsSnapshot();
             var deadReferences = subscriptions
-                .Where(sub => sub is WeakReference weakRef && !weakRef.IsAlive)
+                .Where(sub => sub is WeakReference { IsAlive: false })
                 .ToList();
                 
             foreach (var deadRef in deadReferences)

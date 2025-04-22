@@ -112,11 +112,10 @@
                                     CommandParameter="{Binding}"
                                     Header="清空播放时长">
                                     <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource ClearEmpty}" Margin="2" />
+                                        <PathIcon Data="{StaticResource ClearEmpty}" Margin="2"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
-
-
+                                
                                 <MenuItem
                                     Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
                                     CommandParameter="{Binding}"
@@ -142,7 +141,7 @@
                                     CommandParameter="{Binding}"
                                     Header="删除音乐">
                                     <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource SemiIconDelete}" Margin="2" />
+                                        <PathIcon Data="{StaticResource SemiIconDelete}" Margin="1" Foreground="{StaticResource EmphasizePink3}"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
 

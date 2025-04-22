@@ -85,7 +85,7 @@
 
     <!-- 可以添加更多样式，如悬停效果等 -->
     <Style Selector="controls|LyricLineControl:pointerover">
-        <Setter Property="Background" Value="#22000000" />
+        <Setter Property="Background" Value="{DynamicResource ListBoxItemPointeroverBackground}" />
     </Style>
 
 </Styles>

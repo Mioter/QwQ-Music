@@ -151,6 +151,27 @@ public static class DataBaseService
         PLAYLISTS,
         LISTNAMES,
     }
+    
+    /// <summary>
+    /// 数据库操作结果
+    /// </summary>
+    public enum OperationResult
+    {
+        /// <summary>
+        /// 操作成功
+        /// </summary>
+        Success,
+        
+        /// <summary>
+        /// 操作失败
+        /// </summary>
+        Failure,
+        
+        /// <summary>
+        /// 操作项不存在
+        /// </summary>
+        NotFound
+    }
 
     #endregion
 
@@ -254,7 +275,7 @@ public static class DataBaseService
     /// <summary>
     /// 在事务中执行多个操作
     /// </summary>
-    public static async Task<bool> ExecuteInTransactionAsync(Func<Task> operations)
+    public static async Task<OperationResult> ExecuteInTransactionAsync(Func<Task> operations)
     {
         await EnsureTableExistsAsync();
         await using var connection = Database;
@@ -273,7 +294,7 @@ public static class DataBaseService
             
             stopwatch?.Stop();
             await Log.InfoAsync($"数据库事务提交成功 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-            return true;
+            return OperationResult.Success;
         }
         catch (Exception ex)
         {
@@ -291,14 +312,14 @@ public static class DataBaseService
                 await Log.ErrorAsync($"事务回滚失败: {rollbackEx.Message}");
             }
             
-            return false;
+            return OperationResult.Failure;
         }
     }
 
     /// <summary>
     /// 在事务中执行多个操作（同步版本）
     /// </summary>
-    public static bool ExecuteInTransaction(Action operations)
+    public static OperationResult ExecuteInTransaction(Action operations)
     {
         EnsureTableExists();
         using var connection = Database;
@@ -317,7 +338,7 @@ public static class DataBaseService
             
             stopwatch?.Stop();
             Log.Info($"数据库事务提交成功（同步）{(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-            return true;
+            return OperationResult.Success;
         }
         catch (Exception ex)
         {
@@ -335,7 +356,7 @@ public static class DataBaseService
                 Log.Error($"事务回滚失败（同步）: {rollbackEx.Message}");
             }
             
-            return false;
+            return OperationResult.Failure;
         }
     }
 
@@ -879,7 +900,7 @@ public static class DataBaseService
     /// <summary>
     /// 异步更新数据到数据库。
     /// </summary>
-    public static async Task<bool> UpdateDataAsync(
+    public static async Task<OperationResult> UpdateDataAsync(
         Dictionary<string, string?> data,
         Table table,
         string whereColumn,
@@ -896,7 +917,7 @@ public static class DataBaseService
             if (data.Count == 0)
             {
                 await Log.WarningAsync("更新数据失败: 没有提供要更新的数据");
-                return false;
+                return OperationResult.Failure;
             }
 
             string setClause = string.Join(", ", data.Select(kv => $"{kv.Key} = @{kv.Key}"));
@@ -923,11 +944,11 @@ public static class DataBaseService
             if (rowsAffected > 0)
             {
                 await Log.InfoAsync($"更新成功: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-                return true;
+                return OperationResult.Success;
             }
             
             await Log.WarningAsync($"更新失败: 没有找到匹配的记录 (条件: {whereColumn} = {whereValue})");
-            return false;
+            return OperationResult.NotFound;
         }
         catch (Exception ex)
         {
@@ -935,14 +956,14 @@ public static class DataBaseService
             await Log.ErrorAsync($"更新数据失败: {ex.Message}");
             await Log.DebugAsync($"SQL: {sqlCommand}");
             await Log.DebugAsync($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
     }
 
     /// <summary>
     /// 同步更新数据到数据库。
     /// </summary>
-    public static bool UpdateData(
+    public static OperationResult UpdateData(
         Dictionary<string, string?> data,
         Table table,
         string whereColumn,
@@ -959,7 +980,7 @@ public static class DataBaseService
             if (data.Count == 0)
             {
                 Log.Warning("更新数据失败（同步）: 没有提供要更新的数据");
-                return false;
+                return OperationResult.Failure;
             }
 
             string setClause = string.Join(", ", data.Select(kv => $"{kv.Key} = @{kv.Key}"));
@@ -986,11 +1007,11 @@ public static class DataBaseService
             if (rowsAffected > 0)
             {
                 Log.Info($"更新成功（同步）: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-                return true;
+                return OperationResult.Success;
             }
             
             Log.Warning($"更新失败（同步）: 没有找到匹配的记录 (条件: {whereColumn} = {whereValue})");
-            return false;
+            return OperationResult.NotFound;
         }
         catch (Exception ex)
         {
@@ -998,14 +1019,14 @@ public static class DataBaseService
             Log.Error($"更新数据失败（同步）: {ex.Message}");
             Log.Debug($"SQL: {sqlCommand}");
             Log.Debug($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
     }
 
     /// <summary>
     /// 异步插入数据到数据库。
     /// </summary>
-    public static async Task<bool> InsertDataAsync(Dictionary<string, string?> data, Table table)
+    public static async Task<OperationResult> InsertDataAsync(Dictionary<string, string?> data, Table table)
     {
         await EnsureTableExistsAsync();
         await using var command = Command;
@@ -1017,7 +1038,7 @@ public static class DataBaseService
             if (data.Count == 0)
             {
                 await Log.WarningAsync("插入数据失败: 没有提供要插入的数据");
-                return false;
+                return OperationResult.Failure;
             }
 
             string columns = string.Join(", ", data.Keys);
@@ -1044,11 +1065,11 @@ public static class DataBaseService
             if (rowsAffected > 0)
             {
                 await Log.InfoAsync($"插入成功: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-                return true;
+                return OperationResult.Success;
             }
             
             await Log.WarningAsync("插入失败: 没有行受影响");
-            return false;
+            return OperationResult.NotFound;
         }
         catch (SqliteException ex) when (ex.SqliteErrorCode == 19) // SQLITE_CONSTRAINT
         {
@@ -1056,7 +1077,7 @@ public static class DataBaseService
             await Log.ErrorAsync("插入数据失败: 违反唯一性约束或外键约束");
             await Log.DebugAsync($"SQL: {sqlCommand}");
             await Log.DebugAsync($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
         catch (Exception ex)
         {
@@ -1064,14 +1085,14 @@ public static class DataBaseService
             await Log.ErrorAsync($"插入数据失败: {ex.Message}");
             await Log.DebugAsync($"SQL: {sqlCommand}");
             await Log.DebugAsync($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
     }
 
     /// <summary>
     /// 同步插入数据到数据库。
     /// </summary>
-    public static bool InsertData(Dictionary<string, string?> data, Table table)
+    public static OperationResult InsertData(Dictionary<string, string?> data, Table table)
     {
         EnsureTableExists();
         using var command = Command;
@@ -1083,7 +1104,7 @@ public static class DataBaseService
             if (data.Count == 0)
             {
                 Log.Warning("插入数据失败（同步）: 没有提供要插入的数据");
-                return false;
+                return OperationResult.Failure;
             }
 
             string columns = string.Join(", ", data.Keys);
@@ -1110,11 +1131,11 @@ public static class DataBaseService
             if (rowsAffected > 0)
             {
                 Log.Info($"插入成功（同步）: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-                return true;
+                return OperationResult.Success;
             }
             
             Log.Warning("插入失败（同步）: 没有行受影响");
-            return false;
+            return OperationResult.NotFound;
         }
         catch (SqliteException ex) when (ex.SqliteErrorCode == 19) // SQLITE_CONSTRAINT
         {
@@ -1122,7 +1143,7 @@ public static class DataBaseService
             Log.Error("插入数据失败（同步）: 违反唯一性约束或外键约束");
             Log.Debug($"SQL: {sqlCommand}");
             Log.Debug($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
         catch (Exception ex)
         {
@@ -1130,14 +1151,14 @@ public static class DataBaseService
             Log.Error($"插入数据失败（同步）: {ex.Message}");
             Log.Debug($"SQL: {sqlCommand}");
             Log.Debug($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
     }
 
     /// <summary>
     /// 异步删除数据库中的数据。
     /// </summary>
-    public static async Task<bool> DeleteDataAsync(Table table, string whereColumn, string? whereValue = null)
+    public static async Task<OperationResult> DeleteDataAsync(Table table, string whereColumn, string? whereValue = null)
     {
         await EnsureTableExistsAsync();
         await using var command = Command;
@@ -1161,11 +1182,11 @@ public static class DataBaseService
             if (rowsAffected > 0)
             {
                 await Log.InfoAsync($"删除成功: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-                return true;
+                return OperationResult.Success;
             }
             
             await Log.WarningAsync($"删除失败: 没有找到匹配的记录 (条件: {whereColumn} = {whereValue})");
-            return false;
+            return OperationResult.NotFound;
         }
         catch (Exception ex)
         {
@@ -1173,14 +1194,14 @@ public static class DataBaseService
             await Log.ErrorAsync($"删除数据失败: {ex.Message}");
             await Log.DebugAsync($"SQL: {sqlCommand} [参数: {whereValue}]");
             await Log.DebugAsync($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
     }
 
     /// <summary>
     /// 同步删除数据库中的数据。
     /// </summary>
-    public static bool DeleteData(Table table, string whereColumn, string? whereValue)
+    public static OperationResult DeleteData(Table table, string whereColumn, string? whereValue)
     {
         EnsureTableExists();
         using var command = Command;
@@ -1204,11 +1225,11 @@ public static class DataBaseService
             if (rowsAffected > 0)
             {
                 Log.Info($"删除成功（同步）: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-                return true;
+                return OperationResult.Success;
             }
             
             Log.Warning($"删除失败（同步）: 没有找到匹配的记录 (条件: {whereColumn} = {whereValue})");
-            return false;
+            return OperationResult.NotFound;
         }
         catch (Exception ex)
         {
@@ -1216,14 +1237,14 @@ public static class DataBaseService
             Log.Error($"删除数据失败（同步）: {ex.Message}");
             Log.Debug($"SQL: {sqlCommand} [参数: {whereValue}]");
             Log.Debug($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
     }
 
     /// <summary>
     /// 异步批量删除数据库中的数据。
     /// </summary>
-    public static async Task<bool> BatchDeleteDataAsync(Table table, string whereColumn, IEnumerable<string> whereValues)
+    public static async Task<OperationResult> BatchDeleteDataAsync(Table table, string whereColumn, IEnumerable<string> whereValues)
     {
         await EnsureTableExistsAsync();
         var stopwatch = EnablePerformanceMonitoring ? Stopwatch.StartNew() : null;
@@ -1271,7 +1292,7 @@ public static class DataBaseService
             stopwatch?.Stop();
             await Log.ErrorAsync($"批量删除数据失败: {ex.Message}");
             await Log.DebugAsync($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
         finally
         {
@@ -1284,7 +1305,7 @@ public static class DataBaseService
     /// <summary>
     /// 同步批量删除数据库中的数据。
     /// </summary>
-    public static bool BatchDeleteData(Table table, string whereColumn, IEnumerable<string> whereValues)
+    public static OperationResult BatchDeleteData(Table table, string whereColumn, IEnumerable<string> whereValues)
     {
         EnsureTableExists();
         var stopwatch = EnablePerformanceMonitoring ? Stopwatch.StartNew() : null;
@@ -1332,7 +1353,7 @@ public static class DataBaseService
             stopwatch?.Stop();
             Log.Error($"批量删除数据失败（同步）: {ex.Message}");
             Log.Debug($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
         finally
         {
@@ -1412,7 +1433,7 @@ public static class DataBaseService
     /// <summary>
     /// 备份数据库文件
     /// </summary>
-    public static bool BackupDatabase(string backupPath = "")
+    public static OperationResult BackupDatabase(string backupPath = "")
     {
         if (string.IsNullOrEmpty(backupPath))
         {
@@ -1430,24 +1451,24 @@ public static class DataBaseService
             {
                 File.Copy(MainConfig.DatabaseSavePath, backupPath, true);
                 Log.Info($"数据库已成功备份到: {backupPath}");
-                return true;
+                return OperationResult.Success;
             }
             
             Log.Warning($"数据库备份失败: 源文件不存在 {MainConfig.DatabaseSavePath}");
-            return false;
+            return OperationResult.NotFound;
         }
         catch (Exception ex)
         {
             Log.Error($"数据库备份失败: {ex.Message}");
             Log.Debug($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
     }
 
     /// <summary>
     /// 异步备份数据库文件
     /// </summary>
-    public static async Task<bool> BackupDatabaseAsync(string backupPath = "")
+    public static async Task<OperationResult> BackupDatabaseAsync(string backupPath = "")
     {
         if (string.IsNullOrEmpty(backupPath))
         {
@@ -1465,24 +1486,24 @@ public static class DataBaseService
             {
                 File.Copy(MainConfig.DatabaseSavePath, backupPath, true);
                 await Log.InfoAsync($"数据库已成功备份到: {backupPath}");
-                return true;
+                return OperationResult.Success;
             }
             
             await Log.WarningAsync($"数据库备份失败: 源文件不存在 {MainConfig.DatabaseSavePath}");
-            return false;
+            return OperationResult.NotFound;
         }
         catch (Exception ex)
         {
             await Log.ErrorAsync($"数据库备份失败: {ex.Message}");
             await Log.DebugAsync($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
     }
 
     /// <summary>
     /// 执行数据库完整性检查
     /// </summary>
-    public static async Task<bool> CheckDatabaseIntegrityAsync()
+    public static async Task<OperationResult> CheckDatabaseIntegrityAsync()
     {
         await EnsureTableExistsAsync();
         await using var command = Command;
@@ -1499,25 +1520,25 @@ public static class DataBaseService
             if (result.Equals("ok", StringComparison.OrdinalIgnoreCase))
             {
                 await Log.InfoAsync($"数据库完整性检查通过 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-                return true;
+                return OperationResult.Success;
             }
             
             await Log.ErrorAsync($"数据库完整性检查失败: {result}");
-            return false;
+            return OperationResult.Failure;
         }
         catch (Exception ex)
         {
             stopwatch?.Stop();
             await Log.ErrorAsync($"执行数据库完整性检查时出错: {ex.Message}");
             await Log.DebugAsync($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
     }
 
     /// <summary>
     /// 执行数据库优化
     /// </summary>
-    public static async Task<bool> OptimizeDatabaseAsync()
+    public static async Task<OperationResult> OptimizeDatabaseAsync()
     {
         await EnsureTableExistsAsync();
         await using var command = Command;
@@ -1537,14 +1558,14 @@ public static class DataBaseService
             
             stopwatch?.Stop();
             await Log.InfoAsync($"数据库优化完成 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-            return true;
+            return OperationResult.Success;
         }
         catch (Exception ex)
         {
             stopwatch?.Stop();
             await Log.ErrorAsync($"执行数据库优化时出错: {ex.Message}");
             await Log.DebugAsync($"异常详情: {ex}");
-            return false;
+            return OperationResult.Failure;
         }
     }
 

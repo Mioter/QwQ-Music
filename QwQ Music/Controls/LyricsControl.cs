@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
@@ -11,7 +12,9 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Styling;
+using Avalonia.Threading; // 添加 DispatcherTimer 的 using
 using QwQ_Music.Models;
+using QwQ_Music.Services;
 
 namespace QwQ_Music.Controls;
 
@@ -205,6 +208,10 @@ public class LyricsControl : TemplatedControl
     // 添加动画取消令牌源
     private CancellationTokenSource? _scrollAnimationCts;
 
+    // 添加用于防抖渲染的计时器
+    private DispatcherTimer? _renderDebounceTimer;
+    private readonly TimeSpan _renderDebounceInterval = TimeSpan.FromMilliseconds(150); // 防抖间隔
+
     #endregion
 
     static LyricsControl()
@@ -237,6 +244,9 @@ public class LyricsControl : TemplatedControl
         {
             property.Changed.AddClassHandler<LyricsControl>((x, _) => x.RenderLyrics());
         }
+
+        // 监听 Bounds 变化以触发防抖渲染
+        BoundsProperty.Changed.AddClassHandler<LyricsControl>((x, e) => x.OnBoundsChanged(e));
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -250,11 +260,27 @@ public class LyricsControl : TemplatedControl
         _scrollViewer = e.NameScope.Find<ScrollViewer>("PART_ScrollViewer");
         _lyricsCanvas = e.NameScope.Find<Canvas>("PART_LyricsCanvas");
 
+        // 初始化防抖计时器
+        InitializeDebounceTimer();
+
         // 绑定事件
         SubscribeEvents();
 
         // 初始化歌词
         InitializeLyrics();
+    }
+
+    private void InitializeDebounceTimer()
+    {
+        _renderDebounceTimer = new DispatcherTimer
+        {
+            Interval = _renderDebounceInterval,
+        };
+        _renderDebounceTimer.Tick += (_, _) =>
+        {
+            _renderDebounceTimer?.Stop();
+            RenderLyrics();
+        };
     }
 
     private void UnsubscribeEvents()
@@ -268,6 +294,9 @@ public class LyricsControl : TemplatedControl
         {
             _lyricsCanvas.PointerPressed -= LyricsCanvas_PointerPressed;
         }
+        // 停止并清理计时器
+        _renderDebounceTimer?.Stop();
+        _renderDebounceTimer = null;
     }
 
     private void SubscribeEvents()
@@ -323,6 +352,22 @@ public class LyricsControl : TemplatedControl
     }
 
     /// <summary>
+    /// 处理控件边界变化事件，用于防抖渲染
+    /// </summary>
+    private void OnBoundsChanged(AvaloniaPropertyChangedEventArgs e)
+    {
+
+        if (e is not { OldValue: Rect oldBounds, NewValue: Rect newBounds } || 
+            !(Math.Abs(oldBounds.Height - newBounds.Height) > 0.1))
+            return;
+        
+        // 重置并启动防抖计时器
+        _renderDebounceTimer?.Stop();
+        _renderDebounceTimer?.Start();
+    }
+
+
+    /// <summary>
     /// 初始化歌词数据
     /// </summary>
     private void InitializeLyrics()
@@ -352,7 +397,10 @@ public class LyricsControl : TemplatedControl
     /// </summary>
     private void RenderLyrics()
     {
-        if (_lyricsCanvas == null || _lyrics == null || _lyrics.Count == 0 || _lyricsCanvas.Bounds.Width == 0)
+        // 停止可能正在运行的防抖计时器，防止重复渲染
+        _renderDebounceTimer?.Stop();
+
+        if (_lyricsCanvas == null || _lyrics == null || _lyrics.Count == 0 || _lyricsCanvas.Bounds.Width <= 0) // 检查宽度是否大于0
             return;
 
         _lyricsCanvas.Children.Clear();
@@ -409,155 +457,153 @@ public class LyricsControl : TemplatedControl
         // 更新当前歌词样式
         if (CurrentLyricIndex >= 0 && CurrentLyricIndex < _lyricLines.Count)
         {
-            UpdateLyricStyles(CurrentLyricIndex);
+            UpdateHighlight(CurrentLyricIndex);
         }
+
+        // 滚动到当前歌词
+        ScrollToCurrentLyric(); // 初始渲染时不使用动画
     }
 
     /// <summary>
-    /// 更新当前歌词
+    /// 更新当前歌词高亮和滚动
     /// </summary>
     private void UpdateCurrentLyric()
     {
-        if (_lyrics == null)
+        if (_lyricsCanvas == null || _lyricLines.Count == 0 || CurrentLyricIndex < 0 || CurrentLyricIndex >= _lyricLines.Count)
             return;
 
-        // 检查用户滚动超时
-        if (_isUserScrolling && DateTime.Now - _lastUserScrollTime > _userScrollTimeout)
-        {
-            _isUserScrolling = false;
-        }
+        // 更新高亮
+        UpdateHighlight(CurrentLyricIndex);
 
-        // 确保索引在有效范围内
-        int index = Math.Clamp(CurrentLyricIndex, -1, _lyricLines.Count - 1);
-
-        // 更新歌词样式
-        UpdateLyricStyles(index);
-
-        // 如果不是用户滚动，则滚动到当前歌词
-        if (!_isUserScrolling && index >= 0 && index < _lyricLines.Count)
-        {
-            ScrollToLyric(index);
-        }
+        // 滚动到当前歌词
+        ScrollToCurrentLyric();
     }
 
     /// <summary>
-    /// 更新歌词样式
+    /// 更新歌词高亮样式
     /// </summary>
-    private void UpdateLyricStyles(int currentIndex)
+    /// <param name="newIndex">新的高亮索引</param>
+    private void UpdateHighlight(int newIndex)
     {
-        // 如果索引无效，直接返回
-        if (currentIndex < -1 || currentIndex >= _lyricLines.Count)
-            return;
-
-        // 重置上一个高亮的歌词样式
+        // 移除旧的高亮
         if (_lastHighlightedIndex >= 0 && _lastHighlightedIndex < _lyricLines.Count)
         {
-            var lastLine = _lyricLines[_lastHighlightedIndex];
-            lastLine.Classes.Remove("current");
+            _lyricLines[_lastHighlightedIndex].Classes.Remove("current");
         }
 
-        // 设置当前歌词样式
-        if (currentIndex >= 0)
+        // 添加新的高亮
+        if (newIndex >= 0 && newIndex < _lyricLines.Count)
         {
-            var currentLine = _lyricLines[currentIndex];
-            currentLine.Classes.Add("current");
+            _lyricLines[newIndex].Classes.Add("current");
+            _lastHighlightedIndex = newIndex;
         }
-
-        // 更新上一个高亮索引
-        _lastHighlightedIndex = currentIndex;
+        else
+        {
+            _lastHighlightedIndex = -1;
+        }
     }
 
     /// <summary>
-    /// 滚动到指定歌词行
+    ///     滚动到当前歌词行
     /// </summary>
-    private async void ScrollToLyric(int index)
+    private void ScrollToCurrentLyric()
     {
-        if (_scrollViewer == null || index < 0 || index >= _lyricLines.Count || _lyricsCanvas == null)
+        if (_scrollViewer == null || _lyricsCanvas == null || CurrentLyricIndex < 0 || CurrentLyricIndex >= _lyricLines.Count)
             return;
 
-        // 取消正在进行的滚动动画
+        // 如果用户正在滚动，则不进行程序滚动
+        if (_isUserScrolling && DateTime.Now - _lastUserScrollTime < _userScrollTimeout)
+            return;
+
+        _isUserScrolling = false; // 重置用户滚动标志
+
+        var currentLine = _lyricLines[CurrentLyricIndex];
+        double targetOffset = CalculateScrollOffset(currentLine);
+
+        // 取消之前的动画
         _scrollAnimationCts?.Cancel();
         _scrollAnimationCts = new CancellationTokenSource();
         var cancellationToken = _scrollAnimationCts.Token;
 
-        _isProgrammaticScrolling = true;
 
-        try
+        _isProgrammaticScrolling = true; // 标记为程序滚动
+
+        var animation = new Animation
         {
-            var lyricLine = _lyricLines[index];
-            double viewportHeight = _scrollViewer.Bounds.Height;
-
-            // 计算目标偏移量
-            double targetOffset = CalculateScrollTargetOffset(lyricLine, viewportHeight);
-            double currentOffset = _scrollViewer.Offset.Y;
-
-            // 如果差异很小，直接设置
-            if (Math.Abs(targetOffset - currentOffset) < 1)
+            Duration = ScrollAnimationDuration,
+            Easing = ScrollEasing,
+            FillMode = FillMode.Forward,
+            Children =
             {
-                _scrollViewer.Offset = new Vector(_scrollViewer.Offset.X, targetOffset);
-                return;
-            }
-
-            // 创建并执行滚动动画
-            var animation = new Animation
-            {
-                Duration = ScrollAnimationDuration,
-                FillMode = FillMode.Forward,
-                Easing = ScrollEasing,
-            };
-
-            animation.Children.Add(
                 new KeyFrame
                 {
                     Cue = new Cue(0d),
                     Setters =
                     {
-                        new Setter(ScrollViewer.OffsetProperty, new Vector(_scrollViewer.Offset.X, currentOffset)),
+                        new Setter
+                        {
+                            Property = ScrollViewer.OffsetProperty,
+                            Value = _scrollViewer.Offset,
+                        },
                     },
-                }
-            );
-
-            animation.Children.Add(
+                },
                 new KeyFrame
                 {
                     Cue = new Cue(1d),
                     Setters =
                     {
-                        new Setter(ScrollViewer.OffsetProperty, new Vector(_scrollViewer.Offset.X, targetOffset)),
+                        new Setter
+                        {
+                            Property = ScrollViewer.OffsetProperty,
+                            Value = new Vector(_scrollViewer.Offset.X, targetOffset),
+                        },
                     },
-                }
-            );
+                },
+            },
+        };
 
-            await animation.RunAsync(_scrollViewer, cancellationToken);
-        }
-        finally
-        {
-            // 只有当这是最后一个动画时才重置标志
-            if (!cancellationToken.IsCancellationRequested)
+        // 使用 RunAsync 并捕获 TaskCanceledException
+        animation.RunAsync(_scrollViewer, cancellationToken)
+            .ContinueWith(task =>
             {
-                _isProgrammaticScrolling = false;
-                _scrollAnimationCts = null;
-            }
-        }
+                // 动画完成或取消后，重置程序滚动标志
+                Dispatcher.UIThread.Post(() =>
+                {
+                    // 只有当这是最后一个动画时才重置标志
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
+                    _isProgrammaticScrolling = false;
+                    _scrollAnimationCts = null;
+                });
+
+                if (task.IsCanceled)
+                {
+                    // LoggerService.Debug("滚动动画被取消");
+                }
+                else if (task.IsFaulted)
+                {
+                    LoggerService.Error($"滚动动画出错: {task.Exception}");
+                }
+            }, TaskScheduler.FromCurrentSynchronizationContext());
     }
 
     /// <summary>
-    /// 计算滚动目标偏移量
+    /// 计算滚动偏移量，使当前行居中显示
     /// </summary>
-    private double CalculateScrollTargetOffset(LyricLineControl lyricLineControl, double viewportHeight)
+    /// <param name="currentLine">当前歌词行控件</param>
+    /// <returns>目标滚动偏移量</returns>
+    private double CalculateScrollOffset(LyricLineControl currentLine)
     {
+        if (_scrollViewer == null) return 0;
+
+        double viewportHeight = _scrollViewer.Bounds.Height;
         double centerY = viewportHeight / 2;
-        double lyricY = Canvas.GetTop(lyricLineControl);
-        double lyricHeight = lyricLineControl.DesiredSize.Height;
+        double lyricY = Canvas.GetTop(currentLine);
+        double lyricHeight = currentLine.DesiredSize.Height;
         double lyricCenterY = lyricY + lyricHeight / 2;
         double targetOffset;
 
-        if (lyricCenterY <= centerY && _lyricsCanvas!.Height <= viewportHeight)
-        {
-            // 如果歌词位置未超过控件中心线，且所有歌词总高度不超过视口高度，则不滚动
-            targetOffset = 0;
-        }
-        else if (lyricCenterY <= centerY)
+        if (lyricCenterY <= centerY)
         {
             // 如果歌词位置未超过控件中心线，但总高度超过视口，则保持在顶部
             targetOffset = 0;
@@ -571,56 +617,31 @@ public class LyricsControl : TemplatedControl
         return targetOffset;
     }
 
-    protected override Size MeasureOverride(Size availableSize)
-    {
-        if (_lyricsCanvas != null)
-        {
-            _lyricsCanvas.Width = availableSize.Width;
-        }
-
-        return base.MeasureOverride(availableSize);
-    }
-
-    protected override Size ArrangeOverride(Size finalSize)
-    {
-        if (_lyricsCanvas != null && Math.Abs(_lyricsCanvas.Width - finalSize.Width) > 0.1)
-        {
-            _lyricsCanvas.Width = finalSize.Width;
-            RenderLyrics();
-        }
-
-        return base.ArrangeOverride(finalSize);
-    }
-
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-    {
-        base.OnPropertyChanged(change);
-
-        if (change.Property != BoundsProperty)
-            return;
-
-        // 控件大小变化时重新渲染歌词
-        RenderLyrics();
-
-        // 如果当前有选中的歌词，重新滚动到该歌词
-        if (CurrentLyricIndex >= 0 && CurrentLyricIndex < _lyricLines.Count && !_isUserScrolling)
-        {
-            ScrollToLyric(CurrentLyricIndex);
-        }
-    }
-
-    #region 辅助方法
-
     /// <summary>
-    /// 清除所有歌词资源
+    /// 清理歌词相关资源
     /// </summary>
     private void ClearLyricResources()
     {
         _lyricsCanvas?.Children.Clear();
-
         _lyricLines.Clear();
         _lyrics = null;
+        _lastHighlightedIndex = -1;
+        _scrollAnimationCts?.Cancel(); // 取消可能正在进行的动画
+        _scrollAnimationCts = null;
+        _isUserScrolling = false; // 重置用户滚动状态
+        _isProgrammaticScrolling = false; // 重置程序滚动状态
+        // 重置滚动条位置
+        if (_scrollViewer != null)
+        {
+            _scrollViewer.Offset = Vector.Zero;
+        }
     }
 
-    #endregion
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        // 清理资源
+        UnsubscribeEvents();
+        ClearLyricResources();
+    }
 }

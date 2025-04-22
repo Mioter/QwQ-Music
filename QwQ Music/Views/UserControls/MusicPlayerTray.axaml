@@ -337,7 +337,7 @@
                                 Margin="0,0,2,0"
                                 Width="14" />
                             <Border
-                                Background="#ff6b6b"
+                                Background="{StaticResource EmphasizePink3}"
                                 CornerRadius="10"
                                 IsVisible="{Binding MusicPlayerViewModel.IsMuted}"
                                 Margin="0"

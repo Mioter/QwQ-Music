@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
-using QwQ_Music.ViewModels;
 
 namespace QwQ_Music.Views.UserControls;
 

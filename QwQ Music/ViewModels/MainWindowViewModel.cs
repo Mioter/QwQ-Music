@@ -71,8 +71,14 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
     public partial bool IsMusicCoverPageVisible { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(NavigationWidth))]
+    [NotifyPropertyChangedFor(nameof(NavigationWidth),nameof(IsMusicAlbumCoverTrayVisible))]
     public partial bool IsNavigationExpand { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMusicAlbumCoverTrayVisible))]
+    public partial bool IsMusicAlbumCoverPanelPointerOver { get; set; }
+
+    public bool IsMusicAlbumCoverTrayVisible => IsMusicAlbumCoverPanelPointerOver || IsNavigationExpand;
 
     [ObservableProperty]
     public partial double MusicPlayerTrayYaxisOffset { get; set; }
