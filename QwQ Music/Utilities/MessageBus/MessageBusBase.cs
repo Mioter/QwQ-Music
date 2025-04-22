@@ -3,7 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
+using QwQ_Music.Services;
 
 namespace QwQ_Music.Utilities.MessageBus;
 
@@ -16,21 +17,57 @@ public abstract class MessageBusBase : IMessageBus
     /// 存储所有订阅信息的线程安全字典
     /// </summary>
     protected readonly ConcurrentDictionary<Type, SubscriptionEntry> Subscriptions = new();
+    
+    /// <summary>
+    /// 消息处理统计信息
+    /// </summary>
+    protected readonly Dictionary<Type, MessageStats> MessageStats = new();
+    
+    /// <summary>
+    /// 是否启用性能监控
+    /// </summary>
+    public bool EnablePerformanceMonitoring { get; set; } = true;
+    
+    /// <summary>
+    /// 是否启用详细日志
+    /// </summary>
+    public bool EnableVerboseLogging { get; set; } = false;
+    
+    /// <summary>
+    /// 慢消息处理阈值（毫秒）
+    /// </summary>
+    public int SlowMessageThreshold { get; set; } = 50;
+    
+    /// <summary>
+    /// 总线名称，用于日志标识
+    /// </summary>
+    protected abstract string BusName { get; }
 
     /// <summary>
     /// 发布消息到总线
     /// </summary>
-    /// <typeparam name="TMessage">消息类型</typeparam>
-    /// <param name="message">消息实例</param>
-    public void Publish<TMessage>(TMessage message)
+    public virtual IMessageBus Publish<TMessage>(TMessage message)
     {
         ArgumentNullException.ThrowIfNull(message);
 
-        var handlers = GetValidHandlers<TMessage>();
-
-        // 异步执行所有处理器，避免阻塞发布者
-        if (handlers.Count > 0)
+        var messageType = typeof(TMessage);
+        var stopwatch = EnablePerformanceMonitoring ? Stopwatch.StartNew() : null;
+        
+        try
         {
+            if (EnableVerboseLogging)
+            {
+                LoggerService.Debug($"[{BusName}] 发布消息: {messageType.Name}");
+            }
+            
+            var handlers = GetValidHandlers<TMessage>();
+            
+            if (EnableVerboseLogging)
+            {
+                LoggerService.Debug($"[{BusName}] 开始处理消息 {messageType.Name}, 订阅者数量: {handlers.Count}");
+            }
+            
+            // 执行所有处理器
             foreach (var handler in handlers)
             {
                 try
@@ -39,39 +76,69 @@ public abstract class MessageBusBase : IMessageBus
                 }
                 catch (Exception ex)
                 {
-                    // 处理异常，避免一个处理器的异常影响其他处理器
-                    OnHandlerException(ex, typeof(TMessage), message);
+                    OnHandlerException(ex, messageType);
+                }
+            }
+            
+            if (EnablePerformanceMonitoring && stopwatch != null)
+            {
+                stopwatch.Stop();
+                var elapsed = stopwatch.ElapsedMilliseconds;
+                
+                if (elapsed > SlowMessageThreshold)
+                {
+                    LoggerService.Warning($"[{BusName}] 慢消息处理: {messageType.Name}, 耗时: {elapsed}ms, 处理器数量: {handlers.Count}");
+                }
+                
+                UpdateMessageStats(messageType, handlers.Count, elapsed);
+            }
+        }
+        catch (Exception ex)
+        {
+            LoggerService.Error($"[{BusName}] 发布消息时发生错误: {ex.Message}");
+            LoggerService.Debug($"[{BusName}] 异常详情: {ex}");
+        }
+        finally
+        {
+            if (stopwatch != null)
+            {
+                stopwatch.Stop();
+                if (EnableVerboseLogging)
+                {
+                    LoggerService.Debug($"[{BusName}] 消息 {messageType.Name} 处理完成, 总耗时: {stopwatch.ElapsedMilliseconds}ms");
                 }
             }
         }
+        
+        return this;
     }
 
     /// <summary>
-    /// 处理消息处理器执行过程中的异常
+    /// 异步发布消息到总线
     /// </summary>
-    /// <param name="exception">异常</param>
-    /// <param name="messageType">消息类型</param>
-    /// <param name="message">消息实例</param>
-    protected virtual void OnHandlerException(Exception exception, Type messageType, object message)
+    public virtual async Task<IMessageBus> PublishAsync<TMessage>(TMessage message)
     {
-        // 默认实现只是记录异常，子类可以覆盖此方法提供自定义异常处理
-        Debug.WriteLine($"MessageBus处理器异常: {exception.Message}, 消息类型: {messageType.Name}");
+        await Task.Run(() => Publish(message));
+        return this;
     }
 
     /// <summary>
     /// 订阅指定类型的消息
     /// </summary>
-    /// <typeparam name="TMessage">消息类型</typeparam>
-    /// <param name="handler">消息处理器</param>
-    /// <returns>订阅令牌，用于取消订阅</returns>
-    public IDisposable Subscribe<TMessage>(Action<TMessage> handler)
+    public virtual IDisposable? Subscribe<TMessage>(Action<TMessage> handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
 
         var messageType = typeof(TMessage);
+        
+        if (EnableVerboseLogging)
+        {
+            LoggerService.Debug($"[{BusName}] 订阅消息: {messageType.Name}, 处理器: {handler.Method.Name}");
+        }
+        
         var entry = Subscriptions.GetOrAdd(messageType, _ => new SubscriptionEntry());
 
-        object? subscription = CreateSubscription(handler);
+        object subscription = CreateSubscription(handler);
         entry.AddSubscription(subscription);
 
         return new SubscriptionToken(() => Unsubscribe(entry, subscription));
@@ -80,149 +147,155 @@ public abstract class MessageBusBase : IMessageBus
     /// <summary>
     /// 取消订阅指定类型的消息
     /// </summary>
-    /// <typeparam name="TMessage">消息类型</typeparam>
-    /// <param name="handler">消息处理器</param>
-    /// <returns>是否成功取消订阅</returns>
-    public bool Unsubscribe<TMessage>(Action<TMessage> handler)
+    public virtual IMessageBus Unsubscribe<TMessage>(Action<TMessage> handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
 
         var messageType = typeof(TMessage);
+        
+        if (EnableVerboseLogging)
+        {
+            LoggerService.Debug($"[{BusName}] 取消订阅: {messageType.Name}, 处理器: {handler.Method.Name}");
+        }
 
-        if (!Subscriptions.TryGetValue(messageType, out var entry))
-            return false;
-
-        var subscriptionsToRemove = FindSubscriptionsToRemove(entry, handler);
-
-        return subscriptionsToRemove.Any(subscription => entry.RemoveSubscription(subscription));
+        if (Subscriptions.TryGetValue(messageType, out var entry))
+        {
+            var subscriptionsToRemove = FindSubscriptionsToRemove(entry, handler);
+            foreach (var subscription in subscriptionsToRemove)
+            {
+                entry.RemoveSubscription(subscription);
+            }
+        }
+        
+        return this;
     }
-
+    
     /// <summary>
-    /// 取消指定的订阅
+    /// 处理消息处理器执行过程中的异常
     /// </summary>
-    private static void Unsubscribe(SubscriptionEntry entry, object subscription)
+    protected virtual void OnHandlerException(Exception exception, Type messageType)
+    {
+        LoggerService.Error($"[{BusName}] 处理消息 {messageType.Name} 时发生异常: {exception.Message}");
+        LoggerService.Debug($"[{BusName}] 异常详情: {exception}");
+        
+        // 更新异常统计
+        if (EnablePerformanceMonitoring)
+        {
+            lock (MessageStats)
+            {
+                if (!MessageStats.TryGetValue(messageType, out var stats))
+                {
+                    stats = new MessageStats(messageType.Name);
+                    MessageStats[messageType] = stats;
+                }
+                
+                stats.ErrorCount++;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 更新消息统计信息
+    /// </summary>
+    protected void UpdateMessageStats(Type messageType, int handlerCount, long elapsedMilliseconds)
+    {
+        if (!EnablePerformanceMonitoring)
+            return;
+            
+        lock (MessageStats)
+        {
+            if (!MessageStats.TryGetValue(messageType, out var stats))
+            {
+                stats = new MessageStats(messageType.Name);
+                MessageStats[messageType] = stats;
+            }
+            
+            stats.MessageCount++;
+            stats.TotalHandlerCount += handlerCount;
+            stats.TotalProcessingTime += elapsedMilliseconds;
+            
+            if (elapsedMilliseconds > stats.MaxProcessingTime)
+            {
+                stats.MaxProcessingTime = elapsedMilliseconds;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 获取消息统计信息
+    /// </summary>
+    public Dictionary<string, MessageStats> GetMessageStats()
+    {
+        lock (MessageStats)
+        {
+            return MessageStats.ToDictionary(kv => kv.Key.Name, kv => kv.Value);
+        }
+    }
+    
+    /// <summary>
+    /// 清除统计信息
+    /// </summary>
+    public void ClearStats()
+    {
+        lock (MessageStats)
+        {
+            MessageStats.Clear();
+        }
+        
+        LoggerService.Info($"[{BusName}] 统计信息已清除");
+    }
+    
+    /// <summary>
+    /// 取消订阅
+    /// </summary>
+    protected static void Unsubscribe(SubscriptionEntry entry, object subscription)
     {
         entry.RemoveSubscription(subscription);
     }
 
     /// <summary>
-    /// 获取有效的消息处理器列表
-    /// </summary>
-    /// <typeparam name="TMessage">消息类型</typeparam>
-    /// <returns>有效的处理器列表</returns>
-    protected abstract List<Action<TMessage>> GetValidHandlers<TMessage>();
-
-    /// <summary>
     /// 创建订阅对象
     /// </summary>
-    /// <typeparam name="TMessage">消息类型</typeparam>
-    /// <param name="handler">消息处理器</param>
-    /// <returns>订阅对象</returns>
     protected abstract object CreateSubscription<TMessage>(Action<TMessage> handler);
+
+    /// <summary>
+    /// 获取有效的消息处理器列表
+    /// </summary>
+    protected abstract List<Action<TMessage>> GetValidHandlers<TMessage>();
 
     /// <summary>
     /// 查找要移除的订阅
     /// </summary>
-    /// <typeparam name="TMessage">消息类型</typeparam>
-    /// <param name="entry">订阅条目</param>
-    /// <param name="handler">消息处理器</param>
-    /// <returns>要移除的订阅列表</returns>
     protected abstract List<object> FindSubscriptionsToRemove<TMessage>(
         SubscriptionEntry entry,
         Action<TMessage> handler
     );
-
+    
     /// <summary>
-    /// 清除所有订阅
+    /// 释放资源
     /// </summary>
-    public void ClearAllSubscriptions()
+    public virtual void Dispose()
     {
-        foreach (var entry in Subscriptions.Values)
-        {
-            entry.ClearSubscriptions();
-        }
-
         Subscriptions.Clear();
-    }
-
-    /// <summary>
-    /// 释放资源，清除所有订阅
-    /// </summary>
-    public void Dispose()
-    {
-        Dispose(true);
+        MessageStats.Clear();
         GC.SuppressFinalize(this);
     }
-
+    
+    
     /// <summary>
-    /// 释放资源的虚方法，允许子类重写
+    ///     订阅令牌，用于取消订阅
     /// </summary>
-    /// <param name="disposing">是否正在释放托管资源</param>
-    protected virtual void Dispose(bool disposing)
+    private class SubscriptionToken(Action unsubscribeAction) : IDisposable
     {
-        if (disposing)
-        {
-            ClearAllSubscriptions();
-        }
-    }
-
-    /// <summary>
-    /// 订阅令牌，用于取消订阅
-    /// </summary>
-    private sealed class SubscriptionToken(Action unsubscribeAction) : IDisposable
-    {
-        private readonly Action _unsubscribeAction =
-            unsubscribeAction ?? throw new ArgumentNullException(nameof(unsubscribeAction));
-        private bool _disposed;
+        private bool _isDisposed;
 
         public void Dispose()
         {
-            if (_disposed)
+            if (_isDisposed)
                 return;
 
-            _unsubscribeAction();
-            _disposed = true;
-        }
-    }
-
-    /// <summary>
-    /// 订阅条目，管理特定消息类型的所有订阅
-    /// </summary>
-    protected sealed class SubscriptionEntry
-    {
-        private readonly List<object> _subscribers = [];
-        private readonly Lock _lock = new();
-
-        public void AddSubscription(object subscription)
-        {
-            lock (_lock)
-            {
-                _subscribers.Add(subscription);
-            }
-        }
-
-        public bool RemoveSubscription(object subscription)
-        {
-            lock (_lock)
-            {
-                return _subscribers.Remove(subscription);
-            }
-        }
-
-        public List<object> GetSubscriptionsSnapshot()
-        {
-            lock (_lock)
-            {
-                return [.. _subscribers];
-            }
-        }
-
-        public void ClearSubscriptions()
-        {
-            lock (_lock)
-            {
-                _subscribers.Clear();
-            }
+            unsubscribeAction();
+            _isDisposed = true;
         }
     }
 }

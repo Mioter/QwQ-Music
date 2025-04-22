@@ -67,7 +67,7 @@
                         Classes="Icon"
                         Command="{Binding ClearMusicPlayListCommand}"
                         ToolTip.Tip="清空播放列表">
-                        <PathIcon Data="{StaticResource ClearEmpty}" Foreground="#ff6b6b" />
+                        <PathIcon Data="{StaticResource ClearEmpty}" Foreground="{StaticResource EmphasizePink3}" />
                     </Button>
 
                     <Button
@@ -87,6 +87,8 @@
                 ItemsSource="{Binding MusicPlayerViewModel.Playlist.MusicItems}"
                 Margin="0,5"
                 SelectedItem="{Binding SelectedItem}"
+                behaviors:ScrollToItemBehavior.SmoothScrollingEnabled="True"
+                behaviors:ScrollToItemBehavior.ScrollDuration="0:0:0.5"
                 behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}"
                 u:ScrollTo.Direction="Top">
 
@@ -165,7 +167,7 @@
                                         <MenuItem.Icon>
                                             <PathIcon
                                                 Data="{StaticResource SemiIconForward}"
-                                                Foreground="#ff6b6b"
+                                                Foreground="{StaticResource EmphasizePink3}"
                                                 Margin="2"
                                                 RenderTransform="rotate(180deg)" />
                                         </MenuItem.Icon>

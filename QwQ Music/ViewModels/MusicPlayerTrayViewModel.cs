@@ -1,5 +1,4 @@
 using Avalonia.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Services;
 using QwQ_Music.Utilities.MessageBus;
@@ -8,28 +7,28 @@ namespace QwQ_Music.ViewModels;
 
 public partial class MusicPlayerTrayViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    public partial double AlbumCoverCurrentAngle { get; set; }
+    public double AlbumCoverCurrentAngle { get; set; }
 
-    [ObservableProperty]
-    public partial double AlbumCoverRecordAngle { get; set; }
+    public double AlbumCoverRecordAngle { get; set; }
 
-    [ObservableProperty]
-    public partial string? CurrentViewName { get; set; }
+    public string? CurrentViewName { get; set; }
 
     public MusicPlayerTrayViewModel()
     {
         MusicPlayerViewModel.PlaybackStateChanged += MusicPlayerViewModelOnPlaybackStateChanged;
-        MusicPlayerViewModel.CurrentMusicItemChanging += AudioPlayOnTrackIndexChanging;
+
         NavigateService.CurrentViewChanged += CurrentViewChanged;
         StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
     }
 
-    private void CurrentViewChanged(string name) => CurrentViewName = name;
+    private void CurrentViewChanged(string name)
+    {
+        CurrentViewName = name;
+        OnPropertyChanged(nameof(CurrentViewName));
+    }
 
     private void ExitReminderMessageHandler(ExitReminderMessage message)
     {
-        MusicPlayerViewModel.CurrentMusicItemChanging -= AudioPlayOnTrackIndexChanging;
         MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
         NavigateService.CurrentViewChanged -= CurrentViewChanged;
     }
@@ -82,12 +81,15 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
 
     private void MusicPlayerViewModelOnPlaybackStateChanged(object? sender, bool e)
     {
-        if (!e)
-            AlbumCoverRecordAngle = AlbumCoverCurrentAngle;
+        if (e)
+            return;
+
+        RecordCurrentAngle();
     }
 
-    private void AudioPlayOnTrackIndexChanging(object? sender, CurrentMusicItemChangedCancelEventArgs e)
+    private void RecordCurrentAngle()
     {
-        AlbumCoverRecordAngle = 0;
+        AlbumCoverRecordAngle = AlbumCoverCurrentAngle;
+        OnPropertyChanged(nameof(AlbumCoverRecordAngle));
     }
 }

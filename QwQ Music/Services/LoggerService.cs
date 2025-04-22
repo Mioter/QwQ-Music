@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using QwQ_Music.Utilities;
@@ -35,6 +37,7 @@ public static class LoggerService
     private static string LogFile => Path.Combine(SavePath, $"{_CurrentDay:yyyy-MM-dd}.QwQ.log");
     private static FileStream? _FileStream;
     private static readonly SemaphoreSlim AsyncLock = new(1, 1);
+    private static readonly HttpClient HttpClient = new();
 
     /// <summary>
     /// 获取或创建日志文件流
@@ -97,6 +100,7 @@ public static class LoggerService
             {
                 await using var writer = CreateStreamWriter();
                 await writer.WriteLineAsync(logMessage);
+                /*await writer.FlushAsync();*/
                 return;
             }
             catch
@@ -130,6 +134,67 @@ public static class LoggerService
 
         string logMessage = FormatLogMessage(status, message, line, function, filename);
         _ = WriteLogAsync(logMessage);
+
+#if DEBUG
+        _ = SendLog(status, message, line, function, filename);
+#endif
+    }
+
+    /// <summary>
+    /// 异步记录日志
+    /// </summary>
+    private static Task LogAsync(LogLevel level, string status, string message, int line, string? function, string? filename)
+    {
+        if (level < Level)
+            return Task.CompletedTask;
+
+        string logMessage = FormatLogMessage(status, message, line, function, filename);
+#if DEBUG
+        SendLog(status, message, line, function, filename).ConfigureAwait(false);
+#endif
+        return WriteLogAsync(logMessage);
+
+
+    }
+
+    /// <summary>
+    /// 发送日志到本地服务器
+    /// </summary>
+    private static async Task SendLog(string status, string message, int lineNumber, string? function, string? filename)
+    {
+        var logData = new
+        {
+            timestamp = DateTime.Now.ToString("HH:mm:ss.fff"),
+            level = status,
+            action = function,
+            filename,
+            lineNumber,
+            message,
+        };
+
+        try
+        {
+            string postData = JsonSerializer.Serialize(logData);
+            var content = new StringContent(postData, Encoding.UTF8, "application/json");
+
+            // 使用超时防止阻塞
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            var response = await HttpClient.PostAsync("http://localhost:8081/log", content, cts.Token);
+            
+            // 不再输出状态码到控制台，避免过多输出
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"日志服务器响应错误: {response.StatusCode}");
+            }
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or OperationCanceledException)
+        {
+            // 静默处理网络错误，避免影响应用性能
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"发送日志时发生未预期错误: {e.Message}");
+        }
     }
 
     /// <summary>
@@ -138,16 +203,17 @@ public static class LoggerService
     public static void Shutdown()
     {
         _FileStream?.Dispose();
+        Info("日志服务已退出~");
         _FileStream = null;
     }
 
-    // 公共日志方法
+    // 公共日志方法 - 同步版本
     public static void Debug(
         string message,
         [CallerLineNumber] int line = 0,
         [CallerMemberName] string? function = null,
         [CallerFilePath] string? filename = null
-    ) => Log(LogLevel.Debug, "Debug", message, line, function, filename);
+    ) => Log(LogLevel.Debug, "DEBUG", message, line, function, filename);
 
     public static void Info(
         string message,
@@ -184,4 +250,48 @@ public static class LoggerService
         [CallerMemberName] string? function = null,
         [CallerFilePath] string? filename = null
     ) => Log(LogLevel.Custom, status.ToUpper(), message, line, function, filename);
+
+    // 公共日志方法 - 异步版本
+    public static Task DebugAsync(
+        string message,
+        [CallerLineNumber] int line = 0,
+        [CallerMemberName] string? function = null,
+        [CallerFilePath] string? filename = null
+    ) => LogAsync(LogLevel.Debug, "DEBUG", message, line, function, filename);
+
+    public static Task InfoAsync(
+        string message,
+        [CallerLineNumber] int line = 0,
+        [CallerMemberName] string? function = null,
+        [CallerFilePath] string? filename = null
+    ) => LogAsync(LogLevel.Info, "INFO", message, line, function, filename);
+
+    public static Task WarningAsync(
+        string message,
+        [CallerLineNumber] int line = 0,
+        [CallerMemberName] string? function = null,
+        [CallerFilePath] string? filename = null
+    ) => LogAsync(LogLevel.Warning, "WARN", message, line, function, filename);
+
+    public static Task ErrorAsync(
+        string message,
+        [CallerLineNumber] int line = 0,
+        [CallerMemberName] string? function = null,
+        [CallerFilePath] string? filename = null
+    ) => LogAsync(LogLevel.Error, "ERROR", message, line, function, filename);
+
+    public static Task FatalAsync(
+        string message,
+        [CallerLineNumber] int line = 0,
+        [CallerMemberName] string? function = null,
+        [CallerFilePath] string? filename = null
+    ) => LogAsync(LogLevel.Fatal, "FATAL", message, line, function, filename);
+
+    public static Task CustomAsync(
+        string message,
+        string status,
+        [CallerLineNumber] int line = 0,
+        [CallerMemberName] string? function = null,
+        [CallerFilePath] string? filename = null
+    ) => LogAsync(LogLevel.Custom, status.ToUpper(), message, line, function, filename);
 }

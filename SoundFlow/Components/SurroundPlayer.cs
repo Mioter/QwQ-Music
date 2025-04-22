@@ -556,7 +556,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
         };
     }
 
-    private Vector2[] CreateCircularLayout(int speakers)
+    private static Vector2[] CreateCircularLayout(int speakers)
     {
         var positions = new Vector2[speakers];
         float angleStep = 2 * MathF.PI / speakers;

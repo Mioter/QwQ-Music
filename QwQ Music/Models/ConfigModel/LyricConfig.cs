@@ -1,9 +1,28 @@
 using System.Text.Json.Serialization;
 using Avalonia;
+using Avalonia.Layout;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace QwQ_Music.Models.ConfigModel;
+
+public class LyricConfig : ObservableObject
+{
+    public RolledLyricsConfig RolledLyricsConfig { get; set; } = new();
+    public DesktopLyricConfig DesktopLyric { get; set; } = new();
+}
+
+public partial class RolledLyricsConfig : ObservableObject
+{
+    [ObservableProperty]
+    public partial int LyricOffset { get; set; }
+
+    [ObservableProperty]
+    public partial HorizontalAlignment LyricTextAlignment { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowTranslation { get; set; }
+}
 
 public partial class DesktopLyricConfig : ObservableObject
 {
@@ -84,6 +103,6 @@ public class SizeSerializationHelper
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(DesktopLyricConfig))]
+[JsonSerializable(typeof(LyricConfig))]
 [JsonSerializable(typeof(SizeSerializationHelper))]
-internal partial class DesktopLyricConfigJsonSerializerContext : JsonSerializerContext;
+internal partial class LyricConfigJsonSerializerContext : JsonSerializerContext;

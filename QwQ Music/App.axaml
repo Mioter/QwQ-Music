@@ -6,7 +6,8 @@
     xmlns:converters="clr-namespace:QwQ_Music.Helper.Converters"
     xmlns:semi="https://irihi.tech/semi"
     xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:u="https://irihi.tech/ursa">
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Styles>
@@ -25,6 +26,14 @@
         <Style Selector="ToolTip /template/ ContentPresenter">
             <Setter Property="FontSize" Value="12" />
         </Style>
+        
+        <Style Selector="u|NotificationCard.Light /template/ Button#PART_CloseButton /template/ Border">
+            <Setter Property="CornerRadius" Value="5"/>
+        </Style>
+        
+        <Style Selector="u|MessageBoxControl /template/ Button">
+            <Setter Property="CornerRadius" Value="5"/>
+        </Style>
 
     </Application.Styles>
 
@@ -33,6 +42,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="Assets/Themes/_indexes.axaml" />
                 <ResourceInclude Source="Assets/Icons/_indexes.axaml" />
+                <ResourceInclude Source="Assets/Variables/_indexes.axaml"/>
                 <ResourceInclude Source="avares://QwQ.Avalonia.Control/Theme/_indexes.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

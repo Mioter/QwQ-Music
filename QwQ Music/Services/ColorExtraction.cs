@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -33,35 +31,6 @@ public enum ColorExtractionAlgorithm
 /// </summary>
 public static class ColorExtraction
 {
-    /// <summary>
-    /// 从图像文件路径获取调色板
-    /// </summary>
-    /// <param name="imagePath">图像文件路径</param>
-    /// <param name="colorCount">要提取的颜色数量，默认为5</param>
-    /// <param name="algorithm">颜色提取算法，默认为KMeans</param>
-    /// <param name="ignoreWhite">忽略白色</param>
-    /// <returns>提取的颜色列表，如果缓存不存在则返回null</returns>
-    public static async Task<List<Color>?> GetColorPalette(
-        string imagePath,
-        int colorCount = 5,
-        ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
-        bool ignoreWhite = true
-    )
-    {
-        // 检查文件是否存在
-        if (!File.Exists(imagePath))
-        {
-            return null;
-        }
-
-        // 尝试使用缓存的位图
-        var bitmap = await MusicExtractor.LoadCompressedBitmap(imagePath);
-        return bitmap == null
-            ? null
-            : // 缓存不存在直接返回null
-            GetColorPaletteFromBitmap(bitmap, colorCount, algorithm, ignoreWhite);
-    }
-
     /// <summary>
     /// 从位图对象获取调色板
     /// </summary>
@@ -129,43 +98,41 @@ public static class ColorExtraction
             AlphaFormat.Premul
         );
 
-        using (var fb = writeableBitmap.Lock())
+        using var fb = writeableBitmap.Lock();
+        unsafe
         {
-            unsafe
+            byte* pixelData = (byte*)fb.Address;
+            int stride = fb.RowBytes;
+
+            // 将原始位图数据复制到可写位图
+            bitmap.CopyPixels(new PixelRect(0, 0, width, height), new IntPtr(pixelData), stride * height, stride);
+
+            // 遍历像素采样颜色
+            for (int y = 0; y < height; y += sampleStep)
             {
-                byte* pixelData = (byte*)fb.Address;
-                int stride = fb.RowBytes;
-
-                // 将原始位图数据复制到可写位图
-                bitmap.CopyPixels(new PixelRect(0, 0, width, height), new IntPtr(pixelData), stride * height, stride);
-
-                // 遍历像素采样颜色
-                for (int y = 0; y < height; y += sampleStep)
+                for (int x = 0; x < width; x += sampleStep)
                 {
-                    for (int x = 0; x < width; x += sampleStep)
-                    {
-                        int pixelOffset = y * stride + x * 4; // BGRA格式
+                    int pixelOffset = y * stride + x * 4; // BGRA格式
 
-                        byte b = pixelData[pixelOffset];
-                        byte g = pixelData[pixelOffset + 1];
-                        byte r = pixelData[pixelOffset + 2];
-                        byte a = pixelData[pixelOffset + 3];
+                    byte b = pixelData[pixelOffset];
+                    byte g = pixelData[pixelOffset + 1];
+                    byte r = pixelData[pixelOffset + 2];
+                    byte a = pixelData[pixelOffset + 3];
 
-                        // 忽略透明像素
-                        if (a < 200)
-                            continue;
+                    // 忽略透明像素
+                    if (a < 200)
+                        continue;
 
-                        // 量化颜色以减少噪点
-                        var quantized = Color.FromArgb(
-                            255,
-                            (byte)(r / 16 * 16),
-                            (byte)(g / 16 * 16),
-                            (byte)(b / 16 * 16)
-                        );
+                    // 量化颜色以减少噪点
+                    var quantized = Color.FromArgb(
+                        255,
+                        (byte)(r / 16 * 16),
+                        (byte)(g / 16 * 16),
+                        (byte)(b / 16 * 16)
+                    );
 
-                        // 更新颜色频率
-                        colorFrequencies[quantized] = colorFrequencies.TryGetValue(quantized, out int v) ? v + 1 : 1;
-                    }
+                    // 更新颜色频率
+                    colorFrequencies[quantized] = colorFrequencies.TryGetValue(quantized, out int v) ? v + 1 : 1;
                 }
             }
         }

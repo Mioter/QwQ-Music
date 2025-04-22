@@ -1,4 +1,6 @@
-﻿using QwQ_Music.Models;
+﻿using Avalonia.Layout;
+using QwQ_Music.Helper;
+using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using static QwQ_Music.Models.LanguageModel;
 
@@ -24,5 +26,9 @@ public class LyricConfigPageViewModel : ViewModelBase
     public static string LyricAltBottomColorName => Lang[nameof(LyricAltBottomColorName)];
     public static string LyricAltBorderColorName => Lang[nameof(LyricAltBorderColorName)];
 
-    public static DesktopLyricConfig Config => ConfigInfoModel.DesktopLyricConfig;
+    public static DesktopLyricConfig DesktopLyric { get; } = ConfigInfoModel.LyricConfig.DesktopLyric;
+
+    public static RolledLyricsConfig RolledLyricsConfig { get; } = ConfigInfoModel.LyricConfig.RolledLyricsConfig;
+
+    public static HorizontalAlignment[] TextAlignments { get; } = EnumHelper<HorizontalAlignment>.ToArray();
 }

@@ -3,8 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using QwQ_Music.Models;
+using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.ViewModels;
-using static QwQ_Music.Models.ConfigInfoModel;
 
 namespace QwQ_Music.Views.Pages;
 
@@ -15,6 +16,8 @@ public partial class LyricConfigPage : UserControl
         InitializeComponent();
         DataContext = new LyricConfigPageViewModel();
     }
+
+    public static DesktopLyricConfig DesktopLyricConfig => ConfigInfoModel.LyricConfig.DesktopLyric;
 
     private void MaximizeLyricWidth(object sender, RoutedEventArgs e)
     {

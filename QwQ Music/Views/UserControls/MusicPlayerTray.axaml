@@ -17,7 +17,7 @@
 
     <UserControl.Styles>
 
-        <Style Selector="Image.AlbumCoverRotate">
+        <Style Selector="userControls|MusicAlbumCover.AlbumCoverRotate">
             <Style.Animations>
                 <Animation
                     Duration="0:0:15"
@@ -41,34 +41,22 @@
         CornerRadius="25"
         Margin="20">
 
-        <Grid ColumnDefinitions="Auto,Auto,*">
+        <Grid ColumnDefinitions="Auto,Auto,6*">
             <!--  专辑按钮  -->
             <Button
                 Background="{x:Null}"
                 Classes="None"
                 Command="{Binding $parent[Window].((viewModel:MainWindowViewModel)DataContext).ShowMusicPlayerPageCommand}">
-                <Border
-                    Background="Black"
-                    BorderBrush="White"
-                    BorderThickness="3"
-                    BoxShadow="0 0 10 0 DarkGray"
-                    Margin="10"
-                    behaviors:DynamicCornerBehavior.IsEnabled="True">
-                    <Border
-                        ClipToBounds="True"
-                        Margin="5"
-                        behaviors:DynamicCornerBehavior.IsEnabled="True">
-                        <!--  专辑封面 Image 控件  -->
-                        <Image Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}" Source="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverImage}">
 
-                            <Image.RenderTransform>
-                                <RotateTransform Angle="{Binding AlbumCoverCurrentAngle, Mode=OneWayToSource}" />
-                            </Image.RenderTransform>
+                <userControls:MusicAlbumCover
+                    Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}"
+                    CoverImage="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverImage}">
+                    
+                    <userControls:MusicAlbumCover.RenderTransform>
+                        <RotateTransform Angle="{Binding AlbumCoverCurrentAngle, Mode=OneWayToSource}" />
+                    </userControls:MusicAlbumCover.RenderTransform>
 
-                        </Image>
-                    </Border>
-
-                </Border>
+                </userControls:MusicAlbumCover>
             </Button>
 
             <!--  音乐信息  -->
@@ -80,16 +68,38 @@
                 Width="60">
 
                 <TextBlock
-                    FontWeight="DemiBold"
+                    FontWeight="Bold"
                     Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Title}"
                     TextTrimming="CharacterEllipsis"
                     ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
-                <TextBlock
-                    Classes="Tertiary"
-                    FontSize="12"
-                    Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Artists}"
-                    TextTrimming="CharacterEllipsis"
-                    ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
+
+                <control:SwitchControl Condition="{Binding MusicPlayerViewModel.IsPlaying}">
+                    <control:SwitchControl.FalseContent>
+
+                        <TextBlock
+                            Classes="Tertiary"
+                            FontSize="12"
+                            MaxLines="2"
+                            Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Artists}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap"
+                            ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
+
+                    </control:SwitchControl.FalseContent>
+
+                    <control:SwitchControl.TrueContent>
+                        <TextBlock
+                            Classes="Tertiary"
+                            FontSize="12"
+                            MaxLines="2"
+                            Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric.Primary}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap"
+                            ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"
+                            behaviors:PlaceholderBehavior.Placeholder="♪ ♪ ♪" />
+                    </control:SwitchControl.TrueContent>
+
+                </control:SwitchControl>
 
             </StackPanel>
 
@@ -327,7 +337,7 @@
                                 Margin="0,0,2,0"
                                 Width="14" />
                             <Border
-                                Background="#ff6b6b"
+                                Background="{StaticResource EmphasizePink3}"
                                 CornerRadius="10"
                                 IsVisible="{Binding MusicPlayerViewModel.IsMuted}"
                                 Margin="0"

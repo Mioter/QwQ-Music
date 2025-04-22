@@ -34,15 +34,13 @@ public static class ConfigInfoModel
 
     // DesktopLyricConfig 实现
     // ReSharper disable once InconsistentNaming
-    private static readonly Lazy<DesktopLyricConfig> _desktopLyricConfig = new(
+    private static readonly Lazy<LyricConfig> _lyricConfig = new(
         () =>
-            JsonConfigService.Load<DesktopLyricConfig>(
-                nameof(DesktopLyricConfig).ToLower(),
-                DesktopLyricConfigJsonSerializerContext.Default
-            ) ?? new DesktopLyricConfig()
+            JsonConfigService.Load<LyricConfig>(nameof(LyricConfig).ToLower(), LyricConfigJsonSerializerContext.Default)
+            ?? new LyricConfig()
     );
 
-    public static DesktopLyricConfig DesktopLyricConfig => _desktopLyricConfig.Value;
+    public static LyricConfig LyricConfig => _lyricConfig.Value;
 
     // SoundEffectConfig 实现
     // ReSharper disable once InconsistentNaming
@@ -98,14 +96,10 @@ public static class ConfigInfoModel
 
     public static void SaveDesktopLyricConfig()
     {
-        if (_desktopLyricConfig.IsValueCreated)
+        if (_lyricConfig.IsValueCreated)
         {
             JsonConfigService
-                .SaveAsync(
-                    DesktopLyricConfig,
-                    nameof(DesktopLyricConfig).ToLower(),
-                    DesktopLyricConfigJsonSerializerContext.Default
-                )
+                .SaveAsync(LyricConfig, nameof(LyricConfig).ToLower(), LyricConfigJsonSerializerContext.Default)
                 .Wait();
         }
     }

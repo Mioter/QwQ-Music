@@ -54,9 +54,9 @@
                     <Button.Flyout>
                         <Flyout>
                             <StackPanel Spacing="5">
-                                <CheckBox Content="类别" Name="MoreColumn1" />
+                                <CheckBox Content="备注" Name="MoreColumn1" />
                                 <CheckBox Content="大小" Name="MoreColumn2" />
-                                <CheckBox Content="备注" Name="MoreColumn3" />
+                                <CheckBox Content="附注" Name="MoreColumn3" />
                             </StackPanel>
                         </Flyout>
                     </Button.Flyout>
@@ -112,10 +112,19 @@
                                     CommandParameter="{Binding}"
                                     Header="清空播放时长">
                                     <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource ClearEmpty}" Margin="2" />
+                                        <PathIcon Data="{StaticResource ClearEmpty}" Margin="2"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
-
+                                
+                                <MenuItem
+                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="详细信息">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                
                                 <!--  在文件中打开  -->
                                 <MenuItem
                                     Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
@@ -126,34 +135,40 @@
                                     </MenuItem.Icon>
                                 </MenuItem>
 
+                                <!--  删除  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
+                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.DeleteMusicItemCommand}"
                                     CommandParameter="{Binding}"
-                                    Header="详细信息">
+                                    Header="删除音乐">
                                     <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
+                                        <PathIcon Data="{StaticResource SemiIconDelete}" Margin="1" Foreground="{StaticResource EmphasizePink3}"/>
                                     </MenuItem.Icon>
                                 </MenuItem>
+
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>
                 </Style>
 
+                <!--
                 <Style Selector="DataGrid /template/ DataGridColumnHeader#PART_TopLeftCornerHeader /template/ Border">
                     <Setter Property="Opacity" Value="0" />
                 </Style>
+                -->
 
                 <Style Selector="DataGridColumnHeadersPresenter &gt; DataGridColumnHeader">
                     <Setter Property="Theme" Value="{StaticResource NoDecorativeThread}" />
                 </Style>
 
+                <!--
                 <Style Selector="DataGrid /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
                     <Setter Property="Opacity" Value="0" />
                 </Style>
+                -->
 
-                <Style Selector="DataGridRowHeader /template/ Grid">
+                <!--<Style Selector="DataGridRowHeader /template/ Grid">
                     <Setter Property="Opacity" Value="0" />
-                </Style>
+                </Style>-->
 
                 <Style Selector="DataGridRow:pointerover /template/ Border#BackgroundBorder">
                     <Setter Property="CornerRadius" Value="10" />
@@ -230,15 +245,15 @@
                     Header="专辑"
                     Width="1*" />
 
-                <!--<DataGridTextColumn Header="类别"
+                <DataGridTextColumn Header="备注"
                                     MinWidth="100"
                                     IsVisible="{Binding ElementName=MoreColumn1,Path=IsChecked}"
-                                    Binding="{Binding ExtensionsProperty.Genre}" />-->
+                                    Binding="{Binding Comment}" />
 
                 <DataGridTemplateColumn Header="时长" MinWidth="120">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Spacing="5" VerticalAlignment="Center">
+                            <StackPanel Spacing="5" Margin="10,0" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Duration, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}}" />
 
                                 <TextBlock
@@ -258,7 +273,7 @@
 
                 <DataGridTextColumn
                     Binding="{Binding Remarks}"
-                    Header="备注"
+                    Header="附注"
                     IsVisible="{Binding IsChecked, ElementName=MoreColumn3}"
                     MinWidth="100" />
 

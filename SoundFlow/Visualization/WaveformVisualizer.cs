@@ -34,7 +34,7 @@ public class WaveformVisualizer : IVisualizer
     /// <summary>
     /// Gets the size of the waveform visualization in pixels (X - width, Y - height).
     /// </summary>
-    public Vector2 Size => new(800, 200);
+    public static Vector2 Size => new(800, 200);
 
     /// <inheritdoc/>
     public void ProcessOnAudioData(Span<float> audioData)

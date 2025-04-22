@@ -2,7 +2,8 @@
     <!--  Add Styles Here  -->
     <StyleInclude Source="Button.axaml" />
     <StyleInclude Source="Slider.axaml" />
-    <StyleInclude Source="Dialog.axaml" />
+    <StyleInclude Source="LyricsControl.axaml"/>
+    <StyleInclude Source="LyricLineControl.axaml"/>
     <StyleInclude Source="IconButton.axaml" />
     <StyleInclude Source="ToggleButton.axaml" />
 </Style>

@@ -9,7 +9,7 @@ public static class DesktopLyricsWindowViewModel
 {
     public static Dictionary<int, string[]>? Lyrics { get; set; }
 
-    public static DesktopLyricConfig Config => ConfigInfoModel.DesktopLyricConfig;
+    public static DesktopLyricConfig Config => ConfigInfoModel.LyricConfig.DesktopLyric;
 
     public static Orientation LyricOrientation =>
         Config.LyricIsVertical ? Orientation.Vertical : Orientation.Horizontal;

@@ -33,8 +33,10 @@ public static class Program
         {
             ConfigInfoModel.SaveAll();
 
-            StrongMessageBus.Instance.Publish(new ExitReminderMessage { Success = true });
+            StrongMessageBus.Instance.Publish(new ExitReminderMessage(true));
             StrongMessageBus.Instance.Dispose();
+            
+            ViewModels.MusicPlayerViewModel.Instance.Save().Wait();
 
             DataBaseService.CloseConnectionAsync().Wait();
             LoggerService.Shutdown();
@@ -42,7 +44,8 @@ public static class Program
         catch (Exception ex)
         {
             // Log the exception or handle it as needed
-            LoggerService.Error($"An error occurred: {ex.Message}");
+             LoggerService.ErrorAsync($"An error occurred: {ex.Message}");
+             LoggerService.Shutdown();
         }
     }
 

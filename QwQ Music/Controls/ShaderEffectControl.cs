@@ -10,6 +10,7 @@ using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
 using QwQ_Music.Services.Shader;
+using QwQ.Avalonia.Helper;
 using SkiaSharp;
 
 namespace QwQ_Music.Controls;
@@ -152,8 +153,7 @@ public class ShaderEffectControl : Control
         // 使用DispatcherTimer代替直接递归调用
         if (_animationTimer == null)
         {
-            _animationTimer = new DispatcherTimer
-                { Interval = GetTimerInterval() };
+            _animationTimer = new DispatcherTimer { Interval = GetTimerInterval() };
             _animationTimer.Tick += AnimationTimer_Tick;
         }
 
