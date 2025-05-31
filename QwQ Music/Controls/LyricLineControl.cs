@@ -12,10 +12,10 @@ public class LyricLineControl : TemplatedControl
     #region 依赖属性
 
     // 歌词文本
-    public static readonly StyledProperty<string> TextProperty = AvaloniaProperty.Register<
-        LyricLineControl,
-        string
-    >(nameof(Text), string.Empty);
+    public static readonly StyledProperty<string> TextProperty = AvaloniaProperty.Register<LyricLineControl, string>(
+        nameof(Text),
+        string.Empty
+    );
 
     // 翻译文本
     public static readonly StyledProperty<string?> TranslationProperty = AvaloniaProperty.Register<
@@ -46,13 +46,13 @@ public class LyricLineControl : TemplatedControl
         LyricLineControl,
         double
     >(nameof(TranslationSpacing), 2.0);
-    
+
     // 歌词文本边距
     public static readonly StyledProperty<Thickness> TextMarginProperty = AvaloniaProperty.Register<
         LyricLineControl,
         Thickness
     >(nameof(TextMargin), new Thickness(10, 0, 10, 0));
-    
+
     #endregion
 
     #region 属性
@@ -86,7 +86,7 @@ public class LyricLineControl : TemplatedControl
         get => GetValue(TextAlignmentProperty);
         set => SetValue(TextAlignmentProperty, value);
     }
-    
+
     public Thickness TextMargin
     {
         get => GetValue(TextMarginProperty);

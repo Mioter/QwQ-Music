@@ -9,14 +9,13 @@ namespace QwQ_Music.Utilities.MessageBus;
 /// </summary>
 public sealed class StrongMessageBus : MessageBusBase
 {
-    // ReSharper disable once InconsistentNaming
     private static readonly Lazy<StrongMessageBus> _instance = new(() => new StrongMessageBus());
 
     /// <summary>
     /// 获取 StrongMessageBus 的单例实例
     /// </summary>
     public static StrongMessageBus Instance => _instance.Value;
-    
+
     /// <summary>
     /// 总线名称
     /// </summary>

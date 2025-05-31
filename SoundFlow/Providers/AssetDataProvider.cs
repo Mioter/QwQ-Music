@@ -8,9 +8,10 @@ namespace SoundFlow.Providers;
 ///     Provides audio data from a file or stream.
 /// </summary>
 /// <remarks>Loads full audio directly to memory.</remarks>
-public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
+public sealed class AssetDataProvider : ISoundDataProvider
 {
     private float[] _data;
+    private int _samplePosition;
     private bool _isDisposed;
 
     /// <summary>
@@ -36,7 +37,7 @@ public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
         : this(new MemoryStream(data), sampleRate) { }
 
     /// <inheritdoc />
-    public int Position { get; private set; }
+    public int Position => _samplePosition;
 
     /// <inheritdoc />
     public int Length { get; } // Length in samples
@@ -59,15 +60,15 @@ public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
     /// <inheritdoc />
     public int ReadBytes(Span<float> buffer)
     {
-        int samplesToRead = Math.Min(buffer.Length, _data.Length - Position);
-        _data.AsSpan(Position, samplesToRead).CopyTo(buffer);
+        int samplesToRead = Math.Min(buffer.Length, _data.Length - _samplePosition);
+        _data.AsSpan(_samplePosition, samplesToRead).CopyTo(buffer);
 
-        Position += samplesToRead;
+        _samplePosition += samplesToRead;
 
-        if (Position >= _data.Length)
+        if (_samplePosition >= _data.Length)
             EndOfStreamReached?.Invoke(this, EventArgs.Empty);
 
-        PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
+        PositionChanged?.Invoke(this, new PositionChangedEventArgs(_samplePosition));
 
         return samplesToRead;
     }
@@ -75,8 +76,8 @@ public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
     /// <inheritdoc />
     public void Seek(int sampleOffset)
     {
-        Position = Math.Clamp(sampleOffset, 0, _data.Length);
-        PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
+        _samplePosition = Math.Clamp(sampleOffset, 0, _data.Length);
+        PositionChanged?.Invoke(this, new PositionChangedEventArgs(_samplePosition));
     }
 
     private float[] Decode(ISoundDecoder decoder)

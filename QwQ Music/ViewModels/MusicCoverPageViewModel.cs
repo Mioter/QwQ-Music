@@ -52,7 +52,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         }
     }
 
-    private const int ColorCount = 4;
+    private const int COLOR_COUNT = 4;
 
     private async void MusicPlayerViewModelOnCurrentMusicItemChanged(object? sender, MusicItemModel musicItem)
     {
@@ -63,7 +63,9 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         }
         catch (Exception ex)
         {
-            await LoggerService.ErrorAsync($"{nameof(MusicPlayerViewModelOnCurrentMusicItemChanged)} 发生错误 : {ex.Message}");
+            await LoggerService.ErrorAsync(
+                $"{nameof(MusicPlayerViewModelOnCurrentMusicItemChanged)} 发生错误 : {ex.Message}"
+            );
         }
     }
 
@@ -106,13 +108,13 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         // 如果没有封面路径，直接使用默认颜色
         if (string.IsNullOrWhiteSpace(musicItem.CoverPath))
         {
-            ColorsList = DefaultColors;
+            ColorsList = _defaultColors;
             OnPropertyChanged(nameof(ColorsList));
             return;
         }
 
         // 尝试从已缓存的颜色中获取
-        if (musicItem.CoverColors is { Length: >= ColorCount })
+        if (musicItem.CoverColors is { Length: >= COLOR_COUNT })
         {
             ColorsList = [.. musicItem.CoverColors.Select(Color.Parse)];
             OnPropertyChanged(nameof(ColorsList));
@@ -122,7 +124,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         // 提取新的颜色
         var colorsList = await GetColorPalette(
             musicItem.CoverPath,
-            ColorCount,
+            COLOR_COUNT,
             ConfigInfoModel.InterfaceConfig.SelectedColorExtractionAlgorithm
         );
 
@@ -133,17 +135,16 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         }
 
         // 使用提取的颜色，为null则使用默认颜色
-        ColorsList = colorsList ?? DefaultColors;
+        ColorsList = colorsList ?? _defaultColors;
         OnPropertyChanged(nameof(ColorsList));
     }
-    
 
     private static async Task<List<Color>?> GetColorPalette(
         string imagePath,
         int colorCount = 5,
         ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
         bool ignoreWhite = true
-        )
+    )
     {
         // 尝试使用缓存的位图
         var bitmap = await MusicExtractor.LoadCompressedBitmap(imagePath);
@@ -152,9 +153,9 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
             : ColorExtraction.GetColorPaletteFromBitmap(bitmap, colorCount, algorithm, ignoreWhite);
     }
 
-    public List<Color> ColorsList { get; set; } = DefaultColors;
+    public List<Color> ColorsList { get; set; } = _defaultColors;
 
-    private static readonly List<Color> DefaultColors =
+    private static readonly List<Color> _defaultColors =
     [
         Color.Parse("#FFE2D9"),
         Color.Parse("#F3ECFE"),

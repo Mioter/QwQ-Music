@@ -12,15 +12,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Include="Backends\MiniAudio\runtimes\**\*.*">
+        <None Include="Backends\MiniAudio\runtimes\**\*.*">
             <Link>runtimes\%(RecursiveDir)%(Filename)%(Extension)</Link>
             <PackagePath>runtimes</PackagePath>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <Pack>true</Pack>
-        </Content>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="LICENSE.md" Pack="true" PackagePath="\"/>
+        <None Include="LICENSE.md" Pack="true" PackagePath="" />
+        <None Include="SoundFlow.targets" Pack="true" PackagePath="" />
     </ItemGroup>
 </Project>

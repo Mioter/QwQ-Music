@@ -16,7 +16,7 @@ namespace QwQ_Music.ViewModels;
 
 public partial class AllMusicPageViewModel : ViewModelBase
 {
-    private const string FilePickerTitle = "选择音乐文件";
+    private const string FILE_PICKER_TITLE = "选择音乐文件";
 
     [ObservableProperty]
     public partial ObservableCollection<MusicItemModel> AllMusicItems { get; set; } = MusicPlayerViewModel.MusicItems;
@@ -26,7 +26,7 @@ public partial class AllMusicPageViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial MusicItemModel? SelectedItem { get; set; }
-    
+
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     partial void OnSearchTextChanged(string? value)
@@ -82,7 +82,7 @@ public partial class AllMusicPageViewModel : ViewModelBase
             return;
 
         var items = await topLevel.StorageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions { Title = FilePickerTitle, AllowMultiple = true }
+            new FilePickerOpenOptions { Title = FILE_PICKER_TITLE, AllowMultiple = true }
         );
 
         if (items.Count == 0)

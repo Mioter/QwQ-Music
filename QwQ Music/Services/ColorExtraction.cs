@@ -59,7 +59,7 @@ public static class ColorExtraction
                     colorCount,
                     ignoreWhite,
                     toLab: true,
-                    useKMeansPP: true
+                    useKMeansPp: true
                 )
                 .GetAwaiter()
                 .GetResult(),
@@ -124,12 +124,7 @@ public static class ColorExtraction
                         continue;
 
                     // 量化颜色以减少噪点
-                    var quantized = Color.FromArgb(
-                        255,
-                        (byte)(r / 16 * 16),
-                        (byte)(g / 16 * 16),
-                        (byte)(b / 16 * 16)
-                    );
+                    var quantized = Color.FromArgb(255, (byte)(r / 16 * 16), (byte)(g / 16 * 16), (byte)(b / 16 * 16));
 
                     // 更新颜色频率
                     colorFrequencies[quantized] = colorFrequencies.TryGetValue(quantized, out int v) ? v + 1 : 1;

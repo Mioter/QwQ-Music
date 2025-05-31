@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="viewModels:MusicListsPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.MusicListsPage">
+    
+    <ItemsControl ItemsSource="{Binding PlayListItems}" Margin="10">
+        
+        <ItemsControl.Styles>
+
+            <Style Selector="ContentPresenter">
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Background" Value="{x:Null}" />
+            </Style>
+
+        </ItemsControl.Styles>
+        
+        <ItemsControl.ItemsPanel>
+
+            <ItemsPanelTemplate>
+                <WrapPanel ItemSpacing="10" />
+            </ItemsPanelTemplate>
+
+        </ItemsControl.ItemsPanel>
+
+        <ItemsControl.ItemTemplate>
+
+            <DataTemplate>
+                
+                <Button Padding="10"
+                        CornerRadius="12" >
+                    
+                    <DockPanel
+                        Height="60" 
+                        Width="160"  
+                        Background="Transparent" 
+                        HorizontalSpacing="10" 
+                        VerticalSpacing="10">
+
+                        <Border DockPanel.Dock="Left"
+                                CornerRadius="12"
+                                VerticalAlignment="Top">
+
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="10"
+                                    Color="DarkGray"
+                                    OffsetX="0"
+                                    OffsetY="0"
+                                    Opacity="0.5" />
+                            </Border.Effect>
+
+                            <Border CornerRadius="12"
+                                    ClipToBounds="True">
+                                <Image
+                                    Source="{Binding CoverImage}" />
+                            </Border>
+                            
+                        </Border>
+
+                        <TextBlock DockPanel.Dock="Top"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                   Text="{Binding Name}"
+                                   FontWeight="Bold" />
+
+                        <TextBlock DockPanel.Dock="Bottom"
+                                   Text="{Binding Description}"
+                                   FontSize="14"
+                                   TextWrapping="Wrap"
+                                   Classes="Tertiary" />
+
+                    </DockPanel>
+                    
+                </Button>
+                
+            </DataTemplate>
+
+        </ItemsControl.ItemTemplate>
+
+    </ItemsControl>
+
+
+</UserControl>

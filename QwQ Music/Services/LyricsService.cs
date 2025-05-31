@@ -49,7 +49,6 @@ public static partial class LyricsService
                 lyricsData.Lyrics = mergedLyrics.OrderBy(l => l.TimePoint).ToList();
 
             return lyricsData;
-
         }
         catch (Exception ex)
         {
@@ -57,7 +56,7 @@ public static partial class LyricsService
             return null;
         }
     }
-    
+
     /// <summary>
     /// 检测歌词文件是否包含双语歌词
     /// </summary>
@@ -67,15 +66,17 @@ public static partial class LyricsService
     {
         var timeStamps = new HashSet<string>();
         var duplicateTimeStamps = new HashSet<string>();
-        
+
         foreach (string line in lines)
         {
             string trimmedLine = line.Trim();
-            if (string.IsNullOrWhiteSpace(trimmedLine)) continue;
-            
+            if (string.IsNullOrWhiteSpace(trimmedLine))
+                continue;
+
             var matches = TimeRegex().Matches(trimmedLine);
-            if (matches.Count <= 0) continue;
-            
+            if (matches.Count <= 0)
+                continue;
+
             foreach (Match match in matches)
             {
                 string timeStamp = match.Value;
@@ -85,10 +86,10 @@ public static partial class LyricsService
                 }
             }
         }
-        
+
         return duplicateTimeStamps;
     }
-    
+
     /// <summary>
     /// 解析歌词内容，包括元数据和时间戳歌词
     /// </summary>
@@ -96,18 +97,21 @@ public static partial class LyricsService
     /// <param name="duplicateTimeStamps">重复的时间戳集合</param>
     /// <param name="lyricsData">歌词数据对象，用于存储元数据</param>
     /// <returns>包含主歌词和翻译歌词的元组</returns>
-    private static (Dictionary<double, string> primaryLyrics, Dictionary<double, string> translationLyrics) 
-        ParseLyricsContent(string[] lines, HashSet<string> duplicateTimeStamps, LyricsData lyricsData)
+    private static (
+        Dictionary<double, string> primaryLyrics,
+        Dictionary<double, string> translationLyrics
+    ) ParseLyricsContent(string[] lines, HashSet<string> duplicateTimeStamps, LyricsData lyricsData)
     {
         var primaryLyrics = new Dictionary<double, string>();
         var translationLyrics = new Dictionary<double, string>();
         bool isTranslationPart = false;
         var timeStamps = new HashSet<string>();
-        
+
         foreach (string line in lines)
         {
             string trimmedLine = line.Trim();
-            if (string.IsNullOrWhiteSpace(trimmedLine)) continue;
+            if (string.IsNullOrWhiteSpace(trimmedLine))
+                continue;
 
             // 处理元数据
             var metadataMatch = MetadataRegex().Match(trimmedLine);
@@ -119,11 +123,12 @@ public static partial class LyricsService
 
             // 处理时间戳和歌词
             var matches = TimeRegex().Matches(trimmedLine);
-            if (matches.Count <= 0) continue;
+            if (matches.Count <= 0)
+                continue;
 
             // 提取歌词部分（去掉时间戳）
             string lyricText = TimeRegex().Replace(trimmedLine, "").Trim();
-            
+
             // 检查是否进入翻译部分（通过检测重复的时间戳）
             if (!isTranslationPart && duplicateTimeStamps.Count > 0)
             {
@@ -142,7 +147,7 @@ public static partial class LyricsService
             foreach (Match match in matches)
             {
                 double timeInSeconds = ConvertTimeStampToSeconds(match);
-                
+
                 // 根据是否为翻译部分，将歌词存入相应的字典
                 if (isTranslationPart)
                     translationLyrics[timeInSeconds] = lyricText;
@@ -150,10 +155,10 @@ public static partial class LyricsService
                     primaryLyrics[timeInSeconds] = lyricText;
             }
         }
-        
+
         return (primaryLyrics, translationLyrics);
     }
-    
+
     /// <summary>
     /// 处理歌词元数据
     /// </summary>
@@ -161,8 +166,12 @@ public static partial class LyricsService
     /// <param name="lyricsData">歌词数据对象</param>
     /// <param name="isTranslationPart">是否为翻译部分的引用</param>
     /// <param name="primaryLyrics">主歌词字典</param>
-    private static void ProcessMetadata(Match metadataMatch, LyricsData lyricsData, 
-        ref bool isTranslationPart, Dictionary<double, string> primaryLyrics)
+    private static void ProcessMetadata(
+        Match metadataMatch,
+        LyricsData lyricsData,
+        ref bool isTranslationPart,
+        Dictionary<double, string> primaryLyrics
+    )
     {
         string key = metadataMatch.Groups[1].Value.ToLower();
         string value = metadataMatch.Groups[2].Value;
@@ -177,7 +186,7 @@ public static partial class LyricsService
 
         if (isTranslationPart)
             return;
-        
+
         switch (key)
         {
             case "ti":
@@ -198,7 +207,7 @@ public static partial class LyricsService
                 break;
         }
     }
-    
+
     /// <summary>
     /// 将时间戳转换为秒数
     /// </summary>
@@ -225,18 +234,20 @@ public static partial class LyricsService
 
         return minutes * 60 + seconds + milliseconds;
     }
-    
+
     /// <summary>
     /// 合并主歌词和翻译歌词
     /// </summary>
     /// <param name="primaryLyrics">主歌词字典</param>
     /// <param name="translationLyrics">翻译歌词字典</param>
     /// <returns>合并后的歌词行列表</returns>
-    private static List<LyricLine> MergeLyrics(Dictionary<double, string> primaryLyrics, 
-        Dictionary<double, string> translationLyrics)
+    private static List<LyricLine> MergeLyrics(
+        Dictionary<double, string> primaryLyrics,
+        Dictionary<double, string> translationLyrics
+    )
     {
         var mergedLyrics = new List<LyricLine>();
-        
+
         // 清理歌词，处理连续的空白歌词时间点
         var cleanedPrimaryLyrics = CleanLyrics(primaryLyrics);
         var cleanedTranslationLyrics = CleanLyrics(translationLyrics);
@@ -268,19 +279,17 @@ public static partial class LyricsService
             }
             // 只有主歌词
             case > 0:
-                mergedLyrics.AddRange(cleanedPrimaryLyrics.Select(pair => 
-                    new LyricLine(pair.Key, pair.Value)));
+                mergedLyrics.AddRange(cleanedPrimaryLyrics.Select(pair => new LyricLine(pair.Key, pair.Value)));
                 break;
             // 只有翻译歌词，作为主歌词使用
             default:
                 if (cleanedTranslationLyrics.Count > 0)
                 {
-                    mergedLyrics.AddRange(cleanedTranslationLyrics.Select(pair => 
-                        new LyricLine(pair.Key, pair.Value)));
+                    mergedLyrics.AddRange(cleanedTranslationLyrics.Select(pair => new LyricLine(pair.Key, pair.Value)));
                 }
                 break;
         }
-        
+
         return mergedLyrics;
     }
 

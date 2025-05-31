@@ -1,6 +1,6 @@
 ﻿namespace Impressionist.Abstractions
 {
-    public struct HSVColor
+    public struct HsvColor
     {
         public float H { get; set; }
         public float S { get; set; }

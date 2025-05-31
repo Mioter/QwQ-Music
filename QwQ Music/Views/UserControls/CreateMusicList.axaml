@@ -1,0 +1,96 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+             x:DataType="viewModels:CreateMusicListViewModel"
+             x:Class="QwQ_Music.Views.UserControls.CreateMusicList">
+    
+    <Grid RowDefinitions="55,*,Auto" >
+
+        <StackPanel  Margin="15" Orientation="Horizontal" Spacing="10">
+
+            <Border CornerRadius="50"  
+                    VerticalAlignment="Center" 
+                    Background="#46C01B">
+                <PathIcon 
+                    Data="{StaticResource SemiIconPlus}" 
+                    Margin="5" 
+                    Foreground="White" />
+            </Border>
+
+            <TextBlock Text="创建歌单" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+        </StackPanel>
+
+        <DockPanel Margin="20,0" Grid.Row="1" HorizontalSpacing="20" VerticalSpacing="10" Height="250" Width="500">
+
+            <DockPanel.Styles>
+            
+            <Style Selector="DockPanel > StackPanel">
+                <Setter Property="Spacing" Value="5"/>
+            </Style>
+            
+        </DockPanel.Styles>
+
+        <Button Classes="Icon" 
+                Height="180" 
+                Width="180" 
+                Padding="0"
+                Command="{Binding AddCoverCommand}"
+                Background="#F5F5F6"
+                CornerRadius="8">
+            <control:SwitchControl
+                Condition="{Binding Cover,Converter={x:Static ObjectConverters.IsNull}}">
+
+                <control:SwitchControl.TrueContent>
+                    <PathIcon Foreground="#CACACA" Margin="50"
+                              Data="{StaticResource AddCover}" />
+                </control:SwitchControl.TrueContent>
+
+                <control:SwitchControl.FalseContent>
+                    <Border CornerRadius="{Binding $parent[Button].CornerRadius}" ClipToBounds="True">
+                        <Image Source="{Binding Cover}" />
+                    </Border>
+                </control:SwitchControl.FalseContent>
+
+            </control:SwitchControl>
+        </Button>
+
+            <StackPanel DockPanel.Dock="Top">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="名称 :"
+                               FontWeight="Bold" />
+                    <TextBlock Text="{Binding ErrorText}"
+                               FontSize="12"
+                               VerticalAlignment="Center"
+                               Classes="Danger" />
+                </StackPanel>
+            <TextBox CornerRadius="8" Text="{Binding   Name}" />
+        </StackPanel>
+
+        <StackPanel>
+            <TextBlock Text="描述 :" Classes="Tertiary" FontWeight="Bold" />
+            <TextBox Height="155"
+                     CornerRadius="8"
+                     TextWrapping="Wrap"
+                     VerticalContentAlignment="Top"
+                     Padding="8,5"
+                     Text="{Binding Description}" />
+        </StackPanel>
+
+    </DockPanel>
+
+        <StackPanel Margin="20" Spacing="20" HorizontalAlignment="Right" Grid.Row="2" Orientation="Horizontal">
+
+            <Button Content="取消" Command="{Binding CancelCommand}" />
+
+            <Button Content="确认" 
+                    IsEnabled="{Binding CanOk}" 
+                    Command="{Binding OkCommand}"
+                    Theme="{DynamicResource SolidButton}" />
+
+        </StackPanel>
+
+    </Grid>
+
+</UserControl>

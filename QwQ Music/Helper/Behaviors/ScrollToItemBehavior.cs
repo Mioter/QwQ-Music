@@ -18,7 +18,7 @@ namespace QwQ_Music.Helper.Behaviors;
 public class ScrollToItemBehavior
 {
     // 用于跟踪和取消正在进行的滚动动画
-    private static CancellationTokenSource? _CurrentScrollCts;
+    private static CancellationTokenSource? currentScrollCts;
 
     public static readonly AttachedProperty<object> ScrollToItemProperty = AvaloniaProperty.RegisterAttached<
         ScrollToItemBehavior,
@@ -74,8 +74,8 @@ public class ScrollToItemBehavior
                         var easing = GetScrollEasing(listBox);
 
                         // 创建新的取消令牌
-                        _CurrentScrollCts = new CancellationTokenSource();
-                        var token = _CurrentScrollCts.Token;
+                        currentScrollCts = new CancellationTokenSource();
+                        var token = currentScrollCts.Token;
 
                         Dispatcher.UIThread.Post(async void () =>
                         {
@@ -107,12 +107,12 @@ public class ScrollToItemBehavior
     // 取消当前正在进行的滚动动画
     private static void CancelCurrentScrollAnimation()
     {
-        if (_CurrentScrollCts is not { IsCancellationRequested: false })
+        if (currentScrollCts is not { IsCancellationRequested: false })
             return;
 
-        _CurrentScrollCts.Cancel();
-        _CurrentScrollCts.Dispose();
-        _CurrentScrollCts = null;
+        currentScrollCts.Cancel();
+        currentScrollCts.Dispose();
+        currentScrollCts = null;
     }
 
     private static async Task SmoothScrollToItemCenterAsync(

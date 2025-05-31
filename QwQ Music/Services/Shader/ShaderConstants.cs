@@ -9,7 +9,7 @@ namespace QwQ_Music.Services.Shader;
 /// </summary>
 public static class ShaderConstants
 {
-    private const string ResourcePrefix = "avares://QwQ Music/Assets/Shaders/";
+    private const string RESOURCE_PREFIX = "avares://QwQ Music/Assets/Shaders/";
 
     /// <summary>
     /// 波浪扭曲着色器（支持自定义颜色）
@@ -23,7 +23,7 @@ public static class ShaderConstants
     /// <returns>着色器代码</returns>
     private static string LoadShaderFromAvaloniaResource(string resourceName)
     {
-        string fullResourceName = $"{ResourcePrefix}{resourceName}";
+        string fullResourceName = $"{RESOURCE_PREFIX}{resourceName}";
 
         try
         {

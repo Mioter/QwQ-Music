@@ -4,6 +4,7 @@ using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities.MessageBus;
+using QwQ_Music.ViewModels;
 
 namespace QwQ_Music;
 
@@ -26,26 +27,26 @@ public static class Program
     }
 
     private static void CurrentDomainOnProcessExit(object? sender, EventArgs e)
-    {
+    {          
         AppDomain.CurrentDomain.ProcessExit -= CurrentDomainOnProcessExit;
 
         try
         {
             ConfigInfoModel.SaveAll();
 
-            StrongMessageBus.Instance.Publish(new ExitReminderMessage(true));
+            StrongMessageBus.Instance.PublishAsync(new ExitReminderMessage(true)).Wait();
             StrongMessageBus.Instance.Dispose();
-            
-            ViewModels.MusicPlayerViewModel.Instance.Save().Wait();
 
-            DataBaseService.CloseConnectionAsync().Wait();
+            MusicPlayerViewModel.Instance.SaveAsync().Wait();
+
+            DataBaseService.CloseConnection();
             LoggerService.Shutdown();
         }
         catch (Exception ex)
         {
             // Log the exception or handle it as needed
-             LoggerService.ErrorAsync($"An error occurred: {ex.Message}");
-             LoggerService.Shutdown();
+            LoggerService.Error($"An error occurred: {ex.Message}");
+            LoggerService.Shutdown();
         }
     }
 

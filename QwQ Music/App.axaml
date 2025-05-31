@@ -57,7 +57,8 @@
         <FontFamily x:Key="Consolab">/Assets/Fonts#Consola</FontFamily>
 
         <CornerRadius x:Key="FlyoutCornerRadius">8</CornerRadius>
-
+        <CornerRadius x:Key="ButtonCornerRadius">5</CornerRadius>
+        
     </Application.Resources>
 
 </Application>

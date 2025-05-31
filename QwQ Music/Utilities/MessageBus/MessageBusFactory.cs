@@ -19,12 +19,12 @@ public static class MessageBusFactory
     /// 获取弱引用消息总线实例
     /// </summary>
     public static IMessageBus Weak => WeakMessageBus.Instance;
-    
+
     /// <summary>
     /// 获取强引用消息总线实例（类型安全）
     /// </summary>
     public static StrongMessageBus StrongTyped => StrongMessageBus.Instance;
-    
+
     /// <summary>
     /// 获取弱引用消息总线实例（类型安全）
     /// </summary>

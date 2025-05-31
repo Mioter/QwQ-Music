@@ -13,7 +13,7 @@ public static class LanguageModel
 
     public static Language CurrentLanguage { get; set; } = Language.ZhCn;
 
-    private static readonly Dictionary<Language, Dictionary<string, string>> CharacterSet = new()
+    private static readonly Dictionary<Language, Dictionary<string, string>> _characterSet = new()
     {
         {
             Language.ZhCn,
@@ -46,7 +46,7 @@ public static class LanguageModel
         },
     };
 
-    public static Dictionary<string, string> Lang => CharacterSet[CurrentLanguage];
+    public static Dictionary<string, string> Lang => _characterSet[CurrentLanguage];
 
     private class UnfinishedFunctionException(string msg) : InvalidOperationException(msg);
 

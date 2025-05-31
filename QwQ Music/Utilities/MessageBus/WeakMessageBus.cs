@@ -16,22 +16,22 @@ public sealed class WeakMessageBus : MessageBusBase
     /// 获取 WeakMessageBus 的单例实例
     /// </summary>
     public static WeakMessageBus Instance => _instance.Value;
-    
+
     /// <summary>
     /// 上次清理无效引用的时间
     /// </summary>
     private DateTime _lastCleanupTime = DateTime.Now;
-    
+
     /// <summary>
     /// 清理间隔（秒）
     /// </summary>
     public int CleanupIntervalSeconds { get; set; } = 60;
-    
+
     /// <summary>
     /// 总线名称
     /// </summary>
     protected override string BusName => "WeakMessageBus";
-    
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -60,11 +60,11 @@ public sealed class WeakMessageBus : MessageBusBase
         }
 
         CheckForGlobalCleanup();
-        
+
         var handlers = new List<Action<TMessage>>();
         var deadReferences = new List<object>();
-        
-        foreach (var subscription in entry.GetSubscriptionsSnapshot())
+
+        foreach (object subscription in entry.GetSubscriptionsSnapshot())
         {
             if (subscription is WeakReference { Target: Action<TMessage> handler })
             {
@@ -75,13 +75,13 @@ public sealed class WeakMessageBus : MessageBusBase
                 deadReferences.Add(subscription);
             }
         }
-        
+
         // 移除无效的弱引用
-        foreach (var deadRef in deadReferences)
+        foreach (object deadRef in deadReferences)
         {
             entry.RemoveSubscription(deadRef);
         }
-        
+
         return handlers;
     }
 
@@ -95,11 +95,10 @@ public sealed class WeakMessageBus : MessageBusBase
     {
         return entry
             .GetSubscriptionsSnapshot()
-            .Where(sub => sub is WeakReference { Target: Action<TMessage> action } && 
-                action.Equals(handler))
+            .Where(sub => sub is WeakReference { Target: Action<TMessage> action } && action.Equals(handler))
             .ToList();
     }
-    
+
     /// <summary>
     /// 检查是否需要进行全局清理
     /// </summary>
@@ -112,7 +111,7 @@ public sealed class WeakMessageBus : MessageBusBase
             _lastCleanupTime = now;
         }
     }
-    
+
     /// <summary>
     /// 清理所有失效的弱引用
     /// </summary>
@@ -121,17 +120,15 @@ public sealed class WeakMessageBus : MessageBusBase
         foreach (var entry in Subscriptions.Values)
         {
             var subscriptions = entry.GetSubscriptionsSnapshot();
-            var deadReferences = subscriptions
-                .Where(sub => sub is WeakReference { IsAlive: false })
-                .ToList();
-                
-            foreach (var deadRef in deadReferences)
+            var deadReferences = subscriptions.Where(sub => sub is WeakReference { IsAlive: false }).ToList();
+
+            foreach (object deadRef in deadReferences)
             {
                 entry.RemoveSubscription(deadRef);
             }
         }
     }
-    
+
     /// <summary>
     /// 发布消息前执行清理
     /// </summary>

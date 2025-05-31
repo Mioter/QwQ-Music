@@ -1,11 +1,10 @@
-﻿################################################################################
-# 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
-################################################################################
+﻿# 忽略idea文件
+.idea/
+.vscode/
 
-/QwQ Music/bin
-/QwQ Music/obj/Release/net9.0
-/QwQ Music/obj
-/.vs/QwQ Music
-/.idea/.idea.QwQ Music/.idea
-/QwQ Music.sln.DotSettings.user
-/QwQ Music.sln.DotSettings
+# 忽略bin和obj文件夹
+bin/
+obj/
+
+# 忽略user文件
+*.user

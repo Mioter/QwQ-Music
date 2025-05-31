@@ -6,9 +6,9 @@ namespace Impressionist.Implementations
 {
     public static class ColorUtilities
     {
-        public static HSVColor RGBVectorToHSVColor(this Vector3 color)
+        public static HsvColor RgbVectorToHsvColor(this Vector3 color)
         {
-            var hsv = new HSVColor();
+            var hsv = new HsvColor();
 
             float max = Math.Max(Math.Max(color.X, color.Y), color.Z);
             float min = Math.Min(Math.Min(color.X, color.Y), color.Z);
@@ -48,13 +48,13 @@ namespace Impressionist.Implementations
             return hsv;
         }
 
-        public static Vector3 HSVColorToRGBVector(this HSVColor hsv)
+        public static Vector3 HsvColorToRgbVector(this HsvColor hsv)
         {
             if (hsv.H == 360)
                 hsv.H = 0;
-            int Hi = (int)Math.Floor(hsv.H / 60) % 6;
+            int hi = (int)Math.Floor(hsv.H / 60) % 6;
 
-            float f = hsv.H / 60 - Hi;
+            float f = hsv.H / 60 - hi;
             float p = hsv.V / 100 * (1 - hsv.S / 100);
             float q = hsv.V / 100 * (1 - f * (hsv.S / 100));
             float t = hsv.V / 100 * (1 - (1 - f) * (hsv.S / 100));
@@ -65,7 +65,7 @@ namespace Impressionist.Implementations
 
             var rgb = Vector3.Zero;
 
-            switch (Hi)
+            switch (hi)
             {
                 case 0:
                     rgb = new Vector3(hsv.V * 255 / 100, t, p);
@@ -90,7 +90,7 @@ namespace Impressionist.Implementations
             return rgb;
         }
 
-        public static Vector3 RGBVectorToXYZVector(this Vector3 rgb)
+        public static Vector3 RgbVectorToXyzVector(this Vector3 rgb)
         {
             float red = rgb.X;
             float green = rgb.Y;
@@ -116,53 +116,53 @@ namespace Impressionist.Implementations
             );
         }
 
-        public static Vector3 XYZVectorToRGBVector(this Vector3 xyz)
+        public static Vector3 XyzVectorToRgbVector(this Vector3 xyz)
         {
             float x = xyz.X;
             float y = xyz.Y;
             float z = xyz.Z;
-            float[] Clinear = new float[3];
-            Clinear[0] = x * 3.2410f - y * 1.5374f - z * 0.4986f; // red
-            Clinear[1] = -x * 0.9692f + y * 1.8760f - z * 0.0416f; // green
-            Clinear[2] = x * 0.0556f - y * 0.2040f + z * 1.0570f; // blue
+            float[] clinear = new float[3];
+            clinear[0] = x * 3.2410f - y * 1.5374f - z * 0.4986f; // red
+            clinear[1] = -x * 0.9692f + y * 1.8760f - z * 0.0416f; // green
+            clinear[2] = x * 0.0556f - y * 0.2040f + z * 1.0570f; // blue
 
             for (int i = 0; i < 3; i++)
             {
-                Clinear[i] =
-                    Clinear[i] <= 0.0031308
-                        ? 12.92f * Clinear[i]
-                        : (float)((1 + 0.055) * Math.Pow(Clinear[i], 1.0 / 2.4) - 0.055);
+                clinear[i] =
+                    clinear[i] <= 0.0031308
+                        ? 12.92f * clinear[i]
+                        : (float)((1 + 0.055) * Math.Pow(clinear[i], 1.0 / 2.4) - 0.055);
             }
 
             return new Vector3(
-                Convert.ToInt32(float.Parse(string.Format("{0:0.00}", Clinear[0] * 255.0))),
-                Convert.ToInt32(float.Parse(string.Format("{0:0.00}", Clinear[1] * 255.0))),
-                Convert.ToInt32(float.Parse(string.Format("{0:0.00}", Clinear[2] * 255.0)))
+                Convert.ToInt32(float.Parse(string.Format("{0:0.00}", clinear[0] * 255.0))),
+                Convert.ToInt32(float.Parse(string.Format("{0:0.00}", clinear[1] * 255.0))),
+                Convert.ToInt32(float.Parse(string.Format("{0:0.00}", clinear[2] * 255.0)))
             );
         }
 
-        private static float D65X = 0.9505f;
-        private static float D65Y = 1f;
-        private static float D65Z = 1.089f;
+        private static float _d65X = 0.9505f;
+        private static float _d65Y = 1f;
+        private static float _d65Z = 1.089f;
 
         private static float Fxyz(float t)
         {
             return t > 0.008856 ? (float)Math.Pow(t, 1.0 / 3.0) : 7.787f * t + 16.0f / 116.0f;
         }
 
-        public static Vector3 XYZVectorToLABVector(this Vector3 xyz)
+        public static Vector3 XyzVectorToLabVector(this Vector3 xyz)
         {
             var lab = new Vector3();
             float x = xyz.X;
             float y = xyz.Y;
             float z = xyz.Z;
-            lab.X = 116.0f * Fxyz(y / D65Y) - 16f;
-            lab.Y = 500.0f * (Fxyz(x / D65X) - Fxyz(y / D65Y));
-            lab.Z = 200.0f * (Fxyz(y / D65Y) - Fxyz(z / D65Z));
+            lab.X = 116.0f * Fxyz(y / _d65Y) - 16f;
+            lab.Y = 500.0f * (Fxyz(x / _d65X) - Fxyz(y / _d65Y));
+            lab.Z = 200.0f * (Fxyz(y / _d65Y) - Fxyz(z / _d65Z));
             return lab;
         }
 
-        public static Vector3 LABVectorToXYZVector(this Vector3 lab)
+        public static Vector3 LabVectorToXyzVector(this Vector3 lab)
         {
             float delta = 6.0f / 29.0f;
             float l = lab.X;
@@ -173,108 +173,108 @@ namespace Impressionist.Implementations
             float fz = fy - b / 200.0f;
 
             return new Vector3(
-                fx > delta ? D65X * (fx * fx * fx) : (fx - 16.0f / 116.0f) * 3 * (delta * delta) * D65X,
-                fy > delta ? D65Y * (fy * fy * fy) : (fy - 16.0f / 116.0f) * 3 * (delta * delta) * D65Y,
-                fz > delta ? D65Z * (fz * fz * fz) : (fz - 16.0f / 116.0f) * 3 * (delta * delta) * D65Z
+                fx > delta ? _d65X * (fx * fx * fx) : (fx - 16.0f / 116.0f) * 3 * (delta * delta) * _d65X,
+                fy > delta ? _d65Y * (fy * fy * fy) : (fy - 16.0f / 116.0f) * 3 * (delta * delta) * _d65Y,
+                fz > delta ? _d65Z * (fz * fz * fz) : (fz - 16.0f / 116.0f) * 3 * (delta * delta) * _d65Z
             );
         }
 
-        public static Vector3 RGBVectorToLABVector(this Vector3 rgb)
+        public static Vector3 RgbVectorToLabVector(this Vector3 rgb)
         {
-            return rgb.RGBVectorToXYZVector().XYZVectorToLABVector();
+            return rgb.RgbVectorToXyzVector().XyzVectorToLabVector();
         }
 
-        public static Vector3 LABVectorToRGBVector(this Vector3 lab)
+        public static Vector3 LabVectorToRgbVector(this Vector3 lab)
         {
-            return lab.LABVectorToXYZVector().XYZVectorToRGBVector();
+            return lab.LabVectorToXyzVector().XyzVectorToRgbVector();
         }
 
         internal static readonly float A = 0.17883277f;
         internal static readonly float B = 0.28466892f;
         internal static readonly float C = 0.55991073f;
-        internal static readonly float HLGGap = 1f / 12f;
+        internal static readonly float HlgGap = 1f / 12f;
 
-        internal static float HLGFunction1(float s)
+        internal static float HlgFunction1(float s)
         {
             return 0.5f * (float)Math.Sqrt(12f * s);
         }
 
-        internal static float HLGFunction2(float s)
+        internal static float HlgFunction2(float s)
         {
             return (float)(A * Math.Log(12f * s - B)) + C;
         }
 
-        public static bool HLGColorIsDark(this HSVColor color)
+        public static bool HlgColorIsDark(this HsvColor color)
         {
             if (color.V < 65)
                 return true;
             float s = color.S / 100;
-            if (s <= HLGGap)
+            if (s <= HlgGap)
             {
-                float targetV = HLGFunction1(s);
+                float targetV = HlgFunction1(s);
                 return color.V / 100f < targetV;
             }
             else
             {
-                float targetV = HLGFunction2(s);
+                float targetV = HlgFunction2(s);
                 return color.V / 100f < targetV;
             }
         }
 
-        internal static readonly float BT709Gap = 0.018f;
+        internal static readonly float Bt709Gap = 0.018f;
 
-        internal static float BT709Function1(float s)
+        internal static float Bt709Function1(float s)
         {
             return 4.5f * s;
         }
 
-        internal static float BT709Function2(float s)
+        internal static float Bt709Function2(float s)
         {
             return (float)(1.099 * Math.Pow(s, 0.45) - 0.099);
         }
 
-        public static bool BT709ColorIsDark(this HSVColor color)
+        public static bool Bt709ColorIsDark(this HsvColor color)
         {
             if (color.V < 65)
                 return true;
             float s = color.S / 100;
-            if (s <= BT709Gap)
+            if (s <= Bt709Gap)
             {
-                float targetV = BT709Function1(s);
+                float targetV = Bt709Function1(s);
                 return color.V / 100f < targetV;
             }
             else
             {
-                float targetV = BT709Function2(s);
+                float targetV = Bt709Function2(s);
                 return color.V / 100f < targetV;
             }
         }
 
-        internal static readonly float sRGBGap = 0.0031308f;
+        internal static readonly float SRgbGap = 0.0031308f;
 
-        internal static float sRGBFunction1(float s)
+        internal static float SRgbFunction1(float s)
         {
             return 12.92f * s;
         }
 
-        internal static float sRGBFunction2(float s)
+        internal static float SRgbFunction2(float s)
         {
             return (float)(1.055 * Math.Pow(s, 1 / 2.4) - 0.055);
         }
 
-        public static bool sRGBColorIsDark(this HSVColor color)
+        public static bool SRgbColorIsDark(this HsvColor color)
         {
             if (color.V < 65)
                 return true;
             float s = color.S / 100;
-            if (s <= sRGBGap)
+            if (s <= SRgbGap)
             {
-                float targetV = sRGBFunction1(s);
+                float targetV = SRgbFunction1(s);
                 return color.V / 100f < targetV;
             }
             else
             {
-                float targetV = sRGBFunction2(s);
+                float targetV = SRgbFunction2(s);
                 return color.V / 100f < targetV;
             }
         }

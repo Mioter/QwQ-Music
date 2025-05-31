@@ -6,6 +6,7 @@ using ATL;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using QwQ_Music.Models;
+using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Utilities;
 using File = System.IO.File;
 using PlayerConfig = QwQ_Music.Models.ConfigModel.PlayerConfig;
@@ -14,7 +15,7 @@ namespace QwQ_Music.Services;
 
 public static class MusicExtractor
 {
-    private const int DefaultThumbnailWidth = 128; // 默认缩略图宽度，降低了原来的256
+    private const int DEFAULT_THUMBNAIL_WIDTH = 128; // 默认缩略图宽度，降低了原来的256
 
     public static readonly Dictionary<string, Bitmap> ImageCache = [];
 
@@ -24,14 +25,11 @@ public static class MusicExtractor
     /// 异步保存专辑封面图片。
     /// </summary>
     /// <param name="cover">专辑封面图片。</param>
-    /// <param name="coverFileName">专辑封面文件名 (不含路径)。</param> // 修改注释
-    public static async Task<bool> SaveCoverAsync(Bitmap cover, string coverFileName)
+    /// <param name="filePath">专辑封面文路径。</param> // 修改注释
+    public static async Task<bool> SaveCoverAsync(Bitmap cover, string filePath)
     {
-        // 构造完整文件路径
-        string filePath = Path.Combine(PlayerConfig.CoverSavePath, coverFileName); // 在这里拼接路径
-
         // 确保目录存在
-        // 注意：如果 CoverSavePath 本身就不存在，CreateDirectory 需要能创建多级目录
+        // 注意：如果 MusicCoverSavePath 本身就不存在，CreateDirectory 需要能创建多级目录
         string? directoryPath = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrEmpty(directoryPath))
         {
@@ -44,7 +42,6 @@ public static class MusicExtractor
             return false;
         }
 
-
         // 检查文件是否存在
         if (File.Exists(filePath))
         {
@@ -56,17 +53,20 @@ public static class MusicExtractor
         {
             // 将文件流的创建和保存操作移至 Task.Run 内部
             await Task.Run(() =>
-            {
-                // 在后台线程中创建、使用和释放文件流
-                using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
-                cover.Save(fs); // Bitmap.Save 是同步操作
-            }).ConfigureAwait(false); // 继续使用 ConfigureAwait(false)
+                {
+                    // 在后台线程中创建、使用和释放文件流
+                    using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
+                    cover.Save(fs); // Bitmap.Save 是同步操作
+                })
+                .ConfigureAwait(false); // 继续使用 ConfigureAwait(false)
 
             return true;
         }
         catch (Exception ex)
         {
-            await LoggerService.ErrorAsync($"Failed to save cover {filePath}: {ex.Message}, TypeName: {ex.GetType().Name}");
+            await LoggerService.ErrorAsync(
+                $"Failed to save cover {filePath}: {ex.Message}, TypeName: {ex.GetType().Name}"
+            );
             return false;
         }
     }
@@ -214,7 +214,7 @@ public static class MusicExtractor
                 // 异步保存封面，传递文件名
                 await SaveCoverAsync(
                     new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData)),
-                    coverFileName
+                    Path.Combine(MainConfig.MusicCoverSavePath, coverFileName)
                 );
             }
 
@@ -261,7 +261,7 @@ public static class MusicExtractor
     /// <returns>文件流，如果文件不存在则返回 null。</returns>
     private static async Task<FileStream?> GetFileStream(string filePath)
     {
-        string fullFilePath = PathEnsurer.EnsureFullPath(filePath, PlayerConfig.CoverSavePath);
+        string fullFilePath = PathEnsurer.EnsureFullPath(filePath, MainConfig.MusicCoverSavePath);
 
         if (!File.Exists(fullFilePath))
         {
@@ -290,7 +290,7 @@ public static class MusicExtractor
 
         try
         {
-            return stream == null ? null : Bitmap.DecodeToWidth(stream, DefaultThumbnailWidth); // 解码并缩放图片，使用较小的宽度
+            return stream == null ? null : Bitmap.DecodeToWidth(stream, DEFAULT_THUMBNAIL_WIDTH); // 解码并缩放图片，使用较小的宽度
         }
         catch (Exception ex)
         {
@@ -355,29 +355,28 @@ public static class MusicExtractor
     /// <returns>保存后的封面文件名，如果没有封面则返回null</returns> // 返回文件名
     public static async Task<string?> ExtractAndSaveCoverFromAudioAsync(string? filePath)
     {
-        if (string.IsNullOrEmpty(filePath)) return null; // 添加空检查
+        if (string.IsNullOrEmpty(filePath))
+            return null; // 添加空检查
 
         try
         {
             var track = new Track(filePath);
 
-            if (track.EmbeddedPictures.Count > 0)
-            {
-                string artists = track.Artist;
-                string album = track.Album;
-                // 获取清理后的文件名
-                string coverFileName = GetCoverFileName(artists, album);
+            if (track.EmbeddedPictures.Count <= 0)
+                return null;
 
-                // 异步保存封面，传递文件名
-                bool saved = await SaveCoverAsync(
-                    new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData)),
-                    coverFileName
-                );
+            string artists = track.Artist;
+            string album = track.Album;
+            // 获取清理后的文件名
+            string coverFileName = GetCoverFileName(artists, album);
 
-                return saved ? coverFileName : null; // 返回文件名或null
-            }
+            // 异步保存封面，传递文件名
+            bool saved = await SaveCoverAsync(
+                new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData)),
+                Path.Combine(MainConfig.MusicCoverSavePath, coverFileName)
+            );
 
-            return null;
+            return saved ? coverFileName : null; // 返回文件名或null
         }
         catch (FileNotFoundException) // 更具体地处理文件未找到异常
         {
@@ -390,6 +389,4 @@ public static class MusicExtractor
             return null;
         }
     }
-
 }
-

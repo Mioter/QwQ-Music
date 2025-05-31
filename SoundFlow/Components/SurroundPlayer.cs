@@ -258,7 +258,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
         for (int frame = 0; frame < frameCount; frame++)
         {
             // Assuming base audio is mono
-            // TODO: refactor when support for getting audio data is added
+            // TODO: refactor when support for getting audio data is added (e.g., mono, stereo, 5.1 or 7.1, etc.)
             float inputSample = buffer[frame * channels];
 
             // down-mixing stereo to mono
@@ -356,7 +356,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
             // Assign weights inversely proportional to distance
             for (int ch = 0; ch < numOutputChannels; ch++)
             {
-                factors[vsIdx][ch] = 1f / (distances[ch] + 0.001f) / totalWeight;
+                factors[vsIdx][ch] = (1f / (distances[ch] + 0.001f)) / totalWeight;
             }
         }
 
@@ -394,7 +394,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
             // Calculate inverse-angle weighted distribution
             for (int ch = 0; ch < numOutputChannels; ch++)
             {
-                float weight = 1f / (angles[ch] + 0.001f) / total;
+                float weight = (1f / (angles[ch] + 0.001f)) / total;
                 factors[vsIdx][ch] = weight * (1f / (1 + VbapParameters.RolloffFactor * distance));
             }
         }
@@ -467,7 +467,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
                 float wa = (direction.X * spkB.Y - direction.Y * spkB.X) / det;
                 float wb = (direction.Y * spkA.X - direction.X * spkA.Y) / det;
 
-                if (wa >= 0 && wb >= 0 && wa + wb <= 1)
+                if (wa >= 0 && wb >= 0 && (wa + wb) <= 1)
                 {
                     // Calculate actual contribution strength
                     float contribution = wa * Vector2.Dot(direction, spkA) + wb * Vector2.Dot(direction, spkB);
@@ -556,7 +556,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
         };
     }
 
-    private static Vector2[] CreateCircularLayout(int speakers)
+    private Vector2[] CreateCircularLayout(int speakers)
     {
         var positions = new Vector2[speakers];
         float angleStep = 2 * MathF.PI / speakers;

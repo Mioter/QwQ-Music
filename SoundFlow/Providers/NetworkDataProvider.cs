@@ -10,7 +10,7 @@ namespace SoundFlow.Providers;
 /// <summary>
 ///     Provides audio data from an internet source, supporting both direct audio URLs and HLS (m3u(8)) playlists.
 /// </summary>
-public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
+public sealed class NetworkDataProvider : ISoundDataProvider
 {
     private readonly string _url;
     private ISoundDecoder? _decoder;
@@ -571,7 +571,7 @@ public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
                         _contentLength.GetValueOrDefault(long.MaxValue) - 1
                     );
                     if (endByteToFetch < currentStreamLength)
-                        endByteToFetch = currentStreamLength + 1024 * 1024;
+                        endByteToFetch = currentStreamLength + (1024 * 1024);
 
                     using (var rangeRequest = new HttpRequestMessage(HttpMethod.Get, _url))
                     {

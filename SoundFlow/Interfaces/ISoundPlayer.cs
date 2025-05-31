@@ -25,6 +25,11 @@ public interface ISoundPlayer
     float PlaybackSpeed { get; set; }
 
     /// <summary>
+    /// Gets or sets the volume of the sound player
+    /// </summary>
+    float Volume { get; set; }
+
+    /// <summary>
     /// Gets the current playback time in seconds, relative to the beginning of the audio.
     /// </summary>
     float Time { get; }

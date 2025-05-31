@@ -70,27 +70,55 @@
 
     <Grid RowDefinitions="40,*">
 
-        <TextBlock
-            FontFamily="{StaticResource VivoSans}"
-            FontWeight="ExtraBold"
-            HorizontalAlignment="Left"
-            IsHitTestVisible="False"
-            Margin="20,0"
-            Text="QwQ Music"
-            VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Margin="20,0" Spacing="20">
+            <!-- 标题文本 -->
+            <TextBlock
+                FontFamily="{StaticResource VivoSans}"
+                FontWeight="ExtraBold"
+                HorizontalAlignment="Left"
+                IsHitTestVisible="False"
+                Text="QwQ Music"
+                VerticalAlignment="Center">
 
-            <TextBlock.Foreground>
-                <LinearGradientBrush EndPoint="100%,100%" StartPoint="0%,0%">
-                    <GradientStop Color="#FFF02FC2" Offset="0" />
-                    <GradientStop Color="#FF6094EA" Offset="1" />
-                </LinearGradientBrush>
-            </TextBlock.Foreground>
+                <TextBlock.Foreground>
+                    <LinearGradientBrush EndPoint="100%,100%" StartPoint="0%,0%">
+                        <GradientStop Color="#FFF02FC2" Offset="0" />
+                        <GradientStop Color="#FF6094EA" Offset="1" />
+                    </LinearGradientBrush>
+                </TextBlock.Foreground>
 
-            <TextBlock.Effect>
-                <DropShadowEffect Color="Black" Opacity="0.1" />
-            </TextBlock.Effect>
+                <TextBlock.Effect>
+                    <DropShadowEffect Color="Black" Opacity="0.1" />
+                </TextBlock.Effect>
 
-        </TextBlock>
+            </TextBlock>
+
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                
+                <StackPanel.Styles>
+
+                    <Style Selector="Button">
+                        <Setter Property="Height" Value="25" />
+                        <Setter Property="Width" Value="25" />
+                        <Setter Property="Padding" Value="6" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="CornerRadius" Value="15" />
+                    </Style>
+
+                </StackPanel.Styles>
+
+                <Button Classes="Icon" Command="{Binding ViewBackwardCommand}">
+                    <PathIcon Data="{StaticResource Forward}" />
+                </Button>
+
+                <Button Classes="Icon" Command="{Binding ViewForwardCommand}">
+                    <PathIcon RenderTransform="rotate(180deg)"
+                              Data="{StaticResource Forward}" />
+                </Button>
+                
+            </StackPanel>
+
+        </StackPanel>
 
         <Grid ColumnDefinitions="Auto,*" Grid.Row="1">
 
@@ -100,13 +128,6 @@
                 HorizontalAlignment="Left"
                 RowDefinitions="Auto,*"
                 Width="{Binding NavigationWidth}">
-                <!--<Grid.Width>
-                    <MultiBinding Converter="{x:Static converter:UiStateConverter.PriorityBool}" ConverterParameter="75,150,200">
-                        <Binding Path="!IsNavigationExpand" />
-                        <Binding Path="IsNavigationExpand" />
-                        <Binding Path="IsWindowMaximizedOrFullScreen" />
-                    </MultiBinding>
-                </Grid.Width>-->
 
                 <Grid.Transitions>
                     <Transitions>
@@ -117,14 +138,20 @@
                     </Transitions>
                 </Grid.Transitions>
 
+                <!-- 折叠/展开菜单栏按钮 -->
                 <ToggleButton
                     Classes="Rotate"
                     HorizontalAlignment="Right"
                     IsChecked="{Binding IsNavigationExpand}"
+                    CornerRadius="20"
+                    Width="{Binding $self.Bounds.Height}"
+                    VerticalAlignment="Center"
                     Margin="20,0">
+                    
                     <ToggleButton.Content>
-                        <PathIcon Data="{StaticResource SemiIconChevronRight}" Height="10" />
+                        <PathIcon Data="{StaticResource SemiIconChevronRight}" Height="10" Width="10"/>
                     </ToggleButton.Content>
+                    
                 </ToggleButton>
 
                 <u:SelectionList Grid.Row="1" SelectedIndex="{Binding NavigationIndex}">
@@ -166,17 +193,17 @@
 
                             <Style Selector="^:selected">
                                 <Setter Property="FontWeight" Value="ExtraBold" />
-                                <Setter Property="Foreground" Value="{DynamicResource ToggleButtonCheckedForeground}" />
-                                <Setter Property="RenderTransform" Value="scale(1.1,1.1)" />
+                                <Setter Property="Foreground" Value="White" />
+                                <Setter Property="RenderTransform" Value="scale(1.1)" />
                             </Style>
                         </Style>
 
-                        <Style Selector="u|SelectionList &gt; StackPanel">
+                        <Style Selector="u|SelectionList > StackPanel">
                             <Setter Property="Spacing" Value="10" />
                             <Setter Property="Orientation" Value="Horizontal" />
                         </Style>
 
-                        <Style Selector="u|SelectionList &gt; StackPanel &gt; TextBlock">
+                        <Style Selector="u|SelectionList > StackPanel > TextBlock">
                             <Setter Property="VerticalAlignment" Value="Center" />
                         </Style>
 
@@ -248,6 +275,14 @@
                 <pages:ConfigMainPage />
             </control:IndexControl>
 
+            <Interaction.Behaviors>
+
+                <EventTriggerBehavior EventName="PointerWheelChanged">
+                    <InvokeCommandAction Command="{Binding PointerWheelChangedCommand}" PassEventArgsToCommand="True" />
+                </EventTriggerBehavior>
+
+            </Interaction.Behaviors>
+            
         </Grid>
 
         <Border
@@ -581,16 +616,7 @@
 
 
         <u:OverlayDialogHost Grid.Row="0" Grid.RowSpan="2" />
-
+        
     </Grid>
-
-    <Interaction.Behaviors>
-
-        <EventTriggerBehavior EventName="PointerWheelChanged">
-            <InvokeCommandAction Command="{Binding PointerWheelChangedCommand}" PassEventArgsToCommand="True" />
-        </EventTriggerBehavior>
-
-    </Interaction.Behaviors>
-
-
+    
 </Window>

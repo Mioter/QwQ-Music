@@ -119,8 +119,6 @@ public class MusicItemModel(
     {
         get
         {
-
-
             if (string.IsNullOrEmpty(CoverPath) || _coverStatus == CoverStatus.NotExist)
                 return MusicExtractor.DefaultCover;
 
@@ -150,7 +148,7 @@ public class MusicItemModel(
                 else
                 {
                     string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(FilePath);
-                    
+
                     if (newCoverPath != null)
                     {
                         CoverPath = newCoverPath;

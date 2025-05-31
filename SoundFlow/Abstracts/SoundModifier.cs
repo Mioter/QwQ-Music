@@ -1,12 +1,10 @@
-using SoundFlow.Interfaces;
-
 namespace SoundFlow.Abstracts;
 
 /// <summary>
 /// An abstract representation of a sound modifier.
 /// Implementations of this class alter audio data to apply various effects.
 /// </summary>
-public abstract class SoundModifier : ISoundModifier
+public abstract class SoundModifier
 {
     /// <summary>
     /// The name of the modifier.

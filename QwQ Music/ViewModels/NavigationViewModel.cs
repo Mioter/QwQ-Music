@@ -25,7 +25,7 @@ public class NavigationViewModel : ViewModelBase
             if (!SetProperty(ref field, value))
                 return;
 
-            NavigateService.NavigateTo(NavViewName, field);
+            NavigateService.NavigateEvent(NavViewName, field);
             OnNavigateTo(field);
         }
     }

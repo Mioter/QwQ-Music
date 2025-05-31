@@ -1,5 +1,4 @@
 <UserControl
-
     mc:Ignorable="d"
     x:Class="QwQ_Music.Views.UserControls.AudioDetailedInfo"
     x:DataType="vm:AudioDetailedInfoViewModel"

@@ -23,16 +23,16 @@ namespace Impressionist.Implementations
             }
             if (toLab)
             {
-                builder = builder.Select(t => new KeyValuePair<Vector3, int>(t.Key.RGBVectorToLABVector(), t.Value));
+                builder = builder.Select(t => new KeyValuePair<Vector3, int>(t.Key.RgbVectorToLabVector(), t.Value));
             }
             var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             var clusters = KMeansCluster(targetColor, 1, false);
             var colorVector = clusters.First();
             if (toLab)
             {
-                colorVector = clusters.First().LABVectorToRGBVector();
+                colorVector = clusters.First().LabVectorToRgbVector();
             }
-            bool isDark = colorVector.RGBVectorToHSVColor().sRGBColorIsDark();
+            bool isDark = colorVector.RgbVectorToHsvColor().SRgbColorIsDark();
             return Task.FromResult(new ThemeColorResult(colorVector, isDark));
         }
 
@@ -41,48 +41,48 @@ namespace Impressionist.Implementations
             int clusterCount,
             bool ignoreWhite = false,
             bool toLab = false,
-            bool useKMeansPP = false
+            bool useKMeansPp = false
         )
         {
             if (sourceColor.Count == 1)
             {
                 ignoreWhite = false;
-                useKMeansPP = false;
+                useKMeansPp = false;
             }
             var colorResult = await CreateThemeColor(sourceColor, ignoreWhite, toLab);
             var builder = sourceColor.AsEnumerable();
             bool colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
-                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
+                builder = builder.Where(t => t.Key.RgbVectorToHsvColor().SRgbColorIsDark());
             }
             else
             {
                 if (!ignoreWhite)
                 {
-                    builder = builder.Where(t => !t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
+                    builder = builder.Where(t => !t.Key.RgbVectorToHsvColor().SRgbColorIsDark());
                 }
                 else
                 {
                     builder = builder.Where(t =>
-                        !t.Key.RGBVectorToHSVColor().sRGBColorIsDark()
+                        !t.Key.RgbVectorToHsvColor().SRgbColorIsDark()
                         && (t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250)
                     );
                 }
             }
             if (toLab)
             {
-                builder = builder.Select(t => new KeyValuePair<Vector3, int>(t.Key.RGBVectorToLABVector(), t.Value));
+                builder = builder.Select(t => new KeyValuePair<Vector3, int>(t.Key.RgbVectorToLabVector(), t.Value));
             }
             var targetColors = builder.ToDictionary(t => t.Key, t => t.Value);
-            var clusters = KMeansCluster(targetColors, clusterCount, useKMeansPP);
+            var clusters = KMeansCluster(targetColors, clusterCount, useKMeansPp);
             var dominantColors = new List<Vector3>();
             foreach (var cluster in clusters)
             {
                 var representative = cluster;
                 if (toLab)
                 {
-                    representative = representative.LABVectorToRGBVector();
+                    representative = representative.LabVectorToRgbVector();
                 }
                 dominantColors.Add(representative);
             }
@@ -96,7 +96,7 @@ namespace Impressionist.Implementations
             return new PaletteResult(result, colorIsDark, colorResult);
         }
 
-        private static Vector3[] KMeansCluster(Dictionary<Vector3, int> colors, int numClusters, bool useKMeansPP)
+        private static Vector3[] KMeansCluster(Dictionary<Vector3, int> colors, int numClusters, bool useKMeansPp)
         {
             // Initialize the clusters, reduces the total number when total colors is less than clusters
             int clusterCount = Math.Min(numClusters, colors.Count);
@@ -108,7 +108,7 @@ namespace Impressionist.Implementations
 
             // Select the initial cluster centers randomly
             Vector3[] centers = null;
-            if (!useKMeansPP)
+            if (!useKMeansPp)
             {
                 centers = colors.Keys.OrderByDescending(t => Guid.NewGuid()).Take(clusterCount).ToArray();
             }

@@ -33,9 +33,16 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
     private async void LoadCompletedMessageHandler(LoadCompletedMessage obj)
     {
-        if (obj.Name == nameof(MusicPlayerViewModel.MusicItems))
+        try
         {
-            await RefreshNumberOfCompletedCalc();
+            if (obj.Name == nameof(MusicPlayerViewModel.MusicItems))
+            {
+                await RefreshNumberOfCompletedCalc();
+            }
+        }
+        catch (Exception e)
+        {
+            await LoggerService.ErrorAsync($"在加载时刷新已计算增益的歌词数量时出错: {e.Message}");
         }
     }
 

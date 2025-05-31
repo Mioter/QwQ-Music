@@ -31,7 +31,7 @@
                     Foreground="White"
                     Margin="6"
                     x:Name="QuickPlaySwitchControl">
-
+                    
                     <control:SwitchControl.Condition>
                         <MultiBinding Converter="{StaticResource InstanceEqualityMultiConverter}">
                             <Binding Path="$parent[userControls:MusicAlbumButton].CurrentMusicItem" />
@@ -46,7 +46,18 @@
                             <control:SwitchControl.TrueContent>
 
                                 <control:SwitchControl Condition="{Binding $parent[userControls:MusicAlbumButton].IsPointerOver}">
-
+                                    
+                                    <control:SwitchControl.PageTransition>
+                                        <CompositePageTransition>
+                                            <CrossFade Duration="0:0:0.5" />
+                                            <PageSlide
+                                                Duration="0:0:0.3"
+                                                Orientation="Vertical"
+                                                SlideInEasing="QuadraticEaseIn"
+                                                SlideOutEasing="QuadraticEaseOut" />
+                                        </CompositePageTransition>
+                                    </control:SwitchControl.PageTransition>
+                                    
                                     <control:SwitchControl.TrueContent>
                                         <PathIcon Data="{StaticResource PauseIconData}" />
                                     </control:SwitchControl.TrueContent>
@@ -117,6 +128,7 @@
                             </control:SwitchControl.TrueContent>
 
                         </control:SwitchControl>
+                        
                     </control:SwitchControl.TrueContent>
 
                     <control:SwitchControl.FalseContent>

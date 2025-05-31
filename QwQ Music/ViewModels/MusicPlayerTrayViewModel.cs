@@ -36,7 +36,7 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     [RelayCommand]
-    private static void NavigationToSoundEffectView() => NavigateService.NavigateEvent("音效");
+    private static void NavigationToSoundEffectView() => NavigateService.NavigateTo("音效");
 
     [RelayCommand]
     private static void ResetPlaybackSpeed() => MusicPlayerViewModel.Speed = 1.0f;

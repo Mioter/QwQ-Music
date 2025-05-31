@@ -17,9 +17,9 @@ namespace QwQ_Music.Utilities;
 public static class ReplayGainCalculator
 {
     // 标准目标响度值（单位：LUFS）
-    private const double StreamingTargetLufs = -16.0; // 流媒体平台常用值
-    private const double EbuR128TargetLufs = -23.0;
-    private const double ReplayGain2TargetLufs = -18.0;
+    private const double STREAMING_TARGET_LUFS = -16.0; // 流媒体平台常用值
+    private const double EBU_R128_TARGET_LUFS = -23.0;
+    private const double REPLAY_GAIN2_TARGET_LUFS = -18.0;
 
     public static event EventHandler? CalcCompletedChanged;
 
@@ -46,7 +46,7 @@ public static class ReplayGainCalculator
         int sampleRate,
         int channels,
         MusicReplayGainStandard standard = MusicReplayGainStandard.Streaming,
-        double customTargetLufs = StreamingTargetLufs
+        double customTargetLufs = STREAMING_TARGET_LUFS
     )
     {
         var filter = new KWeightingFilter(sampleRate);
@@ -72,10 +72,10 @@ public static class ReplayGainCalculator
     private static double GetTargetLoudness(MusicReplayGainStandard standard, double customTarget) =>
         standard switch
         {
-            MusicReplayGainStandard.EbuR128 => EbuR128TargetLufs,
-            MusicReplayGainStandard.ReplayGain2 => ReplayGain2TargetLufs,
+            MusicReplayGainStandard.EbuR128 => EBU_R128_TARGET_LUFS,
+            MusicReplayGainStandard.ReplayGain2 => REPLAY_GAIN2_TARGET_LUFS,
             MusicReplayGainStandard.Custom => customTarget,
-            _ => StreamingTargetLufs,
+            _ => STREAMING_TARGET_LUFS,
         };
 
     private static double CalculateLinearGain(double measuredLufs, double targetLufs) =>

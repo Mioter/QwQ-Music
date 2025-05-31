@@ -1,6 +1,7 @@
 ﻿using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using QwQ_Music.Services;
 using static QwQ_Music.Models.LanguageModel;
 
 namespace QwQ_Music.ViewModels;
@@ -71,7 +72,7 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
     public partial bool IsMusicCoverPageVisible { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(NavigationWidth),nameof(IsMusicAlbumCoverTrayVisible))]
+    [NotifyPropertyChangedFor(nameof(NavigationWidth), nameof(IsMusicAlbumCoverTrayVisible))]
     public partial bool IsNavigationExpand { get; set; }
 
     [ObservableProperty]
@@ -88,7 +89,7 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
 
     [ObservableProperty]
     public partial double MusicAlbumCoverPanelXaxisOffset { get; set; }
-    
+
     [ObservableProperty]
     public partial double MusicCoverPageYaxisOffset { get; set; }
 
@@ -127,5 +128,39 @@ public partial class MainWindowViewModel() : NavigationViewModel("窗口")
             Console.WriteLine($"Mouse wheel scrolled horizontally by {e.Delta.X}.");
         }
         */
+    }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ViewBackwardCommand))]
+    public partial bool CanGoBack { get; set; }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ViewForwardCommand))]
+    public partial bool CanGoForward { get; set; }
+
+    protected override void OnNavigateTo(int index)
+    {
+        base.OnNavigateTo(index);
+        UpdateNavigationProperties();
+    }
+
+    private void UpdateNavigationProperties()
+    {
+        CanGoBack = NavigateService.CanGoBack;
+        CanGoForward = NavigateService.CanGoForward;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanGoForward))]
+    private void ViewForward()
+    {
+        NavigateService.GoForward();
+        UpdateNavigationProperties();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanGoBack))]
+    private void ViewBackward()
+    {
+        NavigateService.GoBack();
+        UpdateNavigationProperties();
     }
 }

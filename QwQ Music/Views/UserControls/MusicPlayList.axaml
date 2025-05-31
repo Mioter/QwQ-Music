@@ -84,7 +84,7 @@
 
             <ListBox
                 Grid.Row="1"
-                ItemsSource="{Binding MusicPlayerViewModel.Playlist.MusicItems}"
+                ItemsSource="{Binding MusicPlayerViewModel.PlayList.MusicItems}"
                 Margin="0,5"
                 SelectedItem="{Binding SelectedItem}"
                 behaviors:ScrollToItemBehavior.SmoothScrollingEnabled="True"
@@ -149,7 +149,7 @@
                                     </MenuItem>
 
                                     <MenuItem
-                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.AddToMusicListNextItemCommand}"
+                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
                                         CommandParameter="{Binding}"
                                         Header="添加到下一首">
                                         <MenuItem.Icon>

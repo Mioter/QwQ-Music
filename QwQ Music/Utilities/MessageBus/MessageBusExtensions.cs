@@ -20,7 +20,7 @@ public static class MessageBusExtensions
     {
         // 使用闭包安全的方式创建一个可变引用
         var subscriptionRef = new SubscriptionReference<IDisposable?>();
-        
+
         subscriptionRef.Value = messageBus.Subscribe<TMessage>(message =>
         {
             try
@@ -32,10 +32,10 @@ public static class MessageBusExtensions
                 subscriptionRef.Value?.Dispose();
             }
         });
-        
+
         return subscriptionRef.Value;
     }
-    
+
     /// <summary>
     /// 等待特定消息
     /// </summary>
@@ -49,22 +49,23 @@ public static class MessageBusExtensions
         this IMessageBus messageBus,
         Func<TMessage, bool>? predicate = null,
         int timeout = Timeout.Infinite,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var taskCompletionSource = new TaskCompletionSource<TMessage>();
         var subscriptionRef = new SubscriptionReference<IDisposable?>();
-        
+
         // 创建取消令牌源
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        
+
         // 如果设置了超时，添加超时取消
         if (timeout != Timeout.Infinite)
         {
             cts.CancelAfter(timeout);
         }
-        
+
         // 注册取消回调
-        cts.Token.Register(() => 
+        cts.Token.Register(() =>
         {
             subscriptionRef.Value?.Dispose();
             if (!taskCompletionSource.Task.IsCompleted)
@@ -72,7 +73,7 @@ public static class MessageBusExtensions
                 taskCompletionSource.TrySetCanceled();
             }
         });
-        
+
         // 订阅消息
         subscriptionRef.Value = messageBus.Subscribe<TMessage>(message =>
         {
@@ -82,10 +83,10 @@ public static class MessageBusExtensions
                 taskCompletionSource.TrySetResult(message);
             }
         });
-        
+
         return taskCompletionSource.Task;
     }
-    
+
     /// <summary>
     /// 发布消息并等待特定回复
     /// </summary>
@@ -102,18 +103,19 @@ public static class MessageBusExtensions
         TMessage message,
         Func<TResponse, bool>? predicate = null,
         int timeout = 5000,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         // 先订阅回复
         var responseTask = messageBus.WaitForMessageAsync(predicate, timeout, cancellationToken);
-        
+
         // 发送消息
         await messageBus.PublishAsync(message);
-        
+
         // 等待回复
         return await responseTask;
     }
-    
+
     /// <summary>
     /// 用于安全地在闭包中引用可变对象的辅助类
     /// </summary>

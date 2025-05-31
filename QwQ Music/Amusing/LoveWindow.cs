@@ -10,7 +10,7 @@ namespace QwQ_Music.Amusing;
 
 public class LoveWindow : Window
 {
-    private static readonly List<LoveWindow> AllWindows = [];
+    private static readonly List<LoveWindow> _allWindows = [];
     private readonly int _dx;
     private readonly int _dy;
     private readonly LoveWindow? _centerWindow;
@@ -25,7 +25,7 @@ public class LoveWindow : Window
         bool isCenter = false
     )
     {
-        AllWindows.Add(this);
+        _allWindows.Add(this);
         Closed += OnWindowClosed;
 
         if (isCenter)
@@ -46,7 +46,7 @@ public class LoveWindow : Window
 
     private void InitializeWindow(PixelPoint position, Color color, string content, bool isCenter)
     {
-        Title = $"♥️ > {AllWindows.Count}";
+        Title = $"♥️ > {_allWindows.Count}";
         Width = isCenter ? 200 : 80;
         Height = isCenter ? 160 : 80;
         Position = position;
@@ -78,7 +78,7 @@ public class LoveWindow : Window
     private void OnCenterPositionChanged(object? sender, PixelPointEventArgs e)
     {
         // 中心窗口移动时更新所有关联小窗口的位置
-        foreach (var window in AllWindows.Where(w => w._centerWindow == this))
+        foreach (var window in _allWindows.Where(w => w._centerWindow == this))
         {
             window.Position = new PixelPoint(Position.X + window._dx, Position.Y + window._dy);
         }
@@ -86,8 +86,8 @@ public class LoveWindow : Window
 
     private static void OnCenterWindowClosed(object? sender, EventArgs e)
     {
-        var windowsToClose = AllWindows.ToList();
-        foreach (var window in windowsToClose.OrderByDescending(w => AllWindows.IndexOf(w)))
+        var windowsToClose = _allWindows.ToList();
+        foreach (var window in windowsToClose.OrderByDescending(w => _allWindows.IndexOf(w)))
         {
             window.Close();
         }
@@ -115,6 +115,6 @@ public class LoveWindow : Window
         RenderTransform = null;
 
         // 从全局列表中移除
-        AllWindows.Remove(this);
+        _allWindows.Remove(this);
     }
 }

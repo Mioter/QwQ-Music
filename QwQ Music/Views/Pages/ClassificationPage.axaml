@@ -3,22 +3,85 @@
     d:DesignWidth="800"
     mc:Ignorable="d"
     x:Class="QwQ_Music.Views.Pages.ClassificationPage"
-    x:DataType="viewModels:AllMusicPageViewModel"
+    x:DataType="viewModels:ClassificationPageViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+    xmlns:pages="clr-namespace:QwQ_Music.Views.Pages">
 
-    <Grid>
-        <!--<u:Skeleton
-            HorizontalAlignment="Left" VerticalAlignment="Top"
-            IsActive="True"
-            IsLoading="True">
-            <SelectableTextBlock Text="这是专辑页面~" />
-        </u:Skeleton>-->
+    <Grid RowDefinitions="Auto,*" >
+        
+        <u:SelectionList
+            HorizontalAlignment="Left"
+            Margin="10,0"
+            SelectedIndex="{Binding NavigationIndex}">
 
-        <!--<pages:MusicPlayerPage/>-->
+            <u:SelectionList.Styles>
+
+                <Style Selector="u|SelectionListItem">
+                    <Setter Property="RenderTransformOrigin" Value="50%,100%"/>
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <TransformOperationsTransition Duration="0:0:0.12" Property="RenderTransform" />
+                        </Transitions>
+                    </Setter>
+
+                    <Style Selector="^:selected">
+                        <Setter Property="FontWeight" Value="Bold" />
+                        <Setter Property="RenderTransform" Value="scale(1.12)" />
+                    </Style>
+                </Style>
+
+            </u:SelectionList.Styles>
+         
+            <u:SelectionList.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </u:SelectionList.ItemsPanel>
+
+            <u:SelectionList.Indicator>
+                <Border
+                    Background="{DynamicResource SemiBlue5}"
+                    CornerRadius="2"
+                    Height="2"
+                    Margin="10,0"
+                    VerticalAlignment="Bottom" />
+            </u:SelectionList.Indicator>
+
+            <u:SelectionList.Styles>
+
+                <Style Selector="u|SelectionListItem">
+                    <Setter Property="Padding" Value="10,5" />
+                </Style>
+            </u:SelectionList.Styles>
+
+            <TextBlock Text="歌单" />
+            <!--<TextBlock Text="专辑" />
+            <TextBlock Text="歌手" />
+            <TextBlock Text="风格" />-->
+
+        </u:SelectionList>
+        
+        <control:IndexControl Grid.Row="1" Index="{Binding NavigationIndex}">
+            <control:IndexControl.PageTransition>
+                <CompositePageTransition>
+                    <CrossFade Duration="0:0:0.5" />
+                    <PageSlide
+                        Duration="0:0:0.3"
+                        Orientation="Horizontal"
+                        SlideInEasing="QuadraticEaseIn"
+                        SlideOutEasing="QuadraticEaseOut" />
+                </CompositePageTransition>
+            </control:IndexControl.PageTransition>
+
+            <pages:MusicListsPage />
+
+        </control:IndexControl>
 
     </Grid>
 

@@ -6,7 +6,7 @@ namespace QwQ_Music.Services;
 
 public static class AudioFileValidator
 {
-    private static readonly List<string> SupportedAudioFormats =
+    private static readonly List<string> _supportedAudioFormats =
     [
         "AAC",
         "MP4",
@@ -107,7 +107,7 @@ public static class AudioFileValidator
     {
         try
         {
-            return SupportedAudioFormats.Contains($"{Path.GetExtension(path).TrimStart('.').ToUpper()}");
+            return _supportedAudioFormats.Contains($"{Path.GetExtension(path).TrimStart('.').ToUpper()}");
         }
         catch
         {

@@ -15,7 +15,7 @@ public interface IMessageBus : IDisposable
     /// <param name="message">消息实例</param>
     /// <returns>消息总线实例，支持链式调用</returns>
     IMessageBus Publish<TMessage>(TMessage message);
-    
+
     /// <summary>
     /// 异步发布消息到总线
     /// </summary>

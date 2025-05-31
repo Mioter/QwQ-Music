@@ -96,15 +96,30 @@
                                 </MenuItem>
                                 <!--  ReSharper disable once Xaml.PossibleNullReferenceException  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.AddToMusicListNextItemCommand}"
-                                    CommandParameter="{Binding}"
-                                    Header="添加到下一首">
+                                   
+                                    Header="添加到">
                                     <MenuItem.Icon>
                                         <PathIcon
-                                            Data="{StaticResource SemiIconPlus}"
-                                            Margin="2"
-                                            RenderTransform="rotate(180deg)" />
+                                            Data="{StaticResource SemiIconCopyAdd}"
+                                            Margin="1.5"/>
                                     </MenuItem.Icon>
+
+                                    <MenuItem Header="下一首"
+                                              Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
+                                              CommandParameter="{Binding}">
+                                        <MenuItem.Icon>
+                                            <PathIcon Data="{StaticResource SemiIconTriangleDown}" Margin="2" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+
+                                    <MenuItem Header="新建歌单"
+                                              Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.CreateAndAddToMusicListCommand}"
+                                              CommandParameter="{Binding}">
+                                        <MenuItem.Icon>
+                                            <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    
                                 </MenuItem>
 
                                 <MenuItem
@@ -247,6 +262,7 @@
 
                 <DataGridTextColumn Header="备注"
                                     MinWidth="100"
+                                    MaxWidth="200"
                                     IsVisible="{Binding ElementName=MoreColumn1,Path=IsChecked}"
                                     Binding="{Binding Comment}" />
 
@@ -274,10 +290,10 @@
                 <DataGridTextColumn
                     Binding="{Binding Remarks}"
                     Header="附注"
+                    MaxWidth="200"
                     IsVisible="{Binding IsChecked, ElementName=MoreColumn3}"
                     MinWidth="100" />
-
-
+                
             </DataGrid.Columns>
 
             <Interaction.Behaviors>

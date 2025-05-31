@@ -292,7 +292,7 @@ public static class MathHelper
         float[] window = new float[size];
         for (int i = 0; i < size; i++)
         {
-            window[i] = 0.54f - 0.46f * MathF.Cos(2 * MathF.PI * i / (size - 1));
+            window[i] = 0.54f - 0.46f * MathF.Cos((2 * MathF.PI * i) / (size - 1));
         }
 
         return window;
@@ -338,7 +338,7 @@ public static class MathHelper
             // Handle the remaining elements
             for (int i = size - remainder; i < size; i++)
             {
-                window[i] = 0.54f - 0.46f * MathF.Cos(2 * MathF.PI * i / (size - 1));
+                window[i] = 0.54f - 0.46f * MathF.Cos((2 * MathF.PI * i) / (size - 1));
             }
         }
 
@@ -385,7 +385,7 @@ public static class MathHelper
             // Handle the remaining elements
             for (int i = size - remainder; i < size; i++)
             {
-                window[i] = 0.54f - 0.46f * MathF.Cos(2 * MathF.PI * i / (size - 1));
+                window[i] = 0.54f - 0.46f * MathF.Cos((2 * MathF.PI * i) / (size - 1));
             }
         }
 
@@ -418,7 +418,7 @@ public static class MathHelper
         float[] window = new float[size];
         for (int i = 0; i < size; i++)
         {
-            window[i] = 0.5f * (1.0f - MathF.Cos(2 * MathF.PI * i / (size - 1)));
+            window[i] = 0.5f * (1.0f - MathF.Cos((2 * MathF.PI * i) / (size - 1)));
         }
 
         return window;
@@ -453,7 +453,7 @@ public static class MathHelper
             // Handle remaining elements
             for (int i = size - remainder; i < size; i++)
             {
-                window[i] = 0.5f * (1.0f - MathF.Cos(2 * MathF.PI * i / (size - 1)));
+                window[i] = 0.5f * (1.0f - MathF.Cos((2 * MathF.PI * i) / (size - 1)));
             }
         }
 
@@ -489,7 +489,7 @@ public static class MathHelper
             // Handle remaining elements
             for (int i = size - remainder; i < size; i++)
             {
-                window[i] = 0.5f * (1.0f - MathF.Cos(2 * MathF.PI * i / (size - 1)));
+                window[i] = 0.5f * (1.0f - MathF.Cos((2 * MathF.PI * i) / (size - 1)));
             }
         }
 
@@ -506,7 +506,21 @@ public static class MathHelper
     /// </summary>
     /// <param name="n">The number to check</param>
     /// <returns></returns>
-    public static bool IsPowerOfTwo(int n) => (n & n - 1) == 0 && n != 0;
+    public static bool IsPowerOfTwo(int n) => (n & (n - 1)) == 0 && n != 0;
+
+    /// <summary>
+    /// Returns the remainder after division, in the range [-0.5, 0.5).
+    /// </summary>
+    public static double Mod(this double x, double y) => x - y * Math.Floor(x / y);
+
+    /// <summary>
+    /// Returns the principal angle of a number in the range [-PI, PI).
+    /// </summary>
+    public static float PrincipalAngle(float angle)
+    {
+        // Returns angle in range [-PI, PI)
+        return angle - (2 * MathF.PI * MathF.Floor((angle + MathF.PI) / (2 * MathF.PI)));
+    }
 
     /// <summary>
     /// Approximates the cosine of a vector using SSE instructions.

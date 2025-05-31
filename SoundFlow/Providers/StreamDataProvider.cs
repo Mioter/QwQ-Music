@@ -8,7 +8,7 @@ namespace SoundFlow.Providers;
 /// <summary>
 ///     Provides audio data from a stream.
 /// </summary>
-public sealed class StreamDataProvider : ISoundDataProvider, IDisposable
+public sealed class StreamDataProvider : ISoundDataProvider
 {
     private readonly ISoundDecoder _decoder;
     private readonly Stream _stream;

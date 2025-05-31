@@ -58,7 +58,7 @@ public static class JsonConfigService
         {
             // 确保目录存在
             PathEnsurer.EnsureFileAndDirectoryExist(fullPath);
-            
+
             // 如果启用备份且文件存在，先创建备份
             if (EnableBackup && File.Exists(fullPath))
             {
@@ -67,34 +67,34 @@ public static class JsonConfigService
 
             // 使用调用者提供的 JsonSerializerContext 进行序列化
             string json = JsonSerializer.Serialize(data, typeof(T), jsonSerializerContext);
-            
+
             // 写入临时文件，成功后再替换原文件，避免写入过程中出错导致配置文件损坏
             string tempPath = $"{fullPath}.temp";
             File.WriteAllText(tempPath, json);
-            
+
             // 如果原文件存在，先删除
             if (File.Exists(fullPath))
             {
                 File.Delete(fullPath);
             }
-            
+
             // 重命名临时文件
             File.Move(tempPath, fullPath);
 
             stopwatch?.Stop();
             LoggerService.Info(
-                $"保存配置 {fileName} 完成! 文件路径: {fullPath}, 大小: {new FileInfo(fullPath).Length / 1024.0:F2} KB" + 
-                (stopwatch != null ? $", 耗时: {stopwatch.ElapsedMilliseconds} ms" : "")
+                $"保存配置 {fileName} 完成! 文件路径: {fullPath}, 大小: {new FileInfo(fullPath).Length / 1024.0:F2} KB"
+                    + (stopwatch != null ? $", 耗时: {stopwatch.ElapsedMilliseconds} ms" : "")
             );
         }
         catch (Exception ex)
         {
             stopwatch?.Stop();
             LoggerService.Error($"保存配置文件失败: {fullPath}, 错误类型: {ex.GetType().Name}, 错误: {ex.Message}");
-            
+
             // 记录详细的异常堆栈
             LoggerService.Debug($"异常详情: {ex}");
-            
+
             // 尝试从备份恢复
             if (EnableBackup)
             {
@@ -116,7 +116,7 @@ public static class JsonConfigService
         {
             // 确保目录存在
             PathEnsurer.EnsureFileAndDirectoryExist(fullPath);
-            
+
             // 如果启用备份且文件存在，先创建备份
             if (EnableBackup && File.Exists(fullPath))
             {
@@ -125,34 +125,36 @@ public static class JsonConfigService
 
             // 使用调用者提供的 JsonSerializerContext 进行序列化
             string json = JsonSerializer.Serialize(data, typeof(T), jsonSerializerContext);
-            
+
             // 写入临时文件，成功后再替换原文件，避免写入过程中出错导致配置文件损坏
             string tempPath = $"{fullPath}.temp";
             await File.WriteAllTextAsync(tempPath, json);
-            
+
             // 如果原文件存在，先删除
             if (File.Exists(fullPath))
             {
                 File.Delete(fullPath);
             }
-            
+
             // 重命名临时文件
             File.Move(tempPath, fullPath);
 
             stopwatch?.Stop();
             await LoggerService.InfoAsync(
-                $"异步保存配置 {fileName} 完成! 文件路径: {fullPath}, 大小: {new FileInfo(fullPath).Length / 1024.0:F2} KB" + 
-                (stopwatch != null ? $", 耗时: {stopwatch.ElapsedMilliseconds} ms" : "")
+                $"异步保存配置 {fileName} 完成! 文件路径: {fullPath}, 大小: {new FileInfo(fullPath).Length / 1024.0:F2} KB"
+                    + (stopwatch != null ? $", 耗时: {stopwatch.ElapsedMilliseconds} ms" : "")
             );
         }
         catch (Exception ex)
         {
             stopwatch?.Stop();
-            await LoggerService.ErrorAsync($"异步保存配置文件失败: {fullPath}, 错误类型: {ex.GetType().Name}, 错误: {ex.Message}");
-            
+            await LoggerService.ErrorAsync(
+                $"异步保存配置文件失败: {fullPath}, 错误类型: {ex.GetType().Name}, 错误: {ex.Message}"
+            );
+
             // 记录详细的异常堆栈
             await LoggerService.DebugAsync($"异常详情: {ex}");
-            
+
             // 尝试从备份恢复
             if (EnableBackup)
             {
@@ -173,7 +175,7 @@ public static class JsonConfigService
         if (!File.Exists(fullPath))
         {
             LoggerService.Warning($"配置文件未找到: {fullPath}，将返回默认值");
-            
+
             // 尝试从备份恢复
             if (EnableBackup && TryRestoreFromBackup(fullPath))
             {
@@ -194,10 +196,10 @@ public static class JsonConfigService
 
             stopwatch?.Stop();
             LoggerService.Info(
-                $"读取配置 {fileName} 完成! 文件大小: {new FileInfo(fullPath).Length / 1024.0:F2} KB" + 
-                (stopwatch != null ? $", 耗时: {stopwatch.ElapsedMilliseconds} ms" : "")
+                $"读取配置 {fileName} 完成! 文件大小: {new FileInfo(fullPath).Length / 1024.0:F2} KB"
+                    + (stopwatch != null ? $", 耗时: {stopwatch.ElapsedMilliseconds} ms" : "")
             );
-            
+
             return result;
         }
         catch (JsonException ex)
@@ -205,14 +207,14 @@ public static class JsonConfigService
             stopwatch?.Stop();
             LoggerService.Error($"配置文件格式错误: {fullPath}, 错误: {ex.Message}");
             LoggerService.Debug($"JSON异常详情: {ex}");
-            
+
             // 尝试从备份恢复
             if (EnableBackup && TryRestoreFromBackup(fullPath))
             {
                 LoggerService.Info("已从备份恢复配置文件，重新尝试加载");
                 return Load<T>(fileName, jsonSerializerContext); // 递归调用，尝试从恢复的备份中加载
             }
-            
+
             return default;
         }
         catch (Exception ex)
@@ -236,7 +238,7 @@ public static class JsonConfigService
         if (!File.Exists(fullPath))
         {
             await LoggerService.WarningAsync($"配置文件未找到: {fullPath}，将返回默认值");
-            
+
             // 尝试从备份恢复
             if (EnableBackup && await TryRestoreFromBackupAsync(fullPath))
             {
@@ -257,10 +259,10 @@ public static class JsonConfigService
 
             stopwatch?.Stop();
             await LoggerService.InfoAsync(
-                $"异步读取配置 {fileName} 完成! 文件大小: {new FileInfo(fullPath).Length / 1024.0:F2} KB" + 
-                (stopwatch != null ? $", 耗时: {stopwatch.ElapsedMilliseconds} ms" : "")
+                $"异步读取配置 {fileName} 完成! 文件大小: {new FileInfo(fullPath).Length / 1024.0:F2} KB"
+                    + (stopwatch != null ? $", 耗时: {stopwatch.ElapsedMilliseconds} ms" : "")
             );
-            
+
             return result;
         }
         catch (JsonException ex)
@@ -268,20 +270,22 @@ public static class JsonConfigService
             stopwatch?.Stop();
             await LoggerService.ErrorAsync($"配置文件格式错误: {fullPath}, 错误: {ex.Message}");
             await LoggerService.DebugAsync($"JSON异常详情: {ex}");
-            
+
             // 尝试从备份恢复
             if (EnableBackup && await TryRestoreFromBackupAsync(fullPath))
             {
                 await LoggerService.InfoAsync("已从备份恢复配置文件，重新尝试加载");
                 return await LoadAsync<T>(fileName, jsonSerializerContext); // 递归调用，尝试从恢复的备份中加载
             }
-            
+
             return default;
         }
         catch (Exception ex)
         {
             stopwatch?.Stop();
-            await LoggerService.ErrorAsync($"异步读取配置文件失败: {fullPath}, 错误类型: {ex.GetType().Name}, 错误: {ex.Message}");
+            await LoggerService.ErrorAsync(
+                $"异步读取配置文件失败: {fullPath}, 错误类型: {ex.GetType().Name}, 错误: {ex.Message}"
+            );
             await LoggerService.DebugAsync($"异常详情: {ex}");
             return default;
         }
@@ -311,12 +315,12 @@ public static class JsonConfigService
                 {
                     CreateBackup(fullPath);
                 }
-                
+
                 File.Delete(fullPath);
                 LoggerService.Info($"已删除配置文件: {fullPath}");
                 return true;
             }
-            
+
             LoggerService.Warning($"尝试删除不存在的配置文件: {fullPath}");
             return false;
         }
@@ -342,12 +346,12 @@ public static class JsonConfigService
                 {
                     await CreateBackupAsync(fullPath);
                 }
-                
+
                 File.Delete(fullPath);
                 await LoggerService.InfoAsync($"已删除配置文件: {fullPath}");
                 return true;
             }
-            
+
             await LoggerService.WarningAsync($"尝试删除不存在的配置文件: {fullPath}");
             return false;
         }
@@ -365,7 +369,7 @@ public static class JsonConfigService
     {
         return Path.Combine(SavePath, $"{fileName}{FileExtension}");
     }
-    
+
     /// <summary>
     /// 创建配置文件备份
     /// </summary>
@@ -375,12 +379,12 @@ public static class JsonConfigService
         {
             if (!File.Exists(filePath))
                 return;
-                
+
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             string backupPath = $"{filePath}{BackupExtension}.{timestamp}";
             File.Copy(filePath, backupPath, true);
             LoggerService.Debug($"已创建配置文件备份: {backupPath}");
-            
+
             // 清理旧备份
             CleanupOldBackups(filePath);
         }
@@ -389,7 +393,7 @@ public static class JsonConfigService
             LoggerService.Warning($"创建配置文件备份失败: {filePath}, 错误: {ex.Message}");
         }
     }
-    
+
     /// <summary>
     /// 异步创建配置文件备份
     /// </summary>
@@ -399,12 +403,12 @@ public static class JsonConfigService
         {
             if (!File.Exists(filePath))
                 return;
-                
+
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             string backupPath = $"{filePath}{BackupExtension}.{timestamp}";
             File.Copy(filePath, backupPath, true);
             await LoggerService.DebugAsync($"已创建配置文件备份: {backupPath}");
-            
+
             // 清理旧备份
             await CleanupOldBackupsAsync(filePath);
         }
@@ -413,7 +417,7 @@ public static class JsonConfigService
             await LoggerService.WarningAsync($"创建配置文件备份失败: {filePath}, 错误: {ex.Message}");
         }
     }
-    
+
     /// <summary>
     /// 清理旧备份文件
     /// </summary>
@@ -423,11 +427,12 @@ public static class JsonConfigService
         {
             string directory = Path.GetDirectoryName(filePath) ?? "";
             string fileNameWithoutPath = Path.GetFileName(filePath);
-            string[] backupFiles = Directory.GetFiles(directory, $"{fileNameWithoutPath}{BackupExtension}.*")
+            string[] backupFiles = Directory
+                .GetFiles(directory, $"{fileNameWithoutPath}{BackupExtension}.*")
                 .OrderByDescending(f => f)
                 .Skip(MaxBackupCount)
                 .ToArray();
-                
+
             foreach (string oldBackup in backupFiles)
             {
                 File.Delete(oldBackup);
@@ -439,7 +444,7 @@ public static class JsonConfigService
             LoggerService.Warning($"清理旧备份文件失败: {ex.Message}");
         }
     }
-    
+
     /// <summary>
     /// 异步清理旧备份文件
     /// </summary>
@@ -449,11 +454,12 @@ public static class JsonConfigService
         {
             string directory = Path.GetDirectoryName(filePath) ?? "";
             string fileNameWithoutPath = Path.GetFileName(filePath);
-            string[] backupFiles = Directory.GetFiles(directory, $"{fileNameWithoutPath}{BackupExtension}.*")
+            string[] backupFiles = Directory
+                .GetFiles(directory, $"{fileNameWithoutPath}{BackupExtension}.*")
                 .OrderByDescending(f => f)
                 .Skip(MaxBackupCount)
                 .ToArray();
-                
+
             foreach (string oldBackup in backupFiles)
             {
                 File.Delete(oldBackup);
@@ -465,7 +471,7 @@ public static class JsonConfigService
             await LoggerService.WarningAsync($"清理旧备份文件失败: {ex.Message}");
         }
     }
-    
+
     /// <summary>
     /// 尝试从备份恢复配置文件
     /// </summary>
@@ -475,16 +481,17 @@ public static class JsonConfigService
         {
             string directory = Path.GetDirectoryName(filePath) ?? "";
             string fileNameWithoutPath = Path.GetFileName(filePath);
-            string[] backupFiles = Directory.GetFiles(directory, $"{fileNameWithoutPath}{BackupExtension}.*")
+            string[] backupFiles = Directory
+                .GetFiles(directory, $"{fileNameWithoutPath}{BackupExtension}.*")
                 .OrderByDescending(f => f)
                 .ToArray();
-                
+
             if (backupFiles.Length == 0)
             {
                 LoggerService.Warning($"未找到可用的备份文件: {filePath}");
                 return false;
             }
-            
+
             string latestBackup = backupFiles[0];
             File.Copy(latestBackup, filePath, true);
             LoggerService.Info($"已从备份 {latestBackup} 恢复配置文件: {filePath}");
@@ -496,7 +503,7 @@ public static class JsonConfigService
             return false;
         }
     }
-    
+
     /// <summary>
     /// 异步尝试从备份恢复配置文件
     /// </summary>
@@ -506,16 +513,17 @@ public static class JsonConfigService
         {
             string directory = Path.GetDirectoryName(filePath) ?? "";
             string fileNameWithoutPath = Path.GetFileName(filePath);
-            string[] backupFiles = Directory.GetFiles(directory, $"{fileNameWithoutPath}{BackupExtension}.*")
+            string[] backupFiles = Directory
+                .GetFiles(directory, $"{fileNameWithoutPath}{BackupExtension}.*")
                 .OrderByDescending(f => f)
                 .ToArray();
-                
+
             if (backupFiles.Length == 0)
             {
                 await LoggerService.WarningAsync($"未找到可用的备份文件: {filePath}");
                 return false;
             }
-            
+
             string latestBackup = backupFiles[0];
             File.Copy(latestBackup, filePath, true);
             await LoggerService.InfoAsync($"已从备份 {latestBackup} 恢复配置文件: {filePath}");

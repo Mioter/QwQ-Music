@@ -23,7 +23,7 @@ public partial class MusicPlayListViewModel : ViewModelBase
     [RelayCommand]
     private static void ClearMusicPlayList()
     {
-        MusicPlayerViewModel.Playlist.MusicItems.Clear();
+        MusicPlayerViewModel.PlayList.MusicItems.Clear();
     }
 
     [RelayCommand]
