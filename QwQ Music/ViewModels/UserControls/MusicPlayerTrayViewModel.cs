@@ -1,9 +1,10 @@
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Services;
-using QwQ_Music.Utilities.MessageBus;
+using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ.Avalonia.Utilities.MessageBus;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.UserControls;
 
 public partial class MusicPlayerTrayViewModel : ViewModelBase
 {
@@ -18,7 +19,9 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
         MusicPlayerViewModel.PlaybackStateChanged += MusicPlayerViewModelOnPlaybackStateChanged;
 
         NavigateService.CurrentViewChanged += CurrentViewChanged;
-        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
+        MessageBus.ReceiveMessage<ExitReminderMessage>(this)
+            .WithHandler(ExitReminderMessageHandler)
+            .Subscribe();
     }
 
     private void CurrentViewChanged(string name)
@@ -27,7 +30,7 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
         OnPropertyChanged(nameof(CurrentViewName));
     }
 
-    private void ExitReminderMessageHandler(ExitReminderMessage message)
+    private void ExitReminderMessageHandler(ExitReminderMessage message, object _)
     {
         MusicPlayerViewModel.PlaybackStateChanged -= MusicPlayerViewModelOnPlaybackStateChanged;
         NavigateService.CurrentViewChanged -= CurrentViewChanged;

@@ -9,11 +9,12 @@ using Irihi.Avalonia.Shared.Contracts;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
+using QwQ_Music.ViewModels.ViewModeBase;
 using QwQ_Music.Views.UserControls;
 using Ursa.Controls;
 using Notification = Ursa.Controls.Notification;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.UserControls;
 
 public partial class CreateMusicListViewModel : ViewModelBase, IDialogContext
 {

@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using QwQ_Music.Amusing;
 using QwQ_Music.ViewModels;
+using QwQ_Music.ViewModels.Pages;
 
 namespace QwQ_Music.Views.Pages;
 

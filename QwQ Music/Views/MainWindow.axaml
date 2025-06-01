@@ -14,7 +14,8 @@
     xmlns:u="https://irihi.tech/ursa"
     xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
     xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:viewModels1="clr-namespace:QwQ_Music.ViewModels.UserControls">
 
     <!--
         亚克力效果
@@ -57,10 +58,10 @@
                     FillMode="Forward"
                     IterationCount="Infinite">
                     <KeyFrame Cue="0%">
-                        <Setter Property="RotateTransform.Angle" Value="{Binding #MusicPlayerTray.((viewModels:MusicPlayerTrayViewModel)DataContext).AlbumCoverRecordAngle}" />
+                        <Setter Property="RotateTransform.Angle" Value="{Binding #MusicPlayerTray.((viewModels1:MusicPlayerTrayViewModel)DataContext).AlbumCoverRecordAngle}" />
                     </KeyFrame>
                     <KeyFrame Cue="100%">
-                        <Setter Property="RotateTransform.Angle" Value="{Binding #MusicPlayerTray.((viewModels:MusicPlayerTrayViewModel)DataContext).AlbumCoverRecordAngle, Converter={StaticResource CalcConverter}, ConverterParameter='@VALUE + 360'}" />
+                        <Setter Property="RotateTransform.Angle" Value="{Binding #MusicPlayerTray.((viewModels1:MusicPlayerTrayViewModel)DataContext).AlbumCoverRecordAngle, Converter={StaticResource CalcConverter}, ConverterParameter='@VALUE + 360'}" />
                     </KeyFrame>
                 </Animation>
             </Style.Animations>
@@ -140,12 +141,11 @@
 
                 <!-- 折叠/展开菜单栏按钮 -->
                 <ToggleButton
-                    Classes="Rotate"
+                    Theme="{StaticResource RotateToggleButton}"
                     HorizontalAlignment="Right"
                     IsChecked="{Binding IsNavigationExpand}"
-                    CornerRadius="20"
-                    Width="{Binding $self.Bounds.Height}"
-                    VerticalAlignment="Center"
+                    CornerRadius="30"
+                    Height="{Binding $self.Bounds.Width}"
                     Margin="20,0">
                     
                     <ToggleButton.Content>
@@ -415,7 +415,7 @@
                 <userControls:MusicAlbumCover
                     Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}"
                     CoverImage="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverImage}"
-                    DataContext="{Binding #MusicPlayerTray.((viewModels:MusicPlayerTrayViewModel)DataContext)}">
+                    DataContext="{Binding #MusicPlayerTray.((viewModels1:MusicPlayerTrayViewModel)DataContext)}">
 
                     <userControls:MusicAlbumCover.RenderTransform>
                         <RotateTransform Angle="{Binding AlbumCoverCurrentAngle, Mode=OneWayToSource}" />

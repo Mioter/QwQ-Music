@@ -15,8 +15,10 @@ using QwQ_Music.Services;
 using QwQ_Music.Services.Audio;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities;
-using QwQ_Music.Utilities.MessageBus;
+using QwQ_Music.ViewModels.Pages;
+using QwQ_Music.ViewModels.ViewModeBase;
 using QwQ_Music.Views.UserControls;
+using QwQ.Avalonia.Utilities.MessageBus;
 using SoundFlow.Backends.MiniAudio;
 using Ursa.Controls;
 using Log = QwQ_Music.Services.LoggerService;
@@ -38,7 +40,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _audioPlay.PositionChanged += OnPositionChanged;
         _audioPlay.PlaybackCompleted += AudioPlayOnPlaybackCompleted;
         PlayList.MusicItems.CollectionChanged += MusicItemsOnCollectionChanged;
-        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
+        MessageBus.ReceiveMessage<ExitReminderMessage>(this)
+            .WithHandler(ExitReminderMessageHandler)
+            .Subscribe();
     }
 
     #endregion
@@ -163,7 +167,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
                 MusicItems.Add(MusicItemModel.FromDictionary(item));
             }
 
-            await StrongMessageBus.Instance.PublishAsync(new LoadCompletedMessage(nameof(MusicItems)));
+            await MessageBus.CreateMessage(new LoadCompletedMessage(nameof(MusicItems)))
+                .FromSender(this)
+                .AddReceivers<PlayConfigPageViewModel>()
+                .SetAsOneTime()
+                .PublishAsync();
 
             // 加载播放列表并获取文件路径列表
             var filePaths = await (await PlayList.LoadAsync()).LoadMusicFilePathsAsync();
@@ -241,7 +249,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
-    private void ExitReminderMessageHandler(ExitReminderMessage message)
+    private void ExitReminderMessageHandler(ExitReminderMessage message,object? sender)
     {
         _audioPlay.PositionChanged -= OnPositionChanged;
         _audioPlay.PlaybackCompleted -= AudioPlayOnPlaybackCompleted;
@@ -338,9 +346,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
             CanResize = false,
         };
 
-        var model = new CreateMusicListViewModel();
+        var model = new UserControls.CreateMusicListViewModel();
 
-        await OverlayDialog.ShowCustomModal<CreateMusicList, CreateMusicListViewModel, object>(model, options: options);
+        await OverlayDialog.ShowCustomModal<CreateMusicList, UserControls.CreateMusicListViewModel, object>(model, options: options);
 
         if (model is { IsOk: true, Name: not null })
         {
@@ -379,8 +387,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
             CanResize = false,
         };
 
-        await OverlayDialog.ShowModal<AudioDetailedInfo, AudioDetailedInfoViewModel>(
-            new AudioDetailedInfoViewModel(musicItem, await musicItem.GetExtensionsInfo()),
+        await OverlayDialog.ShowModal<AudioDetailedInfo, UserControls.AudioDetailedInfoViewModel>(
+            new UserControls.AudioDetailedInfoViewModel(musicItem, await musicItem.GetExtensionsInfo()),
             options: options
         );
     }

@@ -3,15 +3,15 @@
     d:DesignWidth="800"
     mc:Ignorable="d"
     x:Class="QwQ_Music.Views.Pages.AllMusicPage"
-    x:DataType="viewModels:AllMusicPageViewModel"
+    x:DataType="pages:AllMusicPageViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:u="https://irihi.tech/ursa"
     xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
-    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages">
 
     <Grid Margin="10,0" RowDefinitions="Auto,*">
 
@@ -87,7 +87,7 @@
                             <ContextMenu>
                                 <!--  ReSharper disable once Xaml.PossibleNullReferenceException  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
                                     CommandParameter="{Binding}"
                                     Header="立即播放">
                                     <MenuItem.Icon>
@@ -105,7 +105,7 @@
                                     </MenuItem.Icon>
 
                                     <MenuItem Header="下一首"
-                                              Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
+                                              Command="{Binding $parent[UserControl].((pages:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
                                               CommandParameter="{Binding}">
                                         <MenuItem.Icon>
                                             <PathIcon Data="{StaticResource SemiIconTriangleDown}" Margin="2" />
@@ -113,7 +113,7 @@
                                     </MenuItem>
 
                                     <MenuItem Header="新建歌单"
-                                              Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.CreateAndAddToMusicListCommand}"
+                                              Command="{Binding $parent[UserControl].((pages:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.CreateAndAddToMusicListCommand}"
                                               CommandParameter="{Binding}">
                                         <MenuItem.Icon>
                                             <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
@@ -123,7 +123,7 @@
                                 </MenuItem>
 
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ClearMusicItemCurrentDurationCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ClearMusicItemCurrentDurationCommand}"
                                     CommandParameter="{Binding}"
                                     Header="清空播放时长">
                                     <MenuItem.Icon>
@@ -132,7 +132,7 @@
                                 </MenuItem>
                                 
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
                                     CommandParameter="{Binding}"
                                     Header="详细信息">
                                     <MenuItem.Icon>
@@ -142,7 +142,7 @@
                                 
                                 <!--  在文件中打开  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
                                     CommandParameter="{Binding}"
                                     Header="在文件中打开">
                                     <MenuItem.Icon>
@@ -152,7 +152,7 @@
 
                                 <!--  删除  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.DeleteMusicItemCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.DeleteMusicItemCommand}"
                                     CommandParameter="{Binding}"
                                     Header="删除音乐">
                                     <MenuItem.Icon>
@@ -224,12 +224,12 @@
 
                                 <!--  ReSharper disable Xaml.PossibleNullReferenceException  -->
                                 <userControls:MusicAlbumButton
-                                    Command="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
                                     CommandParameter="{Binding}"
                                     CornerRadius="8"
-                                    CurrentMusicItem="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
+                                    CurrentMusicItem="{Binding $parent[UserControl].((pages:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
                                     ExternalMouseTouch="{Binding $parent[DataGridRow].IsPointerOver}"
-                                    IsPlaying="{Binding $parent[UserControl].((viewModels:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
+                                    IsPlaying="{Binding $parent[UserControl].((pages:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
                                     <!--  ReSharper restore Xaml.PossibleNullReferenceException  -->
                                     <Button.Effect>
                                         <DropShadowEffect

@@ -47,7 +47,7 @@
 
                                 <control:SwitchControl Condition="{Binding $parent[userControls:MusicAlbumButton].IsPointerOver}">
                                     
-                                    <control:SwitchControl.PageTransition>
+                                    <!--<control:SwitchControl.PageTransition>
                                         <CompositePageTransition>
                                             <CrossFade Duration="0:0:0.5" />
                                             <PageSlide
@@ -56,7 +56,7 @@
                                                 SlideInEasing="QuadraticEaseIn"
                                                 SlideOutEasing="QuadraticEaseOut" />
                                         </CompositePageTransition>
-                                    </control:SwitchControl.PageTransition>
+                                    </control:SwitchControl.PageTransition>-->
                                     
                                     <control:SwitchControl.TrueContent>
                                         <PathIcon Data="{StaticResource PauseIconData}" />
@@ -126,6 +126,10 @@
                                 </control:SwitchControl>
 
                             </control:SwitchControl.TrueContent>
+                            
+                            <control:SwitchControl.FalseContent>
+                                <PathIcon Data="{StaticResource PlayIconData}" />
+                            </control:SwitchControl.FalseContent>
 
                         </control:SwitchControl>
                         

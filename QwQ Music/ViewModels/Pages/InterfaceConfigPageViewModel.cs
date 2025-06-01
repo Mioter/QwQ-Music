@@ -4,8 +4,9 @@ using QwQ_Music.Helper;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
+using QwQ_Music.ViewModels.ViewModeBase;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.Pages;
 
 public partial class InterfaceConfigPageViewModel() : NavigationViewModel("界面")
 {

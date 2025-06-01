@@ -1,6 +1,6 @@
 using QwQ_Music.Services;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.ViewModeBase;
 
 public class NavigationViewModel : ViewModelBase
 {

@@ -8,13 +8,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
+using QwQ_Music.ViewModels.ViewModeBase;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.Pages;
 
 public partial class MusicListsPageViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    public partial ObservableCollection<PlayListItem> PlayListItems { get; set; } = [];
+    [ObservableProperty] public partial ObservableCollection<MusicListModel> PlayListItems { get; set; } = [];
 
     public MusicListsPageViewModel()
     {
@@ -57,29 +57,9 @@ public partial class MusicListsPageViewModel : ViewModelBase
 
         foreach (var info in playlistInfos.Where(info => !string.IsNullOrEmpty(info.Name)))
         {
-            // 获取歌单中的第一首歌曲
-            Debug.Assert(info.Name != null);
-            string? firstSongPath = await GetFirstSongInPlaylist(info.Name) ?? info.LatestPlayedMusic;
-
-            // 如果歌单为空，使用默认封面
-            if (string.IsNullOrEmpty(firstSongPath))
-            {
-                PlayListItems.Add(
-                    new PlayListItem(MusicExtractor.DefaultCover, info.Name, info.Description ?? string.Empty)
-                );
-                continue;
-            }
-
-            // 查找对应的音乐项以获取封面
-            var coverImage = string.IsNullOrEmpty(firstSongPath)
-                ? null
-                : MusicPlayerViewModel
-                    .Instance.MusicItems.FirstOrDefault(item => item.FilePath == firstSongPath)
-                    ?.CoverImage;
-
             // 添加到列表中
             PlayListItems.Add(
-                new PlayListItem(coverImage ?? MusicExtractor.DefaultCover, info.Name, info.Description ?? string.Empty)
+                new MusicListModel(info.Name, info.Description ?? string.Empty)
             );
         }
     }
@@ -97,5 +77,3 @@ public partial class MusicListsPageViewModel : ViewModelBase
         return filePaths.FirstOrDefault();
     }
 }
-
-public record PlayListItem(Bitmap CoverImage, string Name, string Description);

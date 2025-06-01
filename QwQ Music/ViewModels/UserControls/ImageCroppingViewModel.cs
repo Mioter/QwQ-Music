@@ -6,8 +6,9 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Services;
+using QwQ_Music.ViewModels.ViewModeBase;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.UserControls;
 
 public partial class ImageCroppingViewModel(Bitmap sourceImage) : ViewModelBase
 {

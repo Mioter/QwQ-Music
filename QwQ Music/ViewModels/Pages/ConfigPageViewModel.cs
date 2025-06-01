@@ -1,6 +1,7 @@
 ﻿using QwQ_Music.Models;
+using QwQ_Music.ViewModels.ViewModeBase;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.Pages;
 
 using static LanguageModel;
 

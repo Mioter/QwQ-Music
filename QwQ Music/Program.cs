@@ -3,8 +3,8 @@ using Avalonia;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
-using QwQ_Music.Utilities.MessageBus;
 using QwQ_Music.ViewModels;
+using QwQ.Avalonia.Utilities.MessageBus;
 
 namespace QwQ_Music;
 
@@ -34,8 +34,10 @@ public static class Program
         {
             ConfigInfoModel.SaveAll();
 
-            StrongMessageBus.Instance.PublishAsync(new ExitReminderMessage(true)).Wait();
-            StrongMessageBus.Instance.Dispose();
+            MessageBus.CreateMessage(new ExitReminderMessage(true))
+                .SetAsOneTime()
+                .WaitForCompletion()
+                .Publish();
 
             MusicPlayerViewModel.Instance.SaveAsync().Wait();
 

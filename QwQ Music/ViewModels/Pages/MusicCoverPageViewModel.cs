@@ -10,9 +10,10 @@ using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Shader;
-using QwQ_Music.Utilities.MessageBus;
+using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ.Avalonia.Utilities.MessageBus;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.Pages;
 
 public partial class MusicCoverPageViewModel : NavigationViewModel
 {
@@ -24,10 +25,12 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         : base("播放")
     {
         MusicPlayerViewModel.CurrentMusicItemChanged += MusicPlayerViewModelOnCurrentMusicItemChanged;
-        StrongMessageBus.Instance.SubscribeOnce<ExitReminderMessage>(ExitReminderMessageHandler);
+        MessageBus.ReceiveMessage<ExitReminderMessage>(this)
+            .WithHandler(ExitReminderMessageHandler)
+            .Subscribe();
     }
 
-    private void ExitReminderMessageHandler(ExitReminderMessage message)
+    private void ExitReminderMessageHandler(ExitReminderMessage message, object _)
     {
         MusicPlayerViewModel.CurrentMusicItemChanged -= MusicPlayerViewModelOnCurrentMusicItemChanged;
     }

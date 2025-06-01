@@ -10,11 +10,12 @@ using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Audio;
 using QwQ_Music.Utilities;
-using QwQ_Music.Utilities.MessageBus;
-using QwQ_Music.Utilities.Tasks;
+using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ.Avalonia.Utilities.MessageBus;
+using QwQ.Avalonia.Utilities.TaskManager;
 using SoundFlow.Modifiers;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.Pages;
 
 public partial class PlayConfigPageViewModel : ViewModelBase
 {
@@ -27,11 +28,15 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     public PlayConfigPageViewModel()
     {
         ReplayGainCalculator.CalcCompletedChanged += ReplayGainCalculatorOnCalcCompletedChanged;
-        StrongMessageBus.Instance.Subscribe<ExitReminderMessage>(ExitReminderMessageHandler);
-        StrongMessageBus.Instance.Subscribe<LoadCompletedMessage>(LoadCompletedMessageHandler);
+        MessageBus.ReceiveMessage<ExitReminderMessage>(this)
+            .WithHandler(ExitReminderMessageHandler)
+            .Subscribe();
+        MessageBus.ReceiveMessage<LoadCompletedMessage>(this)
+            .WithHandler(LoadCompletedMessageHandler)
+            .Subscribe();
     }
 
-    private async void LoadCompletedMessageHandler(LoadCompletedMessage obj)
+    private async void LoadCompletedMessageHandler(LoadCompletedMessage obj,object? sender)
     {
         try
         {
@@ -48,7 +53,7 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
     private void ReplayGainCalculatorOnCalcCompletedChanged(object? sender, EventArgs e) => NumberOfCompletedCalc++;
 
-    private void ExitReminderMessageHandler(ExitReminderMessage obj)
+    private void ExitReminderMessageHandler(ExitReminderMessage obj,object? sender)
     {
         ReplayGainCalculator.CalcCompletedChanged -= ReplayGainCalculatorOnCalcCompletedChanged;
     }
@@ -57,11 +62,9 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
     #region 回放增益
 
-    [ObservableProperty]
-    public partial IAsyncTaskHandle? TaskHandle { get; set; }
+    [ObservableProperty] public partial TaskController? TaskController { get; set; }
 
-    [ObservableProperty]
-    public partial int NumberOfCompletedCalc { get; set; }
+    [ObservableProperty] public partial int NumberOfCompletedCalc { get; set; }
 
     public static MusicReplayGainStandard[] MusicReplayGainStandardList { get; set; } =
         EnumHelper<MusicReplayGainStandard>.ToArray();
@@ -70,11 +73,9 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     public partial MusicReplayGainStandard SelectedMusicReplayGainStandard { get; set; } =
         MusicReplayGainStandard.Streaming;
 
-    [ObservableProperty]
-    public partial double CustomMusicReplayGainStandard { get; set; } = 12;
+    [ObservableProperty] public partial double CustomMusicReplayGainStandard { get; set; } = 12;
 
-    [ObservableProperty]
-    public partial string CalculationButtonText { get; set; } = "开始 ▶";
+    [ObservableProperty] public partial string CalculationButtonText { get; set; } = "开始 ▶";
 
     [RelayCommand]
     private async Task ClearCallbackGain()
@@ -96,32 +97,33 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     {
         if (
             MusicPlayerViewModel.MusicItems.Count <= 0
-            || NumberOfCompletedCalc == MusicPlayerViewModel.MusicItems.Count
+         || NumberOfCompletedCalc == MusicPlayerViewModel.MusicItems.Count
         )
             return;
 
         // 状态判断和操作一体化处理
-        if (TaskHandle != null)
+        if (TaskController != null)
         {
-            switch (TaskHandle.Status)
+            switch (TaskController.State)
             {
-                case AsyncTaskStatus.Faulted:
+                case TaskExecutionState.Error:
+                case TaskExecutionState.NotStarted:
+                case TaskExecutionState.Stopped:
+                case TaskExecutionState.Cancelled:
+                case TaskExecutionState.Completed:
+                case TaskExecutionState.Timeout:
                     StartNewCalculation();
                     break;
 
-                case AsyncTaskStatus.Running:
-                    await TaskHandle.PauseAsync();
+                case TaskExecutionState.Running:
+                    await TaskController.PauseAsync();
                     break;
 
-                case AsyncTaskStatus.Paused:
-                    TaskHandle.Resume();
+                case TaskExecutionState.Paused:
+                    await TaskController.StartAsync();
                     break;
-                case AsyncTaskStatus.Created:
-                case AsyncTaskStatus.Completed:
-                    break;
-                case AsyncTaskStatus.Cancelled:
                 default:
-                    await LoggerService.ErrorAsync($"不存在的任务状态: {TaskHandle.Status}");
+                    await LoggerService.ErrorAsync($"不存在的任务状态: {TaskController.State}");
                     break;
             }
         }
@@ -135,71 +137,52 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
     private void UpdatePromptText()
     {
-        CalculationButtonText = TaskHandle?.Status switch
+        CalculationButtonText = TaskController?.State switch
         {
-            AsyncTaskStatus.Running => "暂停 \u23f8",
-            AsyncTaskStatus.Paused => "继续 ▶",
+            TaskExecutionState.Running => "暂停 \u23f8",
+            TaskExecutionState.Paused => "继续 ▶",
             _ => "开始 ▶",
         };
     }
 
     private void StartNewCalculation()
     {
-        TaskHandle = AsyncTaskManager.CreateTask(
-            async ct =>
-            {
-                // 不使用一次性的 Task.Run，而是逐个处理每个音乐项
-                foreach (var item in MusicPlayerViewModel.MusicItems)
+        TaskController = new TaskController();
+
+        var itemsToProcess = MusicPlayerViewModel.MusicItems.Where(item => item.Gain <= 0).ToList();
+
+        TaskManager.CreateMultiTask(
+                itemsToProcess,
+                async item =>
                 {
-                    // 在每个项目处理前检查取消请求
-                    ct.ThrowIfCancellationRequested();
-
-                    // 在每个项目处理前等待暂停状态解除
-                    if (TaskHandle is AsyncTaskHandle handle)
-                    {
-                        await handle.WaitIfPausedAsync();
-                    }
-
-                    // 跳过已计算的项目
-                    if (item.Gain > 0)
-                        continue;
-
-                    // 使用较小的任务单元，以便能够及时响应暂停
-                    await Task.Run(
-                        async () =>
-                        {
-                            var ex = await item.GetExtensionsInfo();
-                            item.Gain = AudioHelper.CalcGainOfMusicItem(item.FilePath, ex.SamplingRate, ex.Channels);
-                        },
-                        ct
-                    );
-                }
-            },
-            CleanupTask,
-            ex =>
+                    var ex = await item.GetExtensionsInfo();
+                    item.Gain = AudioHelper.CalcGainOfMusicItem(item.FilePath, ex.SamplingRate, ex.Channels);
+                })
+            .SetController(TaskController)
+            .SetErrorHandler(ex =>
             {
                 if (ex is OperationCanceledException)
                 {
                     CleanupTask();
                 }
-            }
-        );
+            })
+            .RunAsync();
     }
 
     private void CleanupTask()
-    {
-        TaskHandle?.Dispose();
+    {    
         UpdatePromptText();
-        TaskHandle = null;
+        TaskController?.Dispose();
+        TaskController = null;
     }
 
     [RelayCommand]
-    private void CancelCalcCallbackGain()
+    private async Task CancelCalcCallbackGain()
     {
-        if (TaskHandle is null)
+        if (TaskController is null)
             return;
 
-        TaskHandle.Cancel();
+        await TaskController.CancelAsync();
         CleanupTask();
     }
 

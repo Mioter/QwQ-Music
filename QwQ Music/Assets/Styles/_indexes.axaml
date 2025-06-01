@@ -5,5 +5,4 @@
     <StyleInclude Source="LyricsControl.axaml"/>
     <StyleInclude Source="LyricLineControl.axaml"/>
     <StyleInclude Source="IconButton.axaml" />
-    <StyleInclude Source="ToggleButton.axaml" />
 </Style>

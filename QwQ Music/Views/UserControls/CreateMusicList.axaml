@@ -1,8 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
              xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
-             x:DataType="viewModels:CreateMusicListViewModel"
+             xmlns:userControls="clr-namespace:QwQ_Music.ViewModels.UserControls"
+             x:DataType="userControls:CreateMusicListViewModel"
              x:Class="QwQ_Music.Views.UserControls.CreateMusicList">
     
     <Grid RowDefinitions="55,*,Auto" >

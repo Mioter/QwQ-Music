@@ -3,7 +3,7 @@
     d:DesignWidth="650"
     mc:Ignorable="d"
     x:Class="QwQ_Music.Views.UserControls.MusicPlayerTray"
-    x:DataType="viewModel:MusicPlayerTrayViewModel"
+    x:DataType="viewModel1:MusicPlayerTrayViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
     xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
@@ -13,7 +13,8 @@
     xmlns:u="https://irihi.tech/ursa"
     xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
     xmlns:viewModel="clr-namespace:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:viewModel1="clr-namespace:QwQ_Music.ViewModels.UserControls">
 
     <UserControl.Styles>
 

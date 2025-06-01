@@ -3,13 +3,13 @@
     d:DesignWidth="800"
     mc:Ignorable="d"
     x:Class="QwQ_Music.Views.Pages.PlayConfigPage"
-    x:DataType="viewModel:PlayConfigPageViewModel"
+    x:DataType="pages:PlayConfigPageViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:u="https://irihi.tech/ursa"
-    xmlns:viewModel="clr-namespace:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages">
 
     <ScrollViewer Margin="10">
 
@@ -203,7 +203,7 @@
                                     Content="取消"
                                     CornerRadius="8"
                                     FontSize="12"
-                                    IsEnabled="{Binding TaskHandle, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    IsEnabled="{Binding TaskController, Converter={x:Static ObjectConverters.IsNotNull}}"
                                     Padding="8" />
 
                                 <u:IconButton
@@ -212,11 +212,11 @@
                                     Content="清空"
                                     CornerRadius="8"
                                     FontSize="12"
-                                    IsEnabled="{Binding TaskHandle, Converter={x:Static ObjectConverters.IsNull}}">
+                                    IsEnabled="{Binding TaskController, Converter={x:Static ObjectConverters.IsNull}}">
                                     <u:IconButton.Icon>
                                         <PathIcon
                                             Data="{StaticResource SemiIconDelete}"
-                                            Foreground="#ff6b6b"
+                                            Foreground="{DynamicResource EmphasizePink3}"
                                             Height="12" />
                                     </u:IconButton.Icon>
                                 </u:IconButton>

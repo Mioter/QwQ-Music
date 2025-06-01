@@ -11,8 +11,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
+using QwQ_Music.ViewModels.ViewModeBase;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.Pages;
 
 public partial class AllMusicPageViewModel : ViewModelBase
 {

@@ -2,9 +2,10 @@
 using QwQ_Music.Helper;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.ViewModels.ViewModeBase;
 using static QwQ_Music.Models.LanguageModel;
 
-namespace QwQ_Music.ViewModels;
+namespace QwQ_Music.ViewModels.Pages;
 
 public class LyricConfigPageViewModel : ViewModelBase
 {

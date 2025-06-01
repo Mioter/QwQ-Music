@@ -2,9 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="viewModels:MusicListsPageViewModel"
+             x:DataType="pages:MusicListsPageViewModel"
              x:Class="QwQ_Music.Views.Pages.MusicListsPage">
     
     <ItemsControl ItemsSource="{Binding PlayListItems}" Margin="10">
@@ -55,8 +55,8 @@
 
                             <Border CornerRadius="12"
                                     ClipToBounds="True">
-                                <Image
-                                    Source="{Binding CoverImage}" />
+                                <!--<Image
+                                    Source="{Binding CoverImage}" />-->
                             </Border>
                             
                         </Border>

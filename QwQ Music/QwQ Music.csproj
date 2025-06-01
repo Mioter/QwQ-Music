@@ -27,8 +27,9 @@
         </PackageReference>
         <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.3.0.6" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-        <PackageReference Include="Irihi.Ursa" Version="1.11.0" />
-        <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.11.0" />
+        <PackageReference Include="Irihi.Ursa" Version="1.11.1" />
+        <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.11.1" />
+        <PackageReference Include="QwQ.Avalonia" Version="0.1.5.1" />
         <PackageReference Include="Semi.Avalonia" Version="11.2.1.8" />
         <PackageReference Include="Semi.Avalonia.ColorPicker" Version="11.2.1.8" />
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.8" />
@@ -76,21 +77,6 @@
 
     <ItemGroup>
         <None Include="..\LICENSE.md" Pack="true" PackagePath="\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="QwQ.Avalonia">
-        <HintPath>..\..\QwQ.Avalonia\QwQ.Avalonia\bin\Debug\net9.0\QwQ.Avalonia.dll</HintPath>
-      </Reference>
-      <Reference Include="QwQ.Avalonia.Control">
-        <HintPath>..\..\QwQ.Avalonia\QwQ.Avalonia\bin\Debug\net9.0\QwQ.Avalonia.Control.dll</HintPath>
-      </Reference>
-      <Reference Include="QwQ.Avalonia.Helper">
-        <HintPath>..\..\QwQ.Avalonia\QwQ.Avalonia\bin\Debug\net9.0\QwQ.Avalonia.Helper.dll</HintPath>
-      </Reference>
-      <Reference Include="QwQ.Avalonia.Utilities">
-        <HintPath>..\..\QwQ.Avalonia\QwQ.Avalonia\bin\Debug\net9.0\QwQ.Avalonia.Utilities.dll</HintPath>
-      </Reference>
     </ItemGroup>
     
 </Project>

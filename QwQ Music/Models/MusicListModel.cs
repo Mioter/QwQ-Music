@@ -9,16 +9,16 @@ namespace QwQ_Music.Models;
 public partial class MusicListModel(string name = "", string? description = null, string? coverPath = null)
     : ObservableObject
 {
-    public readonly string Name = name;
+    public string Name { set; get; }  = name;
 
     [ObservableProperty]
     public partial ObservableCollection<MusicItemModel> MusicItems { get; set; } = [];
 
     public string? LatestPlayedMusic;
 
-    public string? Description = description;
+    public string? Description { set; get; } = description;
 
-    public string? CoverPath = coverPath;
+    public string? CoverPath  { set; get; } = coverPath;
 
     public int Count => MusicItems.Count;
 
