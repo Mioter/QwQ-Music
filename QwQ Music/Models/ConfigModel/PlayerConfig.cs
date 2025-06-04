@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.Enums;
+using QwQ_Music.Definitions.Enums;
 
 namespace QwQ_Music.Models.ConfigModel;
 

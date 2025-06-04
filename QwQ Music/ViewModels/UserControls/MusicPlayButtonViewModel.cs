@@ -1,6 +1,6 @@
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ_Music.ViewModels.ViewModelBases;
 
 namespace QwQ_Music.ViewModels.UserControls;
 

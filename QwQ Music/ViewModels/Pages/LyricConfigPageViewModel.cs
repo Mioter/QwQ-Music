@@ -2,7 +2,7 @@
 using QwQ_Music.Helper;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
-using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ_Music.ViewModels.ViewModelBases;
 using static QwQ_Music.Models.LanguageModel;
 
 namespace QwQ_Music.ViewModels.Pages;

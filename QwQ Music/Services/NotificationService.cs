@@ -25,4 +25,17 @@ public static class NotificationService
     {
         NotificationManager?.Show(content, type, expiration, showIcon, showClose, onClick, onClose, classes);
     }
+
+    public static void ShowLight(
+        object content,
+        NotificationType type,
+        TimeSpan? expiration = null,
+        bool showIcon = true,
+        bool showClose = true,
+        Action? onClick = null,
+        Action? onClose = null
+    )
+    {
+        NotificationManager?.Show(content, type, expiration, showIcon, showClose, onClick, onClose, ["Light"]);
+    }
 }

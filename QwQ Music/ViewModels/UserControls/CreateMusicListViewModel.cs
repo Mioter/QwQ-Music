@@ -9,14 +9,14 @@ using Irihi.Avalonia.Shared.Contracts;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
-using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ_Music.Views.UserControls;
 using Ursa.Controls;
 using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.UserControls;
 
-public partial class CreateMusicListViewModel : ViewModelBase, IDialogContext
+public partial class CreateMusicListViewModel(string oldName = "") : ViewModelBase, IDialogContext
 {
     [ObservableProperty]
     public partial Bitmap? Cover { get; set; }
@@ -36,7 +36,10 @@ public partial class CreateMusicListViewModel : ViewModelBase, IDialogContext
             }
 
             // 检查歌单名称是否已存在
-            if (DataBaseService.RecordExists(DataBaseService.Table.LISTINFO, nameof(MusicListModel.Name), field))
+            if (
+                DataBaseService.RecordExists(DataBaseService.Table.LISTINFO, nameof(MusicListModel.Name), field)
+                && field != oldName
+            )
             {
                 ErrorText = "歌单名称已存在!";
                 return;
@@ -112,12 +115,9 @@ public partial class CreateMusicListViewModel : ViewModelBase, IDialogContext
         }
         catch (Exception ex)
         {
-            NotificationService.Show(
+            NotificationService.ShowLight(
                 new Notification("坏欸", $"打开文件失败了！" + $"{ex.Message}"),
-                NotificationType.Error,
-                showIcon: true,
-                showClose: true,
-                classes: ["Light"]
+                NotificationType.Error
             );
 
             return null;

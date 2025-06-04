@@ -2,67 +2,109 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:pages1="clr-namespace:QwQ_Music.ViewModels.Pages"
-             xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
-             xmlns:u="https://irihi.tech/ursa"
              xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
+             xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             xmlns:u="https://irihi.tech/ursa"
              xmlns:models="clr-namespace:QwQ_Music.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="pages1:AllMusicPageViewModel"
-             x:Class="QwQ_Music.Views.Pages.AllMusicPage">
-    
-    <Grid Margin="10,5" RowDefinitions="Auto,*">
+             x:DataType="pages:ViewMusicListPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.ViewMusicListPage">
 
-        <Panel >
+    <Grid RowDefinitions="Auto,*" RowSpacing="10" Margin="10,5">
 
-            <StackPanel
-                HorizontalAlignment="Right"
-                Orientation="Horizontal"
-                Spacing="8">
+        <StackPanel Spacing="10">
 
-                <StackPanel.Styles>
+            <Panel>
 
-                    <Style Selector="u|IconButton">
-                        <Setter Property="CornerRadius" Value="8" />
-                        <Setter Property="Background" Value="Transparent" />
+                <Panel.Styles>
+                    <Style Selector="Panel > StackPanel">
+                        <Setter Property="Spacing" Value="8" />
+                        <Setter Property="Orientation" Value="Horizontal" />
                     </Style>
+                </Panel.Styles>
 
-                    <Style Selector="PathIcon">
-                        <Setter Property="Margin" Value="5" />
-                    </Style>
+                <StackPanel>
 
-                </StackPanel.Styles>
+                    <u:Avatar CornerRadius="12" Height="25" Background="{DynamicResource SemiColorPrimaryLight}"
+                              Content="歌单" Foreground="{DynamicResource SemiColorPrimary}" />
 
-                <TextBox
-                    CornerRadius="15"
-                    HorizontalAlignment="Left"
-                    Text="{Binding SearchText, Mode=TwoWay}"
-                    Watermark="搜索音乐"
-                    Width="200" />
+                    <TextBlock FontWeight="Bold" VerticalAlignment="Center" Text="{Binding MusicListModel.Name}"
+                               FontSize="16" />
 
-                <u:IconButton Command="{Binding OpenFileCommand}" Icon="{StaticResource SemiIconPlus}" />
+                </StackPanel>
 
-                <u:IconButton
-                    Command="{Binding SelectedCurrentMusicItemCommand}"
-                    Icon="{StaticResource SemiIconAlignCenterVertical}"
-                    ToolTip.Tip="跳转当前音乐" />
+                <StackPanel
+                    HorizontalAlignment="Right">
 
-                <u:IconButton Icon="{StaticResource SemiIconMore}" ToolTip.Tip="更多">
+                    <StackPanel.Styles>
 
-                    <Button.Flyout>
-                        <Flyout>
-                            <StackPanel Spacing="5">
-                                <CheckBox Content="备注" Name="MoreColumn1" />
-                                <CheckBox Content="大小" Name="MoreColumn2" />
-                                <CheckBox Content="附注" Name="MoreColumn3" />
-                            </StackPanel>
-                        </Flyout>
-                    </Button.Flyout>
+                        <Style Selector="u|IconButton">
+                            <Setter Property="CornerRadius" Value="8" />
+                            <Setter Property="Background" Value="Transparent" />
+                        </Style>
 
-                </u:IconButton>
+                        <Style Selector="PathIcon">
+                            <Setter Property="Margin" Value="5" />
+                        </Style>
 
-            </StackPanel>
-        </Panel>
+                    </StackPanel.Styles>
+
+                    <TextBox
+                        CornerRadius="15"
+                        HorizontalAlignment="Left"
+                        Text="{Binding SearchText, Mode=TwoWay}"
+                        Watermark="搜索音乐"
+                        Width="200" />
+
+                    <Button
+                        Classes="Icon"
+                        CornerRadius="8"
+                        Command="{Binding MusicPlayerViewModel.TogglePlaylistCommand}"
+                        CommandParameter="{Binding MusicListModel}"
+                        Height="32" Width="32"
+                        Padding="2">
+                        <PathIcon Data="{StaticResource PlayIconData}" Margin="0" />
+                    </Button>
+
+                    <u:IconButton Command="{Binding}" Icon="{StaticResource SemiIconPlus}" />
+
+                    <u:IconButton
+                        Command="{Binding SelectedCurrentMusicItemCommand}"
+                        Icon="{StaticResource SemiIconAlignCenterVertical}"
+                        ToolTip.Tip="跳转当前音乐" />
+
+                    <u:IconButton Icon="{StaticResource SemiIconMore}" ToolTip.Tip="更多">
+
+                        <Button.Flyout>
+                            <Flyout>
+                                <StackPanel Spacing="5">
+                                    <CheckBox Content="备注" Name="MoreColumn1" />
+                                    <CheckBox Content="大小" Name="MoreColumn2" />
+                                    <CheckBox Content="附注" Name="MoreColumn3" />
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+
+                    </u:IconButton>
+
+                </StackPanel>
+
+            </Panel>
+
+            <Border BorderThickness="1" CornerRadius="12" BorderBrush="{DynamicResource BorderCardBorderBrush}">
+
+                <SelectableTextBlock
+                    TextWrapping="Wrap"
+                    MaxLines="5"
+                    LetterSpacing="1"
+                    LineSpacing="1"
+                    Margin="10"
+                    Text="{Binding MusicListModel.Description,Mode=TwoWay}" />
+
+            </Border>
+
+        </StackPanel>
 
         <DataGrid
             Background="Transparent"
@@ -71,10 +113,9 @@
             CanUserSortColumns="True"
             DragDrop.AllowDrop="True"
             Grid.Row="1"
-            IsReadOnly="True"
-            Margin="0,5"
-            ItemsSource="{Binding MusicItems}"
             SelectedItem="{Binding SelectedItem}"
+            IsReadOnly="True"
+            ItemsSource="{Binding MusicItems}"
             behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}">
 
             <DataGrid.Styles>
@@ -83,9 +124,9 @@
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
-                                
+
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
                                     CommandParameter="{Binding}"
                                     Header="立即播放">
                                     <MenuItem.Icon>
@@ -103,15 +144,15 @@
 
                                     <MenuItem
                                         Header="已有歌单"
-                                        IsVisible="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems.Count}"
-                                        ItemsSource="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems}">
+                                        IsVisible="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems.Count}"
+                                        ItemsSource="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems}">
 
                                         <MenuItem.ItemContainerTheme>
                                             <ControlTheme TargetType="MenuItem" x:DataType="models:MusicListModel"
                                                           BasedOn="{StaticResource BigIconMenuItem}">
                                                 <Setter Property="Header" Value="{Binding Name}" />
                                                 <Setter Property="Command"
-                                                        Value="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).AddToMusicListCommand}" />
+                                                        Value="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).AddToMusicListCommand}" />
                                                 <Setter Property="CommandParameter" Value="{Binding Name}" />
                                                 <Setter Property="Icon">
                                                     <Template>
@@ -141,10 +182,10 @@
 
                                     <Separator
                                         Margin="0,5"
-                                        IsVisible="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems.Count}" />
+                                        IsVisible="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems.Count}" />
 
                                     <MenuItem Header="下一首"
-                                              Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
+                                              Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
                                               CommandParameter="{Binding}">
                                         <MenuItem.Icon>
                                             <PathIcon Data="{StaticResource SemiIconTriangleDown}" Margin="2" />
@@ -152,7 +193,7 @@
                                     </MenuItem>
 
                                     <MenuItem Header="新建歌单"
-                                              Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.CreateAndAddToMusicListCommand}"
+                                              Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.CreateAndAddToMusicListCommand}"
                                               CommandParameter="{Binding}">
                                         <MenuItem.Icon>
                                             <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
@@ -162,7 +203,7 @@
                                 </MenuItem>
 
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ClearMusicItemCurrentDurationCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.ClearMusicItemCurrentDurationCommand}"
                                     CommandParameter="{Binding}"
                                     Header="清空播放时长">
                                     <MenuItem.Icon>
@@ -171,7 +212,18 @@
                                 </MenuItem>
 
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).RemoveToMusicListCommand}"
+                                    CommandParameter="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicListModel.Name}"
+                                    Header="移出歌单">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconForward}" Margin="2"
+                                                  Foreground="{StaticResource EmphasizePink3}"
+                                                  RenderTransform="rotate(180deg)" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+
+                                <MenuItem
+                                    Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
                                     CommandParameter="{Binding}"
                                     Header="详细信息">
                                     <MenuItem.Icon>
@@ -181,7 +233,7 @@
 
                                 <!--  在文件中打开  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
                                     CommandParameter="{Binding}"
                                     Header="在文件中打开">
                                     <MenuItem.Icon>
@@ -191,7 +243,7 @@
 
                                 <!--  删除  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.DeleteMusicItemCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.DeleteMusicItemCommand}"
                                     CommandParameter="{Binding}"
                                     Header="删除音乐">
                                     <MenuItem.Icon>
@@ -215,11 +267,9 @@
                     <Setter Property="Theme" Value="{StaticResource NoDecorativeThread}" />
                 </Style>
 
-                <!--
                 <Style Selector="DataGrid /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
                     <Setter Property="Opacity" Value="0" />
                 </Style>
-                -->
 
                 <!--<Style Selector="DataGridRowHeader /template/ Grid">
                     <Setter Property="Opacity" Value="0" />
@@ -264,12 +314,12 @@
 
                                 <!--  ReSharper disable Xaml.PossibleNullReferenceException  -->
                                 <userControls:MusicAlbumButton
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
                                     CommandParameter="{Binding}"
                                     CornerRadius="8"
-                                    CurrentMusicItem="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
+                                    CurrentMusicItem="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
                                     ExternalMouseTouch="{Binding $parent[DataGridRow].IsPointerOver}"
-                                    IsPlaying="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
+                                    IsPlaying="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
                                     <!--  ReSharper restore Xaml.PossibleNullReferenceException  -->
                                     <Button.Effect>
                                         <DropShadowEffect
@@ -345,16 +395,9 @@
 
             </Interaction.Behaviors>
 
+
         </DataGrid>
 
     </Grid>
-
-    <Interaction.Behaviors>
-
-        <RoutedEventTriggerBehavior RoutedEvent="{x:Static DragDrop.DropEvent}">
-            <InvokeCommandAction Command="{Binding DropFilesCommand}" PassEventArgsToCommand="True" />
-        </RoutedEventTriggerBehavior>
-
-    </Interaction.Behaviors>
 
 </UserControl>

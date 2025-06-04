@@ -6,7 +6,8 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Services;
-using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ_Music.ViewModels.ViewModelBases;
+using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.UserControls;
 
@@ -57,12 +58,10 @@ public partial class ImageCroppingViewModel(Bitmap sourceImage) : ViewModelBase
         }
         catch (Exception ex)
         {
-            NotificationService.Show(
+            NotificationService.ShowLight(
                 new Notification("坏欸", $"保存文件失败了！\n" + $"{ex.Message}"),
                 NotificationType.Error,
-                showIcon: true,
-                showClose: true,
-                classes: ["Light"]
+                showClose: false
             );
         }
     }

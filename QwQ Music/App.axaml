@@ -7,7 +7,8 @@
     xmlns:semi="https://irihi.tech/semi"
     xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:u="https://irihi.tech/ursa">
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:controls="clr-namespace:QwQ_Music.Controls">
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Styles>
@@ -52,13 +53,14 @@
         <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
         <converters:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
         <converters:StringEqualityConverter x:Key="StringEqualityConverter" />
+        <converters:ValueComparisonConverter x:Key="ValueComparisonConverter"/>
 
         <FontFamily x:Key="VivoSans">/Assets/Fonts#VivoSans</FontFamily>
         <FontFamily x:Key="Consolab">/Assets/Fonts#Consola</FontFamily>
 
         <CornerRadius x:Key="FlyoutCornerRadius">8</CornerRadius>
         <CornerRadius x:Key="ButtonCornerRadius">5</CornerRadius>
-        
+
     </Application.Resources>
 
 </Application>

@@ -1,4 +1,4 @@
-namespace QwQ_Music.Enums;
+namespace QwQ_Music.Definitions.Enums;
 
 /// <summary>
 /// 播放模式枚举

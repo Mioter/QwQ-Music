@@ -27,6 +27,18 @@ public class AudioPlay : IAudioPlay
     public event EventHandler? PlaybackCompleted;
 
     /// <inheritdoc />
+    public double Position
+    {
+        get
+        {
+            if (_soundPlayer != null)
+                return _soundPlayer.Time;
+            return -1;
+        }
+        set => Seek(value);
+    }
+
+    /// <inheritdoc />
     public bool IsMute
     {
         get;
@@ -229,7 +241,7 @@ public class AudioPlay : IAudioPlay
         _soundPlayer.PlaybackEnded += OnPlaybackCompleted;
 
         // 初始化进度定时器
-        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+        _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
         _progressTimer.Tick += OnProgressTimerTick;
     }
 

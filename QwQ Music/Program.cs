@@ -1,5 +1,6 @@
 ﻿using System;
 using Avalonia;
+using QwQ_Music.Definitions;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
@@ -27,17 +28,14 @@ public static class Program
     }
 
     private static void CurrentDomainOnProcessExit(object? sender, EventArgs e)
-    {          
+    {
         AppDomain.CurrentDomain.ProcessExit -= CurrentDomainOnProcessExit;
 
         try
         {
             ConfigInfoModel.SaveAll();
 
-            MessageBus.CreateMessage(new ExitReminderMessage(true))
-                .SetAsOneTime()
-                .WaitForCompletion()
-                .Publish();
+            MessageBus.CreateMessage(new ExitReminderMessage(true)).SetAsOneTime().WaitForCompletion().Publish();
 
             MusicPlayerViewModel.Instance.SaveAsync().Wait();
 

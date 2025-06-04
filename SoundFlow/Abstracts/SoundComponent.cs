@@ -365,7 +365,7 @@ public abstract class SoundComponent
 
         // SIMD-accelerated mixing
         int count = 0;
-        int simdLength = source.Length - (source.Length % Vector<float>.Count);
+        int simdLength = source.Length - source.Length % Vector<float>.Count;
 
         // Ensure there's enough data for SIMD operations
         if (simdLength > 0 && Vector<float>.Count <= source.Length && Vector<float>.Count <= destination.Length)
@@ -388,7 +388,7 @@ public abstract class SoundComponent
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ApplyVolumeAndPanning(Span<float> buffer, Vector2 volumePan)
+    private static void ApplyVolumeAndPanning(Span<float> buffer, Vector2 volumePan)
     {
         switch (AudioEngine.Channels)
         {

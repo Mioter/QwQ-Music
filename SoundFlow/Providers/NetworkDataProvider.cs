@@ -571,7 +571,7 @@ public sealed class NetworkDataProvider : ISoundDataProvider
                         _contentLength.GetValueOrDefault(long.MaxValue) - 1
                     );
                     if (endByteToFetch < currentStreamLength)
-                        endByteToFetch = currentStreamLength + (1024 * 1024);
+                        endByteToFetch = currentStreamLength + 1024 * 1024;
 
                     using (var rangeRequest = new HttpRequestMessage(HttpMethod.Get, _url))
                     {

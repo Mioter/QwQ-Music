@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace QwQ_Music.Views.Pages;
 
-public partial class ClassificationPage : UserControl
+public partial class ViewMusicListPage : UserControl
 {
-    public ClassificationPage()
+    public ViewMusicListPage()
     {
         InitializeComponent();
     }

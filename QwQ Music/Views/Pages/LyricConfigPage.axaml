@@ -16,7 +16,7 @@
         Margin="10"
         VerticalScrollBarVisibility="Auto">
 
-        <StackPanel Spacing="20" Margin="0,0,10,0">
+        <StackPanel Spacing="10" Margin="0,0,10,0">
 
             <Expander Header="滚动歌词">
 

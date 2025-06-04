@@ -1,7 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using QwQ_Music.ViewModels;
-using QwQ_Music.ViewModels.Pages;
 using MusicPlayListViewModel = QwQ_Music.ViewModels.UserControls.MusicPlayListViewModel;
 
 namespace QwQ_Music.Views.UserControls;

@@ -28,6 +28,11 @@ public interface IAudioPlay : IDisposable
     float Volume { get; set; }
 
     /// <summary>
+    /// 播放位置
+    /// </summary>
+    double Position { get; set; }
+
+    /// <summary>
     /// 开始播放
     /// </summary>
     void Play();

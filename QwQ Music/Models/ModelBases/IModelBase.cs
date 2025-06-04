@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace QwQ_Music.Models.ModelBase;
+namespace QwQ_Music.Models.ModelBases;
 
 public interface IModelBase<out TConfig>
     where TConfig : IModelBase<TConfig>

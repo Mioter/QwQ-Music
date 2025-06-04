@@ -73,28 +73,29 @@
     </Design.PreviewWith>
 
     <Thickness x:Key="MenuItemPadding">0,8</Thickness>
-    
+    <Thickness x:Key="MenuItemMargin">1</Thickness>
+
     <ControlTheme x:Key="{x:Type MenuItem}" TargetType="MenuItem">
         <Setter Property="Background" Value="{DynamicResource MenuItemBackground}" />
         <Setter Property="Foreground" Value="{DynamicResource MenuItemForeground}" />
         <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Margin" Value="{DynamicResource MenuItemMargin}"/>
         <Setter Property="Padding" Value="{DynamicResource MenuItemPadding}" />
         <Setter Property="Template">
             <ControlTemplate>
-                
+
                 <Panel>
-                    
+
                     <Border
                         Name="PART_LayoutRoot"
-                        Margin="5,0"
                         Padding="{TemplateBinding Padding}"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         CornerRadius="8">
-                        
+
                         <Grid ColumnSpacing="10">
-                            
+
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="ToggleIcon" />
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIcon" />
@@ -158,8 +159,8 @@
 
                             </StackPanel>
 
-
                         </Grid>
+                        
                     </Border>
 
                     <Popup
@@ -169,8 +170,9 @@
                                                  Mode=TwoWay}"
                         Placement="RightEdgeAlignedTop"
                         VerticalOffset="-8"
+                        HorizontalOffset="5"
                         WindowManagerAddShadowHint="False">
-                        
+
                         <Border
                             MinWidth="{DynamicResource MenuFlyoutMinWidth}"
                             MinHeight="{DynamicResource MenuFlyoutMinHeight}"
@@ -184,25 +186,25 @@
                             BorderThickness="{DynamicResource MenuFlyoutBorderThickness}"
                             BoxShadow="{DynamicResource MenuFlyoutBorderBoxShadow}"
                             CornerRadius="{DynamicResource MenuFlyoutCornerRadius}">
-                            
+
                             <ScrollViewer Theme="{StaticResource MenuScrollViewer}"
                                           CornerRadius="{DynamicResource MenuFlyoutCornerRadius}">
-                                
+
                                 <ItemsPresenter
                                     Name="PART_ItemsPresenter"
                                     Grid.IsSharedSizeScope="True"
                                     ItemsPanel="{TemplateBinding ItemsPanel}" />
-                                
+
                             </ScrollViewer>
-                            
+
                         </Border>
-                        
+
                     </Popup>
-                    
+
                 </Panel>
-                
+
             </ControlTemplate>
-            
+
         </Setter>
 
         <Style Selector="^:icon /template/ Viewbox#PART_IconPresenter">
@@ -278,6 +280,56 @@
                 </Template>
             </Setter>
         </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="BigIconMenuItem" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+        <Setter Property="Template">
+            <ControlTemplate>
+
+                <Panel>
+
+                    <Border
+                        Name="PART_LayoutRoot"
+                        Padding="{TemplateBinding Padding}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="8">
+
+                        <Grid ColumnSpacing="10">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="ToggleIcon" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIcon" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemChevron" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- 图标 -->
+                            <ContentPresenter
+                                Grid.Column="1" 
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Icon}" />
+
+                            <!-- 文本 -->
+                            <ContentPresenter
+                                Name="PART_HeaderPresenter"
+                                Grid.Column="2"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Header}"
+                                ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                RecognizesAccessKey="True" />
+
+                        </Grid>
+                    </Border>
+                </Panel>
+
+            </ControlTemplate>
+
+        </Setter>
+
     </ControlTheme>
 
 </ResourceDictionary>

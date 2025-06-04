@@ -141,7 +141,7 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
                 if (sampleIndex1 >= _resampleBufferValidSamples)
                 {
                     output[outputBufferOffset + ch] =
-                        (sampleIndex0 < _resampleBufferValidSamples && sampleIndex0 >= 0)
+                        sampleIndex0 < _resampleBufferValidSamples && sampleIndex0 >= 0
                             ? _resampleBuffer[sampleIndex0]
                             : 0f;
                     continue;
@@ -377,7 +377,7 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
                 : (int)(effectiveEndTime * AudioEngine.Instance.SampleRate * AudioEngine.Channels);
 
         // Align to frame boundaries and clamp
-        LoopStartSamples = (LoopStartSamples / AudioEngine.Channels) * AudioEngine.Channels;
+        LoopStartSamples = LoopStartSamples / AudioEngine.Channels * AudioEngine.Channels;
         LoopStartSamples = Math.Clamp(LoopStartSamples, 0, _dataProvider.Length);
 
         if (LoopEndSamples != -1)
@@ -401,12 +401,12 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
                 "Loop end sample must be greater than or equal to start sample, or -1."
             );
 
-        LoopStartSamples = (startSample / AudioEngine.Channels) * AudioEngine.Channels;
+        LoopStartSamples = startSample / AudioEngine.Channels * AudioEngine.Channels;
         LoopStartSamples = Math.Clamp(LoopStartSamples, 0, _dataProvider.Length);
 
         if (endSample != -1)
         {
-            LoopEndSamples = (endSample / AudioEngine.Channels) * AudioEngine.Channels;
+            LoopEndSamples = endSample / AudioEngine.Channels * AudioEngine.Channels;
             LoopEndSamples = Math.Clamp(LoopEndSamples, LoopStartSamples, _dataProvider.Length);
         }
         else

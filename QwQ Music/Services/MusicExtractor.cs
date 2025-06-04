@@ -9,7 +9,6 @@ using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Utilities;
 using File = System.IO.File;
-using PlayerConfig = QwQ_Music.Models.ConfigModel.PlayerConfig;
 
 namespace QwQ_Music.Services;
 
@@ -20,56 +19,6 @@ public static class MusicExtractor
     public static readonly Dictionary<string, Bitmap> ImageCache = [];
 
     public static readonly Bitmap DefaultCover = GetDefaultCover();
-
-    /// <summary>
-    /// 异步保存专辑封面图片。
-    /// </summary>
-    /// <param name="cover">专辑封面图片。</param>
-    /// <param name="filePath">专辑封面文路径。</param> // 修改注释
-    public static async Task<bool> SaveCoverAsync(Bitmap cover, string filePath)
-    {
-        // 确保目录存在
-        // 注意：如果 MusicCoverSavePath 本身就不存在，CreateDirectory 需要能创建多级目录
-        string? directoryPath = Path.GetDirectoryName(filePath);
-        if (!string.IsNullOrEmpty(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-        }
-        else
-        {
-            // 如果无法获取目录路径（例如 coverFileName 是根路径下的文件名），记录错误或采取其他措施
-            await LoggerService.ErrorAsync($"Invalid cover file path generated: {filePath}");
-            return false;
-        }
-
-        // 检查文件是否存在
-        if (File.Exists(filePath))
-        {
-            /*LoggerService.Info($"Cover already exists: {filePath}. Skipping save.");*/
-            return true;
-        }
-
-        try
-        {
-            // 将文件流的创建和保存操作移至 Task.Run 内部
-            await Task.Run(() =>
-                {
-                    // 在后台线程中创建、使用和释放文件流
-                    using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
-                    cover.Save(fs); // Bitmap.Save 是同步操作
-                })
-                .ConfigureAwait(false); // 继续使用 ConfigureAwait(false)
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            await LoggerService.ErrorAsync(
-                $"Failed to save cover {filePath}: {ex.Message}, TypeName: {ex.GetType().Name}"
-            );
-            return false;
-        }
-    }
 
     public static async Task<LyricsData> ExtractMusicLyricsAsync(string? filePath)
     {
@@ -194,7 +143,7 @@ public static class MusicExtractor
         {
             var track = new Track(filePath);
             long fileSizeBytes = new FileInfo(filePath).Length;
-            string fileSize = FormatFileSize(fileSizeBytes);
+            string fileSize = FileOperation.FormatFileSize(fileSizeBytes);
             string title = string.IsNullOrWhiteSpace(track.Title)
                 ? Path.GetFileNameWithoutExtension(filePath)
                 : track.Title;
@@ -207,18 +156,7 @@ public static class MusicExtractor
 
             string? coverFileName = null; // 存储文件名，而非完整路径
 
-            if (track.EmbeddedPictures.Count > 0)
-            {
-                // 获取清理后的文件名
-                coverFileName = GetCoverFileName(artists, album);
-                // 异步保存封面，传递文件名
-                await SaveCoverAsync(
-                    new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData)),
-                    Path.Combine(MainConfig.MusicCoverSavePath, coverFileName)
-                );
-            }
-
-            return new MusicItemModel(
+            var musicItem = new MusicItemModel(
                 title,
                 artists,
                 composer,
@@ -231,6 +169,20 @@ public static class MusicExtractor
                 encodingFormat,
                 comment
             );
+            if (track.EmbeddedPictures.Count <= 0)
+                return musicItem;
+
+            // 获取清理后的文件名
+            coverFileName = GetCoverFileName(artists, album);
+
+            var coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
+
+            // 异步保存封面，传递文件名
+            await FileOperation.SaveImageAsync(coverImage, Path.Combine(MainConfig.MusicCoverSavePath, coverFileName));
+
+            musicItem.CoverImage = coverImage;
+
+            return musicItem;
         }
         catch (Exception ex)
         {
@@ -328,27 +280,6 @@ public static class MusicExtractor
         new(AssetLoader.Open(new Uri("avares://QwQ Music/Assets/Images/看我.png")));
 
     /// <summary>
-    /// 格式化文件大小为人类可读的形式。
-    /// </summary>
-    /// <param name="bytes">文件大小（字节）。</param>
-    /// <returns>格式化后的文件大小。</returns>
-    private static string FormatFileSize(long bytes)
-    {
-        const int scale = 1024;
-        string[] orders = ["GiB", "MiB", "KiB", "Bytes"];
-        double len = bytes;
-        int order = orders.Length - 1;
-
-        while (len >= scale && order > 0)
-        {
-            order--;
-            len /= scale;
-        }
-
-        return $"{len:0.0}{orders[order]}";
-    }
-
-    /// <summary>
     /// 从音频文件中提取专辑封面并保存
     /// </summary>
     /// <param name="filePath">音频文件路径</param>
@@ -371,7 +302,7 @@ public static class MusicExtractor
             string coverFileName = GetCoverFileName(artists, album);
 
             // 异步保存封面，传递文件名
-            bool saved = await SaveCoverAsync(
+            bool saved = await FileOperation.SaveImageAsync(
                 new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData)),
                 Path.Combine(MainConfig.MusicCoverSavePath, coverFileName)
             );

@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using QwQ_Music.Definitions;
 using QwQ_Music.Helper;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Audio;
 using QwQ_Music.Utilities;
-using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ.Avalonia.Utilities.MessageBus;
 using QwQ.Avalonia.Utilities.TaskManager;
 using SoundFlow.Modifiers;
@@ -28,15 +29,19 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     public PlayConfigPageViewModel()
     {
         ReplayGainCalculator.CalcCompletedChanged += ReplayGainCalculatorOnCalcCompletedChanged;
-        MessageBus.ReceiveMessage<ExitReminderMessage>(this)
+        MessageBus
+            .ReceiveMessage<ExitReminderMessage>(this)
             .WithHandler(ExitReminderMessageHandler)
+            .AsWeakReference()
             .Subscribe();
-        MessageBus.ReceiveMessage<LoadCompletedMessage>(this)
+        MessageBus
+            .ReceiveMessage<LoadCompletedMessage>(this)
             .WithHandler(LoadCompletedMessageHandler)
+            .AsWeakReference()
             .Subscribe();
     }
 
-    private async void LoadCompletedMessageHandler(LoadCompletedMessage obj,object? sender)
+    private async void LoadCompletedMessageHandler(LoadCompletedMessage obj, object? sender)
     {
         try
         {
@@ -53,7 +58,7 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
     private void ReplayGainCalculatorOnCalcCompletedChanged(object? sender, EventArgs e) => NumberOfCompletedCalc++;
 
-    private void ExitReminderMessageHandler(ExitReminderMessage obj,object? sender)
+    private void ExitReminderMessageHandler(ExitReminderMessage obj, object? sender)
     {
         ReplayGainCalculator.CalcCompletedChanged -= ReplayGainCalculatorOnCalcCompletedChanged;
     }
@@ -62,9 +67,11 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
     #region 回放增益
 
-    [ObservableProperty] public partial TaskController? TaskController { get; set; }
+    [ObservableProperty]
+    public partial TaskController? TaskController { get; set; }
 
-    [ObservableProperty] public partial int NumberOfCompletedCalc { get; set; }
+    [ObservableProperty]
+    public partial int NumberOfCompletedCalc { get; set; }
 
     public static MusicReplayGainStandard[] MusicReplayGainStandardList { get; set; } =
         EnumHelper<MusicReplayGainStandard>.ToArray();
@@ -73,9 +80,11 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     public partial MusicReplayGainStandard SelectedMusicReplayGainStandard { get; set; } =
         MusicReplayGainStandard.Streaming;
 
-    [ObservableProperty] public partial double CustomMusicReplayGainStandard { get; set; } = 12;
+    [ObservableProperty]
+    public partial double CustomMusicReplayGainStandard { get; set; } = 12;
 
-    [ObservableProperty] public partial string CalculationButtonText { get; set; } = "开始 ▶";
+    [ObservableProperty]
+    public partial string CalculationButtonText { get; set; } = "开始 ▶";
 
     [RelayCommand]
     private async Task ClearCallbackGain()
@@ -97,7 +106,7 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     {
         if (
             MusicPlayerViewModel.MusicItems.Count <= 0
-         || NumberOfCompletedCalc == MusicPlayerViewModel.MusicItems.Count
+            || NumberOfCompletedCalc == MusicPlayerViewModel.MusicItems.Count
         )
             return;
 
@@ -151,13 +160,15 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
         var itemsToProcess = MusicPlayerViewModel.MusicItems.Where(item => item.Gain <= 0).ToList();
 
-        TaskManager.CreateMultiTask(
+        TaskManager
+            .CreateMultiTask(
                 itemsToProcess,
                 async item =>
                 {
                     var ex = await item.GetExtensionsInfo();
                     item.Gain = AudioHelper.CalcGainOfMusicItem(item.FilePath, ex.SamplingRate, ex.Channels);
-                })
+                }
+            )
             .SetController(TaskController)
             .SetErrorHandler(ex =>
             {
@@ -170,7 +181,7 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     }
 
     private void CleanupTask()
-    {    
+    {
         UpdatePromptText();
         TaskController?.Dispose();
         TaskController = null;

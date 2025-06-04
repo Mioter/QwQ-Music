@@ -260,7 +260,6 @@ public static class DataBaseService
                 {nameof(MusicListModel.Name)} TEXT NOT NULL UNIQUE PRIMARY KEY,
                 {nameof(MusicListModel.Description)} TEXT,
                 {nameof(MusicListModel.CoverPath)} TEXT,
-                {nameof(MusicListModel.Count)} INTEGER NOT NULL,
                 {nameof(MusicListModel.LatestPlayedMusic)} TEXT)
                 """;
 

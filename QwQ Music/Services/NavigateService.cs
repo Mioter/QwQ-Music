@@ -109,7 +109,7 @@ public static class NavigateService
             return;
 
         // 如果当前索引不是历史记录的末尾，说明执行了后退操作后又进行了新的导航，
-        // 需要清除当前索引之后的所有“未来”历史记录。
+        // 需要清除当前索引之后的所有"未来"历史记录。
         if (currentHistoryIndex < _navigationHistory.Count - 1)
         {
             _navigationHistory.RemoveRange(currentHistoryIndex + 1, _navigationHistory.Count - currentHistoryIndex - 1);
@@ -284,5 +284,200 @@ public static class NavigateService
         {
             isNavigatingInternally = false; // 标记结束内部导航
         }
+    }
+
+    /// <summary>
+    /// 获取指定视图的父视图名称
+    /// </summary>
+    /// <param name="viewName">要查询的视图名称</param>
+    /// <returns>父视图名称，如果不存在则返回 null</returns>
+    public static string? GetParentView(string viewName)
+    {
+        return ViewIndex.TryGetValue(viewName, out var indexInfo) ? indexInfo.Parent : null;
+    }
+
+    /// <summary>
+    /// 获取子视图在父视图中的索引
+    /// </summary>
+    /// <param name="parentViewName">父视图名称</param>
+    /// <param name="childViewName">子视图名称</param>
+    /// <returns>子视图在父视图中的索引，如果不存在则返回-1</returns>
+    public static int GetChildViewIndex(string parentViewName, string childViewName)
+    {
+        if (!_viewTree.TryGetValue(parentViewName, out string[]? children) || children == null)
+            return -1;
+
+        return Array.IndexOf(children, childViewName);
+    }
+
+    /// <summary>
+    /// 判断子视图是否存在于父视图中
+    /// </summary>
+    /// <param name="parentViewName">父视图名称</param>
+    /// <param name="childViewName">待查找的子视图名称</param>
+    /// <returns>如果子视图存在于父视图中返回true，否则返回false</returns>
+    public static bool IsChildViewExists(string parentViewName, string childViewName)
+    {
+        return GetChildViewIndex(parentViewName, childViewName) != -1;
+    }
+
+    /// <summary>
+    /// 向父视图添加子视图
+    /// </summary>
+    /// <param name="parentViewName">父视图名称</param>
+    /// <param name="childViewName">要添加的子视图名称</param>
+    /// <returns>是否添加成功</returns>
+    public static bool AddChildView(string parentViewName, string childViewName)
+    {
+        // 检查父视图是否存在
+        if (!_viewTree.ContainsKey(parentViewName))
+            return false;
+
+        // 检查子视图是否已存在
+        if (_viewTree.ContainsKey(childViewName) || IsChildViewExists(parentViewName, childViewName))
+            return false;
+
+        // 获取父视图的现有子视图列表
+        string[] children = _viewTree[parentViewName] ?? [];
+
+        // 创建新的子视图数组
+        string[] newChildren = new string[children.Length + 1];
+        Array.Copy(children, newChildren, children.Length);
+        newChildren[children.Length] = childViewName;
+
+        // 更新视图树
+        _viewTree[parentViewName] = newChildren;
+        _viewTree[childViewName] = null; // 添加新的子视图节点
+
+        // 更新 ViewIndex
+        ViewIndex[childViewName] = (parentViewName, children.Length, 0);
+
+        return true;
+    }
+
+    /// <summary>
+    /// 从父视图中移除子视图
+    /// </summary>
+    /// <param name="parentViewName">父视图名称</param>
+    /// <param name="childViewName">要移除的子视图名称</param>
+    /// <returns>是否移除成功</returns>
+    public static bool RemoveChildView(string parentViewName, string childViewName)
+    {
+        // 检查父视图是否存在且子视图是否存在于父视图中
+        if (!IsChildViewExists(parentViewName, childViewName))
+            return false;
+
+        // 获取父视图的子视图列表
+        string[] children = _viewTree[parentViewName]!;
+        int index = GetChildViewIndex(parentViewName, childViewName);
+
+        // 创建新的子视图数组（不包含要删除的子视图）
+        string[] newChildren = new string[children.Length - 1];
+        Array.Copy(children, 0, newChildren, 0, index);
+        Array.Copy(children, index + 1, newChildren, index, children.Length - index - 1);
+
+        // 更新视图树
+        _viewTree[parentViewName] = newChildren;
+        _viewTree.Remove(childViewName);
+
+        // 更新 ViewIndex
+        ViewIndex.Remove(childViewName);
+
+        // 更新其他子视图的索引
+        for (int i = index; i < newChildren.Length; i++)
+        {
+            if (ViewIndex.TryGetValue(newChildren[i], out var indexInfo))
+            {
+                ViewIndex[newChildren[i]] = (indexInfo.Parent, i, indexInfo.CurrentChildIndex);
+            }
+        }
+
+        // 清理导航历史记录
+        CleanupNavigationHistory(childViewName);
+
+        return true;
+    }
+
+    /// <summary>
+    /// 清理导航历史记录中的指定视图及其子视图
+    /// </summary>
+    /// <param name="viewName">要清理的视图名称</param>
+    private static void CleanupNavigationHistory(string viewName)
+    {
+        // 获取要删除的视图的所有子视图
+        var viewsToRemove = new HashSet<string> { viewName };
+        var queue = new Queue<string>();
+        queue.Enqueue(viewName);
+
+        // 使用广度优先搜索收集所有子视图
+        while (queue.Count > 0)
+        {
+            string current = queue.Dequeue();
+            if (_viewTree.TryGetValue(current, out string[]? children) && children != null)
+            {
+                foreach (string child in children)
+                {
+                    viewsToRemove.Add(child);
+                    queue.Enqueue(child);
+                }
+            }
+        }
+
+        // 从导航历史记录中移除相关视图
+        _navigationHistory.RemoveAll(view => viewsToRemove.Contains(view));
+
+        // 清理连续重复的视图
+        CleanupConsecutiveDuplicates();
+
+        // 更新当前历史索引
+        if (currentHistoryIndex >= _navigationHistory.Count)
+        {
+            currentHistoryIndex = _navigationHistory.Count - 1;
+        }
+
+        // 如果当前视图被删除，导航到最后一个有效的历史记录
+        if (viewsToRemove.Contains(CurrentView) && _navigationHistory.Count > 0)
+        {
+            CurrentView = _navigationHistory[currentHistoryIndex];
+            CurrentViewChanged?.Invoke(CurrentView);
+        }
+    }
+
+    /// <summary>
+    /// 清理导航历史记录中的连续重复视图
+    /// </summary>
+    private static void CleanupConsecutiveDuplicates()
+    {
+        if (_navigationHistory.Count <= 1)
+            return;
+
+        // 使用新的列表存储清理后的历史记录
+        var cleanedHistory = new List<string> { _navigationHistory[0] };
+
+        // 遍历历史记录，只保留不连续的重复项
+        for (int i = 1; i < _navigationHistory.Count; i++)
+        {
+            if (_navigationHistory[i] != cleanedHistory[^1])
+            {
+                cleanedHistory.Add(_navigationHistory[i]);
+            }
+        }
+
+        // 如果清理后的历史记录长度小于当前索引，需要调整索引
+        if (cleanedHistory.Count < _navigationHistory.Count)
+        {
+            // 找到当前视图在清理后历史记录中的位置
+            int newIndex = cleanedHistory.IndexOf(CurrentView);
+            if (newIndex == -1)
+            {
+                // 如果当前视图不在清理后的历史记录中，使用最后一个位置
+                newIndex = cleanedHistory.Count - 1;
+            }
+            currentHistoryIndex = newIndex;
+        }
+
+        // 更新历史记录
+        _navigationHistory.Clear();
+        _navigationHistory.AddRange(cleanedHistory);
     }
 }

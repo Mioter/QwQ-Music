@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
+using QwQ_Music.Definitions;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Shader;
-using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ.Avalonia.Utilities.MessageBus;
 
 namespace QwQ_Music.ViewModels.Pages;
@@ -25,8 +26,10 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         : base("播放")
     {
         MusicPlayerViewModel.CurrentMusicItemChanged += MusicPlayerViewModelOnCurrentMusicItemChanged;
-        MessageBus.ReceiveMessage<ExitReminderMessage>(this)
+        MessageBus
+            .ReceiveMessage<ExitReminderMessage>(this)
             .WithHandler(ExitReminderMessageHandler)
+            .AsWeakReference()
             .Subscribe();
     }
 

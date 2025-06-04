@@ -140,9 +140,9 @@ public class RawDataProvider : ISoundDataProvider
                     if (byteIndex + 2 < byteBuffer.Length)
                     {
                         int sample24 =
-                            (byteBuffer[byteIndex] << 0)
-                            | (byteBuffer[byteIndex + 1] << 8)
-                            | (byteBuffer[byteIndex + 2] << 16);
+                            byteBuffer[byteIndex] << 0
+                            | byteBuffer[byteIndex + 1] << 8
+                            | byteBuffer[byteIndex + 2] << 16;
                         if ((sample24 & 0x800000) != 0)
                             sample24 |= unchecked((int)0xFF000000);
                         floatBuffer[i] = sample24 / 8388608f;

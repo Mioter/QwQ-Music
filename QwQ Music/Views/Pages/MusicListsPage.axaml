@@ -8,12 +8,38 @@
              x:Class="QwQ_Music.Views.Pages.MusicListsPage">
     
     <ItemsControl ItemsSource="{Binding PlayListItems}" Margin="10">
-        
+
         <ItemsControl.Styles>
 
-            <Style Selector="ContentPresenter">
-                <Setter Property="Padding" Value="0" />
-                <Setter Property="Background" Value="{x:Null}" />
+            <Style Selector="ItemsControl > ContentPresenter">
+                <Setter Property="ContextMenu">
+                    <Setter.Value>
+                        <ContextMenu>
+                            
+                            <MenuItem
+                                Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).EditMusicListCommand}"
+                                CommandParameter="{Binding}"
+                                Header="编辑">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconEdit}" 
+                                              Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                            <MenuItem
+                                Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).DeleteMusicListModelCommand}"
+                                CommandParameter="{Binding}"
+                                Header="删除">
+                                <MenuItem.Icon>
+                                    <PathIcon Foreground="{DynamicResource EmphasizePink3}"
+                                              Data="{StaticResource SemiIconDelete}" 
+                                              Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                        </ContextMenu>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
         </ItemsControl.Styles>
@@ -29,16 +55,16 @@
         <ItemsControl.ItemTemplate>
 
             <DataTemplate>
-                
-                <Button Padding="10"
-                        CornerRadius="12" >
-                    
+
+                <Button Background="Transparent" Padding="10" CornerRadius="12"
+                        Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).OpenMusicListsCommand}"
+                        CommandParameter="{Binding}">
+
                     <DockPanel
-                        Height="60" 
-                        Width="160"  
-                        Background="Transparent" 
-                        HorizontalSpacing="10" 
-                        VerticalSpacing="10">
+                        Height="60"
+                        Width="160"
+                        HorizontalSpacing="10"
+                        VerticalSpacing="5">
 
                         <Border DockPanel.Dock="Left"
                                 CornerRadius="12"
@@ -55,10 +81,10 @@
 
                             <Border CornerRadius="12"
                                     ClipToBounds="True">
-                                <!--<Image
-                                    Source="{Binding CoverImage}" />-->
+                                <Image
+                                    Source="{Binding CoverImage}" />
                             </Border>
-                            
+
                         </Border>
 
                         <TextBlock DockPanel.Dock="Top"
@@ -69,17 +95,20 @@
 
                         <TextBlock DockPanel.Dock="Bottom"
                                    Text="{Binding Description}"
-                                   FontSize="14"
+                                   MaxLines="2"
+                                   FontSize="12"
+                                   TextTrimming="CharacterEllipsis"
                                    TextWrapping="Wrap"
                                    Classes="Tertiary" />
 
                     </DockPanel>
-                    
+
                 </Button>
-                
+
             </DataTemplate>
 
         </ItemsControl.ItemTemplate>
+
 
     </ItemsControl>
 

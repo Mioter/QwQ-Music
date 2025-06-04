@@ -180,7 +180,7 @@ namespace Impressionist.Implementations
 
             public Node(PaletteQuantizer parent)
             {
-                this._parent = parent;
+                _parent = parent;
             }
 
             public void AddColor(Vector3 color, int level)

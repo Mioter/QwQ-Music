@@ -14,11 +14,10 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // 获取MusicPlayerViewModel
-        var musicPlayerViewModel = MusicPlayerViewModel.Instance;
+        Closed += OnClosed;
 
         // 初始化热键服务
-        _hotkeyService = new HotkeyService(musicPlayerViewModel);
+        _hotkeyService = new HotkeyService(MusicPlayerViewModel.Instance);
 
         // 注册按键事件
         KeyDown += MainWindow_KeyDown;
@@ -35,6 +34,7 @@ public partial class MainWindow : Window
     {
         Closed -= OnClosed;
         MusicCoverPagePanel.PointerPressed -= MusicCoverPagePanelOnPointerPressed;
+        KeyDown -= MainWindow_KeyDown;
     }
 
     private void MusicCoverPagePanelOnPointerPressed(object? sender, PointerPressedEventArgs e)

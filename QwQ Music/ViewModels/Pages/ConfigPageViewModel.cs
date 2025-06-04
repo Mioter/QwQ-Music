@@ -1,5 +1,5 @@
 ﻿using QwQ_Music.Models;
-using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ_Music.ViewModels.ViewModelBases;
 
 namespace QwQ_Music.ViewModels.Pages;
 

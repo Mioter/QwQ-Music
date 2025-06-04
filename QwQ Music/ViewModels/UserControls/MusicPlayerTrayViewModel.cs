@@ -1,7 +1,9 @@
 using Avalonia.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using QwQ_Music.Definitions;
 using QwQ_Music.Services;
-using QwQ_Music.ViewModels.ViewModeBase;
+using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ.Avalonia.Utilities.MessageBus;
 
 namespace QwQ_Music.ViewModels.UserControls;
@@ -12,22 +14,24 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
 
     public double AlbumCoverRecordAngle { get; set; }
 
-    public string? CurrentViewName { get; set; }
+    [ObservableProperty]
+    public partial bool IsSoundEffectView { get; set; }
 
     public MusicPlayerTrayViewModel()
     {
         MusicPlayerViewModel.PlaybackStateChanged += MusicPlayerViewModelOnPlaybackStateChanged;
 
         NavigateService.CurrentViewChanged += CurrentViewChanged;
-        MessageBus.ReceiveMessage<ExitReminderMessage>(this)
+        MessageBus
+            .ReceiveMessage<ExitReminderMessage>(this)
             .WithHandler(ExitReminderMessageHandler)
+            .AsWeakReference()
             .Subscribe();
     }
 
     private void CurrentViewChanged(string name)
     {
-        CurrentViewName = name;
-        OnPropertyChanged(nameof(CurrentViewName));
+        IsSoundEffectView = name == "音效" || NavigateService.GetParentView(name) == "音效";
     }
 
     private void ExitReminderMessageHandler(ExitReminderMessage message, object _)
