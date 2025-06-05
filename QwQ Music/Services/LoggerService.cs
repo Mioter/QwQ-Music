@@ -4,17 +4,33 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Services;
 
+#if DEBUG
+[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(LogData))]
+internal partial class LoggerJsonContext : JsonSerializerContext;
+
+internal record LogData(
+    string Timestamp,
+    string Level,
+    string? Action,
+    string? Filename,
+    int LineNumber,
+    string Message
+);
+#endif
+
 public static class LoggerService
 {
     // 配置项
     public static readonly string SavePath = PathEnsurer.EnsureDirectoryExists(
-        Path.Combine(AppContext.BaseDirectory, "log")
+        Path.Combine(AppContext.BaseDirectory, "logs")
     );
     public static bool IsKeepOpen { get; set; } = false;
     public static LogLevel Level { get; set; } = LogLevel.Debug;
@@ -33,23 +49,23 @@ public static class LoggerService
     }
 
     // 内部状态
-    private static DateTime _CurrentDay = DateTime.Today;
-    private static string LogFile => Path.Combine(SavePath, $"{_CurrentDay:yyyy-MM-dd}.QwQ.log");
-    private static FileStream? _FileStream;
-    private static readonly SemaphoreSlim AsyncLock = new(1, 1);
-    private static readonly HttpClient HttpClient = new();
+    private static DateTime currentDay = DateTime.Today;
+    private static string LogFile => Path.Combine(SavePath, $"{currentDay:yyyy-MM-dd}.QwQ.log");
+    private static FileStream? fileStream;
+    private static readonly SemaphoreSlim _asyncLock = new(1, 1);
+    private static readonly HttpClient _httpClient = new();
 
     /// <summary>
     /// 获取或创建日志文件流
     /// </summary>
     private static FileStream GetLogFile()
     {
-        if (_FileStream is { CanWrite: true })
-            return _FileStream;
+        if (fileStream is { CanWrite: true })
+            return fileStream;
 
-        _FileStream?.Dispose();
-        _FileStream = new FileStream(LogFile, FileMode.Append, FileAccess.Write, FileShare.Read);
-        return _FileStream;
+        fileStream?.Dispose();
+        fileStream = new FileStream(LogFile, FileMode.Append, FileAccess.Write, FileShare.Read);
+        return fileStream;
     }
 
     /// <summary>
@@ -69,22 +85,22 @@ public static class LoggerService
     /// </summary>
     private static async Task WriteLogAsync(string logMessage)
     {
-        await AsyncLock.WaitAsync();
+        await _asyncLock.WaitAsync();
         try
         {
             // 检查是否需要切换日志文件
             var today = DateTime.Today;
-            if (today != _CurrentDay)
+            if (today != currentDay)
             {
-                _CurrentDay = today;
-                await (_FileStream?.DisposeAsync() ?? ValueTask.CompletedTask); // 修复 CA2012
-                _FileStream = null;
+                currentDay = today;
+                await (fileStream?.DisposeAsync() ?? ValueTask.CompletedTask); // 修复 CA2012
+                fileStream = null;
             }
             await AttemptWriteWithRetry(logMessage);
         }
         finally
         {
-            AsyncLock.Release();
+            _asyncLock.Release();
         }
     }
 
@@ -143,7 +159,14 @@ public static class LoggerService
     /// <summary>
     /// 异步记录日志
     /// </summary>
-    private static Task LogAsync(LogLevel level, string status, string message, int line, string? function, string? filename)
+    private static Task LogAsync(
+        LogLevel level,
+        string status,
+        string message,
+        int line,
+        string? function,
+        string? filename
+    )
     {
         if (level < Level)
             return Task.CompletedTask;
@@ -153,34 +176,32 @@ public static class LoggerService
         SendLog(status, message, line, function, filename).ConfigureAwait(false);
 #endif
         return WriteLogAsync(logMessage);
-
-
     }
 
+#if DEBUG
     /// <summary>
     /// 发送日志到本地服务器
     /// </summary>
     private static async Task SendLog(string status, string message, int lineNumber, string? function, string? filename)
     {
-        var logData = new
-        {
-            timestamp = DateTime.Now.ToString("HH:mm:ss.fff"),
-            level = status,
-            action = function,
+        var logData = new LogData(
+            DateTime.Now.ToString("HH:mm:ss.fff"),
+            status,
+            function,
             filename,
             lineNumber,
-            message,
-        };
+            message
+        );
 
         try
         {
-            string postData = JsonSerializer.Serialize(logData);
+            string postData = JsonSerializer.Serialize(logData, LoggerJsonContext.Default.LogData);
             var content = new StringContent(postData, Encoding.UTF8, "application/json");
 
             // 使用超时防止阻塞
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-            var response = await HttpClient.PostAsync("http://localhost:8081/log", content, cts.Token);
-            
+            var response = await _httpClient.PostAsync("http://localhost:8081/log", content, cts.Token);
+
             // 不再输出状态码到控制台，避免过多输出
             if (!response.IsSuccessStatusCode)
             {
@@ -196,15 +217,16 @@ public static class LoggerService
             Console.WriteLine($"发送日志时发生未预期错误: {e.Message}");
         }
     }
+#endif
 
     /// <summary>
     /// 关闭日志服务，释放资源
     /// </summary>
     public static void Shutdown()
     {
-        _FileStream?.Dispose();
+        fileStream?.Dispose();
         Info("日志服务已退出~");
-        _FileStream = null;
+        fileStream = null;
     }
 
     // 公共日志方法 - 同步版本

@@ -55,27 +55,26 @@ public static class DataBaseService
 
     #region 数据库连接管理
 
-    // ReSharper disable once InconsistentNaming
-    private static SqliteConnection? _database;
-    private static readonly SemaphoreSlim ConnectionLock = new(1, 1);
-    private static int _OpenConnectionCount;
-    private static DateTime _LastConnectionTime = DateTime.MinValue;
+    private static SqliteConnection? database;
+    private static readonly SemaphoreSlim _connectionLock = new(1, 1);
+    private static int openConnectionCount;
+    private static DateTime lastConnectionTime = DateTime.MinValue;
 
     private static SqliteConnection Database
     {
         get
         {
-            if (_database == null)
-            {
-                Log.Debug($"初始化数据库连接: {MainConfig.DatabaseSavePath}");
-                
-                // 确保数据库文件所在目录存在
-                PathEnsurer.EnsureFileAndDirectoryExist(MainConfig.DatabaseSavePath);
+            if (database != null)
+                return database;
 
-                _database = new SqliteConnection($"data source={MainConfig.DatabaseSavePath};Foreign Keys=True;");
-                _LastConnectionTime = DateTime.Now;
-            }
-            return _database;
+            Log.Debug($"初始化数据库连接: {MainConfig.DatabaseSavePath}");
+
+            // 确保数据库文件所在目录存在
+            PathEnsurer.EnsureFileAndDirectoryExist(MainConfig.DatabaseSavePath);
+
+            database = new SqliteConnection($"data source={MainConfig.DatabaseSavePath};Foreign Keys=True;");
+            lastConnectionTime = DateTime.Now;
+            return database;
         }
     }
 
@@ -87,9 +86,9 @@ public static class DataBaseService
             {
                 Log.Debug($"打开数据库连接 (当前状态: {Database.State})");
                 Database.Open();
-                Interlocked.Increment(ref _OpenConnectionCount);
+                Interlocked.Increment(ref openConnectionCount);
             }
-            
+
             var cmd = Database.CreateCommand();
             cmd.CommandTimeout = CommandTimeout;
             return cmd;
@@ -101,16 +100,16 @@ public static class DataBaseService
     /// </summary>
     public static async Task CloseConnectionAsync()
     {
-        await ConnectionLock.WaitAsync();
+        await _connectionLock.WaitAsync();
         try
         {
-            if (_database != null && _database.State != ConnectionState.Closed)
+            if (database != null && database.State != ConnectionState.Closed)
             {
-                await Log.DebugAsync($"关闭数据库连接 (打开次数: {_OpenConnectionCount})");
-                await _database.CloseAsync();
-                _database.Dispose();
-                _database = null;
-                _OpenConnectionCount = 0;
+                await Log.DebugAsync($"关闭数据库连接 (打开次数: {openConnectionCount})");
+                await database.CloseAsync();
+                database.Dispose();
+                database = null;
+                openConnectionCount = 0;
             }
         }
         catch (Exception ex)
@@ -119,7 +118,34 @@ public static class DataBaseService
         }
         finally
         {
-            ConnectionLock.Release();
+            _connectionLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// 关闭数据库连接（同步版本）
+    /// </summary>
+    public static void CloseConnection()
+    {
+        _connectionLock.Wait();
+        try
+        {
+            if (database != null && database.State != ConnectionState.Closed)
+            {
+                Log.Debug($"关闭数据库连接 (打开次数: {openConnectionCount})");
+                database.Close();
+                database.Dispose();
+                database = null;
+                openConnectionCount = 0;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"关闭数据库连接时发生错误: {ex.Message}");
+        }
+        finally
+        {
+            _connectionLock.Release();
         }
     }
 
@@ -128,10 +154,9 @@ public static class DataBaseService
     /// </summary>
     public static string GetConnectionStatus()
     {
-        if (_database == null)
-            return "未初始化";
-            
-        return $"状态: {_database.State}, 打开次数: {_OpenConnectionCount}, 最后连接时间: {_LastConnectionTime:yyyy-MM-dd HH:mm:ss}";
+        return database == null
+            ? "未初始化"
+            : $"状态: {database.State}, 打开次数: {openConnectionCount}, 最后连接时间: {lastConnectionTime:yyyy-MM-dd HH:mm:ss}";
     }
 
     #endregion
@@ -148,10 +173,10 @@ public static class DataBaseService
     public enum Table
     {
         MUSICS,
-        PLAYLISTS,
-        LISTNAMES,
+        MUSICLISTS,
+        LISTINFO,
     }
-    
+
     /// <summary>
     /// 数据库操作结果
     /// </summary>
@@ -161,16 +186,16 @@ public static class DataBaseService
         /// 操作成功
         /// </summary>
         Success,
-        
+
         /// <summary>
         /// 操作失败
         /// </summary>
         Failure,
-        
+
         /// <summary>
         /// 操作项不存在
         /// </summary>
-        NotFound
+        NotFound,
     }
 
     #endregion
@@ -183,7 +208,7 @@ public static class DataBaseService
         if (!File.Exists(MainConfig.DatabaseSavePath))
         {
             await Log.InfoAsync($"数据库文件不存在，将创建新数据库: {MainConfig.DatabaseSavePath}");
-            
+
             // 确保目录存在
             PathEnsurer.EnsureFileAndDirectoryExist(MainConfig.DatabaseSavePath);
 
@@ -191,13 +216,14 @@ public static class DataBaseService
         }
 
         var stopwatch = EnablePerformanceMonitoring ? Stopwatch.StartNew() : null;
-        
+
         try
         {
             // 创建表
             await using var music = Command;
             await using var playlist = Command;
-            await using var names = Command;
+            await using var musicLists = Command;
+            await using var musicListInfo = Command;
 
             if (EnableVerboseLogging)
             {
@@ -222,28 +248,31 @@ public static class DataBaseService
                 {nameof(MusicItemModel.Remarks)} TEXT)
                 """;
 
-            playlist.CommandText = $"""
-                CREATE TABLE IF NOT EXISTS PLAYLISTS(
-                {nameof(PlaylistModel.Name)} TEXT NOT NULL,
+            musicLists.CommandText = $"""
+                CREATE TABLE IF NOT EXISTS MUSICLISTS(
+                {nameof(MusicListModel.Name)} TEXT NOT NULL,
                 {nameof(MusicItemModel.FilePath)} TEXT NOT NULL,
                 FOREIGN KEY({nameof(MusicItemModel.FilePath)}) REFERENCES MUSICS({nameof(MusicItemModel.FilePath)}))
                 """;
 
-            names.CommandText = $"""
-                CREATE TABLE IF NOT EXISTS LISTNAMES(
-                {nameof(PlaylistModel.Name)} TEXT NOT NULL UNIQUE PRIMARY KEY,
-                {nameof(PlaylistModel.Count)} INTEGER NOT NULL,
-                {nameof(PlaylistModel.LatestPlayedMusic)} TEXT NOT NULL)
+            musicListInfo.CommandText = $"""
+                CREATE TABLE IF NOT EXISTS LISTINFO(
+                {nameof(MusicListModel.Name)} TEXT NOT NULL UNIQUE PRIMARY KEY,
+                {nameof(MusicListModel.Description)} TEXT,
+                {nameof(MusicListModel.CoverPath)} TEXT,
+                {nameof(MusicListModel.LatestPlayedMusic)} TEXT)
                 """;
 
             await music.ExecuteNonQueryAsync();
-            await playlist.ExecuteNonQueryAsync();
-            await names.ExecuteNonQueryAsync();
-            
+            await musicLists.ExecuteNonQueryAsync();
+            await musicListInfo.ExecuteNonQueryAsync();
+
             if (EnableVerboseLogging)
             {
                 stopwatch?.Stop();
-                await Log.InfoAsync($"数据库表结构创建完成 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                await Log.InfoAsync(
+                    $"数据库表结构创建完成 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
             }
         }
         catch (Exception ex)
@@ -257,13 +286,83 @@ public static class DataBaseService
 
     private static void EnsureTableExists()
     {
+        // 确保数据库文件存在
+        if (!File.Exists(MainConfig.DatabaseSavePath))
+        {
+            Log.Info($"数据库文件不存在，将创建新数据库: {MainConfig.DatabaseSavePath}");
+
+            // 确保目录存在
+            PathEnsurer.EnsureFileAndDirectoryExist(MainConfig.DatabaseSavePath);
+
+            CloseConnection();
+        }
+
+        var stopwatch = EnablePerformanceMonitoring ? Stopwatch.StartNew() : null;
+
         try
         {
-            EnsureTableExistsAsync().Wait();
+            // 创建表
+            using var music = Command;
+            using var playlist = Command;
+            using var musicLists = Command;
+            using var musicListInfo = Command;
+
+            if (EnableVerboseLogging)
+            {
+                Log.Debug("开始创建数据库表结构");
+            }
+
+            music.CommandText = $"""
+                CREATE TABLE IF NOT EXISTS MUSICS(
+                {nameof(MusicItemModel.Title)} TEXT NOT NULL PRIMARY KEY,
+                {nameof(MusicItemModel.Artists)} TEXT,
+                {nameof(MusicItemModel.Composer)} TEXT,
+                {nameof(MusicItemModel.Album)} TEXT,
+                {nameof(MusicItemModel.CoverPath)} TEXT,
+                {nameof(MusicItemModel.FilePath)} TEXT NOT NULL UNIQUE,
+                {nameof(MusicItemModel.FileSize)} TEXT NOT NULL,
+                {nameof(MusicItemModel.Current)} BLOB,
+                {nameof(MusicItemModel.Duration)} BLOB NOT NULL,
+                {nameof(MusicItemModel.CoverColors)} TEXT,
+                {nameof(MusicItemModel.Gain)} REAL,
+                {nameof(MusicItemModel.EncodingFormat)} TEXT NOT NULL,
+                {nameof(MusicItemModel.Comment)} TEXT,
+                {nameof(MusicItemModel.Remarks)} TEXT)
+                """;
+
+            musicLists.CommandText = $"""
+                CREATE TABLE IF NOT EXISTS MUSICLISTS(
+                {nameof(MusicListModel.Name)} TEXT NOT NULL,
+                {nameof(MusicItemModel.FilePath)} TEXT NOT NULL,
+                FOREIGN KEY({nameof(MusicItemModel.FilePath)}) REFERENCES MUSICS({nameof(MusicItemModel.FilePath)}))
+                """;
+
+            musicListInfo.CommandText = $"""
+                CREATE TABLE IF NOT EXISTS LISTINFO(
+                {nameof(MusicListModel.Name)} TEXT NOT NULL UNIQUE PRIMARY KEY,
+                {nameof(MusicListModel.Description)} TEXT,
+                {nameof(MusicListModel.CoverPath)} TEXT,
+                {nameof(MusicListModel.Count)} INTEGER NOT NULL,
+                {nameof(MusicListModel.LatestPlayedMusic)} TEXT)
+                """;
+
+            music.ExecuteNonQuery();
+            musicLists.ExecuteNonQuery();
+            musicListInfo.ExecuteNonQuery();
+
+            if (EnableVerboseLogging)
+            {
+                stopwatch?.Stop();
+                Log.Info(
+                    $"数据库表结构创建完成 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
+            }
         }
         catch (Exception ex)
         {
-            Log.Error($"同步创建数据库表结构失败: {ex.Message}");
+            stopwatch?.Stop();
+            Log.Error($"创建数据库表结构失败: {ex.Message}");
+            Log.Debug($"异常详情: {ex}");
             throw;
         }
     }
@@ -279,21 +378,23 @@ public static class DataBaseService
     {
         await EnsureTableExistsAsync();
         await using var connection = Database;
-        
+
         if (connection.State != ConnectionState.Open)
             await connection.OpenAsync();
-            
+
         await using var transaction = await connection.BeginTransactionAsync();
         var stopwatch = EnablePerformanceMonitoring ? Stopwatch.StartNew() : null;
-        
+
         try
         {
             await Log.DebugAsync("开始数据库事务");
             await operations();
             await transaction.CommitAsync();
-            
+
             stopwatch?.Stop();
-            await Log.InfoAsync($"数据库事务提交成功 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+            await Log.InfoAsync(
+                $"数据库事务提交成功 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+            );
             return OperationResult.Success;
         }
         catch (Exception ex)
@@ -301,7 +402,7 @@ public static class DataBaseService
             stopwatch?.Stop();
             await Log.ErrorAsync($"数据库事务执行失败，将回滚: {ex.Message}");
             await Log.DebugAsync($"事务异常详情: {ex}");
-            
+
             try
             {
                 await transaction.RollbackAsync();
@@ -311,7 +412,7 @@ public static class DataBaseService
             {
                 await Log.ErrorAsync($"事务回滚失败: {rollbackEx.Message}");
             }
-            
+
             return OperationResult.Failure;
         }
     }
@@ -323,21 +424,23 @@ public static class DataBaseService
     {
         EnsureTableExists();
         using var connection = Database;
-        
+
         if (connection.State != ConnectionState.Open)
             connection.Open();
-            
+
         using var transaction = connection.BeginTransaction();
         var stopwatch = EnablePerformanceMonitoring ? Stopwatch.StartNew() : null;
-        
+
         try
         {
             Log.Debug("开始数据库事务（同步）");
             operations();
             transaction.Commit();
-            
+
             stopwatch?.Stop();
-            Log.Info($"数据库事务提交成功（同步）{(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+            Log.Info(
+                $"数据库事务提交成功（同步）{(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+            );
             return OperationResult.Success;
         }
         catch (Exception ex)
@@ -345,7 +448,7 @@ public static class DataBaseService
             stopwatch?.Stop();
             Log.Error($"数据库事务执行失败，将回滚（同步）: {ex.Message}");
             Log.Debug($"事务异常详情: {ex}");
-            
+
             try
             {
                 transaction.Rollback();
@@ -355,7 +458,7 @@ public static class DataBaseService
             {
                 Log.Error($"事务回滚失败（同步）: {rollbackEx.Message}");
             }
-            
+
             return OperationResult.Failure;
         }
     }
@@ -409,14 +512,14 @@ public static class DataBaseService
                 sqlCommand += $" ORDER BY {sortBy} {sort:G} LIMIT {limit.Start},{limit.End} ";
 
             command.CommandText = sqlCommand;
-            
+
             if (EnableVerboseLogging)
             {
                 await Log.DebugAsync($"执行查询: {sqlCommand}");
             }
 
             reader = await command.ExecuteReaderAsync();
-            
+
             if (!reader.HasRows && EnableVerboseLogging)
             {
                 await Log.DebugAsync("查询结果为空");
@@ -447,14 +550,16 @@ public static class DataBaseService
         stopwatch?.Stop();
         if (EnableVerboseLogging || stopwatch != null && stopwatch.ElapsedMilliseconds > SlowQueryThreshold)
         {
-            await Log.InfoAsync($"查询完成: 返回 {rowCount} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-            
+            await Log.InfoAsync(
+                $"查询完成: 返回 {rowCount} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+            );
+
             if (stopwatch != null && stopwatch.ElapsedMilliseconds > SlowQueryThreshold)
             {
                 await Log.WarningAsync($"检测到慢查询: {sqlCommand}");
             }
         }
-        
+
         await reader.DisposeAsync();
     }
 
@@ -501,14 +606,14 @@ public static class DataBaseService
                 sqlCommand += $" ORDER BY {sortBy} {sort:G} LIMIT {limit.Start},{limit.End} ";
 
             command.CommandText = sqlCommand;
-            
+
             if (EnableVerboseLogging)
             {
                 Log.Debug($"执行查询（同步）: {sqlCommand}");
             }
 
             reader = command.ExecuteReader();
-            
+
             if (!reader.HasRows && EnableVerboseLogging)
             {
                 Log.Debug("查询结果为空（同步）");
@@ -539,14 +644,16 @@ public static class DataBaseService
         stopwatch?.Stop();
         if (EnableVerboseLogging || stopwatch != null && stopwatch.ElapsedMilliseconds > SlowQueryThreshold)
         {
-            Log.Info($"查询完成（同步）: 返回 {rowCount} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-            
+            Log.Info(
+                $"查询完成（同步）: 返回 {rowCount} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+            );
+
             if (stopwatch != null && stopwatch.ElapsedMilliseconds > SlowQueryThreshold)
             {
                 Log.Warning($"检测到慢查询（同步）: {sqlCommand}");
             }
         }
-        
+
         reader.Dispose();
     }
 
@@ -607,11 +714,13 @@ public static class DataBaseService
             }
 
             stopwatch?.Stop();
-            if (!EnableVerboseLogging && (stopwatch == null || stopwatch.ElapsedMilliseconds <= SlowQueryThreshold)) 
+            if (!EnableVerboseLogging && (stopwatch == null || stopwatch.ElapsedMilliseconds <= SlowQueryThreshold))
                 return result;
-            
-            await Log.InfoAsync($"字段查询完成: 返回 {result.Count} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-                
+
+            await Log.InfoAsync(
+                $"字段查询完成: 返回 {result.Count} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+            );
+
             if (stopwatch != null && stopwatch.ElapsedMilliseconds > SlowQueryThreshold)
             {
                 await Log.WarningAsync($"检测到慢查询: {sqlCommand}");
@@ -685,11 +794,13 @@ public static class DataBaseService
             }
 
             stopwatch?.Stop();
-            if (!EnableVerboseLogging && (stopwatch == null || stopwatch.ElapsedMilliseconds <= SlowQueryThreshold)) 
+            if (!EnableVerboseLogging && (stopwatch == null || stopwatch.ElapsedMilliseconds <= SlowQueryThreshold))
                 return result;
-            
-            Log.Info($"字段查询完成（同步）: 返回 {result.Count} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
-                
+
+            Log.Info(
+                $"字段查询完成（同步）: 返回 {result.Count} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+            );
+
             if (stopwatch != null && stopwatch.ElapsedMilliseconds > SlowQueryThreshold)
             {
                 Log.Warning($"检测到慢查询（同步）: {sqlCommand}");
@@ -730,13 +841,15 @@ public static class DataBaseService
 
             object? result = await command.ExecuteScalarAsync();
             bool exists = Convert.ToInt32(result) > 0;
-            
+
             stopwatch?.Stop();
             if (EnableVerboseLogging)
             {
-                await Log.DebugAsync($"记录{(exists ? "存在" : "不存在")} {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                await Log.DebugAsync(
+                    $"记录{(exists ? "存在" : "不存在")} {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
             }
-            
+
             return exists;
         }
         catch (Exception ex)
@@ -772,13 +885,15 @@ public static class DataBaseService
 
             object? result = command.ExecuteScalar();
             bool exists = Convert.ToInt32(result) > 0;
-            
+
             stopwatch?.Stop();
             if (EnableVerboseLogging)
             {
-                Log.Debug($"记录{(exists ? "存在" : "不存在")}（同步）{(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                Log.Debug(
+                    $"记录{(exists ? "存在" : "不存在")}（同步）{(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
             }
-            
+
             return exists;
         }
         catch (Exception ex)
@@ -804,7 +919,7 @@ public static class DataBaseService
         try
         {
             sqlCommand = $"SELECT COUNT(*) FROM {table:G}";
-            
+
             if (!string.IsNullOrEmpty(whereClause))
             {
                 if (!whereClause.Trim().StartsWith("WHERE", StringComparison.OrdinalIgnoreCase))
@@ -813,7 +928,7 @@ public static class DataBaseService
                 }
                 sqlCommand += whereClause;
             }
-            
+
             command.CommandText = sqlCommand;
 
             if (EnableVerboseLogging)
@@ -823,13 +938,15 @@ public static class DataBaseService
 
             object? result = await command.ExecuteScalarAsync();
             int count = Convert.ToInt32(result);
-            
+
             stopwatch?.Stop();
             if (EnableVerboseLogging)
             {
-                await Log.DebugAsync($"记录数量: {count} {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                await Log.DebugAsync(
+                    $"记录数量: {count} {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
             }
-            
+
             return count;
         }
         catch (Exception ex)
@@ -855,7 +972,7 @@ public static class DataBaseService
         try
         {
             sqlCommand = $"SELECT COUNT(*) FROM {table:G}";
-            
+
             if (!string.IsNullOrEmpty(whereClause))
             {
                 if (!whereClause.Trim().StartsWith("WHERE", StringComparison.OrdinalIgnoreCase))
@@ -864,7 +981,7 @@ public static class DataBaseService
                 }
                 sqlCommand += whereClause;
             }
-            
+
             command.CommandText = sqlCommand;
 
             if (EnableVerboseLogging)
@@ -874,13 +991,15 @@ public static class DataBaseService
 
             object? result = command.ExecuteScalar();
             int count = Convert.ToInt32(result);
-            
+
             stopwatch?.Stop();
             if (EnableVerboseLogging)
             {
-                Log.Debug($"记录数量（同步）: {count} {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                Log.Debug(
+                    $"记录数量（同步）: {count} {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
             }
-            
+
             return count;
         }
         catch (Exception ex)
@@ -939,14 +1058,16 @@ public static class DataBaseService
             }
 
             int rowsAffected = await command.ExecuteNonQueryAsync();
-            
+
             stopwatch?.Stop();
             if (rowsAffected > 0)
             {
-                await Log.InfoAsync($"更新成功: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                await Log.InfoAsync(
+                    $"更新成功: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
                 return OperationResult.Success;
             }
-            
+
             await Log.WarningAsync($"更新失败: 没有找到匹配的记录 (条件: {whereColumn} = {whereValue})");
             return OperationResult.NotFound;
         }
@@ -1002,14 +1123,16 @@ public static class DataBaseService
             }
 
             int rowsAffected = command.ExecuteNonQuery();
-            
+
             stopwatch?.Stop();
             if (rowsAffected > 0)
             {
-                Log.Info($"更新成功（同步）: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                Log.Info(
+                    $"更新成功（同步）: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
                 return OperationResult.Success;
             }
-            
+
             Log.Warning($"更新失败（同步）: 没有找到匹配的记录 (条件: {whereColumn} = {whereValue})");
             return OperationResult.NotFound;
         }
@@ -1043,7 +1166,7 @@ public static class DataBaseService
 
             string columns = string.Join(", ", data.Keys);
             string parameters = string.Join(", ", data.Keys.Select(k => $"@{k}"));
-            
+
             sqlCommand = $"INSERT INTO {table:G} ({columns}) VALUES ({parameters})";
             command.CommandText = sqlCommand;
 
@@ -1060,14 +1183,16 @@ public static class DataBaseService
             }
 
             int rowsAffected = await command.ExecuteNonQueryAsync();
-            
+
             stopwatch?.Stop();
             if (rowsAffected > 0)
             {
-                await Log.InfoAsync($"插入成功: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                await Log.InfoAsync(
+                    $"插入成功: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
                 return OperationResult.Success;
             }
-            
+
             await Log.WarningAsync("插入失败: 没有行受影响");
             return OperationResult.NotFound;
         }
@@ -1109,7 +1234,7 @@ public static class DataBaseService
 
             string columns = string.Join(", ", data.Keys);
             string parameters = string.Join(", ", data.Keys.Select(k => $"@{k}"));
-            
+
             sqlCommand = $"INSERT INTO {table:G} ({columns}) VALUES ({parameters})";
             command.CommandText = sqlCommand;
 
@@ -1126,14 +1251,16 @@ public static class DataBaseService
             }
 
             int rowsAffected = command.ExecuteNonQuery();
-            
+
             stopwatch?.Stop();
             if (rowsAffected > 0)
             {
-                Log.Info($"插入成功（同步）: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                Log.Info(
+                    $"插入成功（同步）: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
                 return OperationResult.Success;
             }
-            
+
             Log.Warning("插入失败（同步）: 没有行受影响");
             return OperationResult.NotFound;
         }
@@ -1158,7 +1285,11 @@ public static class DataBaseService
     /// <summary>
     /// 异步删除数据库中的数据。
     /// </summary>
-    public static async Task<OperationResult> DeleteDataAsync(Table table, string whereColumn, string? whereValue = null)
+    public static async Task<OperationResult> DeleteDataAsync(
+        Table table,
+        string whereColumn,
+        string? whereValue = null
+    )
     {
         await EnsureTableExistsAsync();
         await using var command = Command;
@@ -1177,14 +1308,16 @@ public static class DataBaseService
             }
 
             int rowsAffected = await command.ExecuteNonQueryAsync();
-            
+
             stopwatch?.Stop();
             if (rowsAffected > 0)
             {
-                await Log.InfoAsync($"删除成功: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                await Log.InfoAsync(
+                    $"删除成功: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
                 return OperationResult.Success;
             }
-            
+
             await Log.WarningAsync($"删除失败: 没有找到匹配的记录 (条件: {whereColumn} = {whereValue})");
             return OperationResult.NotFound;
         }
@@ -1220,14 +1353,16 @@ public static class DataBaseService
             }
 
             int rowsAffected = command.ExecuteNonQuery();
-            
+
             stopwatch?.Stop();
             if (rowsAffected > 0)
             {
-                Log.Info($"删除成功（同步）: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                Log.Info(
+                    $"删除成功（同步）: 影响了 {rowsAffected} 行数据 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
                 return OperationResult.Success;
             }
-            
+
             Log.Warning($"删除失败（同步）: 没有找到匹配的记录 (条件: {whereColumn} = {whereValue})");
             return OperationResult.NotFound;
         }
@@ -1244,18 +1379,22 @@ public static class DataBaseService
     /// <summary>
     /// 异步批量删除数据库中的数据。
     /// </summary>
-    public static async Task<OperationResult> BatchDeleteDataAsync(Table table, string whereColumn, IEnumerable<string> whereValues)
+    public static async Task<OperationResult> BatchDeleteDataAsync(
+        Table table,
+        string whereColumn,
+        IEnumerable<string> whereValues
+    )
     {
         await EnsureTableExistsAsync();
         var stopwatch = EnablePerformanceMonitoring ? Stopwatch.StartNew() : null;
         int totalRowsAffected = 0;
         int successCount = 0;
         int failCount = 0;
-        
+
         try
         {
             await Log.DebugAsync($"开始批量删除操作: 表 {table:G}, 条件列 {whereColumn}");
-            
+
             // 使用事务进行批量操作
             return await ExecuteInTransactionAsync(async () =>
             {
@@ -1274,7 +1413,7 @@ public static class DataBaseService
 
                     int rowsAffected = await command.ExecuteNonQueryAsync();
                     totalRowsAffected += rowsAffected;
-                    
+
                     if (rowsAffected > 0)
                     {
                         successCount++;
@@ -1282,7 +1421,9 @@ public static class DataBaseService
                     else
                     {
                         failCount++;
-                        await Log.WarningAsync($"批量删除项 #{index} 失败: 没有找到匹配的记录 (条件: {whereColumn} = {value})");
+                        await Log.WarningAsync(
+                            $"批量删除项 #{index} 失败: 没有找到匹配的记录 (条件: {whereColumn} = {value})"
+                        );
                     }
                 }
             });
@@ -1297,8 +1438,10 @@ public static class DataBaseService
         finally
         {
             stopwatch?.Stop();
-            await Log.InfoAsync($"批量删除操作完成: 成功 {successCount} 项, 失败 {failCount} 项, 共影响 {totalRowsAffected} 行数据 " +
-                $"{(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+            await Log.InfoAsync(
+                $"批量删除操作完成: 成功 {successCount} 项, 失败 {failCount} 项, 共影响 {totalRowsAffected} 行数据 "
+                    + $"{(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+            );
         }
     }
 
@@ -1312,11 +1455,11 @@ public static class DataBaseService
         int totalRowsAffected = 0;
         int successCount = 0;
         int failCount = 0;
-        
+
         try
         {
             Log.Debug($"开始批量删除操作（同步）: 表 {table:G}, 条件列 {whereColumn}");
-            
+
             // 使用事务进行批量操作
             return ExecuteInTransaction(() =>
             {
@@ -1335,7 +1478,7 @@ public static class DataBaseService
 
                     int rowsAffected = command.ExecuteNonQuery();
                     totalRowsAffected += rowsAffected;
-                    
+
                     if (rowsAffected > 0)
                     {
                         successCount++;
@@ -1343,7 +1486,9 @@ public static class DataBaseService
                     else
                     {
                         failCount++;
-                        Log.Warning($"批量删除项（同步）#{index} 失败: 没有找到匹配的记录 (条件: {whereColumn} = {value})");
+                        Log.Warning(
+                            $"批量删除项（同步）#{index} 失败: 没有找到匹配的记录 (条件: {whereColumn} = {value})"
+                        );
                     }
                 }
             });
@@ -1358,8 +1503,10 @@ public static class DataBaseService
         finally
         {
             stopwatch?.Stop();
-            Log.Info($"批量删除操作完成（同步）: 成功 {successCount} 项, 失败 {failCount} 项, 共影响 {totalRowsAffected} 行数据 " +
-                     $"{(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+            Log.Info(
+                $"批量删除操作完成（同步）: 成功 {successCount} 项, 失败 {failCount} 项, 共影响 {totalRowsAffected} 行数据 "
+                    + $"{(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+            );
         }
     }
 
@@ -1394,13 +1541,19 @@ public static class DataBaseService
             {
                 return await operation();
             }
-            catch (SqliteException ex) when (
-                (ex.SqliteErrorCode == 5 || // SQLITE_BUSY
-                 ex.SqliteErrorCode == 6)   // SQLITE_LOCKED
-                && retryCount < MaxRetryCount)
+            catch (SqliteException ex)
+                when ((
+                        ex.SqliteErrorCode == 5
+                        || // SQLITE_BUSY
+                        ex.SqliteErrorCode == 6
+                    ) // SQLITE_LOCKED
+                    && retryCount < MaxRetryCount
+                )
             {
                 retryCount++;
-                await Log.WarningAsync($"{operationName} 操作遇到数据库锁定，将进行第 {retryCount} 次重试 (错误码: {ex.SqliteErrorCode})");
+                await Log.WarningAsync(
+                    $"{operationName} 操作遇到数据库锁定，将进行第 {retryCount} 次重试 (错误码: {ex.SqliteErrorCode})"
+                );
                 await Task.Delay(RetryDelay * retryCount);
             }
         }
@@ -1418,13 +1571,19 @@ public static class DataBaseService
             {
                 return operation();
             }
-            catch (SqliteException ex) when (
-                (ex.SqliteErrorCode == 5 || // SQLITE_BUSY
-                 ex.SqliteErrorCode == 6)   // SQLITE_LOCKED
-                && retryCount < MaxRetryCount)
+            catch (SqliteException ex)
+                when ((
+                        ex.SqliteErrorCode == 5
+                        || // SQLITE_BUSY
+                        ex.SqliteErrorCode == 6
+                    ) // SQLITE_LOCKED
+                    && retryCount < MaxRetryCount
+                )
             {
                 retryCount++;
-                Log.Warning($"{operationName} 操作遇到数据库锁定，将进行第 {retryCount} 次重试 (错误码: {ex.SqliteErrorCode})");
+                Log.Warning(
+                    $"{operationName} 操作遇到数据库锁定，将进行第 {retryCount} 次重试 (错误码: {ex.SqliteErrorCode})"
+                );
                 Thread.Sleep(RetryDelay * retryCount);
             }
         }
@@ -1440,12 +1599,12 @@ public static class DataBaseService
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             backupPath = $"{MainConfig.DatabaseSavePath}.backup_{timestamp}";
         }
-        
+
         try
         {
             // 确保数据库连接已关闭
             CloseConnectionAsync().Wait();
-            
+
             // 复制数据库文件
             if (File.Exists(MainConfig.DatabaseSavePath))
             {
@@ -1453,7 +1612,7 @@ public static class DataBaseService
                 Log.Info($"数据库已成功备份到: {backupPath}");
                 return OperationResult.Success;
             }
-            
+
             Log.Warning($"数据库备份失败: 源文件不存在 {MainConfig.DatabaseSavePath}");
             return OperationResult.NotFound;
         }
@@ -1475,12 +1634,12 @@ public static class DataBaseService
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             backupPath = $"{MainConfig.DatabaseSavePath}.backup_{timestamp}";
         }
-        
+
         try
         {
             // 确保数据库连接已关闭
             await CloseConnectionAsync();
-            
+
             // 复制数据库文件
             if (File.Exists(MainConfig.DatabaseSavePath))
             {
@@ -1488,7 +1647,7 @@ public static class DataBaseService
                 await Log.InfoAsync($"数据库已成功备份到: {backupPath}");
                 return OperationResult.Success;
             }
-            
+
             await Log.WarningAsync($"数据库备份失败: 源文件不存在 {MainConfig.DatabaseSavePath}");
             return OperationResult.NotFound;
         }
@@ -1508,21 +1667,23 @@ public static class DataBaseService
         await EnsureTableExistsAsync();
         await using var command = Command;
         var stopwatch = EnablePerformanceMonitoring ? Stopwatch.StartNew() : null;
-        
+
         try
         {
             await Log.InfoAsync("开始执行数据库完整性检查...");
             command.CommandText = "PRAGMA integrity_check";
-            
+
             string result = (await command.ExecuteScalarAsync())?.ToString() ?? string.Empty;
-            
+
             stopwatch?.Stop();
             if (result.Equals("ok", StringComparison.OrdinalIgnoreCase))
             {
-                await Log.InfoAsync($"数据库完整性检查通过 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+                await Log.InfoAsync(
+                    $"数据库完整性检查通过 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+                );
                 return OperationResult.Success;
             }
-            
+
             await Log.ErrorAsync($"数据库完整性检查失败: {result}");
             return OperationResult.Failure;
         }
@@ -1543,21 +1704,23 @@ public static class DataBaseService
         await EnsureTableExistsAsync();
         await using var command = Command;
         var stopwatch = EnablePerformanceMonitoring ? Stopwatch.StartNew() : null;
-        
+
         try
         {
             await Log.InfoAsync("开始执行数据库优化...");
-            
+
             // 执行VACUUM操作，重建数据库以回收空间
             command.CommandText = "VACUUM";
             await command.ExecuteNonQueryAsync();
-            
+
             // 分析数据库以优化查询计划
             command.CommandText = "ANALYZE";
             await command.ExecuteNonQueryAsync();
-            
+
             stopwatch?.Stop();
-            await Log.InfoAsync($"数据库优化完成 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}");
+            await Log.InfoAsync(
+                $"数据库优化完成 {(stopwatch != null ? $"(耗时: {stopwatch.ElapsedMilliseconds} ms)" : "")}"
+            );
             return OperationResult.Success;
         }
         catch (Exception ex)

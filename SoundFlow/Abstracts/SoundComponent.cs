@@ -1,9 +1,7 @@
 using System.Buffers;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using SoundFlow.Components;
-using SoundFlow.Interfaces;
 
 namespace SoundFlow.Abstracts;
 
@@ -17,16 +15,16 @@ public abstract class SoundComponent
     // Connection state
     private readonly List<SoundComponent> _inputs = [];
     private readonly List<SoundComponent> _outputs = [];
-    private readonly Lock _connectionsLock = new();
+    private readonly object _connectionsLock = new();
 
     // Processing state
-    private readonly List<ISoundModifier> _modifiers = [];
+    private readonly List<SoundModifier> _modifiers = [];
     private readonly List<AudioAnalyzer> _analyzers = [];
     private float _pan = 0.5f;
     private bool _solo;
     private float _volume = 1f;
-    private Vector2 _volumePanFactors = Vector2.One;
-    private Vector2 _previousVolumePanFactors = Vector2.One;
+    private Vector2 _volumePanFactors;
+    private Vector2 _previousVolumePanFactors;
     private readonly Lock _stateLock = new();
 
     /// <summary>
@@ -38,6 +36,15 @@ public abstract class SoundComponent
     ///     Parent mixer of the component
     /// </summary>
     public Mixer? Parent { get; set; } = Mixer.Master;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="SoundComponent" /> class.
+    /// </summary>
+    protected SoundComponent()
+    {
+        UpdateVolumePanFactors();
+        _previousVolumePanFactors = _volumePanFactors;
+    }
 
     /// <summary>
     ///     Input connections
@@ -91,7 +98,7 @@ public abstract class SoundComponent
         set
         {
             if (value is < 0f or > 1f)
-                throw new ArgumentOutOfRangeException(nameof(value));
+                throw new ArgumentOutOfRangeException(nameof(value), "Pan must be between 0.0 and 1.0.");
             lock (_stateLock)
             {
                 _pan = value;
@@ -132,12 +139,12 @@ public abstract class SoundComponent
     /// <summary>
     ///     Modifiers applied to the component
     /// </summary>
-    public IReadOnlyList<ISoundModifier> Modifiers
+    public IReadOnlyList<SoundModifier> Modifiers
     {
         get
         {
             lock (_stateLock)
-                return new List<ISoundModifier>(_modifiers);
+                return new List<SoundModifier>(_modifiers);
         }
     }
 
@@ -156,8 +163,8 @@ public abstract class SoundComponent
     private void UpdateVolumePanFactors()
     {
         _previousVolumePanFactors = _volumePanFactors;
-        float pan = Math.Clamp(_pan, 0f, 1f);
-        _volumePanFactors = new Vector2(_volume * MathF.Sqrt(1f - pan), _volume * MathF.Sqrt(pan));
+        float panValue = Math.Clamp(_pan, 0f, 1f);
+        _volumePanFactors = new Vector2(_volume * MathF.Sqrt(1f - panValue), _volume * MathF.Sqrt(panValue));
     }
 
     /// <summary>
@@ -171,7 +178,6 @@ public abstract class SoundComponent
         if (input == this)
             throw new InvalidOperationException("Cannot connect to self");
 
-        // Determine lock order to avoid deadlocks
         SoundComponent first,
             second;
         if (GetHashCode() < input.GetHashCode())
@@ -229,11 +235,11 @@ public abstract class SoundComponent
             if (!visited.Add(current))
                 continue;
 
-            List<SoundComponent> outputs;
+            List<SoundComponent> currentOutputs;
             lock (current._connectionsLock)
-                outputs = [.. current._outputs];
+                currentOutputs = [.. current._outputs];
 
-            foreach (var output in outputs)
+            foreach (var output in currentOutputs)
                 queue.Enqueue(output);
         }
 
@@ -244,14 +250,12 @@ public abstract class SoundComponent
     ///     Adds a modifier to the component.
     /// </summary>
     /// <param name="modifier">The modifier to add.</param>
-    public SoundComponent AddModifier(ISoundModifier modifier)
+    public SoundComponent AddModifier(SoundModifier modifier)
     {
         lock (_stateLock)
         {
             if (!_modifiers.Contains(modifier))
-            {
                 _modifiers.Add(modifier);
-            }
         }
 
         return this;
@@ -308,28 +312,25 @@ public abstract class SoundComponent
             var workingBuffer = rentedBuffer.AsSpan(0, outputBuffer.Length);
             workingBuffer.Clear();
 
-            // 1. Process inputs using array pooling
-            SoundComponent[] inputs;
+            SoundComponent[] currentInputs;
             lock (_connectionsLock)
             {
-                inputs = _inputs.Count == 0 ? [] : _inputs.ToArray();
+                currentInputs = _inputs.Count == 0 ? [] : _inputs.ToArray();
             }
 
-            foreach (var input in inputs)
+            foreach (var input in currentInputs)
                 input.Process(workingBuffer);
 
-            // 2. Generate audio directly
             GenerateAudio(workingBuffer);
 
-            // 3. Process modifiers with array pooling
-            ISoundModifier[] modifiers;
-            AudioAnalyzer[] analyzers;
+            SoundModifier[] currentModifiers;
+            AudioAnalyzer[] currentAnalyzers;
             Vector2 currentVolumePan;
 
             lock (_stateLock)
             {
-                modifiers = _modifiers.Count == 0 ? [] : _modifiers.ToArray();
-                analyzers = _analyzers.Count == 0 ? [] : _analyzers.ToArray();
+                currentModifiers = _modifiers.Count == 0 ? [] : _modifiers.ToArray();
+                currentAnalyzers = _analyzers.Count == 0 ? [] : _analyzers.ToArray();
 
                 currentVolumePan = Vector2.Lerp(
                     _previousVolumePanFactors,
@@ -338,19 +339,15 @@ public abstract class SoundComponent
                 );
             }
 
-            // 4. Process modifiers with pre-allocated array
-            foreach (var modifier in modifiers)
+            foreach (var modifier in currentModifiers)
                 if (modifier.Enabled)
                     modifier.Process(workingBuffer);
 
-            // 5. Apply volume/pan using SIMD
             ApplyVolumeAndPanning(workingBuffer, currentVolumePan);
 
-            // 6. Mix using buffer pooling
             MixBuffers(workingBuffer, outputBuffer);
 
-            // 7. Process analyzers with final audio
-            foreach (var analyzer in analyzers)
+            foreach (var analyzer in currentAnalyzers)
                 analyzer.Process(workingBuffer);
         }
         finally
@@ -370,12 +367,16 @@ public abstract class SoundComponent
         int count = 0;
         int simdLength = source.Length - source.Length % Vector<float>.Count;
 
-        while (count < simdLength)
+        // Ensure there's enough data for SIMD operations
+        if (simdLength > 0 && Vector<float>.Count <= source.Length && Vector<float>.Count <= destination.Length)
         {
-            var vs = new Vector<float>(source[count..]);
-            var vd = new Vector<float>(destination[count..]);
-            (vd + vs).CopyTo(destination[count..]);
-            count += Vector<float>.Count;
+            while (count < simdLength)
+            {
+                var vs = new Vector<float>(source.Slice(count, Vector<float>.Count));
+                var vd = new Vector<float>(destination.Slice(count, Vector<float>.Count));
+                (vd + vs).CopyTo(destination.Slice(count, Vector<float>.Count));
+                count += Vector<float>.Count;
+            }
         }
 
         // Scalar remainder
@@ -405,17 +406,17 @@ public abstract class SoundComponent
 
     private static void ApplyMonoVolume(Span<float> buffer, float volume)
     {
-        if (Math.Abs(volume - 1f) < 1e-6)
+        if (Math.Abs(volume - 1f) < 1e-6f)
             return;
 
-        if (Vector.IsHardwareAccelerated)
+        if (Vector.IsHardwareAccelerated && buffer.Length >= Vector<float>.Count)
         {
             var vecVolume = new Vector<float>(volume);
             int count = 0;
             for (; count <= buffer.Length - Vector<float>.Count; count += Vector<float>.Count)
             {
-                var vec = new Vector<float>(buffer[count..]);
-                (vec * vecVolume).CopyTo(buffer[count..]);
+                var vec = new Vector<float>(buffer.Slice(count, Vector<float>.Count));
+                (vec * vecVolume).CopyTo(buffer.Slice(count, Vector<float>.Count));
             }
 
             for (; count < buffer.Length; count++)
@@ -431,46 +432,48 @@ public abstract class SoundComponent
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ApplyStereoVolume(Span<float> buffer, Vector2 volume)
     {
-        // Early exit for unity volume with more precise comparison
-        if ((volume.X - 1f) * (volume.X - 1f) + (volume.Y - 1f) * (volume.Y - 1f) < 1e-12f)
+        // Early exit for unity volume (both channels at 1.0)
+        if (Math.Abs(volume.X - 1f) < 1e-7f && Math.Abs(volume.Y - 1f) < 1e-7f)
             return;
 
-        // Precompute values for scalar path and odd sample handling
         float volX = volume.X;
         float volY = volume.Y;
-        float midVolume = (volX + volY) * 0.5f;
 
-        if (Vector.IsHardwareAccelerated)
+        int i = 0;
+
+        if (Vector.IsHardwareAccelerated && buffer.Length >= Vector<float>.Count)
         {
-            // Use MemoryMarshal.Cast for cleaner SIMD code
-            var vectorBuffer = MemoryMarshal.Cast<float, Vector2>(buffer);
-            foreach (ref var sample in vectorBuffer)
-            {
-                sample *= volume;
-            }
+            int vectorSize = Vector<float>.Count;
 
-            // Handle remaining elements using optimized pattern
-            int processed = vectorBuffer.Length * 2;
-            if (processed < buffer.Length)
+            if (vectorSize % 2 == 0)
             {
-                buffer[processed] *= midVolume;
+                Span<float> gainFactorsSpan = stackalloc float[vectorSize];
+                for (int k = 0; k < vectorSize; k += 2)
+                {
+                    gainFactorsSpan[k] = volX;
+                    gainFactorsSpan[k + 1] = volY;
+                }
+                var simdGainFactors = new Vector<float>(gainFactorsSpan);
+
+                for (; i <= buffer.Length - vectorSize; i += vectorSize)
+                {
+                    var audioSimd = new Vector<float>(buffer.Slice(i, vectorSize));
+                    (audioSimd * simdGainFactors).CopyTo(buffer.Slice(i, vectorSize));
+                }
             }
         }
-        else
-        {
-            // Optimized scalar path with loop unrolling
-            int i = 0;
-            for (; i < buffer.Length - 1; i += 2)
-            {
-                buffer[i] *= volX;
-                buffer[i + 1] *= volY;
-            }
 
-            // Handle last odd element if exists
-            if (i < buffer.Length)
-            {
-                buffer[i] *= midVolume;
-            }
+        // Scalar processing for the remainder or if SIMD is not applicable/enabled
+        for (; i <= buffer.Length - 2; i += 2)
+        {
+            buffer[i] *= volX;
+            buffer[i + 1] *= volY;
+        }
+
+        // Handle the last odd element if the buffer length is odd
+        if (i < buffer.Length)
+        {
+            buffer[i] *= (volX + volY) * 0.5f;
         }
     }
 
@@ -482,7 +485,7 @@ public abstract class SoundComponent
         float[] weights = new float[channels];
         weights[0] = volumePan.X;
         weights[1] = volumePan.Y;
-        float avg = (volumePan.X + volumePan.Y) / 2;
+        float avg = (volumePan.X + volumePan.Y) * 0.5f;
 
         for (int i = 2; i < channels; i++)
             weights[i] = avg;

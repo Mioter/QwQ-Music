@@ -8,7 +8,7 @@ namespace SoundFlow.Providers;
 ///     Provides audio data from a file or stream.
 /// </summary>
 /// <remarks>Loads full audio directly to memory.</remarks>
-public sealed class AssetDataProvider : ISoundDataProvider, IDisposable
+public sealed class AssetDataProvider : ISoundDataProvider
 {
     private float[] _data;
     private bool _isDisposed;

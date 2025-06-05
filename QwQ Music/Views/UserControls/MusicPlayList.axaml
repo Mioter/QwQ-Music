@@ -3,7 +3,7 @@
     d:DesignWidth="300"
     mc:Ignorable="d"
     x:Class="QwQ_Music.Views.UserControls.MusicPlayList"
-    x:DataType="viewModels:MusicPlayListViewModel"
+    x:DataType="pages:MusicPlayListViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -11,7 +11,8 @@
     xmlns:u="https://irihi.tech/ursa"
     xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
     xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:pages="clr-namespace:QwQ_Music.ViewModels.UserControls">
 
     <UserControl.Styles>
         <Style Selector="Border.NotTransparent">
@@ -84,7 +85,7 @@
 
             <ListBox
                 Grid.Row="1"
-                ItemsSource="{Binding MusicPlayerViewModel.Playlist.MusicItems}"
+                ItemsSource="{Binding MusicPlayerViewModel.PlayList.MusicItems}"
                 Margin="0,5"
                 SelectedItem="{Binding SelectedItem}"
                 behaviors:ScrollToItemBehavior.SmoothScrollingEnabled="True"
@@ -98,12 +99,12 @@
                             <StackPanel Orientation="Horizontal">
 
                                 <userControls:MusicAlbumButton
-                                    Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                    Command="{Binding $parent[UserControl].((pages:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
                                     CommandParameter="{Binding}"
                                     CornerRadius="8"
-                                    CurrentMusicItem="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
+                                    CurrentMusicItem="{Binding $parent[UserControl].((pages:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
                                     ExternalMouseTouch="{Binding $parent[ListBoxItem].IsPointerOver}"
-                                    IsPlaying="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
+                                    IsPlaying="{Binding $parent[UserControl].((pages:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
                                     <Button.Effect>
                                         <DropShadowEffect
                                             BlurRadius="10"
@@ -133,14 +134,13 @@
                         <Setter Property="Padding" Value="0" />
                         <Setter Property="Margin" Value="3" />
                         <Setter Property="CornerRadius" Value="10" />
-
                         <Setter Property="ContextMenu">
 
                             <Setter.Value>
                                 <ContextMenu>
 
                                     <MenuItem
-                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
+                                        Command="{Binding $parent[UserControl].((pages:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
                                         CommandParameter="{Binding}"
                                         Header="立即播放">
                                         <MenuItem.Icon>
@@ -149,7 +149,7 @@
                                     </MenuItem>
 
                                     <MenuItem
-                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.AddToMusicListNextItemCommand}"
+                                        Command="{Binding $parent[UserControl].((pages:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
                                         CommandParameter="{Binding}"
                                         Header="添加到下一首">
                                         <MenuItem.Icon>
@@ -161,7 +161,7 @@
                                     </MenuItem>
 
                                     <MenuItem
-                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.RemoveInMusicListCommand}"
+                                        Command="{Binding $parent[UserControl].((pages:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.RemoveInMusicListCommand}"
                                         CommandParameter="{Binding}"
                                         Header="移出播放列表">
                                         <MenuItem.Icon>
@@ -175,7 +175,7 @@
 
                                     <!--  在文件中打开  -->
                                     <MenuItem
-                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
+                                        Command="{Binding $parent[UserControl].((pages:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
                                         CommandParameter="{Binding}"
                                         Header="在文件中打开">
                                         <MenuItem.Icon>
@@ -184,7 +184,7 @@
                                     </MenuItem>
 
                                     <MenuItem
-                                        Command="{Binding $parent[UserControl].((viewModels:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
+                                        Command="{Binding $parent[UserControl].((pages:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
                                         CommandParameter="{Binding}"
                                         Header="详细信息">
                                         <MenuItem.Icon>

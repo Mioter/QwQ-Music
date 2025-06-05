@@ -9,7 +9,7 @@ namespace SoundFlow.Providers;
 ///     Provides audio data from the microphone.
 /// </summary>
 /// <remarks>Live audio input from the microphone is captured and processed into audio data for direct playback.</remarks>
-public class MicrophoneDataProvider : ISoundDataProvider, IDisposable
+public class MicrophoneDataProvider : ISoundDataProvider
 {
     private readonly AudioEngine _audioEngine;
     private readonly ConcurrentQueue<float[]> _bufferQueue = new();

@@ -1,9 +1,11 @@
 ﻿using System;
 using Avalonia;
+using QwQ_Music.Definitions;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
-using QwQ_Music.Utilities.MessageBus;
+using QwQ_Music.ViewModels;
+using QwQ.Avalonia.Utilities.MessageBus;
 
 namespace QwQ_Music;
 
@@ -33,19 +35,18 @@ public static class Program
         {
             ConfigInfoModel.SaveAll();
 
-            StrongMessageBus.Instance.Publish(new ExitReminderMessage(true));
-            StrongMessageBus.Instance.Dispose();
-            
-            ViewModels.MusicPlayerViewModel.Instance.Save().Wait();
+            MessageBus.CreateMessage(new ExitReminderMessage(true)).SetAsOneTime().WaitForCompletion().Publish();
 
-            DataBaseService.CloseConnectionAsync().Wait();
+            MusicPlayerViewModel.Instance.SaveAsync().Wait();
+
+            DataBaseService.CloseConnection();
             LoggerService.Shutdown();
         }
         catch (Exception ex)
         {
             // Log the exception or handle it as needed
-             LoggerService.ErrorAsync($"An error occurred: {ex.Message}");
-             LoggerService.Shutdown();
+            LoggerService.Error($"An error occurred: {ex.Message}");
+            LoggerService.Shutdown();
         }
     }
 

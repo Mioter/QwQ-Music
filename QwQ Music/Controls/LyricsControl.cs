@@ -76,7 +76,7 @@ public class LyricsControl : TemplatedControl
     public static readonly StyledProperty<Thickness> TextMarginProperty = AvaloniaProperty.Register<
         LyricsControl,
         Thickness
-    >(nameof(TextMargin), new Thickness(20,10));
+    >(nameof(TextMargin), new Thickness(20, 10));
 
     // 翻译文本间距
     public static readonly StyledProperty<double> TranslationSpacingProperty = AvaloniaProperty.Register<
@@ -211,7 +211,6 @@ public class LyricsControl : TemplatedControl
     // 添加用于防抖渲染的计时器
     private DispatcherTimer? _renderDebounceTimer;
     private readonly TimeSpan _renderDebounceInterval = TimeSpan.FromMilliseconds(150); // 防抖间隔
-
     #endregion
 
     static LyricsControl()
@@ -272,10 +271,7 @@ public class LyricsControl : TemplatedControl
 
     private void InitializeDebounceTimer()
     {
-        _renderDebounceTimer = new DispatcherTimer
-        {
-            Interval = _renderDebounceInterval,
-        };
+        _renderDebounceTimer = new DispatcherTimer { Interval = _renderDebounceInterval };
         _renderDebounceTimer.Tick += (_, _) =>
         {
             _renderDebounceTimer?.Stop();
@@ -356,16 +352,16 @@ public class LyricsControl : TemplatedControl
     /// </summary>
     private void OnBoundsChanged(AvaloniaPropertyChangedEventArgs e)
     {
-
-        if (e is not { OldValue: Rect oldBounds, NewValue: Rect newBounds } || 
-            !(Math.Abs(oldBounds.Height - newBounds.Height) > 0.1))
+        if (
+            e is not { OldValue: Rect oldBounds, NewValue: Rect newBounds }
+            || !(Math.Abs(oldBounds.Height - newBounds.Height) > 0.1)
+        )
             return;
-        
+
         // 重置并启动防抖计时器
         _renderDebounceTimer?.Stop();
         _renderDebounceTimer?.Start();
     }
-
 
     /// <summary>
     /// 初始化歌词数据
@@ -431,7 +427,6 @@ public class LyricsControl : TemplatedControl
             if (string.IsNullOrWhiteSpace(primaryText))
             {
                 lyricLineControl.Classes.Add("empty");
- 
             }
 
             _lyricsCanvas.Children.Add(lyricLineControl);
@@ -469,7 +464,12 @@ public class LyricsControl : TemplatedControl
     /// </summary>
     private void UpdateCurrentLyric()
     {
-        if (_lyricsCanvas == null || _lyricLines.Count == 0 || CurrentLyricIndex < 0 || CurrentLyricIndex >= _lyricLines.Count)
+        if (
+            _lyricsCanvas == null
+            || _lyricLines.Count == 0
+            || CurrentLyricIndex < 0
+            || CurrentLyricIndex >= _lyricLines.Count
+        )
             return;
 
         // 更新高亮
@@ -508,7 +508,12 @@ public class LyricsControl : TemplatedControl
     /// </summary>
     private void ScrollToCurrentLyric()
     {
-        if (_scrollViewer == null || _lyricsCanvas == null || CurrentLyricIndex < 0 || CurrentLyricIndex >= _lyricLines.Count)
+        if (
+            _scrollViewer == null
+            || _lyricsCanvas == null
+            || CurrentLyricIndex < 0
+            || CurrentLyricIndex >= _lyricLines.Count
+        )
             return;
 
         // 如果用户正在滚动，则不进行程序滚动
@@ -525,7 +530,6 @@ public class LyricsControl : TemplatedControl
         _scrollAnimationCts = new CancellationTokenSource();
         var cancellationToken = _scrollAnimationCts.Token;
 
-
         _isProgrammaticScrolling = true; // 标记为程序滚动
 
         var animation = new Animation
@@ -540,11 +544,7 @@ public class LyricsControl : TemplatedControl
                     Cue = new Cue(0d),
                     Setters =
                     {
-                        new Setter
-                        {
-                            Property = ScrollViewer.OffsetProperty,
-                            Value = _scrollViewer.Offset,
-                        },
+                        new Setter { Property = ScrollViewer.OffsetProperty, Value = _scrollViewer.Offset },
                     },
                 },
                 new KeyFrame
@@ -563,28 +563,32 @@ public class LyricsControl : TemplatedControl
         };
 
         // 使用 RunAsync 并捕获 TaskCanceledException
-        animation.RunAsync(_scrollViewer, cancellationToken)
-            .ContinueWith(task =>
-            {
-                // 动画完成或取消后，重置程序滚动标志
-                Dispatcher.UIThread.Post(() =>
+        animation
+            .RunAsync(_scrollViewer, cancellationToken)
+            .ContinueWith(
+                task =>
                 {
-                    // 只有当这是最后一个动画时才重置标志
-                    if (cancellationToken.IsCancellationRequested)
-                        return;
-                    _isProgrammaticScrolling = false;
-                    _scrollAnimationCts = null;
-                });
+                    // 动画完成或取消后，重置程序滚动标志
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        // 只有当这是最后一个动画时才重置标志
+                        if (cancellationToken.IsCancellationRequested)
+                            return;
+                        _isProgrammaticScrolling = false;
+                        _scrollAnimationCts = null;
+                    });
 
-                if (task.IsCanceled)
-                {
-                    // LoggerService.Debug("滚动动画被取消");
-                }
-                else if (task.IsFaulted)
-                {
-                    LoggerService.Error($"滚动动画出错: {task.Exception}");
-                }
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+                    if (task.IsCanceled)
+                    {
+                        // LoggerService.Debug("滚动动画被取消");
+                    }
+                    else if (task.IsFaulted)
+                    {
+                        LoggerService.Error($"滚动动画出错: {task.Exception}");
+                    }
+                },
+                TaskScheduler.FromCurrentSynchronizationContext()
+            );
     }
 
     /// <summary>
@@ -594,7 +598,8 @@ public class LyricsControl : TemplatedControl
     /// <returns>目标滚动偏移量</returns>
     private double CalculateScrollOffset(LyricLineControl currentLine)
     {
-        if (_scrollViewer == null) return 0;
+        if (_scrollViewer == null)
+            return 0;
 
         double viewportHeight = _scrollViewer.Bounds.Height;
         double centerY = viewportHeight / 2;

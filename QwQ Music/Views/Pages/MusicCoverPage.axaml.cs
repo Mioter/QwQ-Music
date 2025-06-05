@@ -1,5 +1,5 @@
 using Avalonia.Controls;
-using QwQ_Music.ViewModels;
+using MusicCoverPageViewModel = QwQ_Music.ViewModels.Pages.MusicCoverPageViewModel;
 
 namespace QwQ_Music.Views.Pages;
 

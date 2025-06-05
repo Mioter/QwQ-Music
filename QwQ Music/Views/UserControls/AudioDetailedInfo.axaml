@@ -1,13 +1,12 @@
 <UserControl
-
     mc:Ignorable="d"
     x:Class="QwQ_Music.Views.UserControls.AudioDetailedInfo"
-    x:DataType="vm:AudioDetailedInfoViewModel"
+    x:DataType="userControls:AudioDetailedInfoViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:userControls="clr-namespace:QwQ_Music.ViewModels.UserControls">
 
     <ListBox 
         Height="350"
@@ -45,7 +44,7 @@
             <DataTemplate>
                 <SelectableTextBlock
                     MinWidth="260"
-                    SelectedText="{Binding $parent[UserControl].((vm:AudioDetailedInfoViewModel)DataContext).SelectedText}"
+                    SelectedText="{Binding $parent[UserControl].((userControls:AudioDetailedInfoViewModel)DataContext).SelectedText}"
                     TextWrapping="Wrap"
                     VerticalAlignment="Center">
                     <Run FontWeight="Bold" Text="{Binding Key}" />
@@ -54,7 +53,7 @@
                     <SelectableTextBlock.ContextMenu>
                         <ContextMenu>
                             <MenuItem
-                                Command="{Binding $parent[UserControl].((vm:AudioDetailedInfoViewModel)DataContext).CopyTextCommand}"
+                                Command="{Binding $parent[UserControl].((userControls:AudioDetailedInfoViewModel)DataContext).CopyTextCommand}"
                                 CommandParameter="{Binding}"
                                 Header="{DynamicResource STRING_MENU_COPY}"
                                 InputGesture="{x:Static TextBox.CopyGesture}" />

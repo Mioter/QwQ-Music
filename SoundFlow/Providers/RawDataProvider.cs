@@ -10,7 +10,7 @@ namespace SoundFlow.Providers;
 ///     Provides audio data from a raw PCM stream.
 ///     This provider is designed for streams that directly contain raw PCM bytes without any encoding headers.
 /// </summary>
-public class RawDataProvider : ISoundDataProvider, IDisposable
+public class RawDataProvider : ISoundDataProvider
 {
     private readonly Stream _pcmStream;
     private readonly int _channels;
@@ -28,7 +28,7 @@ public class RawDataProvider : ISoundDataProvider, IDisposable
     ///     <paramref name="pcmStream"/> cannot be <see langword="null"/>.
     /// </exception>
     /// <exception cref="ArgumentException">
-    ///     <paramref name="sampleFormat"/> cannot be <see cref="Enums.SampleFormat.Unknown"/>.
+    ///     <paramref name="sampleFormat"/> cannot be <see cref="SampleFormat.Unknown"/>.
     /// </exception>
     public RawDataProvider(Stream pcmStream, SampleFormat sampleFormat, int channels, int sampleRate)
     {

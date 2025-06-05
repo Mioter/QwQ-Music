@@ -6,22 +6,35 @@
     <Design.PreviewWith>
 
         <ContextMenu VerticalAlignment="Bottom">
-            <!--  ReSharper disable once Xaml.PossibleNullReferenceException  -->
+
             <MenuItem
                 Header="立即播放">
                 <MenuItem.Icon>
                     <PathIcon Data="{StaticResource SemiIconPlay}" Margin="2" />
                 </MenuItem.Icon>
             </MenuItem>
-            <!--  ReSharper disable once Xaml.PossibleNullReferenceException  -->
+
             <MenuItem
-                Header="添加到下一首">
+                Header="添加到">
                 <MenuItem.Icon>
                     <PathIcon
                         Data="{StaticResource SemiIconPlus}"
                         Margin="2"
                         RenderTransform="rotate(180deg)" />
                 </MenuItem.Icon>
+
+                <MenuItem
+                    Header="播放列表">
+                    <MenuItem.Icon>
+                        <PathIcon Data="{StaticResource SemiIconPlay}" Margin="2" />
+                    </MenuItem.Icon>
+                </MenuItem>
+               <MenuItem
+                    Header="歌单">
+                    <MenuItem.Icon>
+                        <PathIcon Data="{StaticResource SemiIconPlay}" Margin="2" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem
@@ -59,7 +72,7 @@
 
     </Design.PreviewWith>
     
-    <Thickness x:Key="MenuFlyoutPadding">0,5</Thickness>
+    <Thickness x:Key="MenuFlyoutPadding">5</Thickness>
 
     <ControlTheme x:Key="{x:Type ContextMenu}" TargetType="ContextMenu">
         <Setter Property="Background" Value="{DynamicResource MenuFlyoutBackground}" />

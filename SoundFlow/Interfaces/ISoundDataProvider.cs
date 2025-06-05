@@ -5,7 +5,7 @@ namespace SoundFlow.Interfaces;
 /// <summary>
 ///     Interface for a sound data provider.
 /// </summary>
-public interface ISoundDataProvider
+public interface ISoundDataProvider : IDisposable
 {
     /// <summary>
     ///     Gets the current playback position in samples.

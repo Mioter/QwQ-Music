@@ -3,12 +3,12 @@
     d:DesignWidth="800"
     mc:Ignorable="d"
     x:Class="QwQ_Music.Views.Pages.InterfaceConfigPage"
-    x:DataType="viewModel:InterfaceConfigPageViewModel"
+    x:DataType="pages:InterfaceConfigPageViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModel="using:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages">
 
     <ScrollViewer Margin="10">
         <StackPanel Spacing="20"  Margin="0,0,10,0">

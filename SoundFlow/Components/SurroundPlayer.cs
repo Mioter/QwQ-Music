@@ -258,7 +258,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
         for (int frame = 0; frame < frameCount; frame++)
         {
             // Assuming base audio is mono
-            // TODO: refactor when support for getting audio data is added
+            // TODO: refactor when support for getting audio data is added (e.g., mono, stereo, 5.1 or 7.1, etc.)
             float inputSample = buffer[frame * channels];
 
             // down-mixing stereo to mono
@@ -510,7 +510,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
         return weights;
     }
 
-    private Vector2[] GetOutputSpeakerLayout(int channelCount)
+    private static Vector2[] GetOutputSpeakerLayout(int channelCount)
     {
         // Define standard speaker layouts based on channel count
         return channelCount switch

@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Controls;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.ViewModels.ViewModelBases;
 using SoundFlow.Modifiers;
 
 namespace QwQ_Music.ViewModels;

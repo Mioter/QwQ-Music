@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="pages:MusicListsPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.MusicListsPage">
+    
+    <ItemsControl ItemsSource="{Binding PlayListItems}" Margin="10">
+
+        <ItemsControl.Styles>
+
+            <Style Selector="ItemsControl > ContentPresenter">
+                <Setter Property="ContextMenu">
+                    <Setter.Value>
+                        <ContextMenu>
+                            
+                            <MenuItem
+                                Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).EditMusicListCommand}"
+                                CommandParameter="{Binding}"
+                                Header="编辑">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconEdit}" 
+                                              Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                            <MenuItem
+                                Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).DeleteMusicListModelCommand}"
+                                CommandParameter="{Binding}"
+                                Header="删除">
+                                <MenuItem.Icon>
+                                    <PathIcon Foreground="{DynamicResource EmphasizePink3}"
+                                              Data="{StaticResource SemiIconDelete}" 
+                                              Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                        </ContextMenu>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+        </ItemsControl.Styles>
+        
+        <ItemsControl.ItemsPanel>
+
+            <ItemsPanelTemplate>
+                <WrapPanel ItemSpacing="10" />
+            </ItemsPanelTemplate>
+
+        </ItemsControl.ItemsPanel>
+
+        <ItemsControl.ItemTemplate>
+
+            <DataTemplate>
+
+                <Button Background="Transparent" Padding="10" CornerRadius="12"
+                        Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).OpenMusicListsCommand}"
+                        CommandParameter="{Binding}">
+
+                    <DockPanel
+                        Height="60"
+                        Width="160"
+                        HorizontalSpacing="10"
+                        VerticalSpacing="5">
+
+                        <Border DockPanel.Dock="Left"
+                                CornerRadius="12"
+                                VerticalAlignment="Top">
+
+                            <Border.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="10"
+                                    Color="DarkGray"
+                                    OffsetX="0"
+                                    OffsetY="0"
+                                    Opacity="0.5" />
+                            </Border.Effect>
+
+                            <Border CornerRadius="12"
+                                    ClipToBounds="True">
+                                <Image
+                                    Source="{Binding CoverImage}" />
+                            </Border>
+
+                        </Border>
+
+                        <TextBlock DockPanel.Dock="Top"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                   Text="{Binding Name}"
+                                   FontWeight="Bold" />
+
+                        <TextBlock DockPanel.Dock="Bottom"
+                                   Text="{Binding Description}"
+                                   MaxLines="2"
+                                   FontSize="12"
+                                   TextTrimming="CharacterEllipsis"
+                                   TextWrapping="Wrap"
+                                   Classes="Tertiary" />
+
+                    </DockPanel>
+
+                </Button>
+
+            </DataTemplate>
+
+        </ItemsControl.ItemTemplate>
+
+
+    </ItemsControl>
+
+
+</UserControl>

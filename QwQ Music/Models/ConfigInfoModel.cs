@@ -11,7 +11,6 @@ public static class ConfigInfoModel
     #region 配置加载
 
     // 使用Lazy<T>实现真正的懒加载
-    // ReSharper disable once InconsistentNaming
     private static readonly Lazy<MainConfig> _mainConfig = new(
         () =>
             JsonConfigService.Load<MainConfig>(nameof(MainConfig).ToLower(), MainConfigJsonSerializerContext.Default)
@@ -21,7 +20,6 @@ public static class ConfigInfoModel
     public static MainConfig MainConfig => _mainConfig.Value;
 
     // PlayerConfig 实现
-    // ReSharper disable once InconsistentNaming
     private static readonly Lazy<PlayerConfig> _playerConfig = new(
         () =>
             JsonConfigService.Load<PlayerConfig>(
@@ -33,7 +31,6 @@ public static class ConfigInfoModel
     public static PlayerConfig PlayerConfig => _playerConfig.Value;
 
     // DesktopLyricConfig 实现
-    // ReSharper disable once InconsistentNaming
     private static readonly Lazy<LyricConfig> _lyricConfig = new(
         () =>
             JsonConfigService.Load<LyricConfig>(nameof(LyricConfig).ToLower(), LyricConfigJsonSerializerContext.Default)
@@ -43,7 +40,6 @@ public static class ConfigInfoModel
     public static LyricConfig LyricConfig => _lyricConfig.Value;
 
     // SoundEffectConfig 实现
-    // ReSharper disable once InconsistentNaming
     private static readonly Lazy<AudioModifierConfig> _audioModifierConfig = new(
         () =>
             JsonConfigService.Load<AudioModifierConfig>(
@@ -54,7 +50,6 @@ public static class ConfigInfoModel
 
     public static AudioModifierConfig AudioModifierConfig => _audioModifierConfig.Value;
 
-    // ReSharper disable once InconsistentNaming
     private static readonly Lazy<InterfaceConfig> _interfaceConfig = new(
         () =>
             JsonConfigService.Load<InterfaceConfig>(

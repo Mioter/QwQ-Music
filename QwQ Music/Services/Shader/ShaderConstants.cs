@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Avalonia.Platform;
 
 namespace QwQ_Music.Services.Shader;
 
@@ -9,8 +8,6 @@ namespace QwQ_Music.Services.Shader;
 /// </summary>
 public static class ShaderConstants
 {
-    private const string ResourcePrefix = "avares://QwQ Music/Assets/Shaders/";
-
     /// <summary>
     /// 波浪扭曲着色器（支持自定义颜色）
     /// </summary>
@@ -23,17 +20,20 @@ public static class ShaderConstants
     /// <returns>着色器代码</returns>
     private static string LoadShaderFromAvaloniaResource(string resourceName)
     {
-        string fullResourceName = $"{ResourcePrefix}{resourceName}";
-
         try
         {
-            using var stream = AssetLoader.Open(new Uri(fullResourceName));
+            var assembly = typeof(ShaderConstants).Assembly;
+            using var stream = assembly.GetManifestResourceStream($"QwQ_Music.Assets.Shaders.{resourceName}");
+            if (stream == null)
+            {
+                throw new FileNotFoundException($"无法找到着色器资源: {resourceName}");
+            }
             using var reader = new StreamReader(stream);
             return reader.ReadToEnd();
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"无法加载着色器资源: {fullResourceName}", ex);
+            throw new InvalidOperationException($"无法加载着色器资源: {resourceName}", ex);
         }
     }
 

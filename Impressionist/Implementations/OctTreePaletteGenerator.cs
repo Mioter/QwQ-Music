@@ -24,7 +24,7 @@ namespace Impressionist.Implementations
             }
             quantizer.Quantize(1);
             var result = quantizer.GetThemeResult();
-            bool colorIsDark = result.RGBVectorToHSVColor().sRGBColorIsDark();
+            bool colorIsDark = result.RgbVectorToHsvColor().SRgbColorIsDark();
             return Task.FromResult(new ThemeColorResult(result, colorIsDark));
         }
 
@@ -48,11 +48,11 @@ namespace Impressionist.Implementations
             bool colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
-                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
+                builder = builder.Where(t => t.Key.RgbVectorToHsvColor().SRgbColorIsDark());
             }
             else
             {
-                builder = builder.Where(t => !t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
+                builder = builder.Where(t => !t.Key.RgbVectorToHsvColor().SRgbColorIsDark());
             }
             var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             foreach (var color in targetColor)
@@ -97,52 +97,52 @@ namespace Impressionist.Implementations
 
         private class PaletteQuantizer
         {
-            private readonly Node Root;
-            private IDictionary<int, List<Node>> levelNodes;
+            private readonly Node _root;
+            private IDictionary<int, List<Node>> _levelNodes;
 
             public PaletteQuantizer()
             {
-                Root = new Node(this);
-                levelNodes = new Dictionary<int, List<Node>>();
+                _root = new Node(this);
+                _levelNodes = new Dictionary<int, List<Node>>();
                 for (int i = 0; i < 8; i++)
                 {
-                    levelNodes[i] = new List<Node>();
+                    _levelNodes[i] = new List<Node>();
                 }
             }
 
             public void AddColor(Vector3 color)
             {
-                Root.AddColor(color, 0);
+                _root.AddColor(color, 0);
             }
 
             public void AddColorRange(Vector3 color, int count)
             {
-                Root.AddColorRange(color, 0, count);
+                _root.AddColorRange(color, 0, count);
             }
 
             public void AddLevelNode(Node node, int level)
             {
-                levelNodes[level].Add(node);
+                _levelNodes[level].Add(node);
             }
 
             public List<Vector3> GetPaletteResult()
             {
-                return Root.GetPaletteResult().Keys.ToList();
+                return _root.GetPaletteResult().Keys.ToList();
             }
 
             public Vector3 GetThemeResult()
             {
-                return Root.GetThemeResult();
+                return _root.GetThemeResult();
             }
 
             public void Quantize(int colorCount)
             {
-                int nodesToRemove = levelNodes[7].Count - colorCount;
+                int nodesToRemove = _levelNodes[7].Count - colorCount;
                 int level = 6;
                 bool toBreak = false;
                 while (level >= 0 && nodesToRemove > 0)
                 {
-                    var leaves = levelNodes[level]
+                    var leaves = _levelNodes[level]
                         .Where(n => n.ChildrenCount - 1 <= nodesToRemove)
                         .OrderBy(n => n.ChildrenCount);
                     foreach (var leaf in leaves)
@@ -159,7 +159,7 @@ namespace Impressionist.Implementations
                             break;
                         }
                     }
-                    levelNodes.Remove(level + 1);
+                    _levelNodes.Remove(level + 1);
                     level--;
                     if (toBreak)
                     {
@@ -171,16 +171,16 @@ namespace Impressionist.Implementations
 
         private class Node
         {
-            private readonly PaletteQuantizer parent;
-            private Node[] Children = new Node[8];
+            private readonly PaletteQuantizer _parent;
+            private Node[] _children = new Node[8];
             private Vector3 Color { get; set; }
             private int Count { get; set; }
 
-            public int ChildrenCount => Children.Count(c => c != null);
+            public int ChildrenCount => _children.Count(c => c != null);
 
             public Node(PaletteQuantizer parent)
             {
-                this.parent = parent;
+                _parent = parent;
             }
 
             public void AddColor(Vector3 color, int level)
@@ -188,13 +188,13 @@ namespace Impressionist.Implementations
                 if (level < 8)
                 {
                     byte index = GetIndex(color, level);
-                    if (Children[index] == null)
+                    if (_children[index] == null)
                     {
-                        var newNode = new Node(parent);
-                        Children[index] = newNode;
-                        parent.AddLevelNode(newNode, level);
+                        var newNode = new Node(_parent);
+                        _children[index] = newNode;
+                        _parent.AddLevelNode(newNode, level);
                     }
-                    Children[index].AddColor(color, level + 1);
+                    _children[index].AddColor(color, level + 1);
                 }
                 else
                 {
@@ -208,13 +208,13 @@ namespace Impressionist.Implementations
                 if (level < 8)
                 {
                     byte index = GetIndex(color, level);
-                    if (Children[index] == null)
+                    if (_children[index] == null)
                     {
-                        var newNode = new Node(parent);
-                        Children[index] = newNode;
-                        parent.AddLevelNode(newNode, level);
+                        var newNode = new Node(_parent);
+                        _children[index] = newNode;
+                        _parent.AddLevelNode(newNode, level);
                     }
-                    Children[index].AddColorRange(color, level + 1, count);
+                    _children[index].AddColorRange(color, level + 1, count);
                 }
                 else
                 {
@@ -230,7 +230,7 @@ namespace Impressionist.Implementations
                     return Color;
                 }
                 byte index = GetIndex(color, level);
-                return Children[index].GetColor(color, level + 1);
+                return _children[index].GetColor(color, level + 1);
             }
 
             public Vector3 GetThemeResult()
@@ -249,11 +249,11 @@ namespace Impressionist.Implementations
             public Dictionary<Vector3, int> GetPaletteResult()
             {
                 var result = new Dictionary<Vector3, int>();
-                if (!Children.Any(t => t != null))
+                if (!_children.Any(t => t != null))
                     result[Color] = Count;
                 else
                 {
-                    foreach (var child in Children)
+                    foreach (var child in _children)
                     {
                         child?.NodeGetResult(result);
                     }
@@ -263,11 +263,11 @@ namespace Impressionist.Implementations
 
             private void NodeGetResult(Dictionary<Vector3, int> result)
             {
-                if (!Children.Any(t => t != null))
+                if (!_children.Any(t => t != null))
                     result[Color] = Count;
                 else
                 {
-                    foreach (var child in Children)
+                    foreach (var child in _children)
                     {
                         child?.NodeGetResult(result);
                     }
@@ -295,9 +295,9 @@ namespace Impressionist.Implementations
 
             public void Merge()
             {
-                Color = Average(Children.Where(c => c != null).Select(c => new Tuple<Vector3, int>(c.Color, c.Count)));
-                Count = Children.Sum(c => c?.Count ?? 0);
-                Children = new Node[8];
+                Color = Average(_children.Where(c => c != null).Select(c => new Tuple<Vector3, int>(c.Color, c.Count)));
+                Count = _children.Sum(c => c?.Count ?? 0);
+                _children = new Node[8];
             }
 
             private static Vector3 Average(IEnumerable<Tuple<Vector3, int>> colors)

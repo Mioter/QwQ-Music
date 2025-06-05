@@ -10,7 +10,7 @@ namespace SoundFlow.Providers;
 /// <summary>
 ///     Provides audio data from an internet source, supporting both direct audio URLs and HLS (m3u(8)) playlists.
 /// </summary>
-public sealed class NetworkDataProvider : ISoundDataProvider, IDisposable
+public sealed class NetworkDataProvider : ISoundDataProvider
 {
     private readonly string _url;
     private ISoundDecoder? _decoder;

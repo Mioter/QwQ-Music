@@ -5,18 +5,27 @@
     PointerEntered="SetLyricBackground"
     PointerExited="UnsetLyricBackground"
     x:Class="QwQ_Music.Views.Pages.LyricConfigPage"
-    x:DataType="viewModel:LyricConfigPageViewModel"
+    x:DataType="pages:LyricConfigPageViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:u="https://irihi.tech/ursa"
-    xmlns:viewModel="using:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages">
 
     <ScrollViewer
         HorizontalScrollBarVisibility="Disabled"
         Margin="10"
         VerticalScrollBarVisibility="Auto">
 
-        <StackPanel Spacing="20" Margin="0,0,10,0">
+        <StackPanel Spacing="10" Margin="0,0,10,0">
+
+            <Expander Header="基础设置">
+
+                <StackPanel Spacing="10">
+                    <TextBlock Text="{Binding OffsetName}" />
+                    <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding BasicLyric.LyricOffset}" />
+                </StackPanel>
+
+            </Expander>
 
             <Expander Header="滚动歌词">
 
@@ -27,13 +36,11 @@
                             CornerRadius="8"
                             HorizontalAlignment="Right"
                             ItemsSource="{Binding TextAlignments}"
-                            SelectedItem="{Binding RolledLyricsConfig.LyricTextAlignment}" />
+                            SelectedItem="{Binding RolledLyrics.LyricTextAlignment}" />
                     </Panel>
 
-                    <CheckBox Content="显示翻译" IsChecked="{Binding RolledLyricsConfig.ShowTranslation}" />
-
-                    <TextBlock Text="{Binding OffsetName}" />
-                    <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding DesktopLyric.LyricOffset}" />
+                    <CheckBox Content="显示翻译" IsChecked="{Binding RolledLyrics.ShowTranslation}" />
+                    
                 </StackPanel>
 
             </Expander>
@@ -41,9 +48,6 @@
             <Expander Header="桌面歌词">
 
                 <StackPanel Spacing="10">
-
-                    <TextBlock Text="{Binding OffsetName}" />
-                    <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding DesktopLyric.LyricOffset}" />
 
                     <CheckBox Content="{Binding IsEnabledName}" IsChecked="{Binding DesktopLyric.LyricIsEnabled}" />
                     <CheckBox Content="{Binding IsDoubleLineName}" IsChecked="{Binding DesktopLyric.LyricIsDoubleLine}" />

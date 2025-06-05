@@ -8,8 +8,8 @@ namespace QwQ_Music.Helper.Converters;
 
 public class CalcConverter : IValueConverter
 {
-    private static readonly char[] AllOperators = ['+', '-', '*', '/', '%', '(', ')'];
-    private static readonly Dictionary<char, int> OperatorPrecedence = new()
+    private static readonly char[] _allOperators = ['+', '-', '*', '/', '%', '(', ')'];
+    private static readonly Dictionary<char, int> _operatorPrecedence = new()
     {
         { '+', 1 },
         { '-', 1 },
@@ -82,12 +82,12 @@ public class CalcConverter : IValueConverter
                         break;
 
                     default:
-                        if (AllOperators.Contains(currentChar))
+                        if (_allOperators.Contains(currentChar))
                         {
                             while (
                                 operators.Count > 0
                                 && operators.Peek() != '('
-                                && OperatorPrecedence[operators.Peek()] >= OperatorPrecedence[currentChar]
+                                && _operatorPrecedence[operators.Peek()] >= _operatorPrecedence[currentChar]
                             )
                             {
                                 ApplyTopOperator(values, operators);
@@ -109,7 +109,7 @@ public class CalcConverter : IValueConverter
 
     private static bool IsUnaryOperator(string expression, int index)
     {
-        return index == 0 || expression[index - 1] == '(' || AllOperators.Contains(expression[index - 1]);
+        return index == 0 || expression[index - 1] == '(' || _allOperators.Contains(expression[index - 1]);
     }
 
     private static void ApplyTopOperator(Stack<double> values, Stack<char> operators)

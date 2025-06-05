@@ -8,15 +8,19 @@ namespace QwQ_Music.Models.ConfigModel;
 
 public class LyricConfig : ObservableObject
 {
+    public BasicLyricConfig BasicLyricConfig { get; set; } = new();
     public RolledLyricsConfig RolledLyricsConfig { get; set; } = new();
     public DesktopLyricConfig DesktopLyric { get; set; } = new();
 }
 
-public partial class RolledLyricsConfig : ObservableObject
+public partial class BasicLyricConfig : ObservableObject
 {
     [ObservableProperty]
     public partial int LyricOffset { get; set; }
+}
 
+public partial class RolledLyricsConfig : ObservableObject
+{
     [ObservableProperty]
     public partial HorizontalAlignment LyricTextAlignment { get; set; }
 
@@ -28,9 +32,6 @@ public partial class DesktopLyricConfig : ObservableObject
 {
     [ObservableProperty]
     public partial bool LyricIsEnabled { get; set; }
-
-    [ObservableProperty]
-    public partial int LyricOffset { get; set; }
 
     [ObservableProperty]
     public partial bool LyricIsDoubleLine { get; set; }

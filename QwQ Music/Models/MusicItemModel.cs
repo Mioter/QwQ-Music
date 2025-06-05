@@ -5,27 +5,50 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.Models.ModelBase;
+using QwQ_Music.Models.ModelBases;
 using QwQ_Music.Services;
 
 namespace QwQ_Music.Models;
 
-public class MusicItemModel(
-    string title = "",
-    string? artists = null,
-    string? composer = null,
-    string? album = null,
-    string? coverPath = null,
-    string filePath = "",
-    string fileSize = "",
-    TimeSpan? current = null,
-    TimeSpan duration = default,
-    string? encodingFormat = null,
-    string? comment = null,
-    double gain = -1.0f,
-    string[]? coverColor = null
-) : ObservableObject, IModelBase<MusicItemModel>
+public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
 {
+    public MusicItemModel(
+        string title = "",
+        string? artists = null,
+        string? composer = null,
+        string? album = null,
+        string? coverPath = null,
+        string filePath = "",
+        string fileSize = "",
+        TimeSpan? current = null,
+        TimeSpan duration = default,
+        string? encodingFormat = null,
+        string? comment = null,
+        Bitmap? coverImage = null,
+        double gain = -1.0f,
+        string[]? coverColor = null
+    )
+    {
+        Title = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
+        Artists = string.IsNullOrWhiteSpace(artists) ? "未知歌手" : artists;
+        Composer = string.IsNullOrWhiteSpace(composer) ? "未知作曲" : composer;
+        Album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
+        Current = current ?? TimeSpan.Zero;
+        Duration = duration;
+        FilePath = filePath;
+        FileSize = fileSize;
+        Gain = gain;
+        EncodingFormat = encodingFormat;
+        CoverPath = coverPath;
+        CoverColors = coverColor;
+        Comment = comment;
+
+        if (coverImage != null)
+        {
+            CoverImage = coverImage;
+        }
+    }
+
     public bool IsInitialized { get; private init; }
 
     public bool IsLoading { get; set; }
@@ -38,79 +61,79 @@ public class MusicItemModel(
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
+    }
 
     public string Artists
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = string.IsNullOrWhiteSpace(artists) ? "未知歌手" : artists;
+    }
 
     public string Composer
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = string.IsNullOrWhiteSpace(composer) ? "未知作曲" : composer;
+    }
 
     public string Album
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
+    }
 
     public TimeSpan Current
     {
         get;
         set => SetPropertyWithModified(ref field, value, true);
-    } = current ?? TimeSpan.Zero;
+    }
 
     public TimeSpan Duration
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = duration;
+    }
 
     public string FilePath
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = filePath;
+    }
 
     public string FileSize
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = fileSize;
+    }
 
     public double Gain
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = gain;
+    }
 
     public string? EncodingFormat
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = encodingFormat;
+    }
 
     public string? CoverPath
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = coverPath; // 初始值来自构造函数
+    } // 初始值来自构造函数
 
     public string[]? CoverColors
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = coverColor;
+    }
 
     public string? Comment
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    } = comment;
+    }
 
     // 添加一个标志表示图片是否正在加载
     private CoverStatus? _coverStatus;
@@ -119,8 +142,6 @@ public class MusicItemModel(
     {
         get
         {
-
-
             if (string.IsNullOrEmpty(CoverPath) || _coverStatus == CoverStatus.NotExist)
                 return MusicExtractor.DefaultCover;
 
@@ -129,8 +150,10 @@ public class MusicItemModel(
                 // 如果已有缓存图片，直接返回
                 case CoverStatus.Loaded when MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image):
                     return image;
+                case null:
+                    break;
                 // 如果正在加载中，暂时返回默认封面，等待后台任务完成
-                case CoverStatus.Loading:
+                default:
                     return MusicExtractor.DefaultCover;
             }
 
@@ -150,15 +173,11 @@ public class MusicItemModel(
                 else
                 {
                     string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(FilePath);
-                    
+
                     if (newCoverPath != null)
-                    {
                         CoverPath = newCoverPath;
-                    }
                     else
-                    {
                         _coverStatus = CoverStatus.NotExist;
-                    }
                 }
 
                 OnPropertyChanged(); // 通知 UI 更新
@@ -166,6 +185,14 @@ public class MusicItemModel(
 
             // 首次或加载中时返回默认封面
             return MusicExtractor.DefaultCover;
+        }
+        set
+        {
+            if (CoverPath == null)
+                return;
+
+            MusicExtractor.ImageCache[CoverPath] = value;
+            _coverStatus = CoverStatus.Loaded;
         }
     }
 
@@ -176,7 +203,7 @@ public class MusicItemModel(
     }
 
     // 通用的设置属性并标记修改的方法
-    private void SetPropertyWithModified<T>(
+    private bool SetPropertyWithModified<T>(
         ref T field,
         T value,
         bool isNotify = false,
@@ -184,7 +211,7 @@ public class MusicItemModel(
     )
     {
         if (EqualityComparer<T>.Default.Equals(field, value))
-            return;
+            return false;
 
         field = value;
 
@@ -193,6 +220,8 @@ public class MusicItemModel(
 
         if (!IsModified && !IsLoading && propertyName != nameof(IsModified))
             IsModified = true;
+
+        return true;
     }
 
     public async Task<MusicTagExtensions> GetExtensionsInfo() =>

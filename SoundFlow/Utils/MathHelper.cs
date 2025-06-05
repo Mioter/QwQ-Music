@@ -509,6 +509,20 @@ public static class MathHelper
     public static bool IsPowerOfTwo(int n) => (n & n - 1) == 0 && n != 0;
 
     /// <summary>
+    /// Returns the remainder after division, in the range [-0.5, 0.5).
+    /// </summary>
+    public static double Mod(this double x, double y) => x - y * Math.Floor(x / y);
+
+    /// <summary>
+    /// Returns the principal angle of a number in the range [-PI, PI).
+    /// </summary>
+    public static float PrincipalAngle(float angle)
+    {
+        // Returns angle in range [-PI, PI)
+        return angle - 2 * MathF.PI * MathF.Floor((angle + MathF.PI) / (2 * MathF.PI));
+    }
+
+    /// <summary>
     /// Approximates the cosine of a vector using SSE instructions.
     /// Placeholder for now, I need to implement a more accurate approximation.
     /// </summary>

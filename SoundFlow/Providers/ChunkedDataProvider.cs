@@ -11,7 +11,7 @@ namespace SoundFlow.Providers;
 /// <remarks>
 ///     Efficiently handles large audio files by reading and decoding audio data in manageable chunks.
 /// </remarks>
-public sealed class ChunkedDataProvider : ISoundDataProvider, IDisposable
+public sealed class ChunkedDataProvider : ISoundDataProvider
 {
     private const int DefaultChunkSize = 220500; // Number of samples per channel (2205 ms at 44.1 kHz = 220500 samples = 10 second)
 

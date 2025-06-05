@@ -20,7 +20,7 @@ public delegate void AudioProcessCallback(Span<float> samples, Capability capabi
 /// </summary>
 public abstract class AudioEngine : IDisposable
 {
-    private static AudioEngine? _Instance;
+    private static AudioEngine? instance;
 
     private bool _soloedComponentExists;
     private SoundComponent? _soloedComponent;
@@ -42,10 +42,10 @@ public abstract class AudioEngine : IDisposable
     {
         if (sampleRate <= 0)
             throw new ArgumentOutOfRangeException(nameof(sampleRate), "Sample rate must be positive.");
-        if (_Instance != null)
+        if (instance != null)
             throw new InvalidOperationException("An instance of AudioEngine is already initialized.");
 
-        _Instance = this;
+        instance = this;
         SampleRate = sampleRate;
         InverseSampleRate = 1f / sampleRate;
         Channels = channels;
@@ -168,7 +168,7 @@ public abstract class AudioEngine : IDisposable
     ///     Gets the audio engine instance.
     /// </summary>
     public static AudioEngine Instance =>
-        _Instance
+        instance
         ?? throw new BackendException(
             "None",
             Result.NoBackend,
@@ -348,7 +348,7 @@ public abstract class AudioEngine : IDisposable
     /// <param name="channels">The number of audio channels.</param>
     /// <param name="sampleRate">The sample rate of the input audio.</param>
     /// <returns>An instance of a sound encoder.</returns>
-    internal protected abstract ISoundEncoder CreateEncoder(
+    public abstract ISoundEncoder CreateEncoder(
         string filePath,
         EncodingFormat encodingFormat,
         SampleFormat sampleFormat,
@@ -361,7 +361,7 @@ public abstract class AudioEngine : IDisposable
     /// </summary>
     /// <param name="stream">The stream containing the audio data.</param>
     /// <returns>An instance of a sound decoder.</returns>
-    internal protected abstract ISoundDecoder CreateDecoder(Stream stream);
+    public abstract ISoundDecoder CreateDecoder(Stream stream);
 
     /// <summary>
     ///     Switches the audio engine to use the specified device.
@@ -369,6 +369,13 @@ public abstract class AudioEngine : IDisposable
     /// <param name="deviceInfo">The device info of the device to switch to.</param>
     /// <param name="type">The type of device.</param>
     public abstract void SwitchDevice(DeviceInfo deviceInfo, DeviceType type = DeviceType.Playback);
+
+    /// <summary>
+    /// Switches the audio engine to the given playback and/or capture devices.
+    /// </summary>
+    /// <param name="playbackDeviceInfo">The playback device to switch to. <c>null</c> to keep the current playback device.</param>
+    /// <param name="captureDeviceInfo">The capture device to switch to. <c>null</c> to keep the current capture device.</param>
+    public abstract void SwitchDevices(DeviceInfo? playbackDeviceInfo, DeviceInfo? captureDeviceInfo);
 
     /// <summary>
     ///     Retrieves the list of available playback and capture devices from the underlying audio backend.
@@ -405,7 +412,7 @@ public abstract class AudioEngine : IDisposable
             _audioThread?.Join();
         }
 
-        _Instance = null;
+        instance = null;
         IsDisposed = true;
     }
 

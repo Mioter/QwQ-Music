@@ -52,11 +52,13 @@
         <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
         <converters:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
         <converters:StringEqualityConverter x:Key="StringEqualityConverter" />
+        <converters:ValueComparisonConverter x:Key="ValueComparisonConverter"/>
 
-        <FontFamily x:Key="VivoSans">/Assets/Fonts#VivoSans</FontFamily>
-        <FontFamily x:Key="Consolab">/Assets/Fonts#Consola</FontFamily>
+        <FontFamily x:Key="VivoSans">resm:QwQ_Music.Assets.Fonts.VivoSans.ttf#VivoSans</FontFamily>
+        <FontFamily x:Key="Consolab">resm:QwQ_Music.Assets.Fonts.Consola.ttf#Consola</FontFamily>
 
         <CornerRadius x:Key="FlyoutCornerRadius">8</CornerRadius>
+        <CornerRadius x:Key="ButtonCornerRadius">5</CornerRadius>
 
     </Application.Resources>
 
