@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -47,6 +48,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
             .WithHandler(ExitReminderMessageHandler)
             .AsWeakReference()
             .Subscribe();
+
+        // 初始化歌词滚动定时器
+        _lyricsTimer = new Timer();
+        _lyricsTimer.Elapsed += OnLyricsTimerElapsed;
+        _lyricsTimer.AutoReset = false;
     }
 
     #endregion
@@ -54,8 +60,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
     #region 属性和字段
 
     private MiniAudioEngine _audioEngine = new(PlayerConfig.SampleRate);
-
     private readonly AudioPlay _audioPlay = new();
+    private readonly Timer _lyricsTimer;
+    private bool _isLyricsTimerEnabled;
+    private bool _isAutoChange;
+    private bool _isSlideCutting;
 
     [ObservableProperty]
     public partial MusicItemModel CurrentMusicItem { get; set; } = new("听你想听~", "YOU");
@@ -74,7 +83,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial ObservableCollection<MusicItemModel> MusicItems { get; set; } = [];
-
     public static PlayerConfig PlayerConfig { get; } = ConfigInfoModel.PlayerConfig;
 
     public MusicListsPageViewModel MusicListsViewModel { get; } = new();
@@ -98,13 +106,15 @@ public partial class MusicPlayerViewModel : ViewModelBase
             if (_isAutoChange)
                 return;
 
+            // 当播放位置改变时，重新设置歌词定时器
+            if (IsPlaying)
+            {
+                UpdateLyricsTimer();
+            }
+
             _audioPlay.Seek(value);
         }
     }
-
-    private bool _isAutoChange;
-
-    private bool _isSlideCutting;
 
     private int CurrentIndex => PlayList.MusicItems.IndexOf(CurrentMusicItem);
 
@@ -231,6 +241,44 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _isAutoChange = false;
     }
 
+    private void UpdateLyricsTimer()
+    {
+        if (!IsPlaying)
+            return;
+
+        // 停止当前定时器
+        _lyricsTimer.Stop();
+
+        // 计算到下一句歌词的时间间隔
+        double nextInterval = LyricsModel.GetNextLyricsInterval(Position);
+
+        if (!(nextInterval > 0))
+            return;
+
+        // 设置定时器间隔为到下一句歌词的时间
+        _lyricsTimer.Interval = nextInterval * 1000; // 转换为毫秒
+        _lyricsTimer.Start();
+    }
+
+    private void OnLyricsTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        if (!_isLyricsTimerEnabled || !IsPlaying)
+            return;
+
+        // 更新当前歌词
+        LyricsModel.UpdateLyricsIndex(Position);
+
+        // 计算到下一句歌词的时间间隔
+        double nextInterval = LyricsModel.GetNextLyricsInterval(Position);
+
+        if (!(nextInterval > 0))
+            return;
+
+        // 设置定时器间隔为到下一句歌词的时间
+        _lyricsTimer.Interval = nextInterval * 1000; // 转换为毫秒
+        _lyricsTimer.Start();
+    }
+
     private async void AudioPlayOnPlaybackCompleted(object? sender, EventArgs e)
     {
         try
@@ -264,6 +312,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _audioPlay.PositionChanged -= OnPositionChanged;
         _audioPlay.PlaybackCompleted -= AudioPlayOnPlaybackCompleted;
         PlayList.MusicItems.CollectionChanged -= MusicItemsOnCollectionChanged;
+        _lyricsTimer.Elapsed -= OnLyricsTimerElapsed;
+        _lyricsTimer.Dispose();
 
         _audioEngine.Dispose();
         _audioPlay.Dispose();
@@ -449,12 +499,20 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private void OnPlayingChanged(bool value)
     {
-        if (value)
-            _audioPlay.Play();
-        else
-            _audioPlay.Pause();
-
         IsPlaying = value;
+
+        if (value)
+        {
+            _audioPlay.Play();
+            _isLyricsTimerEnabled = true;
+            UpdateLyricsTimer();
+        }
+        else
+        {
+            _audioPlay.Pause();
+            _isLyricsTimerEnabled = false;
+            _lyricsTimer.Stop();
+        }
     }
 
     private async Task<bool> FallbackMusicItem()

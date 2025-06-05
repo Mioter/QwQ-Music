@@ -220,7 +220,7 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
 
         if (!IsModified && !IsLoading && propertyName != nameof(IsModified))
             IsModified = true;
-        
+
         return true;
     }
 

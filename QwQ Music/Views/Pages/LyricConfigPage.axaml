@@ -18,6 +18,15 @@
 
         <StackPanel Spacing="10" Margin="0,0,10,0">
 
+            <Expander Header="基础设置">
+
+                <StackPanel Spacing="10">
+                    <TextBlock Text="{Binding OffsetName}" />
+                    <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding BasicLyric.LyricOffset}" />
+                </StackPanel>
+
+            </Expander>
+
             <Expander Header="滚动歌词">
 
                 <StackPanel Spacing="10">
@@ -27,13 +36,11 @@
                             CornerRadius="8"
                             HorizontalAlignment="Right"
                             ItemsSource="{Binding TextAlignments}"
-                            SelectedItem="{Binding RolledLyricsConfig.LyricTextAlignment}" />
+                            SelectedItem="{Binding RolledLyrics.LyricTextAlignment}" />
                     </Panel>
 
-                    <CheckBox Content="显示翻译" IsChecked="{Binding RolledLyricsConfig.ShowTranslation}" />
-
-                    <TextBlock Text="{Binding OffsetName}" />
-                    <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding DesktopLyric.LyricOffset}" />
+                    <CheckBox Content="显示翻译" IsChecked="{Binding RolledLyrics.ShowTranslation}" />
+                    
                 </StackPanel>
 
             </Expander>
@@ -41,9 +48,6 @@
             <Expander Header="桌面歌词">
 
                 <StackPanel Spacing="10">
-
-                    <TextBlock Text="{Binding OffsetName}" />
-                    <u:NumericIntUpDown InnerRightContent="ms" Value="{Binding DesktopLyric.LyricOffset}" />
 
                     <CheckBox Content="{Binding IsEnabledName}" IsChecked="{Binding DesktopLyric.LyricIsEnabled}" />
                     <CheckBox Content="{Binding IsDoubleLineName}" IsChecked="{Binding DesktopLyric.LyricIsDoubleLine}" />

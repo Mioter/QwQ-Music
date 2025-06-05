@@ -11,7 +11,6 @@ namespace SoundFlow.Providers;
 public sealed class AssetDataProvider : ISoundDataProvider
 {
     private float[] _data;
-    private int _samplePosition;
     private bool _isDisposed;
 
     /// <summary>
@@ -37,7 +36,7 @@ public sealed class AssetDataProvider : ISoundDataProvider
         : this(new MemoryStream(data), sampleRate) { }
 
     /// <inheritdoc />
-    public int Position => _samplePosition;
+    public int Position { get; private set; }
 
     /// <inheritdoc />
     public int Length { get; } // Length in samples
@@ -60,15 +59,15 @@ public sealed class AssetDataProvider : ISoundDataProvider
     /// <inheritdoc />
     public int ReadBytes(Span<float> buffer)
     {
-        int samplesToRead = Math.Min(buffer.Length, _data.Length - _samplePosition);
-        _data.AsSpan(_samplePosition, samplesToRead).CopyTo(buffer);
+        int samplesToRead = Math.Min(buffer.Length, _data.Length - Position);
+        _data.AsSpan(Position, samplesToRead).CopyTo(buffer);
 
-        _samplePosition += samplesToRead;
+        Position += samplesToRead;
 
-        if (_samplePosition >= _data.Length)
+        if (Position >= _data.Length)
             EndOfStreamReached?.Invoke(this, EventArgs.Empty);
 
-        PositionChanged?.Invoke(this, new PositionChangedEventArgs(_samplePosition));
+        PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
 
         return samplesToRead;
     }
@@ -76,8 +75,8 @@ public sealed class AssetDataProvider : ISoundDataProvider
     /// <inheritdoc />
     public void Seek(int sampleOffset)
     {
-        _samplePosition = Math.Clamp(sampleOffset, 0, _data.Length);
-        PositionChanged?.Invoke(this, new PositionChangedEventArgs(_samplePosition));
+        Position = Math.Clamp(sampleOffset, 0, _data.Length);
+        PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
     }
 
     private float[] Decode(ISoundDecoder decoder)

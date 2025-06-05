@@ -121,7 +121,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
         try
         {
             string coverFilePath = Path.Combine(MainConfig.PlaylistCoverSavePath, $"{model.Name}.png");
-            var musicListItem = new MusicListModel(model.Name, model.Description,"", coverFilePath, model.Cover);
+            var musicListItem = new MusicListModel(model.Name, model.Description, "", coverFilePath, model.Cover);
 
             await AddMusicListModel(musicListItem);
 
@@ -272,6 +272,15 @@ public partial class MusicListsPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task DeleteMusicListModel(MusicListModel model)
     {
+        var result = await MessageBox.ShowOverlayAsync(
+            $"你真的要删除歌单《{model.Name}》吗?",
+            "警告",
+            icon: MessageBoxIcon.Warning,
+            button: MessageBoxButton.YesNo
+        );
+        if (result != MessageBoxResult.Yes)
+            return;
+
         try
         {
             // 删除封面图片文件
@@ -443,7 +452,9 @@ public partial class MusicListsPageViewModel : ViewModelBase
             foreach (var info in playlistInfos.Where(info => !string.IsNullOrEmpty(info.Name)))
             {
                 // 添加到列表中
-                PlayListItems.Add(new MusicListModel(info.Name, info.Description, info.LatestPlayedMusic, info.CoverPath));
+                PlayListItems.Add(
+                    new MusicListModel(info.Name, info.Description, info.LatestPlayedMusic, info.CoverPath)
+                );
             }
         }
         catch (Exception ex)
@@ -454,27 +465,6 @@ public partial class MusicListsPageViewModel : ViewModelBase
                 NotificationType.Error
             );
             throw;
-        }
-    }
-
-    private static async Task<string?> GetFirstSongInPlaylist(string playlistName)
-    {
-        try
-        {
-            // 获取歌单中的第一首歌曲路径
-            var filePaths = await DataBaseService.LoadSpecifyFieldsAsync(
-                DataBaseService.Table.MUSICLISTS,
-                [nameof(MusicItemModel.FilePath)],
-                dict => dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? path) ? path.ToString() : null,
-                search: $"{nameof(MusicListModel.Name)} = '{playlistName.Replace("'", "''")}'"
-            );
-
-            return filePaths.FirstOrDefault();
-        }
-        catch (Exception ex)
-        {
-            await LoggerService.ErrorAsync($"获取歌单第一首歌曲失败: {ex.Message}");
-            return null;
         }
     }
 }

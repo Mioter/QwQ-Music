@@ -13,10 +13,8 @@ namespace SoundFlow.Providers;
 public class RawDataProvider : ISoundDataProvider
 {
     private readonly Stream _pcmStream;
-    private readonly SampleFormat _sampleFormat;
     private readonly int _channels;
     private readonly int _sampleRate;
-    private int _position;
     private bool _isDisposed;
 
     /// <summary>
@@ -35,16 +33,16 @@ public class RawDataProvider : ISoundDataProvider
     public RawDataProvider(Stream pcmStream, SampleFormat sampleFormat, int channels, int sampleRate)
     {
         _pcmStream = pcmStream ?? throw new ArgumentNullException(nameof(pcmStream));
-        _sampleFormat = sampleFormat;
+        SampleFormat = sampleFormat;
         _channels = channels;
         _sampleRate = sampleRate;
 
-        if (_sampleFormat == SampleFormat.Unknown)
+        if (SampleFormat == SampleFormat.Unknown)
             throw new ArgumentException("SampleFormat cannot be Default for RawDataProvider.", nameof(sampleFormat));
     }
 
     /// <inheritdoc />
-    public int Position => _position;
+    public int Position { get; private set; }
 
     /// <inheritdoc />
     public int Length
@@ -53,7 +51,7 @@ public class RawDataProvider : ISoundDataProvider
         {
             if (!_pcmStream.CanSeek)
                 return -1;
-            return (int)(_pcmStream.Length / _sampleFormat.GetBytesPerSample() / _channels);
+            return (int)(_pcmStream.Length / SampleFormat.GetBytesPerSample() / _channels);
         }
     }
 
@@ -61,7 +59,7 @@ public class RawDataProvider : ISoundDataProvider
     public bool CanSeek => _pcmStream.CanSeek;
 
     /// <inheritdoc />
-    public SampleFormat SampleFormat => _sampleFormat;
+    public SampleFormat SampleFormat { get; }
 
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException">
@@ -85,7 +83,7 @@ public class RawDataProvider : ISoundDataProvider
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        int bytesPerSample = _sampleFormat.GetBytesPerSample();
+        int bytesPerSample = SampleFormat.GetBytesPerSample();
         int samplesToRead = buffer.Length;
         int bytesToRead = samplesToRead * bytesPerSample;
 
@@ -102,10 +100,10 @@ public class RawDataProvider : ISoundDataProvider
             return 0;
         }
 
-        ConvertBytesToFloat(byteBuffer[..bytesActuallyRead], buffer[..samplesActuallyRead], _sampleFormat);
+        ConvertBytesToFloat(byteBuffer[..bytesActuallyRead], buffer[..samplesActuallyRead], SampleFormat);
 
-        _position += samplesActuallyRead;
-        PositionChanged?.Invoke(this, new PositionChangedEventArgs(_position));
+        Position += samplesActuallyRead;
+        PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
 
         ArrayPool<byte>.Shared.Return(rentedBuffer);
         return samplesActuallyRead;
@@ -182,14 +180,14 @@ public class RawDataProvider : ISoundDataProvider
         if (sampleOffset < 0)
             sampleOffset = 0;
 
-        long byteOffset = (long)sampleOffset * _sampleFormat.GetBytesPerSample() * _channels;
+        long byteOffset = (long)sampleOffset * SampleFormat.GetBytesPerSample() * _channels;
 
         if (byteOffset > _pcmStream.Length)
             byteOffset = _pcmStream.Length;
 
         _pcmStream.Seek(byteOffset, SeekOrigin.Begin);
-        _position = sampleOffset;
-        PositionChanged?.Invoke(this, new PositionChangedEventArgs(_position));
+        Position = sampleOffset;
+        PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
     }
 
     /// <summary>

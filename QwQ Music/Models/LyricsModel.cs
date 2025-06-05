@@ -1,39 +1,114 @@
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using QwQ_Music.Models.ConfigModel;
 
 namespace QwQ_Music.Models;
 
 /// 歌词行结构体
 public record struct LyricLine(double TimePoint, string Primary, string? Translation = null);
 
-public partial class LyricsModel(LyricsData lyricsData) : ObservableObject
+public partial class LyricsModel : ObservableObject
 {
-    public delegate void CurrentLyricsChangedEventHandler(object sender, int lyricsIndex, LyricLine lyricsLine);
+    public BasicLyricConfig LyricConfig => ConfigInfoModel.LyricConfig.BasicLyricConfig;
 
-    public event CurrentLyricsChangedEventHandler? CurrentLyrics;
+    public delegate void LyricLineChangedEventHandler(object sender, LyricLine currentLyric, LyricLine? nextLyric);
 
-    private readonly List<double> _timePoints =
-        lyricsData.Lyrics.Count > 0 ? lyricsData.Lyrics.Select(l => l.TimePoint).OrderBy(t => t).ToList() : [];
+    public event LyricLineChangedEventHandler? LyricLineChanged;
+
+    private readonly List<double> _timePoints;
+
+    public LyricsModel(LyricsData lyricsData)
+    {
+        LyricsData = lyricsData;
+        _timePoints =
+            lyricsData.Lyrics.Count > 0 ? lyricsData.Lyrics.Select(l => l.TimePoint).OrderBy(t => t).ToList() : [];
+
+        // 初始化当前歌词
+        if (lyricsData.Lyrics.Count > 0)
+        {
+            CurrentLyric = lyricsData.Lyrics[0];
+        }
+    }
 
     [ObservableProperty]
-    public partial int LyricsIndex { get; private set; }
+    public partial int LyricsIndex { get; set; }
 
     [ObservableProperty]
-    public partial LyricLine CurrentLyric { get; private set; } = lyricsData.Lyrics.FirstOrDefault();
+    public partial LyricLine CurrentLyric { get; set; }
 
-    public LyricsData LyricsData { get; } = lyricsData;
+    public LyricsData LyricsData { get; }
+
+    /// <summary>
+    /// 应用偏移量到时间点
+    /// </summary>
+    /// <param name="timePoint">原始时间点（秒）</param>
+    /// <returns>应用偏移后的时间点（秒）</returns>
+    private double ApplyOffset(double timePoint)
+    {
+        // 将毫秒转换为秒并应用偏移
+        return timePoint + LyricConfig.LyricOffset / 1000.0;
+    }
+
+    /// <summary>
+    /// 移除偏移量从时间点
+    /// </summary>
+    /// <param name="timePoint">带偏移的时间点（秒）</param>
+    /// <returns>移除偏移后的时间点（秒）</returns>
+    private double RemoveOffset(double timePoint)
+    {
+        // 将毫秒转换为秒并移除偏移
+        return timePoint - LyricConfig.LyricOffset / 1000.0;
+    }
+
+    /// <summary>
+    /// 获取当前歌词到下一句歌词的时间间隔
+    /// </summary>
+    /// <param name="currentTime">当前播放时间（秒）</param>
+    /// <returns>到下一句歌词的时间间隔（秒），如果没有下一句则返回-1</returns>
+    public double GetNextLyricsInterval(double currentTime)
+    {
+        // 应用偏移量到当前时间
+        double adjustedTime = ApplyOffset(currentTime);
+        int currentIndex = CalculateIndex(adjustedTime);
+        if (currentIndex < 0 || currentIndex >= _timePoints.Count - 1)
+            return -1;
+
+        // 计算到下一句歌词的时间间隔（考虑偏移量）
+        return _timePoints[currentIndex + 1] - adjustedTime;
+    }
+
+    /// <summary>
+    /// 获取下一句歌词
+    /// </summary>
+    /// <param name="currentTime">当前播放时间（秒）</param>
+    /// <returns>下一句歌词，如果没有下一句则返回null</returns>
+    public LyricLine? GetNextLyric(double currentTime)
+    {
+        // 应用偏移量到当前时间
+        double adjustedTime = ApplyOffset(currentTime);
+        int currentIndex = CalculateIndex(adjustedTime);
+        if (currentIndex < 0 || currentIndex >= _timePoints.Count - 1)
+            return null;
+
+        return LyricsData.Lyrics[currentIndex + 1];
+    }
 
     public void UpdateLyricsIndex(double timePoints)
     {
-        LyricsIndex = CalculateIndex(timePoints);
+        // 应用偏移量到当前时间
+        double adjustedTime = ApplyOffset(timePoints);
+        int newIndex = CalculateIndex(adjustedTime);
 
         // 确保索引有效
-        if (LyricsIndex < 0 || LyricsIndex >= LyricsData.Lyrics.Count)
+        if (newIndex < 0 || newIndex >= LyricsData.Lyrics.Count)
             return;
 
+        LyricsIndex = newIndex;
         CurrentLyric = LyricsData.Lyrics[LyricsIndex];
-        CurrentLyrics?.Invoke(this, LyricsIndex, CurrentLyric);
+
+        // 触发歌词变更事件，同时传递当前歌词和下一句歌词
+        LyricLineChanged?.Invoke(this, CurrentLyric, GetNextLyric(timePoints));
     }
 
     /// <summary>

@@ -27,9 +27,11 @@ public class LyricConfigPageViewModel : ViewModelBase
     public static string LyricAltBottomColorName => Lang[nameof(LyricAltBottomColorName)];
     public static string LyricAltBorderColorName => Lang[nameof(LyricAltBorderColorName)];
 
+    public static BasicLyricConfig BasicLyric { get; } = ConfigInfoModel.LyricConfig.BasicLyricConfig;
+
     public static DesktopLyricConfig DesktopLyric { get; } = ConfigInfoModel.LyricConfig.DesktopLyric;
 
-    public static RolledLyricsConfig RolledLyricsConfig { get; } = ConfigInfoModel.LyricConfig.RolledLyricsConfig;
+    public static RolledLyricsConfig RolledLyrics { get; } = ConfigInfoModel.LyricConfig.RolledLyricsConfig;
 
     public static HorizontalAlignment[] TextAlignments { get; } = EnumHelper<HorizontalAlignment>.ToArray();
 }

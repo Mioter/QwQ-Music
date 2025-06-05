@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -101,17 +102,19 @@ public partial class MusicListModel : ObservableObject
                 }
                 else
                 {
-                    _coverStatus = CoverStatus.NotExist;
-                    // 如果从文件加载失败，尝试从 MusicItems 中获取
-                    foreach (var musicItem in MusicItems)
+                    string? firstPath = await GetFirstSongInPlaylist(Name);
+
+                    var firstMusicCoverImage = MusicPlayerViewModel
+                        .Instance.MusicItems.FirstOrDefault(x => x.FilePath == firstPath)
+                        ?.CoverImage;
+
+                    if (firstMusicCoverImage != null && firstMusicCoverImage != MusicExtractor.DefaultCover)
                     {
-                        if (musicItem.CoverImage == MusicExtractor.DefaultCover)
-                            continue;
-                        
-                        MusicExtractor.ImageCache[_coverCacheKey ??= $"歌单-{Name}"] = musicItem.CoverImage;
+                        MusicExtractor.ImageCache[_coverCacheKey ??= $"歌单-{Name}"] = firstMusicCoverImage;
                         _coverStatus = CoverStatus.Loaded;
-                        break;
                     }
+
+                    _coverStatus = CoverStatus.NotExist;
                 }
 
                 OnPropertyChanged(); // 通知 UI 更新
@@ -126,13 +129,13 @@ public partial class MusicListModel : ObservableObject
             _coverStatus = CoverStatus.Loaded;
         }
     }
-    
+
     public string? LatestPlayedMusic { get; set; }
-    
+
     public string? CoverPath { get; set; }
 
     public bool IsInitialized { get; private set; }
-    
+
     /// <summary>
     /// 初始化音乐列表
     /// </summary>
@@ -200,6 +203,27 @@ public partial class MusicListModel : ObservableObject
             [nameof(CoverPath)] = CoverPath,
             [nameof(LatestPlayedMusic)] = LatestPlayedMusic,
         };
+    }
+
+    private static async Task<string?> GetFirstSongInPlaylist(string playlistName)
+    {
+        try
+        {
+            // 获取歌单中的第一首歌曲路径
+            var filePaths = await DataBaseService.LoadSpecifyFieldsAsync(
+                DataBaseService.Table.MUSICLISTS,
+                [nameof(MusicItemModel.FilePath)],
+                dict => dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? path) ? path.ToString() : null,
+                search: $"{nameof(Name)} = '{playlistName.Replace("'", "''")}'"
+            );
+
+            return filePaths.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            await LoggerService.ErrorAsync($"获取歌单第一首歌曲失败: {ex.Message}");
+            return null;
+        }
     }
 
     /// <summary>
