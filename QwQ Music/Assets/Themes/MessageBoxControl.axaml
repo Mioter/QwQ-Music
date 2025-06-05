@@ -75,12 +75,10 @@
                                 Margin="{TemplateBinding Padding}">
                                 
                                 <ScrollViewer
-                                    Margin="10,0"
                                     HorizontalScrollBarVisibility="Disabled"
                                     VerticalScrollBarVisibility="Auto">
                                     
                                     <ContentPresenter
-                                        Margin="10,0"
                                         Name="PART_ContentPresenter"
                                         VerticalAlignment="Center"
                                         Content="{TemplateBinding Content}"

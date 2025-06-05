@@ -4,17 +4,33 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Services;
 
+#if DEBUG
+[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(LogData))]
+internal partial class LoggerJsonContext : JsonSerializerContext;
+
+internal record LogData(
+    string Timestamp,
+    string Level,
+    string? Action,
+    string? Filename,
+    int LineNumber,
+    string Message
+);
+#endif
+
 public static class LoggerService
 {
     // 配置项
     public static readonly string SavePath = PathEnsurer.EnsureDirectoryExists(
-        Path.Combine(AppContext.BaseDirectory, "log")
+        Path.Combine(AppContext.BaseDirectory, "logs")
     );
     public static bool IsKeepOpen { get; set; } = false;
     public static LogLevel Level { get; set; } = LogLevel.Debug;
@@ -162,24 +178,24 @@ public static class LoggerService
         return WriteLogAsync(logMessage);
     }
 
+#if DEBUG
     /// <summary>
     /// 发送日志到本地服务器
     /// </summary>
     private static async Task SendLog(string status, string message, int lineNumber, string? function, string? filename)
     {
-        var logData = new
-        {
-            timestamp = DateTime.Now.ToString("HH:mm:ss.fff"),
-            level = status,
-            action = function,
+        var logData = new LogData(
+            DateTime.Now.ToString("HH:mm:ss.fff"),
+            status,
+            function,
             filename,
             lineNumber,
-            message,
-        };
+            message
+        );
 
         try
         {
-            string postData = JsonSerializer.Serialize(logData);
+            string postData = JsonSerializer.Serialize(logData, LoggerJsonContext.Default.LogData);
             var content = new StringContent(postData, Encoding.UTF8, "application/json");
 
             // 使用超时防止阻塞
@@ -201,6 +217,7 @@ public static class LoggerService
             Console.WriteLine($"发送日志时发生未预期错误: {e.Message}");
         }
     }
+#endif
 
     /// <summary>
     /// 关闭日志服务，释放资源

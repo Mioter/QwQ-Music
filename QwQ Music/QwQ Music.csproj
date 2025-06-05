@@ -7,13 +7,17 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <TargetFramework>net9.0</TargetFramework>
         <LangVersion>preview</LangVersion>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ImplicitUsings>disable</ImplicitUsings>
+        
     </PropertyGroup>
 
     <ItemGroup>
-        <AvaloniaResource Include="Assets\**" />
+        <AvaloniaResource Include="Assets\**" Exclude="Assets\Shaders\**;Assets\Fonts\**;Assets\Images\**" />
+        <EmbeddedResource Include="Assets\Images\**" />
+        <EmbeddedResource Include="Assets\Shaders\**" />
+        <EmbeddedResource Include="Assets\Fonts\**" />
     </ItemGroup>
+    
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="11.3.0" />
         <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.0" />

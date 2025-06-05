@@ -84,7 +84,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
     [ObservableProperty]
     public partial ObservableCollection<MusicItemModel> MusicItems { get; set; } = [];
     public static PlayerConfig PlayerConfig { get; } = ConfigInfoModel.PlayerConfig;
-
     public MusicListsPageViewModel MusicListsViewModel { get; } = new();
 
     [ObservableProperty]
@@ -478,6 +477,15 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             MusicItems.Remove(musicItem);
             PlayList.MusicItems.Remove(musicItem);
+
+            // 从所有已加载的歌单中移除该音乐
+            foreach (var playlist in MusicListsViewModel.PlayListItems)
+            {
+                if (playlist.IsInitialized)
+                {
+                    playlist.MusicItems.Remove(musicItem);
+                }
+            }
 
             NotificationService.ShowLight(
                 new Notification("好欸", $"《{musicItem.Title}》已经从音乐列表中移除了！"),

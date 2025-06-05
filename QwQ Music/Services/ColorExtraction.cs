@@ -99,36 +99,48 @@ public static class ColorExtraction
         );
 
         using var fb = writeableBitmap.Lock();
-        unsafe
+        var pixelData = new byte[fb.RowBytes * height];
+
+        // 将原始位图数据复制到可写位图
+        var handle = System.Runtime.InteropServices.GCHandle.Alloc(
+            pixelData,
+            System.Runtime.InteropServices.GCHandleType.Pinned
+        );
+        try
         {
-            byte* pixelData = (byte*)fb.Address;
-            int stride = fb.RowBytes;
+            bitmap.CopyPixels(
+                new PixelRect(0, 0, width, height),
+                handle.AddrOfPinnedObject(),
+                fb.RowBytes * height,
+                fb.RowBytes
+            );
+        }
+        finally
+        {
+            handle.Free();
+        }
 
-            // 将原始位图数据复制到可写位图
-            bitmap.CopyPixels(new PixelRect(0, 0, width, height), new IntPtr(pixelData), stride * height, stride);
-
-            // 遍历像素采样颜色
-            for (int y = 0; y < height; y += sampleStep)
+        // 遍历像素采样颜色
+        for (int y = 0; y < height; y += sampleStep)
+        {
+            for (int x = 0; x < width; x += sampleStep)
             {
-                for (int x = 0; x < width; x += sampleStep)
-                {
-                    int pixelOffset = y * stride + x * 4; // BGRA格式
+                int pixelOffset = y * fb.RowBytes + x * 4; // BGRA格式
 
-                    byte b = pixelData[pixelOffset];
-                    byte g = pixelData[pixelOffset + 1];
-                    byte r = pixelData[pixelOffset + 2];
-                    byte a = pixelData[pixelOffset + 3];
+                byte b = pixelData[pixelOffset];
+                byte g = pixelData[pixelOffset + 1];
+                byte r = pixelData[pixelOffset + 2];
+                byte a = pixelData[pixelOffset + 3];
 
-                    // 忽略透明像素
-                    if (a < 200)
-                        continue;
+                // 忽略透明像素
+                if (a < 200)
+                    continue;
 
-                    // 量化颜色以减少噪点
-                    var quantized = Color.FromArgb(255, (byte)(r / 16 * 16), (byte)(g / 16 * 16), (byte)(b / 16 * 16));
+                // 量化颜色以减少噪点
+                var quantized = Color.FromArgb(255, (byte)(r / 16 * 16), (byte)(g / 16 * 16), (byte)(b / 16 * 16));
 
-                    // 更新颜色频率
-                    colorFrequencies[quantized] = colorFrequencies.TryGetValue(quantized, out int v) ? v + 1 : 1;
-                }
+                // 更新颜色频率
+                colorFrequencies[quantized] = colorFrequencies.TryGetValue(quantized, out int v) ? v + 1 : 1;
             }
         }
 

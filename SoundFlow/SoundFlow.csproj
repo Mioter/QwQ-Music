@@ -8,7 +8,6 @@
         <Title>SoundFlow</Title>
         <Description>A powerful and extensible cross-platform .NET audio engine. provides comprehensive audio processing capabilities including playback, recording, effects, analysis, and visualization, built with a modular and high-performance architecture.</Description>
         <Copyright>Copyright (c) 2025 LSXPrime and Mioter.</Copyright>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

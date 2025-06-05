@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using ATL;
+using Avalonia;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Utilities;
@@ -126,9 +126,7 @@ public static class MusicExtractor
         return await Task.Run(() =>
         {
             var track = new Track(filePath);
-            return track.AdditionalFields != null
-                ? new Dictionary<string, string>(track.AdditionalFields)
-                : new Dictionary<string, string>();
+            return track.AdditionalFields != null ? new Dictionary<string, string>(track.AdditionalFields) : [];
         });
     }
 
@@ -154,7 +152,12 @@ public static class MusicExtractor
             string comment = track.Comment;
             string encodingFormat = track.AudioFormat.ShortName;
 
-            string? coverFileName = null; // 存储文件名，而非完整路径
+            string? coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
+
+            var coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
+
+            // 异步保存封面，传递文件名
+            await FileOperation.SaveImageAsync(coverImage, Path.Combine(MainConfig.MusicCoverSavePath, coverFileName));
 
             var musicItem = new MusicItemModel(
                 title,
@@ -167,20 +170,9 @@ public static class MusicExtractor
                 null,
                 duration,
                 encodingFormat,
-                comment
+                comment,
+                coverImage
             );
-            if (track.EmbeddedPictures.Count <= 0)
-                return musicItem;
-
-            // 获取清理后的文件名
-            coverFileName = GetCoverFileName(artists, album);
-
-            var coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
-
-            // 异步保存封面，传递文件名
-            await FileOperation.SaveImageAsync(coverImage, Path.Combine(MainConfig.MusicCoverSavePath, coverFileName));
-
-            musicItem.CoverImage = coverImage;
 
             return musicItem;
         }
@@ -276,8 +268,23 @@ public static class MusicExtractor
         }
     }
 
-    public static Bitmap GetDefaultCover() =>
-        new(AssetLoader.Open(new Uri("avares://QwQ Music/Assets/Images/看我.png")));
+    public static Bitmap GetDefaultCover()
+    {
+        try
+        {
+            var assembly = typeof(MusicExtractor).Assembly;
+            using var stream =
+                assembly.GetManifestResourceStream("QwQ_Music.Assets.Images.看我.png")
+                ?? throw new FileNotFoundException("无法找到默认封面图片资源");
+            return new Bitmap(stream);
+        }
+        catch (Exception)
+        {
+            // 如果资源加载失败，返回一个空位图
+            var bitmap = new RenderTargetBitmap(new PixelSize(100, 100));
+            return bitmap;
+        }
+    }
 
     /// <summary>
     /// 从音频文件中提取专辑封面并保存
