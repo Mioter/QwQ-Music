@@ -16,8 +16,13 @@ using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.UserControls;
 
-public partial class CreateMusicListViewModel(string oldName = "") : ViewModelBase, IDialogContext
+public partial class CreateMusicListViewModel(OverlayDialogOptions options, string oldName = "")
+    : ViewModelBase,
+        IDialogContext
 {
+    [ObservableProperty]
+    public partial string Title { get; set; } = options.Title ?? "(*^▽^*)";
+
     [ObservableProperty]
     public partial Bitmap? Cover { get; set; }
 

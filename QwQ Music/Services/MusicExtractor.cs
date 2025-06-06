@@ -15,8 +15,9 @@ namespace QwQ_Music.Services;
 public static class MusicExtractor
 {
     private const int DEFAULT_THUMBNAIL_WIDTH = 128; // 默认缩略图宽度，降低了原来的256
+    private const int MAX_CACHE_SIZE = 80; // 最大缓存数量
 
-    public static readonly Dictionary<string, Bitmap> ImageCache = [];
+    public static readonly WeakImageCache ImageCache = new();
 
     public static readonly Bitmap DefaultCover = GetDefaultCover();
 

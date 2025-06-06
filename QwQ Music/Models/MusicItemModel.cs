@@ -142,22 +142,22 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
     {
         get
         {
+            // 如果封面路径不存在，返回默认封面
             if (string.IsNullOrEmpty(CoverPath) || _coverStatus == CoverStatus.NotExist)
                 return MusicExtractor.DefaultCover;
 
-            switch (_coverStatus)
+            // 如果正在加载中，返回默认封面
+            if (_coverStatus == CoverStatus.Loading)
+                return MusicExtractor.DefaultCover;
+
+            // 尝试从缓存获取图片
+            if (MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image))
             {
-                // 如果已有缓存图片，直接返回
-                case CoverStatus.Loaded when MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image):
-                    return image;
-                case null:
-                    break;
-                // 如果正在加载中，暂时返回默认封面，等待后台任务完成
-                default:
-                    return MusicExtractor.DefaultCover;
+                _coverStatus = CoverStatus.Loaded;
+                return image;
             }
 
-            // 标记为正在加载
+            // 缓存未命中，标记为正在加载
             _coverStatus = CoverStatus.Loading;
 
             // 启动异步加载任务

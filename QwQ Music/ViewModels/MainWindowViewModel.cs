@@ -222,18 +222,20 @@ public partial class MainWindowViewModel : NavigationViewModel
     [NotifyCanExecuteChangedFor(nameof(ViewForwardCommand))]
     public partial bool CanGoForward { get; set; }
 
-    protected override bool InNavigateTo(int index)
+    /*protected override bool InNavigateTo(int index)
     {
         if (index < IconItems.Count && index >= 0)
             return base.InNavigateTo(index);
 
         ViewBackward();
         return false;
-    }
+    }*/
 
     protected override void OnNavigateTo(int index)
     {
         base.OnNavigateTo(index);
+        if (index >= Pages.Count || index < 0)
+            return;
         CurrentPage = Pages[index];
         UpdateNavigationProperties();
     }

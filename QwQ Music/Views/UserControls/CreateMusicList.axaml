@@ -18,7 +18,7 @@
                     Foreground="White" />
             </Border>
 
-            <TextBlock Text="创建歌单" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
 
         </StackPanel>
 
