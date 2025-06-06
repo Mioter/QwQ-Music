@@ -122,7 +122,7 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
                 if (_resampleBufferValidSamples < samplesRequiredInBufferForInterpolation)
                 {
                     // Still not enough data, means end of current data provider segment
-                    Span<float> remainingOutput = output[outputBufferOffset..];
+                    var remainingOutput = output[outputBufferOffset..];
                     // HandleEndOfStream will take care of clearing or filling if looped
                     HandleEndOfStream(remainingOutput);
                     return; // Must exit, HandleEndOfStream might re-enter GenerateAudio

@@ -174,8 +174,15 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private async void InitializeAsync()
     {
-        await InitializeMusicItemAsync(); // 加载播放列表
-        await InitializePlaylistAsync();
+        try
+        {
+            await InitializeMusicItemAsync(); // 加载播放列表
+            await InitializePlaylistAsync();
+        }
+        catch (Exception e)
+        {
+            await Log.ErrorAsync($"初始化播放器模型出错！\n{e.Message}");
+        }
     }
 
     private async Task InitializeMusicItemAsync()

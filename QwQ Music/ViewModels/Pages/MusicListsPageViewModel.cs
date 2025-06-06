@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.Notifications;
-using Avalonia.Media.Imaging;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
@@ -26,8 +24,7 @@ namespace QwQ_Music.ViewModels.Pages;
 
 public partial class MusicListsPageViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    public partial ObservableCollection<MusicListModel> PlayListItems { get; set; } = [];
+    public ObservableCollection<MusicListModel> PlayListItems { get; set; } = [];
 
     public MusicListsPageViewModel()
     {
@@ -55,6 +52,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
         await MessageBus
             .CreateMessage(
                 new ViewChangeMessage(
+                    model.Id,
                     model.Name,
                     model.CoverImage,
                     new ViewMusicListPage { DataContext = new ViewMusicListPageViewModel(model) }
@@ -101,6 +99,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
         await AddToMusicList(musicItem, list.Name);
     }
 
+    [RelayCommand]
     private async Task<CreateMusicListViewModel?> CreateMusicList()
     {
         var options = new OverlayDialogOptions
@@ -154,7 +153,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
             CanResize = false,
         };
 
-        (string Name, string? Description, string? CoverPath, Bitmap CoverImage) oldValue = (
+        (string name, string description, string? coverPath, var coverImage) = (
             musicListItem.Name,
             musicListItem.Description,
             musicListItem.CoverPath,
@@ -164,6 +163,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
         var originalBitmap = await MusicExtractor.LoadOriginalBitmap(
             Path.Combine(MainConfig.PlaylistCoverSavePath, $"{musicListItem.Name}.png")
         );
+
         var model = new CreateMusicListViewModel(options, oldName: musicListItem.Name)
         {
             Name = musicListItem.Name,
@@ -186,29 +186,31 @@ public partial class MusicListsPageViewModel : ViewModelBase
             musicListItem.CoverPath = newCoverPath;
 
             // 如果封面图片发生变化，保存新图片
-            if (model.Cover != oldValue.CoverImage && model.Cover != null)
+            if (model.Cover != coverImage && model.Cover != null)
             {
                 musicListItem.CoverImage = model.Cover;
                 await FileOperation.SaveImageAsync(model.Cover, newCoverPath);
             }
             // 如果名称变化但图片没变，重命名图片文件
-            else if (
-                oldValue.Name != model.Name
-                && !string.IsNullOrEmpty(oldValue.CoverPath)
-                && File.Exists(oldValue.CoverPath)
-            )
+            else if (name != model.Name && !string.IsNullOrEmpty(coverPath) && File.Exists(coverPath))
             {
-                File.Move(oldValue.CoverPath, newCoverPath);
+                File.Move(coverPath, newCoverPath);
                 // 更新图片缓存
-                MusicExtractor.ImageCache.Remove($"歌单-{oldValue.Name}");
+                MusicExtractor.ImageCache.Remove($"歌单-{name}");
                 MusicExtractor.ImageCache.Add($"歌单-{model.Name}", musicListItem.CoverImage);
             }
 
             // 更新数据库
-            await EditMusicListModelInDataBase(oldValue.Name, musicListItem);
+            await EditMusicListModelInDataBase(name, musicListItem);
+
+            MainWindowViewModel.UpdateIconItems(
+                musicListItem.Id,
+                musicListItem.Name,
+                new BitmapIconSource(musicListItem.CoverImage)
+            );
 
             NotificationService.ShowLight(
-                new Notification("成功", $"歌单编辑《{model.Name}》成功！"),
+                new Notification("成功", $"编辑歌单《{name}》成功！"),
                 NotificationType.Success
             );
         }
@@ -216,9 +218,9 @@ public partial class MusicListsPageViewModel : ViewModelBase
         {
             await LoggerService.ErrorAsync($"编辑歌单失败: {ex.Message}");
             // 恢复原始状态
-            musicListItem.Name = oldValue.Name;
-            musicListItem.Description = oldValue.Description;
-            musicListItem.CoverPath = oldValue.CoverPath;
+            musicListItem.Name = name;
+            musicListItem.Description = description;
+            musicListItem.CoverPath = coverPath;
             NotificationService.ShowLight(
                 new Notification("错误", $"编辑歌单《{model.Name}》失败！\n{ex.Message}"),
                 NotificationType.Error
@@ -312,7 +314,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
             );
 
             await MessageBus
-                .CreateMessage(new ViewChangeMessage(model.Name, model.CoverImage, null, true))
+                .CreateMessage(new ViewChangeMessage(model.Id, model.Name, model.CoverImage, null, true))
                 .AddReceivers<MainWindowViewModel>()
                 .PublishAsync();
 

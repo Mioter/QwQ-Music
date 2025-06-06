@@ -7,7 +7,7 @@
              x:DataType="pages:MusicListsPageViewModel"
              x:Class="QwQ_Music.Views.Pages.MusicListsPage">
     
-    <ItemsControl ItemsSource="{Binding PlayListItems}" Margin="10">
+    <ItemsControl Background="Transparent" ItemsSource="{Binding PlayListItems}" Margin="10">
 
         <ItemsControl.Styles>
 
@@ -109,6 +109,16 @@
 
         </ItemsControl.ItemTemplate>
 
+        <ItemsControl.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="新建歌单"
+                          Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).CreateMusicListCommand}">
+                    <MenuItem.Icon>
+                        <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+        </ItemsControl.ContextMenu>
 
     </ItemsControl>
 

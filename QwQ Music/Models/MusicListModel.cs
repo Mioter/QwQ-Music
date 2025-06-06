@@ -32,6 +32,8 @@ public partial class MusicListModel : ObservableObject
         }
     }
 
+    public readonly string Id = $"歌单-{UniqueIdGenerator.GetNextId()}";
+
     private string? _coverCacheKey;
 
     public string Name

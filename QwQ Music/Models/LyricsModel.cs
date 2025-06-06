@@ -10,7 +10,7 @@ public record struct LyricLine(double TimePoint, string Primary, string? Transla
 
 public partial class LyricsModel : ObservableObject
 {
-    public BasicLyricConfig LyricConfig => ConfigInfoModel.LyricConfig.BasicLyricConfig;
+    public static BasicLyricConfig LyricConfig => ConfigInfoModel.LyricConfig.BasicLyricConfig;
 
     public delegate void LyricLineChangedEventHandler(object sender, LyricLine currentLyric, LyricLine? nextLyric);
 

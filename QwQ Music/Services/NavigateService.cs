@@ -413,13 +413,13 @@ public static class NavigateService
         while (queue.Count > 0)
         {
             string current = queue.Dequeue();
-            if (_viewTree.TryGetValue(current, out string[]? children) && children != null)
+            if (!_viewTree.TryGetValue(current, out string[]? children) || children == null)
+                continue;
+
+            foreach (string child in children)
             {
-                foreach (string child in children)
-                {
-                    viewsToRemove.Add(child);
-                    queue.Enqueue(child);
-                }
+                viewsToRemove.Add(child);
+                queue.Enqueue(child);
             }
         }
 

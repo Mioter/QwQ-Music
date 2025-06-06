@@ -153,7 +153,7 @@ public static class MusicExtractor
             string comment = track.Comment;
             string encodingFormat = track.AudioFormat.ShortName;
 
-            string? coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
+            string coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
 
             var coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
 

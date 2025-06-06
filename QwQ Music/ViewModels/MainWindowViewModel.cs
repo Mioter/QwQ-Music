@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Controls;
@@ -31,15 +30,23 @@ public partial class MainWindowViewModel : NavigationViewModel
             .Subscribe();
     }
 
-    public ObservableCollection<IconItem> IconItems { get; set; } =
+    public static ObservableCollection<IconItem> IconItems { get; set; } =
         [
-            new(MusicName, new GeometryIconSource(IconService.GetIcon("SemiIconSong")), true),
-            new(ClassificationName, new GeometryIconSource(IconService.GetIcon("SemiIconDisc")), true),
-            new(StatisticsName, new GeometryIconSource(IconService.GetIcon("SemiIconKanban")), true),
-            new(SettingsName, new GeometryIconSource(IconService.GetIcon("SemiIconSetting")), true),
+            new(MusicName, new GeometryIconSource(IconService.GetIcon("SemiIconSong")), "", true),
+            new(ClassificationName, new GeometryIconSource(IconService.GetIcon("SemiIconDisc")), "", true),
+            new(StatisticsName, new GeometryIconSource(IconService.GetIcon("SemiIconKanban")), "", true),
+            new(SettingsName, new GeometryIconSource(IconService.GetIcon("SemiIconSetting")), "", true),
         ];
 
-    private readonly Dictionary<string, string> _viewNameMap = [];
+    public static void UpdateIconItems(string id, string name, IconSource coverImage)
+    {
+        var item = IconItems.FirstOrDefault(i => i.Id == id);
+        if (item == null)
+            return;
+
+        item.Title = name;
+        item.Source = coverImage;
+    }
 
     private async void ViewChangeMessageHandle(ViewChangeMessage message, object sender)
     {
@@ -49,27 +56,26 @@ public partial class MainWindowViewModel : NavigationViewModel
             {
                 if (message.IsRemove)
                 {
-                    Pages.RemoveAt(NavigateService.GetChildViewIndex(NavViewName, _viewNameMap[message.ViewTitle]));
-                    NavigateService.RemoveChildView(NavViewName, _viewNameMap[message.ViewTitle]);
-                    var i = IconItems.FirstOrDefault(x => x.Name == message.ViewTitle);
+                    Pages.RemoveAt(NavigateService.GetChildViewIndex(NavViewName, message.Id));
+                    NavigateService.RemoveChildView(NavViewName, message.Id);
+                    var i = IconItems.FirstOrDefault(x => x.Id == message.Id);
                     if (i == null)
                         return;
 
                     IconItems.Remove(i);
-                    _viewNameMap.Remove(i.Name);
                 }
                 else if (message.View != null)
                 {
-                    string viewName = $"{message.GetType()}-{message.ViewTitle}";
-                    if (IconItems.FirstOrDefault(x => $"{message.GetType()}-{x.Name}" == $"{viewName}") == null)
+                    if (IconItems.FirstOrDefault(x => x.Id == message.Id) == null)
                     {
-                        IconItems.Add(new IconItem(message.ViewTitle, new BitmapIconSource(message.ViewIcon)));
+                        IconItems.Add(
+                            new IconItem(message.ViewTitle, new BitmapIconSource(message.ViewIcon), message.Id)
+                        );
 
                         Pages.Add(message.View);
-                        NavigateService.AddChildView(NavViewName, viewName);
-                        _viewNameMap.Add(message.ViewTitle, viewName);
+                        NavigateService.AddChildView(NavViewName, message.Id);
                     }
-                    NavigationIndex = NavigateService.GetChildViewIndex(NavViewName, viewName);
+                    NavigationIndex = NavigateService.GetChildViewIndex(NavViewName, message.Id);
                 }
             });
         }
@@ -86,10 +92,9 @@ public partial class MainWindowViewModel : NavigationViewModel
     [RelayCommand]
     private void RemoveIconItem(IconItem iconItem)
     {
-        Pages.RemoveAt(NavigateService.GetChildViewIndex(NavViewName, _viewNameMap[iconItem.Name]));
-        NavigateService.RemoveChildView(NavViewName, _viewNameMap[iconItem.Name]);
+        Pages.RemoveAt(NavigateService.GetChildViewIndex(NavViewName, iconItem.Id));
+        NavigateService.RemoveChildView(NavViewName, iconItem.Id);
         IconItems.Remove(iconItem);
-        _viewNameMap.Remove(iconItem.Name);
     }
 
     public static string MusicName => Lang[nameof(MusicName)];
@@ -222,15 +227,6 @@ public partial class MainWindowViewModel : NavigationViewModel
     [NotifyCanExecuteChangedFor(nameof(ViewForwardCommand))]
     public partial bool CanGoForward { get; set; }
 
-    /*protected override bool InNavigateTo(int index)
-    {
-        if (index < IconItems.Count && index >= 0)
-            return base.InNavigateTo(index);
-
-        ViewBackward();
-        return false;
-    }*/
-
     protected override void OnNavigateTo(int index)
     {
         base.OnNavigateTo(index);
@@ -261,4 +257,16 @@ public partial class MainWindowViewModel : NavigationViewModel
     }
 }
 
-public record IconItem(string Name, IconSource Source, bool AlwaysHide = false);
+public partial class IconItem(string title, IconSource source, string id = "", bool alwaysHide = false)
+    : ObservableObject
+{
+    [ObservableProperty]
+    public partial string Title { get; set; } = title;
+
+    [ObservableProperty]
+    public partial IconSource Source { get; set; } = source;
+
+    public bool AlwaysHide => alwaysHide;
+
+    public string Id = id;
+}
