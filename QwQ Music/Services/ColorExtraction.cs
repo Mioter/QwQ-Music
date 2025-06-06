@@ -99,7 +99,7 @@ public static class ColorExtraction
         );
 
         using var fb = writeableBitmap.Lock();
-        var pixelData = new byte[fb.RowBytes * height];
+        byte[] pixelData = new byte[fb.RowBytes * height];
 
         // 将原始位图数据复制到可写位图
         var handle = System.Runtime.InteropServices.GCHandle.Alloc(

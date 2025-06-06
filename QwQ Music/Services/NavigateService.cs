@@ -87,7 +87,7 @@ public static class NavigateService
     // 存储每个导航容器（父视图）的导航触发事件
     public static Dictionary<string, Action<int>?> NavigateEvents { get; set; } = new();
 
-    // 当前活动视图改变时的事件
+    // 当前活动视图改变时的事件，此事件用于通知订阅者当前视图名称
     public static Action<string>? CurrentViewChanged { get; set; }
 
     // 当前最深层级的活动视图名称
@@ -432,14 +432,13 @@ public static class NavigateService
         // 更新当前历史索引
         if (currentHistoryIndex >= _navigationHistory.Count)
         {
-            currentHistoryIndex = _navigationHistory.Count - 1;
+            currentHistoryIndex = _navigationHistory.Count;
         }
 
         // 如果当前视图被删除，导航到最后一个有效的历史记录
-        if (viewsToRemove.Contains(CurrentView) && _navigationHistory.Count > 0)
+        if (viewsToRemove.Contains(CurrentView))
         {
-            CurrentView = _navigationHistory[currentHistoryIndex];
-            CurrentViewChanged?.Invoke(CurrentView);
+            GoBack();
         }
     }
 

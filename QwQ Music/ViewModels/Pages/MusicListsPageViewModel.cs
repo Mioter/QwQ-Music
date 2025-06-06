@@ -111,7 +111,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
             CanResize = false,
         };
 
-        var model = new CreateMusicListViewModel();
+        var model = new CreateMusicListViewModel(options);
 
         await OverlayDialog.ShowCustomModal<CreateMusicList, CreateMusicListViewModel, object>(model, options: options);
 
@@ -161,11 +161,14 @@ public partial class MusicListsPageViewModel : ViewModelBase
             musicListItem.CoverImage
         );
 
-        var model = new CreateMusicListViewModel(oldName: musicListItem.Name)
+        var originalBitmap = await MusicExtractor.LoadOriginalBitmap(
+            Path.Combine(MainConfig.PlaylistCoverSavePath, $"{musicListItem.Name}.png")
+        );
+        var model = new CreateMusicListViewModel(options, oldName: musicListItem.Name)
         {
             Name = musicListItem.Name,
             Description = musicListItem.Description,
-            Cover = musicListItem.CoverImage,
+            Cover = originalBitmap,
         };
 
         await OverlayDialog.ShowCustomModal<CreateMusicList, CreateMusicListViewModel, object>(model, options: options);
@@ -183,7 +186,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
             musicListItem.CoverPath = newCoverPath;
 
             // 如果封面图片发生变化，保存新图片
-            if (model.Cover != oldValue.CoverImage)
+            if (model.Cover != oldValue.CoverImage && model.Cover != null)
             {
                 musicListItem.CoverImage = model.Cover;
                 await FileOperation.SaveImageAsync(model.Cover, newCoverPath);
@@ -198,7 +201,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
                 File.Move(oldValue.CoverPath, newCoverPath);
                 // 更新图片缓存
                 MusicExtractor.ImageCache.Remove($"歌单-{oldValue.Name}");
-                MusicExtractor.ImageCache.Add($"歌单-{model.Name}", model.Cover);
+                MusicExtractor.ImageCache.Add($"歌单-{model.Name}", musicListItem.CoverImage);
             }
 
             // 更新数据库
