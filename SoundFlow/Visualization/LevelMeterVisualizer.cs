@@ -14,7 +14,7 @@ public class LevelMeterVisualizer : IVisualizer
     private Color _peakHoldColor = new(1, 0, 0);
     private float _peakHoldLevel; // Normalized peak hold level (0-1)
     private DateTime _lastPeakTime;
-    private const float PeakHoldDuration = 1000; // Milliseconds
+    private const float PEAK_HOLD_DURATION = 1000; // Milliseconds
 
     /// <inheritdoc />
     public string Name { get; } = "Level Meter Visualizer";
@@ -71,7 +71,7 @@ public class LevelMeterVisualizer : IVisualizer
             _peakHoldLevel = _level;
             _lastPeakTime = DateTime.Now;
         }
-        else if ((DateTime.Now - _lastPeakTime).TotalMilliseconds > PeakHoldDuration)
+        else if ((DateTime.Now - _lastPeakTime).TotalMilliseconds > PEAK_HOLD_DURATION)
         {
             _peakHoldLevel = _level; // Decay peak hold
         }

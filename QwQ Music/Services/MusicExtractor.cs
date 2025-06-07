@@ -155,10 +155,16 @@ public static class MusicExtractor
 
             string coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
 
-            var coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
-
-            // 异步保存封面，传递文件名
-            await FileOperation.SaveImageAsync(coverImage, Path.Combine(MainConfig.MusicCoverSavePath, coverFileName));
+            Bitmap? coverImage = null;
+            if (track.EmbeddedPictures.Count > 0)
+            {
+                coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
+                // 异步保存封面
+                await FileOperation.SaveImageAsync(
+                    coverImage,
+                    Path.Combine(MainConfig.MusicCoverSavePath, coverFileName)
+                );
+            }
 
             var musicItem = new MusicItemModel(
                 title,

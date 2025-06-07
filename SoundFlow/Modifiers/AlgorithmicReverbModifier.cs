@@ -8,8 +8,8 @@ namespace SoundFlow.Modifiers;
 /// </summary>
 public sealed class AlgorithmicReverbModifier : SoundModifier
 {
-    private const int NumCombs = 8;
-    private const int NumAllPasses = 4;
+    private const int NUM_COMBS = 8;
+    private const int NUM_ALL_PASSES = 4;
 
     // Comb filters (indexed by channel, then by comb filter index)
     private CombFilter[][] _combFilters;
@@ -28,8 +28,8 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
     private int[] _preDelayIndices;
 
     // Modulation
-    private const float ModulationRate = 0.1f; // Modulation rate in Hz (fixed for now)
-    private const float ModulationDepth = 0.005f; // Modulation depth
+    private const float MODULATION_RATE = 0.1f; // Modulation rate in Hz (fixed for now)
+    private const float MODULATION_DEPTH = 0.005f; // Modulation depth
     private float[] _modulatedCombTuning;
     private float[] _lfoPhase;
 
@@ -37,7 +37,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
     public override string Name { get; set; } = "Free-verb Algorithmic Reverb";
 
     // Default values for filter parameters (per channel)
-    private static readonly float[][] CombTunings =
+    private static readonly float[][] _combTunings =
     [
         [1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617], // Channel 0
         [1139, 1211, 1298, 1379, 1445, 1514, 1580, 1640], // Channel 1
@@ -49,7 +49,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         [1215, 1287, 1376, 1457, 1535, 1604, 1682, 1742], // Channel 7
     ];
 
-    private static readonly float[][] AllPassTunings =
+    private static readonly float[][] _allPassTunings =
     [
         [556, 441, 341, 225], // Channel 0
         [569, 454, 354, 238], // Channel 1
@@ -61,7 +61,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         [647, 532, 432, 316], // Channel 7
     ];
 
-    private const float FixedGain = 0.015f;
+    private const float FIXED_GAIN = 0.015f;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AlgorithmicReverbModifier" /> class.
@@ -72,15 +72,15 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
 
         // Initialize comb filters for each channel
         _combFilters = new CombFilter[numChannels][];
-        _modulatedCombTuning = new float[numChannels * NumCombs];
+        _modulatedCombTuning = new float[numChannels * NUM_COMBS];
         for (int channel = 0; channel < numChannels; channel++)
         {
-            _combFilters[channel] = new CombFilter[NumCombs];
-            for (int i = 0; i < NumCombs; i++)
+            _combFilters[channel] = new CombFilter[NUM_COMBS];
+            for (int i = 0; i < NUM_COMBS; i++)
             {
-                float combTuning = CombTunings[channel % CombTunings.Length][i];
+                float combTuning = _combTunings[channel % _combTunings.Length][i];
                 _combFilters[channel][i] = new CombFilter((int)combTuning);
-                _modulatedCombTuning[channel * NumCombs + i] = combTuning;
+                _modulatedCombTuning[channel * NUM_COMBS + i] = combTuning;
             }
         }
 
@@ -88,11 +88,11 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         _allPassFilters = new AllPassFilter[numChannels][];
         for (int channel = 0; channel < numChannels; channel++)
         {
-            _allPassFilters[channel] = new AllPassFilter[NumAllPasses];
-            for (int i = 0; i < NumAllPasses; i++)
+            _allPassFilters[channel] = new AllPassFilter[NUM_ALL_PASSES];
+            for (int i = 0; i < NUM_ALL_PASSES; i++)
             {
                 _allPassFilters[channel][i] = new AllPassFilter(
-                    (int)AllPassTunings[channel % AllPassTunings.Length][i]
+                    (int)_allPassTunings[channel % _allPassTunings.Length][i]
                 );
             }
         }
@@ -195,7 +195,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
 
         for (int channel = 0; channel < numChannels && channel < _combFilters.Length; channel++)
         {
-            for (int i = 0; i < NumCombs && i < _combFilters[channel].Length; i++)
+            for (int i = 0; i < NUM_COMBS && i < _combFilters[channel].Length; i++)
             {
                 _combFilters[channel][i].Feedback = _roomSize;
                 _combFilters[channel][i].Damp = _damp;
@@ -211,7 +211,7 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         if (_combFilters.Length != numChannels)
         {
             _combFilters = new CombFilter[numChannels][];
-            _modulatedCombTuning = new float[numChannels * NumCombs];
+            _modulatedCombTuning = new float[numChannels * NUM_COMBS];
         }
 
         if (_allPassFilters.Length != numChannels)
@@ -220,25 +220,25 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         // Initialize or reinitialize filters for each channel
         for (int channel = 0; channel < numChannels; channel++)
         {
-            if (_combFilters[channel].Length != NumCombs)
-                _combFilters[channel] = new CombFilter[NumCombs];
+            if (_combFilters[channel].Length != NUM_COMBS)
+                _combFilters[channel] = new CombFilter[NUM_COMBS];
 
-            for (int i = 0; i < NumCombs; i++)
+            for (int i = 0; i < NUM_COMBS; i++)
             {
-                float combTuning = CombTunings[channel % CombTunings.Length][i];
+                float combTuning = _combTunings[channel % _combTunings.Length][i];
                 _combFilters[channel][i] = new CombFilter((int)combTuning);
-                _modulatedCombTuning[channel * NumCombs + i] = combTuning;
+                _modulatedCombTuning[channel * NUM_COMBS + i] = combTuning;
                 _combFilters[channel][i].Feedback = _roomSize;
                 _combFilters[channel][i].Damp = _damp;
             }
 
-            if (_allPassFilters[channel].Length != NumAllPasses)
-                _allPassFilters[channel] = new AllPassFilter[NumAllPasses];
+            if (_allPassFilters[channel].Length != NUM_ALL_PASSES)
+                _allPassFilters[channel] = new AllPassFilter[NUM_ALL_PASSES];
 
-            for (int i = 0; i < NumAllPasses; i++)
+            for (int i = 0; i < NUM_ALL_PASSES; i++)
             {
                 _allPassFilters[channel][i] = new AllPassFilter(
-                    (int)AllPassTunings[channel % AllPassTunings.Length][i]
+                    (int)_allPassTunings[channel % _allPassTunings.Length][i]
                 );
             }
         }
@@ -291,14 +291,14 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         try
         {
             // Calculate LFO value for modulation
-            float lfo = MathF.Sin(_lfoPhase[channel]) * ModulationDepth;
+            float lfo = MathF.Sin(_lfoPhase[channel]) * MODULATION_DEPTH;
 
             // Update LFO phase
-            _lfoPhase[channel] += 2 * MathF.PI * ModulationRate / AudioEngine.Instance.SampleRate;
+            _lfoPhase[channel] += 2 * MathF.PI * MODULATION_RATE / AudioEngine.Instance.SampleRate;
             if (_lfoPhase[channel] > MathF.PI)
                 _lfoPhase[channel] -= 2 * MathF.PI;
 
-            float input = sample * FixedGain;
+            float input = sample * FIXED_GAIN;
 
             // Apply pre-delay
             if (channel < _preDelayBuffers.Length && _preDelaySamples < _preDelayBuffers[channel].Length)
@@ -314,20 +314,20 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
             float reverbTailOutput = 0;
 
             // Process comb filters with modulation
-            for (int i = 0; i < NumCombs && i < _combFilters[channel].Length; i++)
+            for (int i = 0; i < NUM_COMBS && i < _combFilters[channel].Length; i++)
             {
                 // Modulate comb filter delay lengths
-                float modulatedDelay = _modulatedCombTuning[channel * NumCombs + i] * (1 + lfo);
+                float modulatedDelay = _modulatedCombTuning[channel * NUM_COMBS + i] * (1 + lfo);
                 _combFilters[channel][i].SetDelay((int)modulatedDelay);
 
                 float combOutput = _combFilters[channel][i].Process(input);
-                if (i < NumCombs / 2)
+                if (i < NUM_COMBS / 2)
                     earlyReflectionsOutput += combOutput; // Sum the first half for early reflections
                 reverbTailOutput += combOutput;
             }
 
             // Process all-pass filters
-            for (int i = 0; i < NumAllPasses && i < _allPassFilters[channel].Length; i++)
+            for (int i = 0; i < NUM_ALL_PASSES && i < _allPassFilters[channel].Length; i++)
             {
                 reverbTailOutput = _allPassFilters[channel][i].Process(reverbTailOutput);
             }
@@ -410,14 +410,14 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
     {
         private readonly float[] _buffer = new float[delay];
         private int _bufferIndex;
-        private const float Feedback = 0.5f;
+        private const float FEEDBACK = 0.5f;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float Process(float input)
         {
             float buffered = _buffer[_bufferIndex];
             float output = -input + buffered;
-            _buffer[_bufferIndex] = input + buffered * Feedback;
+            _buffer[_bufferIndex] = input + buffered * FEEDBACK;
             _bufferIndex = (_bufferIndex + 1) % _buffer.Length;
             return output;
         }

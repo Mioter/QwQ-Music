@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using SoundFlow.Abstracts;
 
 namespace SoundFlow.Components;
@@ -5,10 +6,16 @@ namespace SoundFlow.Components;
 /// <summary>
 ///     Represents an audio mixer that combines and processes audio from multiple SoundComponents.
 /// </summary>
-public sealed class Mixer : SoundComponent
+public sealed class Mixer : SoundComponent, IDisposable
 {
-    private readonly List<SoundComponent> _components = [];
-    private readonly Lock _lock = new();
+    // The byte value is just a placeholder
+    private readonly ConcurrentDictionary<SoundComponent, byte> _components = new();
+
+    // Separate lock for modifications to prevent conflicts with audio processing
+    private readonly object _modificationLock = new();
+
+    // Flag to track disposal state
+    private volatile bool _isDisposed;
 
     /// <summary>
     ///     Gets the master mixer, representing the final output of the audio graph.
@@ -26,24 +33,23 @@ public sealed class Mixer : SoundComponent
     ///     Thrown if the component is the mixer itself or if adding the component would create
     ///     a cycle in the graph.
     /// </exception>
+    /// <exception cref="ObjectDisposedException">Thrown if the mixer has been disposed.</exception>
     public SoundComponent AddComponent(SoundComponent component)
     {
-        if (component == this)
-            throw new ArgumentException("Cannot add a mixer to itself.", nameof(component));
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        ArgumentNullException.ThrowIfNull(component);
+        ArgumentNullException.ThrowIfNull(component, nameof(component));
 
-        // Check for cycles
-        if (WouldCreateCycle(component))
-            throw new ArgumentException(
-                "Adding this component would create a cycle in the audio graph.",
-                nameof(component)
-            );
-
-        lock (_lock)
+        lock (_modificationLock)
         {
-            if (_components.Contains(component))
-                return this;
-            _components.Add(component);
-            component.Parent = this;
+            if (WouldCreateCycle(component))
+                throw new ArgumentException(
+                    "Adding this component would create a cycle in the audio graph.",
+                    nameof(component)
+                );
+
+            if (_components.TryAdd(component, 0))
+                component.Parent = this;
         }
 
         return this;
@@ -74,9 +80,12 @@ public sealed class Mixer : SoundComponent
     /// <param name="component">The sound component to remove.</param>
     public SoundComponent RemoveComponent(SoundComponent component)
     {
-        lock (_lock)
+        if (_isDisposed || component == null!)
+            return this;
+
+        lock (_modificationLock)
         {
-            if (_components.Remove(component))
+            if (_components.TryRemove(component, out _))
                 component.Parent = null;
         }
 
@@ -86,14 +95,42 @@ public sealed class Mixer : SoundComponent
     /// <inheritdoc />
     protected override void GenerateAudio(Span<float> buffer)
     {
-        if (!Enabled || Mute)
+        if (!Enabled || Mute || _isDisposed)
             return;
 
-        lock (_lock)
+        lock (_modificationLock)
         {
-            foreach (var component in _components)
+            foreach (var component in _components.Keys)
+            {
                 if (component is { Enabled: true, Mute: false })
                     component.Process(buffer);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Disposes the mixer and all its components.
+    /// </summary>
+    /// <remarks>
+    ///     After disposal, the mixer cannot be used anymore.
+    ///     All components will be removed and disposable components will be disposed.
+    /// </remarks>
+    public void Dispose()
+    {
+        if (_isDisposed)
+            return;
+
+        _isDisposed = true;
+
+        lock (_modificationLock)
+        {
+            foreach (var component in _components.Keys)
+            {
+                component.Parent = null;
+                if (component is IDisposable disposable)
+                    disposable.Dispose();
+            }
+            _components.Clear();
         }
     }
 }

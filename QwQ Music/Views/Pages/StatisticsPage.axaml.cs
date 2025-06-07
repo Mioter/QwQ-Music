@@ -11,14 +11,4 @@ public partial class StatisticsPage : UserControl
     {
         InitializeComponent();
     }
-
-    private void ClickMeButton_OnClick(object? sender, RoutedEventArgs e)
-    {
-        _ = new Love().GenerateHeart();
-    }
-
-    private void LagButton_OnClick(object? sender, RoutedEventArgs e)
-    {
-        Thread.Sleep(5000);
-    }
 }

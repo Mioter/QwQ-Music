@@ -10,7 +10,7 @@ namespace SoundFlow.Abstracts;
 /// </summary>
 public abstract class SoundComponent
 {
-    private static readonly ArrayPool<float> BufferPool = ArrayPool<float>.Shared;
+    private static readonly ArrayPool<float> _bufferPool = ArrayPool<float>.Shared;
 
     // Connection state
     private readonly List<SoundComponent> _inputs = [];
@@ -308,7 +308,7 @@ public abstract class SoundComponent
         float[]? rentedBuffer = null;
         try
         {
-            rentedBuffer = BufferPool.Rent(outputBuffer.Length);
+            rentedBuffer = _bufferPool.Rent(outputBuffer.Length);
             var workingBuffer = rentedBuffer.AsSpan(0, outputBuffer.Length);
             workingBuffer.Clear();
 
@@ -353,7 +353,7 @@ public abstract class SoundComponent
         finally
         {
             if (rentedBuffer != null)
-                BufferPool.Return(rentedBuffer);
+                _bufferPool.Return(rentedBuffer);
         }
     }
 

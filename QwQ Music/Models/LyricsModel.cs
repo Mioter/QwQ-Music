@@ -44,7 +44,7 @@ public partial class LyricsModel : ObservableObject
     /// </summary>
     /// <param name="timePoint">原始时间点（秒）</param>
     /// <returns>应用偏移后的时间点（秒）</returns>
-    private double ApplyOffset(double timePoint)
+    private static double ApplyOffset(double timePoint)
     {
         // 将毫秒转换为秒并应用偏移
         return timePoint + LyricConfig.LyricOffset / 1000.0;
@@ -55,7 +55,7 @@ public partial class LyricsModel : ObservableObject
     /// </summary>
     /// <param name="timePoint">带偏移的时间点（秒）</param>
     /// <returns>移除偏移后的时间点（秒）</returns>
-    private double RemoveOffset(double timePoint)
+    private static double RemoveOffset(double timePoint)
     {
         // 将毫秒转换为秒并移除偏移
         return timePoint - LyricConfig.LyricOffset / 1000.0;

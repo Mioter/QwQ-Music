@@ -10,33 +10,30 @@ namespace SoundFlow.Providers;
 /// <remarks>Loads full audio directly to memory.</remarks>
 public sealed class AssetDataProvider : ISoundDataProvider
 {
-    private float[] _data;
-    private bool _isDisposed;
-
     /// <summary>
     ///     Initializes a new instance of the <see cref="AssetDataProvider" /> class.
     /// </summary>
     /// <param name="stream">The stream to read audio data from.</param>
-    /// <param name="sampleRate">The sample rate of the audio data.</param>
-    public AssetDataProvider(Stream stream, int? sampleRate = null)
+    public AssetDataProvider(Stream stream)
     {
         var decoder = AudioEngine.Instance.CreateDecoder(stream);
-        _data = Decode(decoder);
+        Data = Decode(decoder);
         decoder.Dispose();
-        SampleRate = sampleRate;
-        Length = _data.Length;
+        SampleRate = AudioEngine.Instance.SampleRate;
+        Length = Data.Length;
     }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="AssetDataProvider" /> class.
     /// </summary>
     /// <param name="data">The audio data to read.</param>
-    /// <param name="sampleRate">The sample rate of the audio data.</param>
-    public AssetDataProvider(byte[] data, int? sampleRate = null)
-        : this(new MemoryStream(data), sampleRate) { }
+    public AssetDataProvider(byte[] data)
+        : this(new MemoryStream(data)) { }
 
     /// <inheritdoc />
     public int Position { get; private set; }
+
+    public float[] Data { get; private set; }
 
     /// <inheritdoc />
     public int Length { get; } // Length in samples
@@ -48,7 +45,10 @@ public sealed class AssetDataProvider : ISoundDataProvider
     public SampleFormat SampleFormat { get; private set; }
 
     /// <inheritdoc />
-    public int? SampleRate { get; set; }
+    public int SampleRate { get; }
+
+    /// <inheritdoc />
+    public bool IsDisposed { get; set; }
 
     /// <inheritdoc />
     public event EventHandler<EventArgs>? EndOfStreamReached;
@@ -59,12 +59,12 @@ public sealed class AssetDataProvider : ISoundDataProvider
     /// <inheritdoc />
     public int ReadBytes(Span<float> buffer)
     {
-        int samplesToRead = Math.Min(buffer.Length, _data.Length - Position);
-        _data.AsSpan(Position, samplesToRead).CopyTo(buffer);
+        int samplesToRead = Math.Min(buffer.Length, Data.Length - Position);
+        Data.AsSpan(Position, samplesToRead).CopyTo(buffer);
 
         Position += samplesToRead;
 
-        if (Position >= _data.Length)
+        if (Position >= Data.Length)
             EndOfStreamReached?.Invoke(this, EventArgs.Empty);
 
         PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
@@ -75,7 +75,7 @@ public sealed class AssetDataProvider : ISoundDataProvider
     /// <inheritdoc />
     public void Seek(int sampleOffset)
     {
-        Position = Math.Clamp(sampleOffset, 0, _data.Length);
+        Position = Math.Clamp(sampleOffset, 0, Data.Length);
         PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
     }
 
@@ -121,11 +121,11 @@ public sealed class AssetDataProvider : ISoundDataProvider
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_isDisposed)
+        if (IsDisposed)
             return;
 
         // Dispose of _data
-        _data = null!;
-        _isDisposed = true;
+        Data = null!;
+        IsDisposed = true;
     }
 }
