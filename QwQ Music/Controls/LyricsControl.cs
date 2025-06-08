@@ -12,9 +12,11 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Styling;
-using Avalonia.Threading; // 添加 DispatcherTimer 的 using
+using Avalonia.Threading;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
+
+// 添加 DispatcherTimer 的 using
 
 namespace QwQ_Music.Controls;
 

@@ -6,6 +6,8 @@ namespace Impressionist.Implementations;
 
 public static class ColorUtilities
 {
+    private const float EPSILON = 1e-6f;
+
     public static HsvColor RgbVectorToHsvColor(this Vector3 color)
     {
         var hsv = new HsvColor();
@@ -15,7 +17,7 @@ public static class ColorUtilities
 
         hsv.V = max * 100 / 255;
 
-        if (max == min)
+        if (Math.Abs(max - min) < EPSILON)
         {
             hsv.H = 0;
             hsv.S = 0;
@@ -26,19 +28,19 @@ public static class ColorUtilities
 
             hsv.H = 0;
 
-            if (max == color.X)
+            if (Math.Abs(max - color.X) < EPSILON)
             {
                 hsv.H = 60 * (color.Y - color.Z) / (max - min);
                 if (hsv.H < 0)
                     hsv.H += 360;
             }
-            else if (max == color.Y)
+            else if (Math.Abs(max - color.Y) < EPSILON)
             {
                 hsv.H = 60 * (2 + (color.Z - color.X) / (max - min));
                 if (hsv.H < 0)
                     hsv.H += 360;
             }
-            else if (max == color.Z)
+            else if (Math.Abs(max - color.Z) < EPSILON)
             {
                 hsv.H = 60 * (4 + (color.X - color.Y) / (max - min));
                 if (hsv.H < 0)
@@ -50,7 +52,7 @@ public static class ColorUtilities
 
     public static Vector3 HsvColorToRgbVector(this HsvColor hsv)
     {
-        if (hsv.H == 360)
+        if (Math.Abs(hsv.H - 360) < EPSILON)
             hsv.H = 0;
         int hi = (int)Math.Floor(hsv.H / 60) % 6;
 
@@ -88,9 +90,9 @@ public static class ColorUtilities
         float bLinear = blue / 255.0f;
 
         // convert to a sRGB form
-        float r = rLinear > 0.04045 ? (float)Math.Pow((rLinear + 0.055) / (1 + 0.055), 2.2) : (float)(rLinear / 12.92);
-        float g = gLinear > 0.04045 ? (float)Math.Pow((gLinear + 0.055) / (1 + 0.055), 2.2) : (float)(gLinear / 12.92);
-        float b = bLinear > 0.04045 ? (float)Math.Pow((bLinear + 0.055) / (1 + 0.055), 2.2) : (float)(bLinear / 12.92);
+        float r = rLinear > 0.04045f ? (float)Math.Pow((rLinear + 0.055f) / (1 + 0.055f), 2.2f) : rLinear / 12.92f;
+        float g = gLinear > 0.04045f ? (float)Math.Pow((gLinear + 0.055f) / (1 + 0.055f), 2.2f) : gLinear / 12.92f;
+        float b = bLinear > 0.04045f ? (float)Math.Pow((bLinear + 0.055f) / (1 + 0.055f), 2.2f) : bLinear / 12.92f;
 
         // converts
         return new Vector3(
@@ -113,7 +115,7 @@ public static class ColorUtilities
         for (int i = 0; i < 3; i++)
         {
             clinear[i] =
-                clinear[i] <= 0.0031308
+                clinear[i] <= 0.0031308f
                     ? 12.92f * clinear[i]
                     : (float)((1 + 0.055) * Math.Pow(clinear[i], 1.0 / 2.4) - 0.055);
         }
@@ -131,7 +133,7 @@ public static class ColorUtilities
 
     private static float Fxyz(float t)
     {
-        return t > 0.008856 ? (float)Math.Pow(t, 1.0 / 3.0) : 7.787f * t + 16.0f / 116.0f;
+        return t > 0.008856f ? (float)Math.Pow(t, 1.0 / 3.0) : 7.787f * t + 16.0f / 116.0f;
     }
 
     public static Vector3 XyzVectorToLabVector(this Vector3 xyz)

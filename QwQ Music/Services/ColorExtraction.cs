@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -102,10 +103,7 @@ public static class ColorExtraction
         byte[] pixelData = new byte[fb.RowBytes * height];
 
         // 将原始位图数据复制到可写位图
-        var handle = System.Runtime.InteropServices.GCHandle.Alloc(
-            pixelData,
-            System.Runtime.InteropServices.GCHandleType.Pinned
-        );
+        var handle = GCHandle.Alloc(pixelData, GCHandleType.Pinned);
         try
         {
             bitmap.CopyPixels(

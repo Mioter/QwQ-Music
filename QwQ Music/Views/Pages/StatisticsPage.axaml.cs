@@ -1,7 +1,4 @@
-using System.Threading;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using QwQ_Music.Amusing;
 
 namespace QwQ_Music.Views.Pages;
 

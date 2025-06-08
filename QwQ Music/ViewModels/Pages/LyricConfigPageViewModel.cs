@@ -1,5 +1,4 @@
 ﻿using Avalonia.Layout;
-using QwQ_Music.Helper;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.ViewModels.ViewModelBases;
@@ -33,5 +32,6 @@ public class LyricConfigPageViewModel : ViewModelBase
 
     public static RolledLyricsConfig RolledLyrics { get; } = ConfigInfoModel.LyricConfig.RolledLyricsConfig;
 
-    public static HorizontalAlignment[] TextAlignments { get; } = EnumHelper<HorizontalAlignment>.ToArray();
+    public static HorizontalAlignment[] TextAlignments { get; } =
+        [HorizontalAlignment.Left, HorizontalAlignment.Center, HorizontalAlignment.Right];
 }

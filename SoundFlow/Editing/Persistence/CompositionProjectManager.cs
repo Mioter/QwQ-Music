@@ -375,7 +375,7 @@ public static class CompositionProjectManager
         {
             var track = new Track(
                 projectTrack.Name,
-                new TrackSettings()
+                new TrackSettings
                 {
                     IsEnabled = projectTrack.Settings.IsEnabled,
                     IsMuted = projectTrack.Settings.IsMuted,

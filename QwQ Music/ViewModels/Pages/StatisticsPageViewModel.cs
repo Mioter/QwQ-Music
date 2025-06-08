@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Amusing;
 using QwQ_Music.ViewModels.ViewModelBases;

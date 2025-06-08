@@ -10,6 +10,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <LangVersion>preview</LangVersion>
         <ImplicitUsings>disable</ImplicitUsings>
+        <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
         
     </PropertyGroup>
 

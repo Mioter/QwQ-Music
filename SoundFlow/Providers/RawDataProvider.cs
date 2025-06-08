@@ -28,7 +28,7 @@ public class RawDataProvider : ISoundDataProvider
     ///     <paramref name="pcmStream"/> cannot be <see langword="null"/>.
     /// </exception>
     /// <exception cref="ArgumentException">
-    ///     <paramref name="sampleFormat"/> cannot be <see cref="SampleFormat.Unknown"/>.
+    ///     <paramref name="sampleFormat"/> cannot be <see cref="Enums.SampleFormat.Unknown"/>.
     /// </exception>
     public RawDataProvider(Stream pcmStream, SampleFormat sampleFormat)
     {
