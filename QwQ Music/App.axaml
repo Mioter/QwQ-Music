@@ -53,10 +53,10 @@
         <converters:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
         <converters:StringEqualityConverter x:Key="StringEqualityConverter" />
         <converters:ValueComparisonConverter x:Key="ValueComparisonConverter"/>
-
-        <FontFamily x:Key="VivoSans">resm:QwQ_Music.Assets.Fonts.VivoSans.ttf#VivoSans</FontFamily>
+        
         <FontFamily x:Key="Consolab">resm:QwQ_Music.Assets.Fonts.Consola.ttf#Consola</FontFamily>
-
+        <FontFamily x:Key="Cjtw85">resm:QwQ_Music.Assets.Fonts.CJTW85.ttf#公众号-犬神志</FontFamily>
+        
         <CornerRadius x:Key="FlyoutCornerRadius">8</CornerRadius>
         <CornerRadius x:Key="ButtonCornerRadius">5</CornerRadius>
 

@@ -1,17 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <Nullable>enable</Nullable>        
-        <PublishAot>false</PublishAot>
+        <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-        <TrimMode>link</TrimMode>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <TargetFramework>net9.0</TargetFramework>
         <LangVersion>preview</LangVersion>
         <ImplicitUsings>disable</ImplicitUsings>
         <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-        
+    <!--
+        <PublishAot>true</PublishAot>
+        <TrimMode>link</TrimMode>
+        -->
     </PropertyGroup>
 
     <ItemGroup>
@@ -43,8 +44,8 @@
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.8" />
         <PackageReference Include="SkiaSharp" Version="3.119.0" />
         <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.0" />
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.4.25258.110" />
-        <PackageReference Include="z440.atl.core" Version="6.24.0" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.5.25277.114" />
+        <PackageReference Include="z440.atl.core" Version="6.25.0" />
     </ItemGroup>
 
     <ItemGroup>

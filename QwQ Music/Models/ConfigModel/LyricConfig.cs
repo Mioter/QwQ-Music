@@ -22,7 +22,7 @@ public partial class BasicLyricConfig : ObservableObject
 public partial class RolledLyricsConfig : ObservableObject
 {
     [ObservableProperty]
-    public partial HorizontalAlignment LyricTextAlignment { get; set; }
+    public partial HorizontalAlignment LyricTextAlignment { get; set; } = HorizontalAlignment.Left;
 
     [ObservableProperty]
     public partial bool ShowTranslation { get; set; }

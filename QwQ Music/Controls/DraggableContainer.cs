@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Metadata;
@@ -36,6 +37,29 @@ public class DraggableContainer : TemplatedControl
     {
         get => GetValue(AllowOverlapProperty);
         set => SetValue(AllowOverlapProperty, value);
+    }
+
+    // 添加角度和距离的可绑定属性
+    public static readonly StyledProperty<double> CurrentAngleProperty = AvaloniaProperty.Register<
+        DraggableContainer,
+        double
+    >(nameof(CurrentAngle),defaultBindingMode:BindingMode.OneWayToSource);
+
+    public double CurrentAngle
+    {
+        get => GetValue(CurrentAngleProperty);
+        set => SetValue(CurrentAngleProperty, value);
+    }
+
+    public static readonly StyledProperty<double> CurrentDistanceProperty = AvaloniaProperty.Register<
+        DraggableContainer,
+        double
+    >(nameof(CurrentDistance),defaultBindingMode:BindingMode.OneWayToSource);
+
+    public double CurrentDistance
+    {
+        get => GetValue(CurrentDistanceProperty);
+        set => SetValue(CurrentDistanceProperty, value);
     }
 
     // 内容属性（用于管理子控件）
@@ -205,8 +229,97 @@ public class DraggableContainer : TemplatedControl
         // 计算相对中心点的角度和距离
         (double angle, double distance) = CalculateSpatialParameters(currentPosition);
 
+        // 更新可绑定属性
+        CurrentAngle = angle;
+        CurrentDistance = distance;
+
         // 触发事件
         PositionChanged?.Invoke(this, new PositionChangedEventArgs(angle, distance));
+    }
+
+    private (double X, double Y) ClampToBounds(
+        double x,
+        double y,
+        double width,
+        double height,
+        double cornerRadiusX,
+        double cornerRadiusY
+    )
+    {
+        // 子控件的尺寸
+        double childWidth = _draggedControl?.Bounds.Width ?? 0;
+        double childHeight = _draggedControl?.Bounds.Height ?? 0;
+
+        // 子控件的边界框
+        var childBounds = new Rect(x, y, childWidth, childHeight);
+
+        // 圆角区域的四个角的中心点
+        double topRightCenterX = width - cornerRadiusX;
+        double bottomLeftCenterY = height - cornerRadiusY;
+        double bottomRightCenterX = width - cornerRadiusX;
+        double bottomRightCenterY = height - cornerRadiusY;
+
+        // 检查左上角
+        if (childBounds.Left < cornerRadiusX && childBounds.Top < cornerRadiusY)
+        {
+            double distance = CalculateDistance(childBounds.Left, childBounds.Top, cornerRadiusX, cornerRadiusY);
+            if (distance > cornerRadiusX)
+            {
+                double angle = Math.Atan2(childBounds.Top - cornerRadiusY, childBounds.Left - cornerRadiusX);
+                x = cornerRadiusX + cornerRadiusX * Math.Cos(angle);
+                y = cornerRadiusY + cornerRadiusX * Math.Sin(angle);
+            }
+        }
+
+        // 检查右上角
+        if (childBounds.Right > topRightCenterX && childBounds.Top < cornerRadiusY)
+        {
+            double distance = CalculateDistance(childBounds.Right, childBounds.Top, topRightCenterX, cornerRadiusY);
+            if (distance > cornerRadiusX)
+            {
+                double angle = Math.Atan2(childBounds.Top - cornerRadiusY, childBounds.Right - topRightCenterX);
+                x = topRightCenterX + cornerRadiusX * Math.Cos(angle) - childWidth;
+                y = cornerRadiusY + cornerRadiusX * Math.Sin(angle);
+            }
+        }
+
+        // 检查左下角
+        if (childBounds.Left < cornerRadiusX && childBounds.Bottom > bottomLeftCenterY)
+        {
+            double distance = CalculateDistance(childBounds.Left, childBounds.Bottom, cornerRadiusX, bottomLeftCenterY);
+            if (distance > cornerRadiusX)
+            {
+                double angle = Math.Atan2(childBounds.Bottom - bottomLeftCenterY, childBounds.Left - cornerRadiusX);
+                x = cornerRadiusX + cornerRadiusX * Math.Cos(angle);
+                y = bottomLeftCenterY + cornerRadiusX * Math.Sin(angle) - childHeight;
+            }
+        }
+
+        // 检查右下角
+        if (childBounds.Right > bottomRightCenterX && childBounds.Bottom > bottomRightCenterY)
+        {
+            double distance = CalculateDistance(childBounds.Right, childBounds.Bottom, bottomRightCenterX, bottomRightCenterY);
+            if (distance > cornerRadiusX)
+            {
+                double angle = Math.Atan2(
+                    childBounds.Bottom - bottomRightCenterY,
+                    childBounds.Right - bottomRightCenterX
+                );
+                x = bottomRightCenterX + cornerRadiusX * Math.Cos(angle) - childWidth;
+                y = bottomRightCenterY + cornerRadiusX * Math.Sin(angle) - childHeight;
+            }
+        }
+
+        // 确保子控件不会超出容器边界
+        x = Math.Clamp(x, 0, width - childWidth);
+        y = Math.Clamp(y, 0, height - childHeight);
+
+        return (x, y);
+    }
+
+    private static double CalculateDistance(double x1, double y1, double x2, double y2)
+    {
+        return Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
     }
 
     // 计算角度和距离
@@ -301,91 +414,6 @@ public class DraggableContainer : TemplatedControl
     private static double Distance(Point p1, Point p2)
     {
         return Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
-    }
-
-    private (double X, double Y) ClampToBounds(
-        double x,
-        double y,
-        double width,
-        double height,
-        double cornerRadiusX,
-        double cornerRadiusY
-    )
-    {
-        // 子控件的尺寸
-        double childWidth = _draggedControl?.Bounds.Width ?? 0;
-        double childHeight = _draggedControl?.Bounds.Height ?? 0;
-
-        // 子控件的边界框
-        var childBounds = new Rect(x, y, childWidth, childHeight);
-
-        // 圆角区域的四个角的中心点
-        double topRightCenterX = width - cornerRadiusX;
-        double bottomLeftCenterY = height - cornerRadiusY;
-        double bottomRightCenterX = width - cornerRadiusX;
-        double bottomRightCenterY = height - cornerRadiusY;
-
-        // 检查左上角
-        if (childBounds.Left < cornerRadiusX && childBounds.Top < cornerRadiusY)
-        {
-            double distance = Distance(childBounds.Left, childBounds.Top, cornerRadiusX, cornerRadiusY);
-            if (distance > cornerRadiusX)
-            {
-                double angle = Math.Atan2(childBounds.Top - cornerRadiusY, childBounds.Left - cornerRadiusX);
-                x = cornerRadiusX + cornerRadiusX * Math.Cos(angle);
-                y = cornerRadiusY + cornerRadiusX * Math.Sin(angle);
-            }
-        }
-
-        // 检查右上角
-        if (childBounds.Right > topRightCenterX && childBounds.Top < cornerRadiusY)
-        {
-            double distance = Distance(childBounds.Right, childBounds.Top, topRightCenterX, cornerRadiusY);
-            if (distance > cornerRadiusX)
-            {
-                double angle = Math.Atan2(childBounds.Top - cornerRadiusY, childBounds.Right - topRightCenterX);
-                x = topRightCenterX + cornerRadiusX * Math.Cos(angle) - childWidth;
-                y = cornerRadiusY + cornerRadiusX * Math.Sin(angle);
-            }
-        }
-
-        // 检查左下角
-        if (childBounds.Left < cornerRadiusX && childBounds.Bottom > bottomLeftCenterY)
-        {
-            double distance = Distance(childBounds.Left, childBounds.Bottom, cornerRadiusX, bottomLeftCenterY);
-            if (distance > cornerRadiusX)
-            {
-                double angle = Math.Atan2(childBounds.Bottom - bottomLeftCenterY, childBounds.Left - cornerRadiusX);
-                x = cornerRadiusX + cornerRadiusX * Math.Cos(angle);
-                y = bottomLeftCenterY + cornerRadiusX * Math.Sin(angle) - childHeight;
-            }
-        }
-
-        // 检查右下角
-        if (childBounds.Right > bottomRightCenterX && childBounds.Bottom > bottomRightCenterY)
-        {
-            double distance = Distance(childBounds.Right, childBounds.Bottom, bottomRightCenterX, bottomRightCenterY);
-            if (distance > cornerRadiusX)
-            {
-                double angle = Math.Atan2(
-                    childBounds.Bottom - bottomRightCenterY,
-                    childBounds.Right - bottomRightCenterX
-                );
-                x = bottomRightCenterX + cornerRadiusX * Math.Cos(angle) - childWidth;
-                y = bottomRightCenterY + cornerRadiusX * Math.Sin(angle) - childHeight;
-            }
-        }
-
-        // 确保子控件不会超出容器边界
-        x = Math.Clamp(x, 0, width - childWidth);
-        y = Math.Clamp(y, 0, height - childHeight);
-
-        return (x, y);
-    }
-
-    private static double Distance(double x1, double y1, double x2, double y2)
-    {
-        return Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)

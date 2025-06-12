@@ -627,7 +627,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     #region 数据持久化
 
 
-    public async Task SaveAsync()
+    public async void Save()
     {
         try
         {

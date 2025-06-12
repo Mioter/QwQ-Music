@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
-using QwQ_Music.Controls;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.ViewModels.ViewModelBases;
@@ -54,14 +53,7 @@ public partial class SoundEffectConfigViewModel() : NavigationViewModel("音效"
             OnPropertyChanged();
         }
     }
-
-    [RelayCommand]
-    private void OnSpeakerPositionChanged(PositionChangedEventArgs e)
-    {
-        SpatialAngle = (float)e.Angle;
-        SpatialDistance = (float)e.Distance;
-    }
-
+    
     [RelayCommand]
     private void RestoreDefaultEqualizer()
     {

@@ -17,14 +17,23 @@ public static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        AppDomain.CurrentDomain.ProcessExit += CurrentDomainOnProcessExit;
-        AppDomain.CurrentDomain.UnhandledException += CurrentDomainOnUnhandledException;
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        try
+        {
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomainOnProcessExit;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomainOnUnhandledException;
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
+        catch (Exception e)
+        {
+            LoggerService.Error($"捕捉到未处理异常:\n {e.Message}\n {e.StackTrace}");
+            LoggerService.Shutdown();
+        }
     }
 
     private static void CurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-        throw new NotImplementedException();
+        LoggerService.Error($"捕捉到全局错误:\n IsTerminating:{e.IsTerminating}\n ExceptionObject: {e.ExceptionObject}");
+        LoggerService.Shutdown();
     }
 
     private static void CurrentDomainOnProcessExit(object? sender, EventArgs e)
@@ -37,15 +46,17 @@ public static class Program
 
             MessageBus.CreateMessage(new ExitReminderMessage(true)).SetAsOneTime().WaitForCompletion().Publish();
 
-            MusicPlayerViewModel.Instance.SaveAsync().Wait();
+            MusicPlayerViewModel.Instance.Save();
 
             DataBaseService.CloseConnection();
+            
+            LoggerService.Info("程序已退出!");
             LoggerService.Shutdown();
         }
         catch (Exception ex)
         {
             // Log the exception or handle it as needed
-            LoggerService.Error($"An error occurred: {ex.Message}");
+            LoggerService.Error($"程序退出时发生错误: {ex.Message}");
             LoggerService.Shutdown();
         }
     }

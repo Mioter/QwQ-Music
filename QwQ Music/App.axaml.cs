@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -28,8 +27,7 @@ public class App : Application
 
         base.OnFrameworkInitializationCompleted();
     }
-
-    [RequiresUnreferencedCode("Calls Avalonia.Data.Core.Plugins.BindingPlugins.DataValidators")]
+    
     private static void DisableAvaloniaDataAnnotationValidation()
     {
         // Get an array of plugins to remove

@@ -339,9 +339,9 @@
 
             <Interaction.Behaviors>
 
-                <EventTriggerBehavior EventName="DoubleTapped">
+                <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.DoubleTappedEvent}">
                     <InvokeCommandAction Command="{Binding ToggleMusicCommand}" />
-                </EventTriggerBehavior>
+                </RoutedEventTriggerBehavior>
 
             </Interaction.Behaviors>
 

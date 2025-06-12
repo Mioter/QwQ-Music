@@ -1,5 +1,7 @@
 using System;
+using System.Threading.Tasks;
 using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 
 namespace QwQ_Music.Models;
@@ -64,73 +66,75 @@ public static class ConfigInfoModel
 
     #region 配置保存
 
-    public static void SaveMainConfig()
+    public async static Task SaveMainConfig()
     {
         if (_mainConfig.IsValueCreated)
         {
-            JsonConfigService
-                .SaveAsync(MainConfig, nameof(MainConfig).ToLower(), InterfaceConfigJsonSerializerContext.Default)
-                .Wait();
+            await JsonConfigService
+                .SaveAsync(MainConfig, nameof(MainConfig).ToLower(), InterfaceConfigJsonSerializerContext.Default);
         }
     }
 
-    public static void SaveSoundEffectConfig()
+    public async static Task SaveSoundEffectConfig()
     {
         // 只有当SoundEffectConfig已经被初始化时才保存
         if (_audioModifierConfig.IsValueCreated)
         {
-            JsonConfigService
+            await JsonConfigService
                 .SaveAsync(
                     AudioModifierConfig,
                     nameof(AudioModifierConfig).ToLower(),
                     AudioModifierConfigJsonSerializerContext.Default
-                )
-                .ConfigureAwait(false);
+                );
         }
     }
 
-    public static void SaveDesktopLyricConfig()
+    public async static Task SaveDesktopLyricConfig()
     {
         if (_lyricConfig.IsValueCreated)
         {
-            JsonConfigService
-                .SaveAsync(LyricConfig, nameof(LyricConfig).ToLower(), LyricConfigJsonSerializerContext.Default)
-                .Wait();
+            await JsonConfigService
+                .SaveAsync(LyricConfig, nameof(LyricConfig).ToLower(), LyricConfigJsonSerializerContext.Default);
         }
     }
 
-    public static void SavePlayerConfig()
+    public async static Task SavePlayerConfig()
     {
         if (_playerConfig.IsValueCreated)
         {
-            JsonConfigService
-                .SaveAsync(PlayerConfig, nameof(PlayerConfig).ToLower(), PlayerConfigJsonSerializerContext.Default)
-                .Wait();
+            await JsonConfigService
+                .SaveAsync(PlayerConfig, nameof(PlayerConfig).ToLower(), PlayerConfigJsonSerializerContext.Default);
         }
     }
 
-    public static void SaveInterfaceConfig()
+    public async static Task SaveInterfaceConfig()
     {
         if (_interfaceConfig.IsValueCreated)
         {
-            JsonConfigService
+            await JsonConfigService
                 .SaveAsync(
                     InterfaceConfig,
                     nameof(InterfaceConfig).ToLower(),
                     InterfaceConfigJsonSerializerContext.Default
-                )
-                .Wait();
+                );
         }
     }
 
     // 添加保存所有已加载配置的方法
-    public static void SaveAll()
+    public static async void SaveAll()
     {
-        SaveMainConfig();
-        SaveInterfaceConfig();
-        SavePlayerConfig();
-        SaveDesktopLyricConfig();
-        SaveSoundEffectConfig();
+        try
+        {
+            await SaveMainConfig();
+            await SaveInterfaceConfig();
+            await SavePlayerConfig();
+            await SaveDesktopLyricConfig();
+            await SaveSoundEffectConfig();
+        }
+        catch (Exception e)
+        {
+            await LoggerService.ErrorAsync($"保存配置文件时发生错误 : {e.Message}");
+        }
     }
 
     #endregion

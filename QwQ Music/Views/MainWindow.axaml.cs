@@ -35,6 +35,8 @@ public partial class MainWindow : Window
         Closed -= OnClosed;
         MusicCoverPagePanel.PointerPressed -= MusicCoverPagePanelOnPointerPressed;
         KeyDown -= MainWindow_KeyDown;
+        
+        LoggerService.Info("主窗口已经关闭");
     }
 
     private void MusicCoverPagePanelOnPointerPressed(object? sender, PointerPressedEventArgs e)

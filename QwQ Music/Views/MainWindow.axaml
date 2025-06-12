@@ -4,7 +4,8 @@
     Height="{Binding WindowHeight, Mode=OneWayToSource}"
     MinHeight="400"
     MinWidth="600"
-    Title="QwQ"
+    Title="QwQ Music"
+    FontFamily="{StaticResource Cjtw85}"
     Width="{Binding WindowWidth, Mode=OneWayToSource}"
     x:Class="QwQ_Music.Views.MainWindow"
     x:DataType="viewModels:MainWindowViewModel"
@@ -76,8 +77,7 @@
         <StackPanel Orientation="Horizontal" Margin="20,0" Spacing="20">
             <!-- 标题文本 -->
             <TextBlock
-                FontFamily="{StaticResource VivoSans}"
-                FontWeight="ExtraBold"
+                FontWeight="Bold"
                 HorizontalAlignment="Left"
                 IsHitTestVisible="False"
                 Text="QwQ Music"
@@ -198,7 +198,7 @@
                                 </Setter>
 
                                 <Style Selector="^:selected">
-                                    <Setter Property="FontWeight" Value="ExtraBold" />
+                                    <Setter Property="FontWeight" Value="Bold" />
                                     <Setter Property="Foreground" Value="White" />
                                     <Setter Property="RenderTransform" Value="scale(1.1)" />
                                 </Style>
@@ -324,9 +324,9 @@
 
             <Interaction.Behaviors>
 
-                <EventTriggerBehavior EventName="PointerWheelChanged">
+                <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerWheelChangedEvent}">
                     <InvokeCommandAction Command="{Binding PointerWheelChangedCommand}" PassEventArgsToCommand="True" />
-                </EventTriggerBehavior>
+                </RoutedEventTriggerBehavior>
 
             </Interaction.Behaviors>
 

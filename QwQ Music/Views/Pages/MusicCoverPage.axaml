@@ -87,7 +87,6 @@
                 <controls:LyricsControl
                     ClickedLyricTime="{Binding SelectLyricsTimePoint}"
                     CurrentLyricIndex="{Binding MusicPlayerViewModel.LyricsModel.LyricsIndex}"
-                    FontFamily="{StaticResource VivoSans}"
                     Grid.Column="1"
                     Margin="10,20"
                     LyricTextAlignment="{Binding RolledLyricsConfig.LyricTextAlignment}"
@@ -113,7 +112,7 @@
                     VerticalAlignment="Bottom">
 
                     <StackPanel.Styles>
-                        <Style Selector="StackPanel &gt; Button">
+                        <Style Selector="StackPanel > Button">
                             <Setter Property="Padding" Value="0" />
                         </Style>
                     </StackPanel.Styles>
@@ -192,7 +191,7 @@
 
                     <WrapPanel.Styles>
 
-                        <Style Selector="WrapPanel &gt; Button">
+                        <Style Selector="WrapPanel > Button">
                             <Setter Property="Height" Value="30" />
                             <Setter Property="Width" Value="30" />
                             <Setter Property="Padding" Value="0" />
@@ -210,6 +209,7 @@
                             Height="12"
                             Width="12" />
                     </Button>
+                    
                 </WrapPanel>
 
             </Grid>
@@ -229,7 +229,7 @@
                         Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Duration, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}}" />
 
                     <Panel.Styles>
-                        <Style Selector="Panel &gt; TextBlock">
+                        <Style Selector="Panel > TextBlock">
                             <Setter Property="FontFamily" Value="{StaticResource Consolab}" />
                         </Style>
                     </Panel.Styles>

@@ -22,22 +22,20 @@
 
                 <u:SelectionList.Styles>
                     <Style Selector="u|SelectionListItem">
-                        <Setter Property="HorizontalAlignment" Value="Stretch" />
                         <Setter Property="Padding" Value="20,10,5,10" />
-
-                        <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
-                            <Setter Property="HorizontalAlignment" Value="Right" />
-                        </Style>
+                    </Style>
+                    
+                    <Style Selector="u|SelectionList> Panel">
+                        <Setter Property="Width" Value="80" />
                     </Style>
 
-                    <Style Selector="u|SelectionList &gt; StackPanel">
-                        <Setter Property="Spacing" Value="10" />
-                        <Setter Property="HorizontalAlignment" Value="Center" />
-                        <Setter Property="Orientation" Value="Horizontal" />
+                    <Style Selector="u|SelectionList> Panel > TextBlock">
+                        <Setter Property="HorizontalAlignment" Value="Left" />
                     </Style>
 
-                    <Style Selector="u|SelectionList CheckBox">
+                    <Style Selector="u|SelectionList > Panel > CheckBox">
                         <Setter Property="CornerRadius" Value="10" />
+                        <Setter Property="HorizontalAlignment" Value="Right" />
                     </Style>
 
                 </u:SelectionList.Styles>
@@ -59,63 +57,63 @@
                 </u:SelectionList.Indicator>
 
 
-                <StackPanel>
+                <Panel>
                     <TextBlock Text="立体增强" />
                     <CheckBox IsChecked="{Binding AudioModifierConfig.StereoEnhancementModifier.Enabled}" />
-                </StackPanel>
+                </Panel>
 
-                <StackPanel>
+                <Panel>
                     <TextBlock Text="全景效果" />
                     <CheckBox IsChecked="{Binding AudioModifierConfig.SurroundSoundModifier.Enabled}" />
-                </StackPanel>
+                </Panel>
 
-                <StackPanel>
+                <Panel>
                     <TextBlock Text="空间效果" />
                     <CheckBox IsChecked="{Binding AudioModifierConfig.SpatialModifier.Enabled}" />
-                </StackPanel>
+                </Panel>
 
-                <StackPanel>
+                <Panel>
                     <TextBlock Text="声源旋转" />
                     <CheckBox IsChecked="{Binding AudioModifierConfig.RotatingModifier.Enabled}" />
-                </StackPanel>
+                </Panel>
 
-                <StackPanel>
+                <Panel>
                     <TextBlock Text="混响效果" />
                     <CheckBox IsChecked="{Binding AudioModifierConfig.ReverbModifier.Enabled}" />
 
-                </StackPanel>
+                </Panel>
 
-                <StackPanel>
+                <Panel>
                     <TextBlock Text="延迟效果" />
                     <CheckBox IsChecked="{Binding AudioModifierConfig.DelayModifier.Enabled}" />
 
-                </StackPanel>
+                </Panel>
 
-                <StackPanel>
+                <Panel>
                     <TextBlock Text="失真效果" />
                     <CheckBox IsChecked="{Binding AudioModifierConfig.DistortionModifier.Enabled}" />
 
-                </StackPanel>
+                </Panel>
 
-                <StackPanel>
+                <Panel>
                     <TextBlock Text="颤音效果" />
                     <CheckBox IsChecked="{Binding AudioModifierConfig.TremoloModifier.Enabled}" />
-                </StackPanel>
+                </Panel>
 
-                <Grid ColumnDefinitions="65,Auto">
+                <Panel>
                     <TextBlock Text="压缩器" />
-                    <CheckBox Grid.Column="1" IsChecked="{Binding AudioModifierConfig.CompressorModifier.Enabled}" />
-                </Grid>
+                    <CheckBox IsChecked="{Binding AudioModifierConfig.CompressorModifier.Enabled}" />
+                </Panel>
 
-                <Grid ColumnDefinitions="65,Auto">
+                <Panel>
                     <TextBlock Text="均衡器" />
-                    <CheckBox Grid.Column="1" IsChecked="{Binding AudioModifierConfig.ParametricEqualizer.Enabled}" />
-                </Grid>
+                    <CheckBox IsChecked="{Binding AudioModifierConfig.ParametricEqualizer.Enabled}" />
+                </Panel>
 
-                <StackPanel>
+                <Panel>
                     <TextBlock Text="噪音减少" />
                     <CheckBox IsChecked="{Binding AudioModifierConfig.NoiseReductionModifier.Enabled}" />
-                </StackPanel>
+                </Panel>
 
             </u:SelectionList>
 
@@ -137,7 +135,7 @@
                 </control:IndexControl.PageTransition>
 
                 <control:IndexControl.Styles>
-                    <Style Selector="control|IndexControl &gt; StackPanel">
+                    <Style Selector="control|IndexControl> StackPanel">
                         <Setter Property="Spacing" Value="10" />
                     </Style>
                 </control:IndexControl.Styles>
@@ -266,6 +264,8 @@
                     <controls:DraggableContainer
                         BorderBrush="{DynamicResource BorderCardBorderBrush}"
                         BorderThickness="1"
+                        CurrentAngle="{Binding SpatialAngle}"
+                        CurrentDistance="{Binding SpatialDistance}"
                         CornerRadius="20">
 
                         <Image
@@ -297,14 +297,6 @@
                             </Border>
 
                         </Border>
-
-                        <Interaction.Behaviors>
-
-                            <EventTriggerBehavior EventName="PositionChanged">
-                                <!--  ReSharper disable once Xaml.PossibleNullReferenceException  -->
-                                <InvokeCommandAction Command="{Binding $parent[UserControl].((vm:SoundEffectConfigViewModel)DataContext).SpeakerPositionChangedCommand}" PassEventArgsToCommand="True" />
-                            </EventTriggerBehavior>
-                        </Interaction.Behaviors>
 
                     </controls:DraggableContainer>
 

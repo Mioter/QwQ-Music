@@ -5,7 +5,7 @@ namespace QwQ_Music.Models.ConfigModel;
 
 public class InterfaceConfig
 {
-    public ColorExtractionAlgorithm SelectedColorExtractionAlgorithm { get; set; } = ColorExtractionAlgorithm.OctTree;
+    public ColorExtractionAlgorithm SelectedColorExtractionAlgorithm { get; set; } = ColorExtractionAlgorithm.KMeans;
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
