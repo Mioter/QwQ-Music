@@ -13,7 +13,7 @@
     <ScrollViewer Margin="10">
         <StackPanel Spacing="20"  Margin="0,0,10,0">
             
-            <Expander Header="封面">
+            <Expander Header="封面" IsExpanded="{Binding InterfaceConfig.IsOpenCoverConfig}">
 
                 <StackPanel Spacing="10">
 
@@ -29,7 +29,6 @@
                     <Panel>
                         <TextBlock Text="取色算法 : " VerticalAlignment="Center" />
                         <ComboBox
-                            CornerRadius="8"
                             HorizontalAlignment="Right"
                             ItemsSource="{Binding ColorExtractionAlgorithms}"
                             SelectedItem="{Binding InterfaceConfig.SelectedColorExtractionAlgorithm}" />

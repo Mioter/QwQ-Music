@@ -27,7 +27,6 @@
                     Command="{Binding SaveImageButtonClickCommand}" />
 
             <ComboBox Width="120"
-                      CornerRadius="5"
                       DisplayMemberBinding="{Binding Key,DataType=userControls:AspectRatioMap}"
                       SelectedItem="{Binding SelectedItem}"
                       ItemsSource="{Binding AspectRatioMaps}" />

@@ -30,11 +30,7 @@ public partial class ImageCroppingViewModel(Bitmap sourceImage) : ViewModelBase
     [RelayCommand]
     private async Task SaveImageButtonClick()
     {
-        var topLevel = App.TopLevel;
-        if (topLevel == null)
-            return;
-
-        var file = await topLevel.StorageProvider.SaveFilePickerAsync(
+        var file = await App.TopLevel.StorageProvider.SaveFilePickerAsync(
             new FilePickerSaveOptions
             {
                 Title = "保存裁剪图片",
@@ -60,8 +56,7 @@ public partial class ImageCroppingViewModel(Bitmap sourceImage) : ViewModelBase
         {
             NotificationService.ShowLight(
                 new Notification("坏欸", $"保存文件失败了！\n" + $"{ex.Message}"),
-                NotificationType.Error,
-                showClose: false
+                NotificationType.Error
             );
         }
     }

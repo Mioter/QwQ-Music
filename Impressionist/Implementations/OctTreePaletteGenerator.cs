@@ -31,7 +31,7 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
         return Task.FromResult(new ThemeColorResult(result, colorIsDark));
     }
 
-    public async Task<PaletteResult> CreatePalette(
+    public static async Task<PaletteResult> CreatePalette(
         Dictionary<Vector3, int> sourceColor,
         int clusterCount,
         bool ignoreWhite = false
@@ -161,7 +161,7 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
         }
     }
 
-    private class Node(OctTreePaletteGenerator.PaletteQuantizer parent)
+    private class Node(PaletteQuantizer parent)
     {
         private Node[] _children = new Node[8];
         private Vector3 Color { get; set; }

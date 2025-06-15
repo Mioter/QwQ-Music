@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.Models.ConfigModel;
 
 namespace QwQ_Music.Models;
 
@@ -10,26 +9,13 @@ public record struct LyricLine(double TimePoint, string Primary, string? Transla
 
 public partial class LyricsModel : ObservableObject
 {
-    public static BasicLyricConfig LyricConfig => ConfigInfoModel.LyricConfig.BasicLyricConfig;
+    public static int LyricOffset { get; set; }
 
     public delegate void LyricLineChangedEventHandler(object sender, LyricLine currentLyric, LyricLine? nextLyric);
 
     public event LyricLineChangedEventHandler? LyricLineChanged;
 
-    private readonly List<double> _timePoints;
-
-    public LyricsModel(LyricsData lyricsData)
-    {
-        LyricsData = lyricsData;
-        _timePoints =
-            lyricsData.Lyrics.Count > 0 ? lyricsData.Lyrics.Select(l => l.TimePoint).OrderBy(t => t).ToList() : [];
-
-        // 初始化当前歌词
-        if (lyricsData.Lyrics.Count > 0)
-        {
-            CurrentLyric = lyricsData.Lyrics[0];
-        }
-    }
+    private readonly List<double> _timePoints = [];
 
     [ObservableProperty]
     public partial int LyricsIndex { get; set; }
@@ -37,7 +23,30 @@ public partial class LyricsModel : ObservableObject
     [ObservableProperty]
     public partial LyricLine CurrentLyric { get; set; }
 
-    public LyricsData LyricsData { get; }
+    [ObservableProperty]
+    public partial LyricsData LyricsData { get; private set; } = new();
+
+    /// <summary>
+    /// 更新歌词数据
+    /// </summary>
+    /// <param name="lyricsData">新的歌词数据</param>
+    public void UpdateLyricsData(LyricsData lyricsData)
+    {
+        LyricsData = lyricsData;
+        _timePoints.Clear();
+
+        if (lyricsData.Lyrics.Count > 0)
+        {
+            _timePoints.AddRange(lyricsData.Lyrics.Select(l => l.TimePoint).OrderBy(t => t));
+            CurrentLyric = lyricsData.Lyrics[0];
+            LyricsIndex = 0;
+        }
+        else
+        {
+            CurrentLyric = new LyricLine(0, "暂无歌词");
+            LyricsIndex = -1;
+        }
+    }
 
     /// <summary>
     /// 应用偏移量到时间点
@@ -47,7 +56,7 @@ public partial class LyricsModel : ObservableObject
     private static double ApplyOffset(double timePoint)
     {
         // 将毫秒转换为秒并应用偏移
-        return timePoint + LyricConfig.LyricOffset / 1000.0;
+        return timePoint + LyricOffset / 1000.0;
     }
 
     /// <summary>
@@ -58,7 +67,7 @@ public partial class LyricsModel : ObservableObject
     private static double RemoveOffset(double timePoint)
     {
         // 将毫秒转换为秒并移除偏移
-        return timePoint - LyricConfig.LyricOffset / 1000.0;
+        return timePoint - LyricOffset / 1000.0;
     }
 
     /// <summary>

@@ -27,4 +27,55 @@
             <Setter Property="Background" Value="{DynamicResource SemiColorFill2}" />
         </Style>
     </ControlTheme>
+    
+        <ControlTheme x:Key="NoPointer" TargetType="Button">
+        <Setter Property="Padding" Value="{DynamicResource ButtonDefaultPadding}" />
+        <Setter Property="MinHeight" Value="{DynamicResource ButtonDefaultHeight}" />
+        <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultPrimaryForeground}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonDefaultBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource ButtonBorderThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ButtonCornerRadius}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontSize" Value="{DynamicResource ButtonDefaultFontSize}" />
+        <Setter Property="FontWeight" Value="{DynamicResource ButtonDefaultFontWeight}" />
+        <Setter Property="RenderTransform" Value="none" />
+        <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="Button">
+                <ContentPresenter
+                    Name="PART_ContentPresenter"
+                    Padding="{TemplateBinding Padding}"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                    BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Content="{TemplateBinding Content}"
+                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                    RecognizesAccessKey="True"
+                    TextElement.FontSize="{TemplateBinding FontSize}"
+                    TextElement.FontWeight="{TemplateBinding FontWeight}"
+                    UseLayoutRounding="False" />
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{TemplateBinding Background}" />
+            <Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
+        </Style>
+
+
+        <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultDisabledForeground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultDisabledBorderBrush}" />
+        </Style>
+        
+    </ControlTheme>
 </ResourceDictionary>

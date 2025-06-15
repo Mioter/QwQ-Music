@@ -5,6 +5,8 @@ namespace QwQ_Music.Models.ConfigModel;
 
 public class InterfaceConfig
 {
+    public bool IsOpenCoverConfig { set; get; }
+
     public ColorExtractionAlgorithm SelectedColorExtractionAlgorithm { get; set; } = ColorExtractionAlgorithm.KMeans;
 }
 

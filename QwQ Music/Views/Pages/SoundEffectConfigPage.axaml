@@ -461,7 +461,6 @@
                         FontSize="12"
                         FontWeight="Black" />
                     <ComboBox
-                        CornerRadius="8"
                         ItemsSource="{Binding AudioModifierConfig.TremoloWaveforms}"
                         MinWidth="150"
                         SelectedItem="{Binding AudioModifierConfig.TremoloModifier.Waveform}" />
@@ -587,7 +586,7 @@
                                             Value="{Binding GainDb}" />
 
                                         <TextBlock
-                                            FontFamily="{StaticResource VivoSans}"
+                                            FontWeight="Bold"
                                             FontSize="10"
                                             Grid.Row="1"
                                             HorizontalAlignment="Center"

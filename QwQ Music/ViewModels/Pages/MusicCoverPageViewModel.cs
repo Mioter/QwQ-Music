@@ -18,9 +18,11 @@ namespace QwQ_Music.ViewModels.Pages;
 
 public partial class MusicCoverPageViewModel : NavigationViewModel
 {
+    public static string OffsetName => LanguageModel.Lang[nameof(OffsetName)];
+
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
-    public static RolledLyricsConfig RolledLyricsConfig { get; } = ConfigInfoModel.LyricConfig.RolledLyricsConfig;
+    public static RolledLyricConfig RolledLyric { get; } = ConfigInfoModel.LyricConfig.RolledLyri;
 
     public MusicCoverPageViewModel()
         : base("播放")

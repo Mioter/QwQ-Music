@@ -9,7 +9,6 @@
     xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:u="https://irihi.tech/ursa"
     xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
     xmlns:viewModel="clr-namespace:QwQ_Music.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -45,7 +44,6 @@
         <Grid ColumnDefinitions="Auto,Auto,6*">
             <!--  专辑按钮  -->
             <Button
-                Background="{x:Null}"
                 Classes="None"
                 Command="{Binding $parent[Window].((viewModel:MainWindowViewModel)DataContext).ShowMusicPlayerPageCommand}">
 
@@ -126,6 +124,7 @@
                     <!--  刷新播放  -->
                     <Button
                         Classes="Icon"
+                        ToolTip.Tip="刷新播放"
                         Command="{Binding MusicPlayerViewModel.RefreshCurrentMusicItemCommand}"
                         Foreground="{DynamicResource TextBlockDefaultForeground}"
                         Height="25"
@@ -137,6 +136,7 @@
                     <!--  上一首  -->
                     <Button
                         Classes="Icon"
+                        ToolTip.Tip="上一首"
                         Command="{Binding MusicPlayerViewModel.TogglePreviousSongCommand}"
                         Foreground="{DynamicResource TextBlockDefaultForeground}"
                         behaviors:DynamicCornerBehavior.IsEnabled="True">
@@ -152,6 +152,7 @@
                     <!--  下一首  -->
                     <Button
                         Classes="Icon"
+                        ToolTip.Tip="下一首"
                         Command="{Binding MusicPlayerViewModel.ToggleNextSongCommand}"
                         Foreground="{DynamicResource TextBlockDefaultForeground}"
                         behaviors:DynamicCornerBehavior.IsEnabled="True">
@@ -215,7 +216,6 @@
                     <StackPanel.Styles>
                         <Style Selector="StackPanel > TextBlock">
                             <Setter Property="VerticalAlignment" Value="Center" />
-                            <Setter Property="FontFamily" Value="{StaticResource Consolab}" />
                         </Style>
                     </StackPanel.Styles>
 
@@ -261,14 +261,15 @@
                             Width="13" />
 
                         <Button.Flyout>
+                            
                             <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
+                                
                                 <StackPanel
                                     Margin="10"
                                     Spacing="5"
                                     Width="180">
 
                                     <TextBlock
-                                        FontFamily="{StaticResource VivoSans}"
                                         FontSize="12"
                                         FontWeight="Bold"
                                         HorizontalAlignment="Center"
@@ -281,42 +282,94 @@
 
                                         <Interaction.Behaviors>
 
-                                            <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerWheelChangedEvent}">
+                                            <PointerWheelChangedTrigger>
                                                 <InvokeCommandAction Command="{Binding SpeedBarPointerWheelChangedCommand}" PassEventArgsToCommand="True" />
-                                            </RoutedEventTriggerBehavior>
+                                            </PointerWheelChangedTrigger>
 
                                         </Interaction.Behaviors>
 
                                     </Slider>
 
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Panel>
 
-                                        <StackPanel.Styles>
+                                        <Panel.Styles>
 
-                                            <Style Selector="u|IconButton">
-                                                <Setter Property="Height" Value="30" />
-                                                <Setter Property="Width" Value="30" />
-                                                <Setter Property="CornerRadius" Value="8" />
+                                            <Style Selector="Panel > Button">
+                                                <Setter Property="Height" Value="25" />
+                                                <Setter Property="Width" Value="25" />
+                                                <Setter Property="Padding" Value="6"/>
+                                                <Setter Property="CornerRadius" Value="15" />
+                                                <Setter Property="VerticalAlignment" Value="Center"/>
                                             </Style>
 
-                                        </StackPanel.Styles>
-
-                                        <u:IconButton
-                                            Classes="Transparent"
+                                        </Panel.Styles>
+                                        
+                                        <Button
+                                            HorizontalAlignment="Left"
+                                            Classes="Icon"
+                                            ToolTip.Tip="跳转至音效"
                                             Command="{Binding NavigationToSoundEffectViewCommand}"
-                                            CornerRadius="8"
-                                            Icon="{StaticResource SemiIconBox}"
-                                            IsEnabled="{Binding !IsSoundEffectView}" />
+                                            IsEnabled="{Binding !IsSoundEffectView}">
+                                            <PathIcon
+                                                Data="{StaticResource SemiIconLink}" />
+                                        </Button>
 
-                                        <u:IconButton
-                                            Classes="Transparent"
-                                            Command="{Binding ResetPlaybackSpeedCommand}"
-                                            CornerRadius="8"
-                                            Icon="{StaticResource SemiIconRefresh}" />
-                                    </StackPanel>
+                                        <Border HorizontalAlignment="Center" CornerRadius="15" BorderBrush="{DynamicResource BorderCardBorderBrush}"
+                                                BorderThickness="1" Padding="2,0">
+
+                                            <StackPanel Orientation="Horizontal" Spacing="3">
+                                                
+                                                <StackPanel.Styles>
+
+                                                    <Style Selector="StackPanel > Button">
+                                                        <Setter Property="Height" Value="25" />
+                                                        <Setter Property="Width" Value="25" />
+                                                        <Setter Property="Padding" Value="4"/>
+                                                        <Setter Property="CornerRadius" Value="15" />
+                                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    </Style>
+
+                                                </StackPanel.Styles>
+
+                                                <!--  Speed-  -->
+                                                <Button
+                                                    ToolTip.Tip="播放速度➖"
+                                                    Classes="Icon"
+                                                    Command="{Binding PlaySpeedDownCommand}"
+                                                    Foreground="{DynamicResource TextBlockDefaultForeground}">
+                                                    <PathIcon
+                                                        Data="{StaticResource PlayIconData}"
+                                                        RenderTransform="rotate(180deg)" />
+                                                </Button>
+
+                                                <Button
+                                                    Classes="Icon"
+                                                    Height="30"
+                                                    Width="30"
+                                                    ToolTip.Tip="重置播放速度"
+                                                    Padding="7"
+                                                    Command="{Binding ResetPlaybackSpeedCommand}">
+                                                    <PathIcon
+                                                        Data="{StaticResource SemiIconRefresh}" />
+                                                </Button>
+
+                                                <!--  Speed+ -->
+                                                <Button
+                                                    Classes="Icon"
+                                                    ToolTip.Tip="播放速度➕"
+                                                    Command="{Binding PlaySpeedUpCommand}"
+                                                    Foreground="{DynamicResource TextBlockDefaultForeground}">
+                                                    <PathIcon Data="{StaticResource PlayIconData}" />
+                                                </Button>
+                                                
+                                            </StackPanel>
+                                        </Border>
+
+                                    </Panel>
 
                                 </StackPanel>
                             </Flyout>
+                            
                         </Button.Flyout>
 
                     </Button>
@@ -356,8 +409,8 @@
                                     RowDefinitions="Auto,*,Auto">
 
                                     <TextBlock
-                                        FontFamily="{StaticResource VivoSans}"
                                         FontSize="12"
+                                        FontWeight="Bold"
                                         HorizontalAlignment="Center"
                                         Margin="0,0,0,3"
                                         Text="{Binding MusicPlayerViewModel.Volume}" />
@@ -392,9 +445,9 @@
 
                                         <Interaction.Behaviors>
 
-                                            <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerWheelChangedEvent}">
+                                            <PointerWheelChangedTrigger>
                                                 <InvokeCommandAction Command="{Binding VolumeBarPointerWheelChangedCommand}" PassEventArgsToCommand="True" />
-                                            </RoutedEventTriggerBehavior>
+                                            </PointerWheelChangedTrigger>
 
                                         </Interaction.Behaviors>
 
@@ -405,30 +458,37 @@
                         </Button.Flyout>
 
                         <ToolTip.Tip>
-                            <Panel>
-                                <TextBlock FontSize="12" IsVisible="{Binding MusicPlayerViewModel.Volume}">
-                                    <Run Text="当前音量：" />
-                                    <Run Text="{Binding MusicPlayerViewModel.Volume}" />
-                                    <Run Text="%" />
-                                </TextBlock>
-                                <TextBlock
-                                    FontSize="12"
-                                    IsVisible="{Binding !MusicPlayerViewModel.Volume}"
-                                    Text="静音" />
-                            </Panel>
+
+                            <control:SwitchControl Condition="{Binding MusicPlayerViewModel.Volume,Mode=OneWay}">
+                                <control:SwitchControl.TrueContent>
+                                    <TextBlock FontSize="12">
+                                        <Run Text="当前音量：" />
+                                        <Run Text="{Binding MusicPlayerViewModel.Volume}" />
+                                        <Run Text="%" />
+                                    </TextBlock>
+                                </control:SwitchControl.TrueContent>
+                                <control:SwitchControl.FalseContent>
+                                    <TextBlock
+                                        FontSize="12"
+                                        Text="静音" />
+                                </control:SwitchControl.FalseContent>
+                            </control:SwitchControl>
+
                         </ToolTip.Tip>
 
                         <Interaction.Behaviors>
 
-                            <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerWheelChangedEvent}">
+                            <PointerWheelChangedTrigger>
                                 <InvokeCommandAction Command="{Binding VolumeBarPointerWheelChangedCommand}" PassEventArgsToCommand="True" />
-                            </RoutedEventTriggerBehavior>
+                            </PointerWheelChangedTrigger>
 
                         </Interaction.Behaviors>
 
                     </Button>
 
-                    <Button Classes="Icon" Command="{Binding $parent[Window].((viewModel:MainWindowViewModel)DataContext).ShowMusicPlaylistCommand}">
+                    <Button Classes="Icon"
+                            ToolTip.Tip="切换播放列表"
+                            Command="{Binding $parent[Window].((viewModel:MainWindowViewModel)DataContext).ShowMusicPlaylistCommand}">
                         <PathIcon
                             Data="{StaticResource SemiIconDescend2}"
                             Height="12"

@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using QwQ_Music.ViewModels;
 using QwQ_Music.Views;
 
 namespace QwQ_Music;
@@ -13,6 +14,7 @@ public class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        DataContext = new ApplicationViewModel();
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -23,11 +25,11 @@ public class App : Application
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
             TopLevel = desktop.MainWindow = new MainWindow();
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
         }
-
         base.OnFrameworkInitializationCompleted();
     }
-    
+
     private static void DisableAvaloniaDataAnnotationValidation()
     {
         // Get an array of plugins to remove
@@ -42,5 +44,5 @@ public class App : Application
         }
     }
 
-    public static TopLevel? TopLevel { get; private set; }
+    public static TopLevel TopLevel { get; private set; } = null!;
 }

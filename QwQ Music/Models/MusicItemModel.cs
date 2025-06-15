@@ -47,6 +47,8 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
         {
             CoverImage = coverImage;
         }
+
+        IsInitialized = true;
     }
 
     public bool IsInitialized { get; private init; }
@@ -199,7 +201,13 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
     public string? Remarks
     {
         get;
-        set => SetPropertyWithModified(ref field, value, true);
+        set => SetPropertyWithModified(ref field, value);
+    }
+
+    public int LyricOffset
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
     }
 
     // 通用的设置属性并标记修改的方法
@@ -269,6 +277,7 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
         SafeExtract(data, nameof(Comment), val => result.Comment = val?.ToString());
         SafeExtract(data, nameof(EncodingFormat), val => result.EncodingFormat = val?.ToString());
         SafeExtract(data, nameof(Remarks), val => result.Remarks = val?.ToString());
+        SafeExtract(data, nameof(LyricOffset), val => result.LyricOffset = val != null ? Convert.ToInt32(val) : 0);
 
         result.IsLoading = false;
 
@@ -311,6 +320,7 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
             [nameof(Comment)] = Comment,
             [nameof(EncodingFormat)] = EncodingFormat,
             [nameof(Remarks)] = Remarks,
+            [nameof(LyricOffset)] = LyricOffset.ToString(),
         };
         return result;
     }

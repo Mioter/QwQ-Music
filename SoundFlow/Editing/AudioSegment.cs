@@ -183,7 +183,7 @@ public class AudioSegment : IDisposable
     private void InitializeWsolaBuffers()
     {
         int channels = AudioEngine.Channels > 0 ? AudioEngine.Channels : 2;
-        const int baseBufferSizeFrames = WsolaTimeStretcher.DefaultWindowSizeFrames * 8;
+        const int baseBufferSizeFrames = WsolaTimeStretcher.DEFAULT_WINDOW_SIZE_FRAMES * 8;
         _wsolaFeedBuffer = new float[baseBufferSizeFrames * channels];
         _wsolaOutputBuffer = new float[baseBufferSizeFrames * channels * 3];
     }
@@ -365,7 +365,7 @@ public class AudioSegment : IDisposable
         if (!Settings.IsEnabled || durationToRead <= TimeSpan.Zero || outputBuffer.IsEmpty)
         {
             if (!outputBuffer.IsEmpty && outputBufferOffset < outputBuffer.Length)
-                outputBuffer.Slice(outputBufferOffset).Clear();
+                outputBuffer[outputBufferOffset..].Clear();
             return 0;
         }
 
@@ -373,7 +373,7 @@ public class AudioSegment : IDisposable
         if (singleStretchedInstanceDuration <= TimeSpan.Zero)
         {
             if (outputBufferOffset < outputBuffer.Length)
-                outputBuffer.Slice(outputBufferOffset).Clear();
+                outputBuffer[outputBufferOffset..].Clear();
             return 0;
         }
 
@@ -393,7 +393,7 @@ public class AudioSegment : IDisposable
         )
         {
             if (outputBufferOffset < outputBuffer.Length)
-                outputBuffer.Slice(outputBufferOffset).Clear();
+                outputBuffer[outputBufferOffset..].Clear();
             return 0;
         }
 
@@ -414,7 +414,7 @@ public class AudioSegment : IDisposable
         if (samplesToFetchFromStretched <= 0)
         {
             if (outputBufferOffset < outputBuffer.Length)
-                outputBuffer.Slice(outputBufferOffset).Clear();
+                outputBuffer[outputBufferOffset..].Clear();
             return 0;
         }
 
@@ -437,7 +437,7 @@ public class AudioSegment : IDisposable
             if (stretchedSamplesObtained == 0)
             {
                 if (outputBufferOffset < outputBuffer.Length)
-                    outputBuffer.Slice(outputBufferOffset).Clear();
+                    outputBuffer[outputBufferOffset..].Clear();
                 return 0;
             }
 
@@ -471,13 +471,13 @@ public class AudioSegment : IDisposable
             else if (samplesToProcess.Length > finalOutputSamplesCount)
             {
                 // If no resampling but more samples obtained than needed, truncate.
-                samplesToProcess = samplesToProcess.Slice(0, finalOutputSamplesCount);
+                samplesToProcess = samplesToProcess[..finalOutputSamplesCount];
             }
 
             if (samplesToProcess.IsEmpty)
             {
                 if (outputBufferOffset < outputBuffer.Length)
-                    outputBuffer.Slice(outputBufferOffset).Clear();
+                    outputBuffer[outputBufferOffset..].Clear();
                 return 0;
             }
 
@@ -564,7 +564,7 @@ public class AudioSegment : IDisposable
                 && samplesWrittenToOutput < finalOutputSamplesCount
             )
             {
-                outputBuffer.Slice(outputBufferOffset + samplesWrittenToOutput).Clear();
+                outputBuffer[(outputBufferOffset + samplesWrittenToOutput)..].Clear();
             }
 
             return samplesWrittenToOutput;
@@ -654,7 +654,7 @@ public class AudioSegment : IDisposable
                 if (!EnsureMoreWsolaOutputGenerated(sampleRate, channels))
                 {
                     if (samplesFilledForRequest < outputBuffer.Length)
-                        outputBuffer.Slice(samplesFilledForRequest).Clear();
+                        outputBuffer[samplesFilledForRequest..].Clear();
 
                     return samplesFilledForRequest;
                 }
@@ -672,7 +672,7 @@ public class AudioSegment : IDisposable
                 {
                     // If no samples were skipped despite still needing to skip, means no more data.
                     if (samplesFilledForRequest < outputBuffer.Length)
-                        outputBuffer.Slice(samplesFilledForRequest).Clear();
+                        outputBuffer[samplesFilledForRequest..].Clear();
 
                     return samplesFilledForRequest;
                 }
@@ -687,7 +687,7 @@ public class AudioSegment : IDisposable
                 // Copy available WSOLA output to the request buffer.
                 _wsolaOutputBuffer
                     .AsSpan(_wsolaOutputBufferReadOffset, toCopyNow)
-                    .CopyTo(outputBuffer.Slice(samplesFilledForRequest));
+                    .CopyTo(outputBuffer[samplesFilledForRequest..]);
                 samplesFilledForRequest += toCopyNow;
                 _wsolaOutputBufferReadOffset += toCopyNow;
                 _currentStretchedPlayheadInSegmentLoopSamples += toCopyNow;
@@ -700,7 +700,7 @@ public class AudioSegment : IDisposable
                 if (!EnsureMoreWsolaOutputGenerated(sampleRate, channels))
                 {
                     if (samplesFilledForRequest < outputBuffer.Length)
-                        outputBuffer.Slice(samplesFilledForRequest).Clear();
+                        outputBuffer[samplesFilledForRequest..].Clear();
 
                     break;
                 }
@@ -756,7 +756,7 @@ public class AudioSegment : IDisposable
         // Loop until enough output is generated or source runs out.
         while (
             _wsolaOutputBufferValidSamples - _wsolaOutputBufferReadOffset
-            < WsolaTimeStretcher.DefaultWindowSizeFrames * channels
+            < WsolaTimeStretcher.DEFAULT_WINDOW_SIZE_FRAMES * channels
         )
         {
             bool currentSourcePassExhaustedForWsolaFeed =
@@ -871,7 +871,7 @@ public class AudioSegment : IDisposable
                 break;
             if (
                 _wsolaOutputBufferValidSamples - _wsolaOutputBufferReadOffset
-                >= WsolaTimeStretcher.DefaultWindowSizeFrames * channels
+                >= WsolaTimeStretcher.DEFAULT_WINDOW_SIZE_FRAMES * channels
             )
                 break;
         }
@@ -956,7 +956,7 @@ public class AudioSegment : IDisposable
 
                 int cachedSamples = 0;
                 float[] tempChunk = ArrayPool<float>.Shared.Rent(
-                    WsolaTimeStretcher.DefaultWindowSizeFrames * channels * 2
+                    WsolaTimeStretcher.DEFAULT_WINDOW_SIZE_FRAMES * channels * 2
                 );
                 try
                 {
@@ -999,13 +999,13 @@ public class AudioSegment : IDisposable
             {
                 _reversedBufferCache
                     .AsSpan((int)reversedReadStartSampleInCache, toCopyFromReversed)
-                    .CopyTo(outputBuffer.Slice(0, toCopyFromReversed));
+                    .CopyTo(outputBuffer[..toCopyFromReversed]);
                 samplesWrittenToOutput = toCopyFromReversed;
             }
 
             // Clear any remaining portion of the output buffer if not fully filled.
             if (samplesWrittenToOutput < outputBuffer.Length && samplesWrittenToOutput < samplesToReadTotal)
-                outputBuffer.Slice(samplesWrittenToOutput).Clear();
+                outputBuffer[samplesWrittenToOutput..].Clear();
 
             return samplesWrittenToOutput;
         }
@@ -1071,7 +1071,7 @@ public class AudioSegment : IDisposable
                 }
 
                 if (samplesWrittenToOutput < outputBuffer.Length && samplesWrittenToOutput < samplesToReadTotal)
-                    outputBuffer.Slice(samplesWrittenToOutput).Clear();
+                    outputBuffer[samplesWrittenToOutput..].Clear();
                 break;
             }
 

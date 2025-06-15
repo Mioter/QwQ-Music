@@ -36,7 +36,7 @@ public class KMeansPaletteGenerator : IThemeColorGenrator, IPaletteGenrator
         return Task.FromResult(new ThemeColorResult(colorVector, isDark));
     }
 
-    public async Task<PaletteResult> CreatePalette(
+    public static async Task<PaletteResult> CreatePalette(
         Dictionary<Vector3, int> sourceColor,
         int clusterCount,
         bool ignoreWhite = false,

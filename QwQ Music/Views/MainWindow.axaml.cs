@@ -10,10 +10,14 @@ public partial class MainWindow : Window
 {
     private readonly HotkeyService _hotkeyService;
 
+    private bool _isClosing;
+
     public MainWindow()
     {
         InitializeComponent();
 
+        // 修改窗口关闭事件处理
+        Closing += OnClosing;
         Closed += OnClosed;
 
         // 初始化热键服务
@@ -27,16 +31,36 @@ public partial class MainWindow : Window
 
         DataContext = new MainWindowViewModel();
         MusicCoverPagePanel.PointerPressed += MusicCoverPagePanelOnPointerPressed;
-        Closed += OnClosed;
+    }
+
+    public void ShowMainWindow()
+    {
+        Show();
+        Activate();
+        WindowState = WindowState.Normal;
+    }
+
+    public void CloseMainWindow()
+    {
+        _isClosing = true;
+        Close();
+    }
+
+    private void OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (_isClosing)
+            return;
+
+        e.Cancel = true;
+        Hide();
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        Closing -= OnClosing;
         Closed -= OnClosed;
         MusicCoverPagePanel.PointerPressed -= MusicCoverPagePanelOnPointerPressed;
         KeyDown -= MainWindow_KeyDown;
-        
-        LoggerService.Info("主窗口已经关闭");
     }
 
     private void MusicCoverPagePanelOnPointerPressed(object? sender, PointerPressedEventArgs e)

@@ -1,19 +1,16 @@
-<UserControl
-    d:DesignHeight="450"
-    d:DesignWidth="800"
-    mc:Ignorable="d"
-    x:Class="QwQ_Music.Views.Pages.ClassificationPage"
-    xmlns="https://github.com/avaloniaui"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    x:DataType="pages:ClassificationPageViewModel"
-    xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
-    xmlns:u="https://irihi.tech/ursa"
-    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
-    xmlns:pages1="clr-namespace:QwQ_Music.Views.Pages">
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+             xmlns:pages1="clr-namespace:QwQ_Music.Views.Pages"
+             xmlns:u="https://irihi.tech/ursa"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             x:DataType="pages:OtherPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.OtherPage">
     
-    <Grid RowDefinitions="Auto,*">
+        <Grid RowDefinitions="Auto,*">
 
         <u:SelectionList
             HorizontalAlignment="Left"
@@ -60,10 +57,8 @@
                 </Style>
             </u:SelectionList.Styles>
 
-            <TextBlock Text="歌单" />
-            <!--<TextBlock Text="专辑" />
-            <TextBlock Text="歌手" />
-            <TextBlock Text="风格" />-->
+            <TextBlock Text="统计" />
+            <TextBlock Text="玩的" />
 
         </u:SelectionList>
 
@@ -79,9 +74,11 @@
                 </CompositePageTransition>
             </control:IndexControl.PageTransition>
 
-            <pages1:MusicListsPage />
+            <pages1:StatisticsPage/>
+            <pages1:MiaomiaoLittleToyPage />
 
         </control:IndexControl>
 
     </Grid>
+    
 </UserControl>

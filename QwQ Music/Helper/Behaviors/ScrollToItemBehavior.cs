@@ -85,6 +85,10 @@ public class ScrollToItemBehavior
                             {
                                 await SmoothScrollToItemCenterAsync(listBox, item, duration, easing, token);
                             }
+                            catch (Exception)
+                            {
+                                // ignored
+                            }
                             finally
                             {
                                 if (!token.IsCancellationRequested)

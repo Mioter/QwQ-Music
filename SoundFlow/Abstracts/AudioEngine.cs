@@ -111,7 +111,7 @@ public abstract class AudioEngine : IDisposable
     /// <summary>
     ///     Gets the configured sample rate (samples per second).
     /// </summary>
-    public int SampleRate { get; }
+    public int SampleRate { get; set; }
 
     /// <summary>
     ///     Gets the inverse of the configured sample rate (seconds per sample).

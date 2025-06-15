@@ -43,7 +43,7 @@ public class DraggableContainer : TemplatedControl
     public static readonly StyledProperty<double> CurrentAngleProperty = AvaloniaProperty.Register<
         DraggableContainer,
         double
-    >(nameof(CurrentAngle),defaultBindingMode:BindingMode.OneWayToSource);
+    >(nameof(CurrentAngle), defaultBindingMode: BindingMode.OneWayToSource);
 
     public double CurrentAngle
     {
@@ -54,7 +54,7 @@ public class DraggableContainer : TemplatedControl
     public static readonly StyledProperty<double> CurrentDistanceProperty = AvaloniaProperty.Register<
         DraggableContainer,
         double
-    >(nameof(CurrentDistance),defaultBindingMode:BindingMode.OneWayToSource);
+    >(nameof(CurrentDistance), defaultBindingMode: BindingMode.OneWayToSource);
 
     public double CurrentDistance
     {
@@ -298,7 +298,12 @@ public class DraggableContainer : TemplatedControl
         // 检查右下角
         if (childBounds.Right > bottomRightCenterX && childBounds.Bottom > bottomRightCenterY)
         {
-            double distance = CalculateDistance(childBounds.Right, childBounds.Bottom, bottomRightCenterX, bottomRightCenterY);
+            double distance = CalculateDistance(
+                childBounds.Right,
+                childBounds.Bottom,
+                bottomRightCenterX,
+                bottomRightCenterY
+            );
             if (distance > cornerRadiusX)
             {
                 double angle = Math.Atan2(

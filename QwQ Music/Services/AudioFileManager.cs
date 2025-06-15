@@ -64,5 +64,8 @@ public static class AudioFileManager
                 MusicPlayerViewModel.Instance.MusicItems.Add(musicItem!);
             }
         });
+
+        // 使用批量保存方法保存所有音乐项
+        await MusicPlayerViewModel.SaveMusicItemsAsync(musicItems!);
     }
 }

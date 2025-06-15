@@ -93,11 +93,7 @@ public partial class CreateMusicListViewModel(OverlayDialogOptions options, stri
 
     private static async Task<Bitmap?> OpenImageFile()
     {
-        var topLevel = App.TopLevel;
-        if (topLevel == null)
-            return null;
-
-        var files = await topLevel.StorageProvider.OpenFilePickerAsync(
+        var files = await App.TopLevel.StorageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions
             {
                 Title = "选择图片",

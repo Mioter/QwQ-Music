@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="pages:MiaomiaoLittleToyPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.MiaomiaoLittleToyPage">
+    
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Spacing="10" Margin="10">
+        <Button Command="{Binding ClickMeButtonCommand}" Content="❤️" ToolTip.Tip="给你比❤️"/>
+        <Button Command="{Binding LagButtonClickCommand}" Content="❔" ToolTip.Tip="这是什么？卡一下"/>
+        <Button Command="{Binding IceButtonClickCommand}" Content="🧊" ToolTip.Tip="为什么要播放《春日影》"/>
+    </StackPanel>
+    
+</UserControl>

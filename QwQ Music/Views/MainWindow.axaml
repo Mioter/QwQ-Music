@@ -5,7 +5,7 @@
     MinHeight="400"
     MinWidth="600"
     Title="QwQ Music"
-    FontFamily="{StaticResource Cjtw85}"
+
     Width="{Binding WindowWidth, Mode=OneWayToSource}"
     x:Class="QwQ_Music.Views.MainWindow"
     x:DataType="viewModels:MainWindowViewModel"
@@ -324,9 +324,9 @@
 
             <Interaction.Behaviors>
 
-                <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.PointerWheelChangedEvent}">
+                <PointerWheelChangedTrigger>
                     <InvokeCommandAction Command="{Binding PointerWheelChangedCommand}" PassEventArgsToCommand="True" />
-                </RoutedEventTriggerBehavior>
+                </PointerWheelChangedTrigger>
 
             </Interaction.Behaviors>
 
@@ -443,7 +443,6 @@
             </Border>
 
             <Button
-                Background="{x:Null}"
                 Classes="None"
                 Width="80"
                 Classes.TrayFoldedUp="{Binding !IsMusicAlbumCoverTrayVisible}"

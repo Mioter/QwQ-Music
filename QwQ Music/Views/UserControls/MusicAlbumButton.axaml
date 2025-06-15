@@ -1,5 +1,4 @@
 <userControls:MusicAlbumButton
-    Background="{x:Null}"
     Classes="None"
     Foreground="White"
     Height="50"

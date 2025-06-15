@@ -23,18 +23,37 @@ public partial class MainWindowViewModel : NavigationViewModel
     public MainWindowViewModel()
         : base("窗口")
     {
+        NavigateService.CurrentViewChanged += CurrentViewChanged;
+
         MessageBus
             .ReceiveMessage<ViewChangeMessage>(this)
-            .WithHandler(ViewChangeMessageHandle)
+            .WithHandler(ViewListChangeMessageHandle)
             .AsWeakReference()
             .Subscribe();
+
+        MessageBus
+            .ReceiveMessage<ExitReminderMessage>(this)
+            .WithHandler(ExitReminderMessageHandler)
+            .AsWeakReference()
+            .Subscribe();
+    }
+
+    private void ExitReminderMessageHandler(ExitReminderMessage message, object sender)
+    {
+        NavigateService.CurrentViewChanged -= CurrentViewChanged;
+    }
+
+    private void CurrentViewChanged(string obj)
+    {
+        CanGoBack = NavigateService.CanGoBack;
+        CanGoForward = NavigateService.CanGoForward;
     }
 
     public static ObservableCollection<IconItem> IconItems { get; set; } =
         [
             new(MusicName, new GeometryIconSource(IconService.GetIcon("SemiIconSong")), "", true),
             new(ClassificationName, new GeometryIconSource(IconService.GetIcon("SemiIconDisc")), "", true),
-            new(StatisticsName, new GeometryIconSource(IconService.GetIcon("SemiIconKanban")), "", true),
+            new(OtherName, new GeometryIconSource(IconService.GetIcon("SemiIconKanban")), "", true),
             new(SettingsName, new GeometryIconSource(IconService.GetIcon("SemiIconSetting")), "", true),
         ];
 
@@ -48,7 +67,7 @@ public partial class MainWindowViewModel : NavigationViewModel
         item.Source = coverImage;
     }
 
-    private async void ViewChangeMessageHandle(ViewChangeMessage message, object sender)
+    private async void ViewListChangeMessageHandle(ViewChangeMessage message, object sender)
     {
         try
         {
@@ -83,8 +102,7 @@ public partial class MainWindowViewModel : NavigationViewModel
         {
             NotificationService.ShowLight(
                 new Notification("坏欸", $"查看歌单《{message.ViewTitle}》失败了！QwQ遇到了错误 : \n {e.Message} "),
-                NotificationType.Error,
-                showClose: false
+                NotificationType.Error
             );
         }
     }
@@ -99,14 +117,14 @@ public partial class MainWindowViewModel : NavigationViewModel
 
     public static string MusicName => Lang[nameof(MusicName)];
     public static string ClassificationName => Lang[nameof(ClassificationName)];
-    public static string StatisticsName => Lang[nameof(StatisticsName)];
+    public static string OtherName => Lang[nameof(OtherName)];
     public static string SettingsName => Lang[nameof(SettingsName)];
 
     public static ObservableCollection<Control> Pages { get; } =
         [
             new AllMusicPage { DataContext = new AllMusicPageViewModel() },
             new ClassificationPage { DataContext = new ClassificationPageViewModel() },
-            new StatisticsPage { DataContext = new StatisticsPageViewModel() },
+            new OtherPage { DataContext = new OtherPageViewModel() },
             new ConfigMainPage { DataContext = new ConfigPageViewModel() },
         ];
 
@@ -233,27 +251,18 @@ public partial class MainWindowViewModel : NavigationViewModel
         if (index >= Pages.Count || index < 0)
             return;
         CurrentPage = Pages[index];
-        UpdateNavigationProperties();
-    }
-
-    private void UpdateNavigationProperties()
-    {
-        CanGoBack = NavigateService.CanGoBack;
-        CanGoForward = NavigateService.CanGoForward;
     }
 
     [RelayCommand(CanExecute = nameof(CanGoForward))]
     private void ViewForward()
     {
         NavigateService.GoForward();
-        UpdateNavigationProperties();
     }
 
     [RelayCommand(CanExecute = nameof(CanGoBack))]
     private void ViewBackward()
     {
         NavigateService.GoBack();
-        UpdateNavigationProperties();
     }
 }
 

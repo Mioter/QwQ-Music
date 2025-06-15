@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using Avalonia.Controls.Notifications;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
@@ -43,11 +45,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _audioPlay.PositionChanged += OnPositionChanged;
         _audioPlay.PlaybackCompleted += AudioPlayOnPlaybackCompleted;
         PlayList.MusicItems.CollectionChanged += MusicItemsOnCollectionChanged;
-        MessageBus
-            .ReceiveMessage<ExitReminderMessage>(this)
-            .WithHandler(ExitReminderMessageHandler)
-            .AsWeakReference()
-            .Subscribe();
 
         // 初始化歌词滚动定时器
         _lyricsTimer = new Timer();
@@ -67,7 +64,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     private bool _isSlideCutting;
 
     [ObservableProperty]
-    public partial MusicItemModel CurrentMusicItem { get; set; } = new("听你想听~", "YOU");
+    public partial MusicItemModel CurrentMusicItem { get; set; } = new("听你想听~", "YOU") { IsModified = false };
 
     public bool IsPlaying
     {
@@ -86,11 +83,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
     public static PlayerConfig PlayerConfig { get; } = ConfigInfoModel.PlayerConfig;
     public MusicListsPageViewModel MusicListsViewModel { get; } = new();
 
-    [ObservableProperty]
-    public partial LyricsModel LyricsModel { get; private set; } = new(new LyricsData());
+    public LyricsModel LyricsModel { get; } = new();
 
-    [ObservableProperty]
-    public partial MusicListModel PlayList { get; set; } = new(string.Empty);
+    public MusicListModel PlayList { get; } = new(string.Empty);
 
     public double CurrentDurationInSeconds
     {
@@ -122,13 +117,15 @@ public partial class MusicPlayerViewModel : ViewModelBase
         get => PlayerConfig.Volume;
         set
         {
-            if (value is > 100 or < 0)
+            int result = Math.Clamp(value, 0, 100);
+            if (result == PlayerConfig.Volume)
                 return;
 
-            PlayerConfig.Volume = value;
+            PlayerConfig.Volume = result;
+            _audioPlay.Volume = result;
+
+            IsMuted = result == 0f;
             OnPropertyChanged();
-            _audioPlay.Volume = value;
-            IsMuted = value == 0f;
         }
     }
 
@@ -137,9 +134,13 @@ public partial class MusicPlayerViewModel : ViewModelBase
         get => PlayerConfig.IsMuted;
         set
         {
+            if (value == PlayerConfig.IsMuted)
+                return;
+
             PlayerConfig.IsMuted = value;
-            OnPropertyChanged();
             _audioPlay.IsMute = value;
+
+            OnPropertyChanged();
         }
     }
 
@@ -154,6 +155,18 @@ public partial class MusicPlayerViewModel : ViewModelBase
             PlayerConfig.PlaybackSpeed = value;
             OnPropertyChanged();
             _audioPlay.Speed = value;
+        }
+    }
+
+    public int LyricOffset
+    {
+        get => LyricsModel.LyricOffset;
+        set
+        {
+            LyricsModel.LyricOffset = value;
+            CurrentMusicItem.LyricOffset = value;
+
+            OnPropertyChanged();
         }
     }
 
@@ -177,6 +190,27 @@ public partial class MusicPlayerViewModel : ViewModelBase
         try
         {
             await InitializeMusicItemAsync(); // 加载播放列表
+
+            if (MusicItems.Count == 0)
+            {
+                NotificationService.ShowLight(
+                    new Notification(
+                        "温馨提示",
+                        "真的...一首歌都没有了（ \n Tips : 可以点击右上角加号从文件中添加音乐哦！"
+                    ),
+                    NotificationType.Information,
+                    showClose: true
+                );
+                return;
+            }
+
+            await MessageBus
+                .CreateMessage(new LoadCompletedMessage(nameof(MusicItems)))
+                .FromSender(this)
+                .AddReceivers<PlayConfigPageViewModel>()
+                .SetAsOneTime()
+                .PublishAsync();
+
             await InitializePlaylistAsync();
         }
         catch (Exception e)
@@ -194,13 +228,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
             {
                 MusicItems.Add(MusicItemModel.FromDictionary(item));
             }
-
-            await MessageBus
-                .CreateMessage(new LoadCompletedMessage(nameof(MusicItems)))
-                .FromSender(this)
-                .AddReceivers<PlayConfigPageViewModel>()
-                .SetAsOneTime()
-                .PublishAsync();
         }
         catch (Exception ex)
         {
@@ -210,25 +237,49 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private async Task InitializePlaylistAsync()
     {
-        try
+        await PlayList.LoadAsync();
+
+        if (PlayList.LatestPlayedMusic == null)
+            return;
+
+        var currentMusicItem = PlayList.MusicItems.FirstOrDefault(model =>
+            model.FilePath == PlayList.LatestPlayedMusic
+        );
+
+        if (currentMusicItem != null)
         {
-            await PlayList.LoadAsync();
+            await SetCurrentMusicItem(currentMusicItem);
+            return;
+        }
 
-            if (PlayList.LatestPlayedMusic == null)
-                return;
-
-            var currentMusicItem = PlayList.MusicItems.FirstOrDefault(model =>
-                model.FilePath == PlayList.LatestPlayedMusic
+        if (PlayList.MusicItems.LastOrDefault() is { } musicItem)
+        {
+            await SetCurrentMusicItem(musicItem);
+            NotificationService.ShowLight(
+                new Notification("不嘻嘻", "找不到上次播放的音乐了，已经切换为当前播放列表第一首~"),
+                NotificationType.Information
             );
+            return;
+        }
 
-            if (currentMusicItem != null)
-                await SetCurrentMusicItem(currentMusicItem);
-        }
-        catch (Exception e)
-        {
-            await Log.ErrorAsync($"初始化播放列表时出错: {e.Message}");
-            throw;
-        }
+        NotificationService.ShowLight(
+            new Notification("温馨提示", "当前播放列表没有任何音乐，可以播放任意一首歌，将自动填入播放列表~"),
+            NotificationType.Information
+        );
+    }
+
+    public async Task ShutdownAsync()
+    {
+        _audioPlay.PositionChanged -= OnPositionChanged;
+        _audioPlay.PlaybackCompleted -= AudioPlayOnPlaybackCompleted;
+        PlayList.MusicItems.CollectionChanged -= MusicItemsOnCollectionChanged;
+        _lyricsTimer.Elapsed -= OnLyricsTimerElapsed;
+        _lyricsTimer.Dispose();
+
+        _audioEngine.Dispose();
+        _audioPlay.Dispose();
+
+        await SaveAsync();
     }
 
     #endregion
@@ -313,18 +364,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
-    private void ExitReminderMessageHandler(ExitReminderMessage message, object? sender)
-    {
-        _audioPlay.PositionChanged -= OnPositionChanged;
-        _audioPlay.PlaybackCompleted -= AudioPlayOnPlaybackCompleted;
-        PlayList.MusicItems.CollectionChanged -= MusicItemsOnCollectionChanged;
-        _lyricsTimer.Elapsed -= OnLyricsTimerElapsed;
-        _lyricsTimer.Dispose();
-
-        _audioEngine.Dispose();
-        _audioPlay.Dispose();
-    }
-
     #endregion
 
     #region 播放控制方法
@@ -386,14 +425,30 @@ public partial class MusicPlayerViewModel : ViewModelBase
     #region 播放列表管理
 
     [RelayCommand]
-    private void AddToCurrentPlaylistNextItem(MusicItemModel musicItem)
+    private void AddToCurrentPlaylistNextItem(IList items)
     {
-        RemoveInMusicList(musicItem);
-        PlayList.MusicItems.Insert(CurrentIndex + 1, musicItem);
+        if (items.Count <= 0)
+            return;
+
+        var musicItems = items.Cast<MusicItemModel>().ToList();
+        RemoveInMusicList(musicItems);
+
+        // 从后往前插入，这样可以保持原有顺序
+        for (int i = musicItems.Count - 1; i >= 0; i--)
+        {
+            PlayList.MusicItems.Insert(CurrentIndex + 1, musicItems[i]);
+        }
     }
 
     [RelayCommand]
-    private void RemoveInMusicList(MusicItemModel musicItem) => PlayList.MusicItems.Remove(musicItem);
+    private void RemoveInMusicList(IList items)
+    {
+        var musicItems = items.Cast<MusicItemModel>().ToList();
+        foreach (var item in musicItems)
+        {
+            PlayList.MusicItems.Remove(item);
+        }
+    }
 
     [RelayCommand]
     private async Task TogglePlaylist(MusicListModel musicList)
@@ -447,62 +502,119 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             NotificationService.ShowLight(
                 new Notification("坏欸", $"无法打开《{musicItem.Title}》文件位置：文件不存在"),
-                NotificationType.Error,
-                showClose: false
+                NotificationType.Error
             );
             return;
         }
 
-        PathEnsurer.OpenInExplorer(musicItem.FilePath);
+        try
+        {
+            PathEnsurer.OpenInFileManager(musicItem.FilePath);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"打开文件位置失败: {e.Message}");
+            NotificationService.ShowLight(
+                new Notification("坏欸", $"打开《{musicItem.Title}》文件位置时报错：{e.Message}"),
+                NotificationType.Error
+            );
+        }
+    }
+
+    /// <summary>
+    /// 从数据库中批量删除音乐项
+    /// </summary>
+    /// <param name="items">要删除的音乐项集合</param>
+    /// <returns>删除成功的音乐项列表</returns>
+    private static async Task<List<MusicItemModel>> DeleteMusicItemsFromDataBaseAsync(IEnumerable<MusicItemModel> items)
+    {
+        var successItems = new List<MusicItemModel>();
+        var itemsList = items.ToList();
+
+        var deleteTasks = itemsList.Select(async item =>
+        {
+            bool isSuccess =
+                await DataBaseService.DeleteDataAsync(
+                    DataBaseService.Table.MUSICS,
+                    nameof(MusicItemModel.FilePath),
+                    item.FilePath
+                ) != DataBaseService.OperationResult.Failure
+                || await DataBaseService.DeleteDataAsync(
+                    DataBaseService.Table.MUSICLISTS,
+                    nameof(MusicItemModel.FilePath),
+                    item.FilePath
+                ) != DataBaseService.OperationResult.Failure;
+
+            if (isSuccess)
+            {
+                successItems.Add(item);
+            }
+        });
+
+        // 在后台线程中并行处理所有删除操作
+        await Task.WhenAll(deleteTasks);
+
+        return successItems;
     }
 
     [RelayCommand]
-    private async Task DeleteMusicItem(MusicItemModel musicItem)
+    private async Task DeleteMusicItemsAsync(IList items)
     {
+        var musicItems = items.Cast<MusicItemModel>().ToList();
+        if (musicItems.Count == 0)
+            return;
+
+        // 构建确认提示信息
+        string titles = string.Join("、", musicItems.Select(item => $"《{item.Title}》"));
         var result = await MessageBox.ShowOverlayAsync(
-            $"你真的要删除《{musicItem.Title}》吗?",
+            $"你真的要删除以下音乐吗？\n{titles}",
             "警告",
             icon: MessageBoxIcon.Warning,
             button: MessageBoxButton.YesNo
         );
+
         if (result != MessageBoxResult.Yes)
             return;
 
-        bool isSuccess =
-            await DataBaseService.DeleteDataAsync(
-                DataBaseService.Table.MUSICS,
-                nameof(MusicItemModel.FilePath),
-                musicItem.FilePath
-            ) != DataBaseService.OperationResult.Failure
-            || await DataBaseService.DeleteDataAsync(
-                DataBaseService.Table.MUSICLISTS,
-                nameof(MusicItemModel.FilePath),
-                musicItem.FilePath
-            ) != DataBaseService.OperationResult.Failure;
+        // 批量删除音乐项
+        var successItems = await DeleteMusicItemsFromDataBaseAsync(musicItems);
+        var successSet = new HashSet<MusicItemModel>(successItems);
+        var failedItems = musicItems.Where(item => !successSet.Contains(item)).ToList();
 
-        if (isSuccess)
+        // 从UI集合中移除已删除的音乐项
+        await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            MusicItems.Remove(musicItem);
-            PlayList.MusicItems.Remove(musicItem);
-
-            // 从所有已加载的歌单中移除该音乐
-            foreach (var playlist in MusicListsViewModel.PlayListItems)
+            foreach (var item in successItems)
             {
-                if (playlist.IsInitialized)
+                MusicItems.Remove(item);
+                PlayList.MusicItems.Remove(item);
+
+                // 从所有已加载的歌单中移除该音乐
+                foreach (var playlist in MusicListsViewModel.PlayListItems)
                 {
-                    playlist.MusicItems.Remove(musicItem);
+                    if (playlist.IsInitialized)
+                    {
+                        playlist.MusicItems.Remove(item);
+                    }
                 }
             }
+        });
 
+        // 显示删除结果通知
+        if (successItems.Count > 0)
+        {
+            string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
             NotificationService.ShowLight(
-                new Notification("好欸", $"《{musicItem.Title}》已经从音乐列表中移除了！"),
+                new Notification("好欸", $"{successTitles}已经从音乐列表中移除了！"),
                 NotificationType.Success
             );
         }
-        else
+
+        if (failedItems.Count > 0)
         {
+            string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
             NotificationService.ShowLight(
-                new Notification("坏欸", $"《{musicItem.Title}》删除失败了！"),
+                new Notification("坏欸", $"删除{failedTitles}失败了！"),
                 NotificationType.Error
             );
         }
@@ -548,6 +660,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         if (index < 0 || index >= PlayList.Count)
             return;
+
         await SetCurrentMusicItem(PlayList.MusicItems[index], PlayerConfig.IsRestartPlay);
         OnPlayingChanged(true);
     }
@@ -626,29 +739,17 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     #region 数据持久化
 
-
-    public async void Save()
+    /// <summary>
+    /// 批量保存音乐项到数据库
+    /// </summary>
+    /// <param name="items">要保存的音乐项集合</param>
+    /// <returns>保存成功的音乐项列表</returns>
+    private static async Task<List<MusicItemModel>> SaveMusicItemsFromDataBaseAsync(IEnumerable<MusicItemModel> items)
     {
-        try
-        {
-            foreach (var item in MusicItems)
-            {
-                if (!item.IsModified || item.IsError)
-                    continue;
-                await SaveMusicItemAsync(item);
-            } // 保存音乐项
+        var successItems = new List<MusicItemModel>();
+        var itemsList = items.ToList();
 
-            await SaveMusicListAsync(PlayList); // 保存播放列表
-        }
-        catch (Exception e)
-        {
-            await Log.ErrorAsync($"数据库保存失败 : {e.Message}");
-        }
-    }
-
-    private static async Task SaveMusicItemAsync(MusicItemModel item)
-    {
-        try
+        var saveTasks = itemsList.Select(async item =>
         {
             var data = item.Dump();
             string filePath = item.FilePath;
@@ -660,25 +761,75 @@ public partial class MusicPlayerViewModel : ViewModelBase
                 filePath
             );
 
+            bool isSuccess;
             if (exists)
             {
                 // 更新现有记录
-                await DataBaseService.UpdateDataAsync(
-                    data,
-                    DataBaseService.Table.MUSICS,
-                    nameof(MusicItemModel.FilePath),
-                    filePath
-                );
+                isSuccess =
+                    await DataBaseService.UpdateDataAsync(
+                        data,
+                        DataBaseService.Table.MUSICS,
+                        nameof(MusicItemModel.FilePath),
+                        filePath
+                    ) != DataBaseService.OperationResult.Failure;
             }
             else
             {
                 // 插入新记录
-                await DataBaseService.InsertDataAsync(data, DataBaseService.Table.MUSICS);
+                isSuccess =
+                    await DataBaseService.InsertDataAsync(data, DataBaseService.Table.MUSICS)
+                    != DataBaseService.OperationResult.Failure;
             }
-        }
-        catch (Exception ex)
+
+            if (isSuccess)
+            {
+                successItems.Add(item);
+            }
+        });
+
+        await Task.WhenAll(saveTasks);
+        return successItems;
+    }
+
+    public static async Task SaveMusicItemsAsync(IEnumerable<MusicItemModel> items)
+    {
+        var itemsList = items.ToList(); // 只枚举一次
+        var successItems = await SaveMusicItemsFromDataBaseAsync(itemsList);
+
+        // 使用HashSet提高查找效率
+        var successSet = new HashSet<MusicItemModel>(successItems);
+        var failedItems = itemsList.Where(item => !successSet.Contains(item)).ToList();
+
+        /*// 显示删除结果通知
+        if (successItems.Count > 0)
         {
-            await Log.ErrorAsync($"保存音乐项失败: {ex.Message}");
+            string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
+            NotificationService.ShowLight(
+                new Notification("好欸", $"保存{successTitles}成功了！"),
+                NotificationType.Success
+            );
+        }*/
+
+        if (failedItems.Count > 0)
+        {
+            string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
+            NotificationService.ShowLight(
+                new Notification("坏欸", $"保存{failedTitles}失败了！"),
+                NotificationType.Error
+            );
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        try
+        {
+            await SaveMusicItemsAsync([CurrentMusicItem]);
+            await SaveMusicListAsync(PlayList); // 保存播放列表
+        }
+        catch (Exception e)
+        {
+            await Log.ErrorAsync($"数据库保存失败 : {e.Message}");
         }
     }
 
@@ -687,71 +838,73 @@ public partial class MusicPlayerViewModel : ViewModelBase
     /// </summary>
     private static async Task SaveMusicListAsync(MusicListModel musicList)
     {
-        try
+        // 获取当前播放列表中已存在的歌曲路径
+        var existingPaths = await DataBaseService.LoadSpecifyFieldsAsync(
+            DataBaseService.Table.MUSICLISTS,
+            [nameof(MusicItemModel.FilePath)],
+            dict => dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? path) ? path.ToString() : null,
+            search: $"{nameof(MusicListModel.Name)} = '{musicList.Name.Replace("'", "''")}'"
+        );
+
+        if (existingPaths == null)
         {
-            // 获取当前播放列表中已存在的歌曲路径
-            var existingPaths = await DataBaseService.LoadSpecifyFieldsAsync(
-                DataBaseService.Table.MUSICLISTS,
-                [nameof(MusicItemModel.FilePath)],
-                dict => dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? path) ? path.ToString() : null,
-                search: $"{nameof(MusicListModel.Name)} = '{musicList.Name.Replace("'", "''")}'"
+            NotificationService.ShowLight(
+                new Notification("错误", "获取播放列表播放路径失败！"),
+                NotificationType.Error
             );
+            return;
+        }
 
-            var existingPathsSet = new HashSet<string?>(existingPaths);
+        var existingPathsSet = new HashSet<string?>(existingPaths);
 
-            // 保存播放列表中的每首歌曲，如果已存在则跳过
-            foreach (var musicItem in musicList.MusicItems)
+        // 保存播放列表中的每首歌曲，如果已存在则跳过
+        foreach (var musicItem in musicList.MusicItems)
+        {
+            // 如果歌曲已存在于播放列表中，则跳过
+            if (existingPathsSet.Contains(musicItem.FilePath))
+                continue;
+
+            var playlistData = new Dictionary<string, string?>
             {
-                // 如果歌曲已存在于播放列表中，则跳过
-                if (existingPathsSet.Contains(musicItem.FilePath))
-                    continue;
+                [nameof(MusicListModel.Name)] = musicList.Name,
+                [nameof(MusicItemModel.FilePath)] = musicItem.FilePath,
+            };
 
-                var playlistData = new Dictionary<string, string?>
-                {
-                    [nameof(MusicListModel.Name)] = musicList.Name,
-                    [nameof(MusicItemModel.FilePath)] = musicItem.FilePath,
-                };
+            await DataBaseService.InsertDataAsync(playlistData, DataBaseService.Table.MUSICLISTS);
+        }
 
-                await DataBaseService.InsertDataAsync(playlistData, DataBaseService.Table.MUSICLISTS);
-            }
+        // 删除不再存在于播放列表中的歌曲
+        var currentPaths = new HashSet<string?>(musicList.MusicItems.Select(item => item.FilePath));
+        foreach (string path in existingPathsSet.OfType<string>().Where(path => !currentPaths.Contains(path)))
+        {
+            await DataBaseService.DeleteDataAsync(
+                DataBaseService.Table.MUSICLISTS,
+                nameof(MusicItemModel.FilePath),
+                path
+            );
+        }
 
-            // 删除不再存在于播放列表中的歌曲
-            var currentPaths = new HashSet<string?>(musicList.MusicItems.Select(item => item.FilePath));
-            foreach (string path in existingPathsSet.OfType<string>().Where(path => !currentPaths.Contains(path)))
-            {
-                await DataBaseService.DeleteDataAsync(
-                    DataBaseService.Table.MUSICLISTS,
-                    nameof(MusicItemModel.FilePath),
-                    path
-                );
-            }
+        // 更新或插入播放列表名称记录
+        var listNameData = musicList.Dump();
 
-            // 更新或插入播放列表名称记录
-            var listNameData = musicList.Dump();
+        bool exists = await DataBaseService.RecordExistsAsync(
+            DataBaseService.Table.LISTINFO,
+            nameof(MusicListModel.Name),
+            musicList.Name
+        );
 
-            bool exists = await DataBaseService.RecordExistsAsync(
+        if (exists)
+        {
+            await DataBaseService.UpdateDataAsync(
+                listNameData,
                 DataBaseService.Table.LISTINFO,
                 nameof(MusicListModel.Name),
                 musicList.Name
             );
-
-            if (exists)
-            {
-                await DataBaseService.UpdateDataAsync(
-                    listNameData,
-                    DataBaseService.Table.LISTINFO,
-                    nameof(MusicListModel.Name),
-                    musicList.Name
-                );
-            }
-            else
-            {
-                await DataBaseService.InsertDataAsync(listNameData, DataBaseService.Table.LISTINFO);
-            }
         }
-        catch (Exception ex)
+        else
         {
-            await Log.ErrorAsync($"保存播放列表失败: {ex.Message}");
+            await DataBaseService.InsertDataAsync(listNameData, DataBaseService.Table.LISTINFO);
         }
     }
 
@@ -761,9 +914,15 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     public async Task SetCurrentMusicItem(MusicItemModel musicItem, bool restart = false)
     {
+        // 保存上一首歌曲的修改
+        if (CurrentMusicItem is { IsInitialized: true, IsModified: true, IsError: false })
+        {
+            await SaveMusicItemsAsync([CurrentMusicItem]);
+        }
+
         if (!PlayList.MusicItems.Contains(musicItem))
         {
-            PlayList = new MusicListModel { MusicItems = new ObservableCollection<MusicItemModel>(MusicItems) };
+            PlayList.MusicItems = new ObservableCollection<MusicItemModel>(MusicItems);
         }
 
         if (restart || IsNearEnd(musicItem))
@@ -780,7 +939,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
             CurrentMusicItem = musicItem;
             _isSlideCutting = false;
 
-            LyricsModel = new LyricsModel(await musicItem.Lyrics);
+            LyricOffset = musicItem.LyricOffset;
+            LyricsModel.UpdateLyricsData(await musicItem.Lyrics);
 
             CurrentDurationInSeconds = musicItem.Current.TotalSeconds;
             CurrentMusicItemChanged?.Invoke(this, musicItem);
@@ -788,7 +948,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await Log.ErrorAsync($"初始化音轨失败: {ex.Message}");
+            await Log.ErrorAsync($"初始化新音轨失败: {ex.Message}");
         }
     }
 
@@ -815,7 +975,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
             if (targetSampleRate != _audioEngine.SampleRate)
             {
-                await SetOutputSampleRate(targetSampleRate);
+                _audioEngine.SampleRate = targetSampleRate;
             }
 
             // 处理增益值
@@ -827,22 +987,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
             // 初始化音频
             _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
         });
-    }
-
-    private async Task SetOutputSampleRate(int sampleRate)
-    {
-        try
-        {
-            await Task.Run(() =>
-            {
-                _audioEngine.Dispose();
-                _audioEngine = new MiniAudioEngine(sampleRate);
-            });
-        }
-        catch (Exception e)
-        {
-            await Log.ErrorAsync($"设置采样率时出现错误 : {e.Message}");
-        }
     }
 
     #endregion

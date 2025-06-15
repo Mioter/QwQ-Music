@@ -53,7 +53,7 @@ public partial class SoundEffectConfigViewModel() : NavigationViewModel("音效"
             OnPropertyChanged();
         }
     }
-    
+
     [RelayCommand]
     private void RestoreDefaultEqualizer()
     {

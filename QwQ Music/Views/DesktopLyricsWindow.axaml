@@ -1,71 +1,91 @@
 ﻿<Window
-    Background="{Binding Config.LyricBackground}"
-    BorderThickness="0"
     CanResize="False"
     Focusable="False"
-    IsHitTestVisible="False"
-    Margin="0"
-    Padding="0"
     ShowActivated="False"
     ShowInTaskbar="False"
     SystemDecorations="None"
     Topmost="True"
-    TransparencyLevelHint="Transparent"
+    Padding="5"
+    Width="{Binding LyricConfig.LyricWidowWidth}"
+    SizeToContent="Height"
+    Background="{Binding LyricConfig.LyricBackground,Converter={StaticResource ToBrushConverter},Mode=TwoWay}"
     WindowStartupLocation="Manual"
     x:Class="QwQ_Music.Views.DesktopLyricsWindow"
     x:DataType="viewModel:DesktopLyricsWindowViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:viewModel="using:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
+    xmlns:converters="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls.ColorPicker">
 
-    <StackPanel IsHitTestVisible="False" Orientation="{Binding LyricOrientation}">
+    <Window.Resources>
+        <converters:ToBrushConverter x:Key="ToBrushConverter" />
+    </Window.Resources>
+    
+    <Panel Width="{Binding LyricConfig.LyricWidth}">
+        
+        <StackPanel Spacing="{Binding LyricConfig.LyricSpacing}"
+                    HorizontalAlignment="{Binding LyricConfig.LyricTextAlignment}"
+                    VerticalAlignment="Center"
+                    Margin="{Binding LyricConfig.LyricMargin}">
 
-        <TextBlock
-            FontSize="{Binding Config.LyricMainFontSize}"
-            HorizontalAlignment="Stretch"
-            IsHitTestVisible="False"
-            Text="{Binding CurrentMainLyric}"
-            TextAlignment="Center"
-            TextWrapping="NoWrap"
-            VerticalAlignment="Stretch"
-            x:Name="MainLyric">
+            <Interaction.Behaviors>
+                <DataTriggerBehavior Binding="{Binding LyricConfig.LyricIsDoubleLine}" Value="True">
+                    <ChangeAvaloniaPropertyAction TargetProperty="{x:Static StackPanel.OrientationProperty}"
+                                                  Value="Vertical" />
+                </DataTriggerBehavior>
+                <DataTriggerBehavior Binding="{Binding LyricConfig.LyricIsDoubleLine}" Value="False">
+                    <ChangeAvaloniaPropertyAction TargetProperty="{x:Static StackPanel.OrientationProperty}"
+                                                  Value="Horizontal" />
+                </DataTriggerBehavior>
+            </Interaction.Behaviors>
 
-            <TextBlock.Foreground>
-                <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
-                    <GradientStop Color="{Binding Config.LyricMainTopColor}" Offset="0" />
-                    <GradientStop Color="{Binding Config.LyricMainBottomColor}" Offset="1" />
-                </LinearGradientBrush>
-            </TextBlock.Foreground>
+            <StackPanel.Styles>
 
-            <TextBlock.Effect>
-                <DropShadowEffect Color="{Binding Config.LyricMainBorderColor}" />
-            </TextBlock.Effect>
+                <Style Selector="StackPanel > TextBlock">
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                    <Setter Property="HorizontalAlignment" Value="{Binding LyricConfig.LyricTextAlignment}" />
+                    <Setter Property="(behaviors:PlaceholderBehavior.Placeholder)" Value="♪ ♪ ♪" />
+                    <Setter Property="TextWrapping" Value="NoWrap" />
+                </Style>
 
-        </TextBlock>
+            </StackPanel.Styles>
 
-        <TextBlock
-            FontSize="{Binding Config.LyricAltFontSize}"
-            HorizontalAlignment="Stretch"
-            IsHitTestVisible="False"
-            Text="{Binding CurrentAltLyric}"
-            TextAlignment="Center"
-            TextWrapping="NoWrap"
-            VerticalAlignment="Stretch"
-            x:Name="AltLyric">
+            <TextBlock
+                FontSize="{Binding LyricConfig.LyricMainFontSize}"
+                Text="{Binding CurrentMainLyric}">
 
-            <TextBlock.Foreground>
-                <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
-                    <GradientStop Color="{Binding Config.LyricAltTopColor}" Offset="0" />
-                    <GradientStop Color="{Binding Config.LyricAltBottomColor}" Offset="1" />
-                </LinearGradientBrush>
-            </TextBlock.Foreground>
+                <TextBlock.Foreground>
+                    <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
+                        <GradientStop Color="{Binding LyricConfig.LyricMainTopColor,Mode=TwoWay}" Offset="0" />
+                        <GradientStop Color="{Binding LyricConfig.LyricMainBottomColor,Mode=TwoWay}" Offset="1" />
+                    </LinearGradientBrush>
+                </TextBlock.Foreground>
 
-            <TextBlock.Effect>
-                <DropShadowEffect Color="{Binding Config.LyricAltBorderColor}" />
-            </TextBlock.Effect>
+                <TextBlock.Effect>
+                    <DropShadowEffect Color="{Binding LyricConfig.LyricMainBorderColor,Mode=TwoWay}" />
+                </TextBlock.Effect>
 
-        </TextBlock>
+            </TextBlock>
 
-    </StackPanel>
+            <TextBlock
+                FontSize="{Binding LyricConfig.LyricAltFontSize}"
+                Text="{Binding CurrentAltLyric}">
 
+                <TextBlock.Foreground>
+                    <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
+                        <GradientStop Color="{Binding LyricConfig.LyricAltTopColor,Mode=TwoWay}" Offset="0" />
+                        <GradientStop Color="{Binding LyricConfig.LyricAltBottomColor,Mode=TwoWay}" Offset="1" />
+                    </LinearGradientBrush>
+                </TextBlock.Foreground>
+
+                <TextBlock.Effect>
+                    <DropShadowEffect Color="{Binding LyricConfig.LyricAltBorderColor,Mode=TwoWay}" />
+                </TextBlock.Effect>
+
+            </TextBlock>
+
+        </StackPanel>
+        
+    </Panel>
 </Window>

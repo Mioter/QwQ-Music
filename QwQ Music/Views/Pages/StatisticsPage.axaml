@@ -8,12 +8,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Background="Transparent"
     xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages">
-
-    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Spacing="10" Margin="10">
-        <Button Command="{Binding ClickMeButtonCommand}" Content="❤️" ToolTip.Tip="给你比♥"/>
-        <Button Command="{Binding LagButtonClickCommand}" Content="❔" ToolTip.Tip="这是什么？点一下"/>
-        <Button Command="{Binding IceButtonClickCommand}" Content="🧊" ToolTip.Tip="雾草，冰！"/>
-    </StackPanel>
+    
 </UserControl>

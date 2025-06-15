@@ -31,8 +31,8 @@
 
             <Panel VerticalAlignment="Top">
                 <TextBlock
-                    FontFamily="{StaticResource VivoSans}"
                     FontSize="15"
+                    FontWeight="Bold"
                     Margin="8,5"
                     Text="播放列表" />
 
@@ -150,7 +150,7 @@
 
                                     <MenuItem
                                         Command="{Binding $parent[UserControl].((pages:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
-                                        CommandParameter="{Binding}"
+                                        CommandParameter="{Binding $parent[ListBox].SelectedItems}"
                                         Header="添加到下一首">
                                         <MenuItem.Icon>
                                             <PathIcon
@@ -162,7 +162,7 @@
 
                                     <MenuItem
                                         Command="{Binding $parent[UserControl].((pages:MusicPlayListViewModel)DataContext).MusicPlayerViewModel.RemoveInMusicListCommand}"
-                                        CommandParameter="{Binding}"
+                                        CommandParameter="{Binding $parent[ListBox].SelectedItems}"
                                         Header="移出播放列表">
                                         <MenuItem.Icon>
                                             <PathIcon
@@ -202,9 +202,9 @@
 
                 <Interaction.Behaviors>
 
-                    <RoutedEventTriggerBehavior RoutedEvent="{x:Static InputElement.DoubleTappedEvent}">
+                    <DoubleTappedTrigger>
                         <InvokeCommandAction Command="{Binding ToggleMusicCommand}" />
-                    </RoutedEventTriggerBehavior>
+                    </DoubleTappedTrigger>
 
                 </Interaction.Behaviors>
 

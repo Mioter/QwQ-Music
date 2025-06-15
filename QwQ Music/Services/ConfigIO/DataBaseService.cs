@@ -242,10 +242,11 @@ public static class DataBaseService
                 {nameof(MusicItemModel.Current)} BLOB,
                 {nameof(MusicItemModel.Duration)} BLOB NOT NULL,
                 {nameof(MusicItemModel.CoverColors)} TEXT,
-                {nameof(MusicItemModel.Gain)} REAL,
+                {nameof(MusicItemModel.Gain)} INTEGER,
                 {nameof(MusicItemModel.EncodingFormat)} TEXT NOT NULL,
                 {nameof(MusicItemModel.Comment)} TEXT,
-                {nameof(MusicItemModel.Remarks)} TEXT)
+                {nameof(MusicItemModel.Remarks)} TEXT,
+                {nameof(MusicItemModel.LyricOffset)} INTEGER)
                 """;
 
             musicLists.CommandText = $"""
@@ -324,10 +325,11 @@ public static class DataBaseService
                 {nameof(MusicItemModel.Current)} BLOB,
                 {nameof(MusicItemModel.Duration)} BLOB NOT NULL,
                 {nameof(MusicItemModel.CoverColors)} TEXT,
-                {nameof(MusicItemModel.Gain)} REAL,
+                {nameof(MusicItemModel.Gain)} INTEGER,
                 {nameof(MusicItemModel.EncodingFormat)} TEXT NOT NULL,
                 {nameof(MusicItemModel.Comment)} TEXT,
-                {nameof(MusicItemModel.Remarks)} TEXT)
+                {nameof(MusicItemModel.Remarks)} TEXT,
+                {nameof(MusicItemModel.LyricOffset)} INTEGER)
                 """;
 
             musicLists.CommandText = $"""
@@ -660,7 +662,7 @@ public static class DataBaseService
     /// <summary>
     /// 从数据库中获取特定字段的值
     /// </summary>
-    public static async Task<List<TResult>> LoadSpecifyFieldsAsync<TResult>(
+    public static async Task<List<TResult>?> LoadSpecifyFieldsAsync<TResult>(
         Table table,
         string[] ordinals,
         Func<Dictionary<string, object>, TResult> converter,
@@ -734,14 +736,14 @@ public static class DataBaseService
             await Log.ErrorAsync($"加载特定字段失败: {ex.Message}");
             await Log.DebugAsync($"SQL: {sqlCommand}");
             await Log.DebugAsync($"异常详情: {ex}");
-            return [];
+            return null;
         }
     }
 
     /// <summary>
     /// 从数据库中获取特定字段的值
     /// </summary>
-    public static List<TResult> LoadSpecifyFields<TResult>(
+    public static List<TResult>? LoadSpecifyFields<TResult>(
         Table table,
         string[] ordinals,
         Func<Dictionary<string, object>, TResult> converter,
@@ -814,7 +816,7 @@ public static class DataBaseService
             Log.Error($"加载特定字段失败（同步）: {ex.Message}");
             Log.Debug($"SQL: {sqlCommand}");
             Log.Debug($"异常详情: {ex}");
-            return [];
+            return null;
         }
     }
 

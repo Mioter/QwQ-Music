@@ -1,9 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 using QwQ_Music.ViewModels.ViewModelBases;
 
@@ -13,16 +11,6 @@ public partial class ViewMusicListPageViewModel(MusicListModel musicList) : Data
 {
     [ObservableProperty]
     public partial MusicListModel MusicListModel { get; set; } = musicList;
-
-    [RelayCommand]
-    private async Task ToggleMusic()
-    {
-        if (SelectedItem == null)
-            return;
-
-        MusicPlayerViewModel.IsPlaying = false;
-        await MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
-    }
 
     protected override void OnSearchTextChanged(string? value)
     {

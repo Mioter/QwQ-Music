@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls.Notifications;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Services;
@@ -139,10 +139,12 @@ public partial class MusicListModel : ObservableObject
 
     public bool IsInitialized { get; private set; }
 
+    public bool IsError { get; private set; }
+
     /// <summary>
     /// 初始化音乐列表
     /// </summary>
-    public async Task LoadAsync()
+    public async Task<MusicListModel?> LoadAsync()
     {
         // 获取最近播放的音乐列表
         var latestPlayedMusicList = await DataBaseService.LoadSpecifyFieldsAsync(
@@ -155,11 +157,23 @@ public partial class MusicListModel : ObservableObject
 
         MusicItems = new ObservableCollection<MusicItemModel>(await LoadMusicItemsAsync());
 
+        if (latestPlayedMusicList == null)
+        {
+            IsError = true;
+            NotificationService.ShowLight(
+                new Notification("错误", $"获取歌单《{Name}》最近播放音乐失败！"),
+                NotificationType.Error
+            );
+            return null;
+        }
+
         // 设置最近播放的音乐
         if (latestPlayedMusicList.Count > 0)
             LatestPlayedMusic = latestPlayedMusicList[0];
 
         IsInitialized = true;
+
+        return this;
     }
 
     /// <summary>
@@ -188,13 +202,23 @@ public partial class MusicListModel : ObservableObject
     private async Task<List<string?>> LoadMusicFilePathsAsync()
     {
         // 创建一个列表来存储文件路径
-        return await DataBaseService.LoadSpecifyFieldsAsync(
+        var filePaths = await DataBaseService.LoadSpecifyFieldsAsync(
             DataBaseService.Table.MUSICLISTS,
             [nameof(MusicItemModel.FilePath)],
             dict =>
                 dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? value) ? value.ToString() ?? null : null,
             search: $"{nameof(Name)} = '{Name.Replace("'", "''")}'"
         );
+
+        if (filePaths != null)
+            return filePaths;
+
+        NotificationService.ShowLight(
+            new Notification("错误", $"获取歌单《{Name}》中的音乐文件路径失败！"),
+            NotificationType.Error
+        );
+        IsError = true;
+        return [];
     }
 
     public Dictionary<string, string?> Dump()
@@ -210,22 +234,23 @@ public partial class MusicListModel : ObservableObject
 
     private static async Task<string?> GetFirstSongInPlaylist(string playlistName)
     {
-        try
-        {
-            // 获取歌单中的第一首歌曲路径
-            var filePaths = await DataBaseService.LoadSpecifyFieldsAsync(
-                DataBaseService.Table.MUSICLISTS,
-                [nameof(MusicItemModel.FilePath)],
-                dict => dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? path) ? path.ToString() : null,
-                search: $"{nameof(Name)} = '{playlistName.Replace("'", "''")}'"
-            );
+        // 获取歌单中的第一首歌曲路径
+        var filePaths = await DataBaseService.LoadSpecifyFieldsAsync(
+            DataBaseService.Table.MUSICLISTS,
+            [nameof(MusicItemModel.FilePath)],
+            dict => dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? path) ? path.ToString() : null,
+            search: $"{nameof(Name)} = '{playlistName.Replace("'", "''")}'"
+        );
 
+        if (filePaths != null)
+        {
             return filePaths.FirstOrDefault();
         }
-        catch (Exception ex)
-        {
-            await LoggerService.ErrorAsync($"获取歌单第一首歌曲失败: {ex.Message}");
-            return null;
-        }
+
+        NotificationService.ShowLight(
+            new Notification("错误", $"获取歌单《{playlistName}》第一首音乐失败！"),
+            NotificationType.Error
+        );
+        return null;
     }
 }

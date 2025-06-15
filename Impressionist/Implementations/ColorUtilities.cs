@@ -178,7 +178,7 @@ public static class ColorUtilities
     internal const float A = 0.17883277f;
     internal const float B = 0.28466892f;
     internal const float C = 0.55991073f;
-    internal const float HlgGap = 1f / 12f;
+    internal const float HLG_GAP = 1f / 12f;
 
     internal static float HlgFunction1(float s)
     {
@@ -195,7 +195,7 @@ public static class ColorUtilities
         if (color.V < 65)
             return true;
         float s = color.S / 100;
-        if (s <= HlgGap)
+        if (s <= HLG_GAP)
         {
             float targetV = HlgFunction1(s);
             return color.V / 100f < targetV;

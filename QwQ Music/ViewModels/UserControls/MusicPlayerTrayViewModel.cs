@@ -49,10 +49,8 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
     private static void ResetPlaybackSpeed() => MusicPlayerViewModel.Speed = 1.0f;
 
     [RelayCommand]
-    private static void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs? e)
+    private static void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs e)
     {
-        if (e == null)
-            return;
         // 阻止事件冒泡到父级元素
         e.Handled = true;
 
@@ -69,10 +67,8 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private static void OnSpeedBarPointerWheelChanged(PointerWheelEventArgs? e)
+    private static void OnSpeedBarPointerWheelChanged(PointerWheelEventArgs e)
     {
-        if (e == null)
-            return;
         e.Handled = true;
 
         switch (e.Delta.Y)
@@ -84,6 +80,18 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
                 MusicPlayerViewModel.Speed -= 0.01f;
                 break;
         }
+    }
+
+    [RelayCommand]
+    private static void PlaySpeedUp()
+    {
+        MusicPlayerViewModel.Speed += 0.25f;
+    }
+
+    [RelayCommand]
+    private static void PlaySpeedDown()
+    {
+        MusicPlayerViewModel.Speed -= 0.25f;
     }
 
     private void MusicPlayerViewModelOnPlaybackStateChanged(object? sender, bool e)

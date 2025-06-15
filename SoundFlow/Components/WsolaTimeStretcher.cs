@@ -11,8 +11,8 @@ public class WsolaTimeStretcher
     private int _channels;
     private float _speed = 1.0f;
 
-    internal const int DefaultWindowSizeFrames = 1024;
-    private const int NOMINAL_ANALYSIS_HOP_FRAMES = DefaultWindowSizeFrames / 4;
+    internal const int DEFAULT_WINDOW_SIZE_FRAMES = 1024;
+    private const int NOMINAL_ANALYSIS_HOP_FRAMES = DEFAULT_WINDOW_SIZE_FRAMES / 4;
     private const int SEARCH_RADIUS_FRAMES = NOMINAL_ANALYSIS_HOP_FRAMES * 3 / 8;
 
     private int _windowSizeSamples;
@@ -57,14 +57,14 @@ public class WsolaTimeStretcher
         if (_channels == channels)
             return;
         _channels = channels;
-        _windowSizeSamples = DefaultWindowSizeFrames * _channels;
+        _windowSizeSamples = DEFAULT_WINDOW_SIZE_FRAMES * _channels;
         _prevOutputTail = new float[Math.Max(_channels, _windowSizeSamples - _channels)];
-        const int maxInputReachFrames = NOMINAL_ANALYSIS_HOP_FRAMES + SEARCH_RADIUS_FRAMES + DefaultWindowSizeFrames;
+        const int maxInputReachFrames = NOMINAL_ANALYSIS_HOP_FRAMES + SEARCH_RADIUS_FRAMES + DEFAULT_WINDOW_SIZE_FRAMES;
         _inputBufferInternal = new float[maxInputReachFrames * _channels * 2];
         // Initialize Hann window for smooth fading.
-        _analysisWindow = new float[DefaultWindowSizeFrames];
-        for (int i = 0; i < DefaultWindowSizeFrames; i++)
-            _analysisWindow[i] = 0.5f * (1 - (float)Math.Cos(2 * Math.PI * i / (DefaultWindowSizeFrames - 1)));
+        _analysisWindow = new float[DEFAULT_WINDOW_SIZE_FRAMES];
+        for (int i = 0; i < DEFAULT_WINDOW_SIZE_FRAMES; i++)
+            _analysisWindow[i] = 0.5f * (1 - (float)Math.Cos(2 * Math.PI * i / (DEFAULT_WINDOW_SIZE_FRAMES - 1)));
         _currentAnalysisFrame = new float[_windowSizeSamples];
         _outputOverlapBuffer = new float[_windowSizeSamples];
         ResetState();
@@ -152,7 +152,7 @@ public class WsolaTimeStretcher
             int toCopy = Math.Min(spaceInInputBuffer, input.Length);
             if (toCopy > 0)
             {
-                input.Slice(0, toCopy).CopyTo(_inputBufferInternal.AsSpan(_inputBufferValidSamples));
+                input[..toCopy].CopyTo(_inputBufferInternal.AsSpan(_inputBufferValidSamples));
                 _inputBufferValidSamples += toCopy;
                 samplesConsumedFromInputBuffer = toCopy;
             }
@@ -371,7 +371,7 @@ public class WsolaTimeStretcher
             }
 
             // Apply the analysis window to the chosen input segment.
-            for (int f = 0; f < DefaultWindowSizeFrames; f++)
+            for (int f = 0; f < DEFAULT_WINDOW_SIZE_FRAMES; f++)
             {
                 for (int ch = 0; ch < _channels; ch++)
                 {
@@ -414,7 +414,7 @@ public class WsolaTimeStretcher
 
             if (actualCopyToOutput > 0)
             {
-                _outputOverlapBuffer.AsSpan(0, actualCopyToOutput).CopyTo(output.Slice(samplesWrittenToOutput));
+                _outputOverlapBuffer.AsSpan(0, actualCopyToOutput).CopyTo(output[samplesWrittenToOutput..]);
                 samplesWrittenToOutput += actualCopyToOutput;
 
                 // Estimate source samples represented by the output. This is proportional to the hop sizes.
@@ -488,7 +488,7 @@ public class WsolaTimeStretcher
         // Continue processing until output buffer is full or internal buffer can no longer yield a full window.
         while (totalFlushed < output.Length && _inputBufferValidSamples - _inputBufferReadPos >= _windowSizeSamples)
         {
-            int flushedThisCall = Process(ReadOnlySpan<float>.Empty, output.Slice(totalFlushed), out _, out _);
+            int flushedThisCall = Process(ReadOnlySpan<float>.Empty, output[totalFlushed..], out _, out _);
             if (flushedThisCall > 0)
                 totalFlushed += flushedThisCall;
             else

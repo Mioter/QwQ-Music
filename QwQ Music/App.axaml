@@ -5,17 +5,20 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:converters="clr-namespace:QwQ_Music.Helper.Converters"
     xmlns:semi="https://irihi.tech/semi"
+    x:DataType="viewModels:ApplicationViewModel"
     xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:u="https://irihi.tech/ursa">
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels">
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Styles>
 
         <semi:SemiTheme Locale="zh-CN" />
+        <semi:DataGridSemiTheme />
+        <semi:ColorPickerSemiTheme />
         <u-Semi:SemiTheme Locale="zh-CN" />
-        <StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
-
+        
         <StyleInclude Source="Assets/Animations/_indexes.axaml" />
         <StyleInclude Source="Assets/Styles/_indexes.axaml" />
 
@@ -33,6 +36,14 @@
         
         <Style Selector="u|MessageBoxControl /template/ Button">
             <Setter Property="CornerRadius" Value="5"/>
+        </Style>
+        
+        <Style Selector=":is(u|NumericUpDown)">
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+        
+        <Style Selector=":is(ContentControl)">
+            <Setter Property="FontFamily" Value="{DynamicResource Cjtw85}"/>
         </Style>
 
     </Application.Styles>
@@ -54,12 +65,28 @@
         <converters:StringEqualityConverter x:Key="StringEqualityConverter" />
         <converters:ValueComparisonConverter x:Key="ValueComparisonConverter"/>
         
-        <FontFamily x:Key="Consolab">resm:QwQ_Music.Assets.Fonts.Consola.ttf#Consola</FontFamily>
         <FontFamily x:Key="Cjtw85">resm:QwQ_Music.Assets.Fonts.CJTW85.ttf#公众号-犬神志</FontFamily>
         
         <CornerRadius x:Key="FlyoutCornerRadius">8</CornerRadius>
         <CornerRadius x:Key="ButtonCornerRadius">5</CornerRadius>
-
+        <CornerRadius x:Key="ComboBoxSelectorCornerRadius">8</CornerRadius>
+        
     </Application.Resources>
+
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon Icon="resm:QwQ_Music.Assets.AppIcon.ico" MacOSProperties.IsTemplateIcon="true" ToolTipText="QwQ Music"
+                      Command="{Binding ShowMainWindowCommand}">
+                
+                <TrayIcon.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="显示窗口" Command="{Binding ShowMainWindowCommand}" />
+                        <NativeMenuItem Header="退出" Command="{Binding ExitApplicationCommand}" />
+                    </NativeMenu>
+                </TrayIcon.Menu>
+                
+            </TrayIcon>
+        </TrayIcons>
+    </TrayIcon.Icons>
 
 </Application>
