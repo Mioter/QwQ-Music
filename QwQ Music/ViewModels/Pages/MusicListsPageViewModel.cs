@@ -38,18 +38,18 @@ public partial class MusicListsPageViewModel : ViewModelBase
         try
         {
             // 检查 LISTINFO 表是否存在记录
-            int count = await DataBaseService.GetRecordCountAsync(DataBaseService.Table.LISTINFO);
+            int count = await DataBaseService.GetRecordCountAsync(DataBaseService.Table.LISTINFO).ConfigureAwait(false);
             if (count == 0)
             {
-                await LoggerService.InfoAsync("歌单列表为空，跳过加载");
+                await LoggerService.InfoAsync("歌单列表为空，跳过加载").ConfigureAwait(false);
                 return;
             }
 
-            await LoadPlayListsAsync();
+            await LoadPlayListsAsync().ConfigureAwait(false);
         }
         catch (Exception e)
         {
-            await LoggerService.ErrorAsync($"初始化歌单模型出错 : {e.Message}");
+            await LoggerService.ErrorAsync($"初始化歌单模型出错 : {e.Message}").ConfigureAwait(false);
         }
     }
 
@@ -66,7 +66,8 @@ public partial class MusicListsPageViewModel : ViewModelBase
                 )
             )
             .AddReceivers<MainWindowViewModel>()
-            .PublishAsync();
+            .PublishAsync()
+            .ConfigureAwait(false);
     }
 
     /// <summary>

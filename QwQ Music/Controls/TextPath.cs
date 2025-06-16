@@ -20,8 +20,10 @@ public class TextPath : Control
     public static readonly StyledProperty<FontFamily> FontFamilyProperty =
         TextBlock.FontFamilyProperty.AddOwner<TextPath>();
 
-    public static readonly StyledProperty<double> FontSizeProperty =
-        AvaloniaProperty.Register<TextPath, double>(nameof(FontSize), defaultValue: 12.0);
+    public static readonly StyledProperty<double> FontSizeProperty = AvaloniaProperty.Register<TextPath, double>(
+        nameof(FontSize),
+        defaultValue: 12.0
+    );
 
     public static readonly StyledProperty<FontStretch> FontStretchProperty =
         TextBlock.FontStretchProperty.AddOwner<TextPath>();
@@ -32,26 +34,35 @@ public class TextPath : Control
     public static readonly StyledProperty<FontWeight> FontWeightProperty =
         TextBlock.FontWeightProperty.AddOwner<TextPath>();
 
-    public static readonly StyledProperty<Point> OriginProperty =
-        AvaloniaProperty.Register<TextPath, Point>(nameof(Origin));
+    public static readonly StyledProperty<Point> OriginProperty = AvaloniaProperty.Register<TextPath, Point>(
+        nameof(Origin)
+    );
 
-    public static readonly StyledProperty<string> TextProperty =
-        AvaloniaProperty.Register<TextPath, string>(nameof(Text), string.Empty);
+    public static readonly StyledProperty<string> TextProperty = AvaloniaProperty.Register<TextPath, string>(
+        nameof(Text),
+        string.Empty
+    );
 
     public static readonly StyledProperty<IBrush?> ForegroundProperty =
         TextBlock.ForegroundProperty.AddOwner<TextPath>();
 
-    public static readonly StyledProperty<IBrush?> StrokeProperty =
-        AvaloniaProperty.Register<TextPath, IBrush?>(nameof(Stroke));
+    public static readonly StyledProperty<IBrush?> StrokeProperty = AvaloniaProperty.Register<TextPath, IBrush?>(
+        nameof(Stroke)
+    );
 
-    public static readonly StyledProperty<double> StrokeThicknessProperty =
-        AvaloniaProperty.Register<TextPath, double>(nameof(StrokeThickness), 1.0);
+    public static readonly StyledProperty<double> StrokeThicknessProperty = AvaloniaProperty.Register<TextPath, double>(
+        nameof(StrokeThickness),
+        1.0
+    );
 
-    public static readonly StyledProperty<double> LetterSpacingProperty =
-        AvaloniaProperty.Register<TextPath, double>(nameof(LetterSpacing), 0.0);
+    public static readonly StyledProperty<double> LetterSpacingProperty = AvaloniaProperty.Register<TextPath, double>(
+        nameof(LetterSpacing),
+        0.0
+    );
 
-    public static readonly StyledProperty<string?> PlaceholderProperty =
-        AvaloniaProperty.Register<TextPath, string?>(nameof(Placeholder));
+    public static readonly StyledProperty<string?> PlaceholderProperty = AvaloniaProperty.Register<TextPath, string?>(
+        nameof(Placeholder)
+    );
 
     #endregion
 
@@ -174,22 +185,78 @@ public class TextPath : Control
         );
 
         // 添加 FontSize 属性变化时的处理
-        FontSizeProperty.Changed.AddClassHandler<TextPath>((x, _) =>
-        {
-            x._textGeometry = null; // 强制重新创建几何图形
-            x.InvalidateVisual();
-        });
-        
+        FontSizeProperty.Changed.AddClassHandler<TextPath>(
+            (x, _) =>
+            {
+                x._textGeometry = null; // 强制重新创建几何图形
+                x.InvalidateVisual();
+            }
+        );
+
         // 当其他影响几何图形的属性改变时，也需要重新创建几何图形
-        FontFamilyProperty.Changed.AddClassHandler<TextPath>((x, _) => { x._textGeometry = null; x.InvalidateVisual(); });
-        FontStretchProperty.Changed.AddClassHandler<TextPath>((x, _) => { x._textGeometry = null; x.InvalidateVisual(); });
-        FontStyleProperty.Changed.AddClassHandler<TextPath>((x, _) => { x._textGeometry = null; x.InvalidateVisual(); });
-        FontWeightProperty.Changed.AddClassHandler<TextPath>((x, _) => { x._textGeometry = null; x.InvalidateVisual(); });
-        OriginProperty.Changed.AddClassHandler<TextPath>((x, _) => { x._textGeometry = null; x.InvalidateVisual(); });
-        TextProperty.Changed.AddClassHandler<TextPath>((x, _) => { x._textGeometry = null; x.InvalidateVisual(); });
-        LetterSpacingProperty.Changed.AddClassHandler<TextPath>((x, _) => { x._textGeometry = null; x.InvalidateVisual(); });
-        PlaceholderProperty.Changed.AddClassHandler<TextPath>((x, _) => { x._textGeometry = null; x.InvalidateVisual(); });
-        StrokeThicknessProperty.Changed.AddClassHandler<TextPath>((x, _) => { x._textGeometry = null; x.InvalidateVisual(); });
+        FontFamilyProperty.Changed.AddClassHandler<TextPath>(
+            (x, _) =>
+            {
+                x._textGeometry = null;
+                x.InvalidateVisual();
+            }
+        );
+        FontStretchProperty.Changed.AddClassHandler<TextPath>(
+            (x, _) =>
+            {
+                x._textGeometry = null;
+                x.InvalidateVisual();
+            }
+        );
+        FontStyleProperty.Changed.AddClassHandler<TextPath>(
+            (x, _) =>
+            {
+                x._textGeometry = null;
+                x.InvalidateVisual();
+            }
+        );
+        FontWeightProperty.Changed.AddClassHandler<TextPath>(
+            (x, _) =>
+            {
+                x._textGeometry = null;
+                x.InvalidateVisual();
+            }
+        );
+        OriginProperty.Changed.AddClassHandler<TextPath>(
+            (x, _) =>
+            {
+                x._textGeometry = null;
+                x.InvalidateVisual();
+            }
+        );
+        TextProperty.Changed.AddClassHandler<TextPath>(
+            (x, _) =>
+            {
+                x._textGeometry = null;
+                x.InvalidateVisual();
+            }
+        );
+        LetterSpacingProperty.Changed.AddClassHandler<TextPath>(
+            (x, _) =>
+            {
+                x._textGeometry = null;
+                x.InvalidateVisual();
+            }
+        );
+        PlaceholderProperty.Changed.AddClassHandler<TextPath>(
+            (x, _) =>
+            {
+                x._textGeometry = null;
+                x.InvalidateVisual();
+            }
+        );
+        StrokeThicknessProperty.Changed.AddClassHandler<TextPath>(
+            (x, _) =>
+            {
+                x._textGeometry = null;
+                x.InvalidateVisual();
+            }
+        );
     }
 
     public override void Render(DrawingContext context)
@@ -199,24 +266,24 @@ public class TextPath : Control
             CreateTextGeometry();
         }
 
-        if (_textGeometry != null)
+        if (_textGeometry == null)
+            return;
+
+        // 先绘制描边，使用更平滑的描边效果
+        if (Stroke != null && StrokeThickness > 0)
         {
-            // 先绘制描边，使用更平滑的描边效果
-            if (Stroke != null && StrokeThickness > 0)
+            var pen = new Pen(Stroke, StrokeThickness)
             {
-                var pen = new Pen(Stroke, StrokeThickness)
-                {
-                    LineCap = PenLineCap.Round,
-                    LineJoin = PenLineJoin.Round,
-                    MiterLimit = 1.0
-                };
-                context.DrawGeometry(Stroke, pen, _textGeometry);
-            }
-            // 再绘制填充
-            if (Foreground != null)
-            {
-                context.DrawGeometry(Foreground, null, _textGeometry);
-            }
+                LineCap = PenLineCap.Round,
+                LineJoin = PenLineJoin.Round,
+                MiterLimit = 1.0,
+            };
+            context.DrawGeometry(Stroke, pen, _textGeometry);
+        }
+        // 再绘制填充
+        if (Foreground != null)
+        {
+            context.DrawGeometry(Foreground, null, _textGeometry);
         }
     }
 
@@ -238,10 +305,7 @@ public class TextPath : Control
         double width = bounds.Width + strokeOffset * 2;
         double height = bounds.Height + strokeOffset * 2;
 
-        return new Size(
-            Math.Min(availableSize.Width, width),
-            Math.Min(availableSize.Height, height)
-        );
+        return new Size(Math.Min(availableSize.Width, width), Math.Min(availableSize.Height, height));
     }
 
     private void CreateTextGeometry()
@@ -262,7 +326,6 @@ public class TextPath : Control
         {
             if (char.IsWhiteSpace(c))
             {
-
                 currentX += 5 + LetterSpacing;
                 continue;
             }
@@ -304,19 +367,19 @@ public class TextPath : Control
 
         // 考虑描边宽度，调整原点位置
         double strokeOffset = Stroke != null && StrokeThickness > 0 ? StrokeThickness : 0;
-        
-        if (_textGeometry != null)
-        {
-            // 获取当前几何图形的实际边界的左上角
-            var currentTopLeft = _textGeometry.Bounds.TopLeft;
-            
-            // 计算所需的平移量，使文本的视觉左上角（包括描边）与 Origin 对齐
-            double offsetX = Origin.X + strokeOffset - currentTopLeft.X;
-            double offsetY = Origin.Y + strokeOffset - currentTopLeft.Y;
 
-            var transform = new MatrixTransform(Matrix.CreateTranslation(offsetX, offsetY));
-            _textGeometry = _textGeometry.Clone(); // 克隆以确保原始几何图形不被修改（如果它被共享）
-            _textGeometry.Transform = transform;
-        }
+        if (_textGeometry == null)
+            return;
+
+        // 获取当前几何图形的实际边界的左上角
+        var currentTopLeft = _textGeometry.Bounds.TopLeft;
+
+        // 计算所需的平移量，使文本的视觉左上角（包括描边）与 Origin 对齐
+        double offsetX = Origin.X + strokeOffset - currentTopLeft.X;
+        double offsetY = Origin.Y + strokeOffset - currentTopLeft.Y;
+
+        var transform = new MatrixTransform(Matrix.CreateTranslation(offsetX, offsetY));
+        _textGeometry = _textGeometry.Clone(); // 克隆以确保原始几何图形不被修改（如果它被共享）
+        _textGeometry.Transform = transform;
     }
-} 
+}

@@ -632,7 +632,7 @@ public static class DataBaseService
 
         if (!reader.HasRows)
         {
-            reader?.Dispose();
+            reader.Dispose();
             yield break;
         }
 
@@ -1406,7 +1406,7 @@ public static class DataBaseService
                     await using var command = Command;
                     string sqlCommand = $"DELETE FROM {table:G} WHERE {whereColumn} = @whereValue";
                     command.CommandText = sqlCommand;
-                    command.Parameters.AddWithValue("@whereValue", value as object ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@whereValue", value);
 
                     if (EnableVerboseLogging)
                     {
@@ -1471,7 +1471,7 @@ public static class DataBaseService
                     using var command = Command;
                     string sqlCommand = $"DELETE FROM {table:G} WHERE {whereColumn} = @whereValue";
                     command.CommandText = sqlCommand;
-                    command.Parameters.AddWithValue("@whereValue", value as object ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@whereValue", value);
 
                     if (EnableVerboseLogging)
                     {

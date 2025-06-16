@@ -80,7 +80,7 @@ public partial class MainWindowViewModel : NavigationViewModel
                     {
                         Pages.RemoveAt(index);
                     }
-                    
+
                     NavigateService.RemoveChildView(NavViewName, message.Id);
                     var i = IconItems.FirstOrDefault(x => x.Id == message.Id);
                     if (i == null)

@@ -9,8 +9,8 @@
         <LangVersion>preview</LangVersion>
         <ImplicitUsings>disable</ImplicitUsings>
         <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-<!--        <PublishAot>true</PublishAot>
-        <TrimMode>link</TrimMode>-->
+        <PublishAot>true</PublishAot>
+        <TrimMode>link</TrimMode>
     </PropertyGroup>
 
     <ItemGroup>
@@ -43,7 +43,7 @@
         <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.0" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.5.25277.114" />
         <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.0.10" />
-        <PackageReference Include="z440.atl.core" Version="6.25.0" />
+        <PackageReference Include="z440.atl.core" Version="6.26.0" />
     </ItemGroup>
 
     <ItemGroup>

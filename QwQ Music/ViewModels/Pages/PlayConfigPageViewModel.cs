@@ -163,10 +163,11 @@ public partial class PlayConfigPageViewModel : ViewModelBase
         TaskManager
             .CreateMultiTask(
                 itemsToProcess,
-                async item =>
+                item =>
                 {
-                    var ex = await item.GetExtensionsInfo();
+                    var ex = MusicExtractor.ExtractExtensionsInfo(item.FilePath);
                     item.Gain = AudioHelper.CalcGainOfMusicItem(item.FilePath, ex.SamplingRate, ex.Channels);
+                    return Task.CompletedTask;
                 }
             )
             .SetController(TaskController)

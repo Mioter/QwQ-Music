@@ -74,12 +74,13 @@ public static class AudioFileManager
             return;
 
         // 并行提取音乐信息，并过滤掉 null 结果
-        var musicItems = (
-            await Task.WhenAll(newFilePaths.Select(async path => await MusicExtractor.ExtractMusicInfoAsync(path)))
-        )
+        var musicItems = (await Task.WhenAll(newFilePaths.Select(MusicExtractor.ExtractMusicInfoAsync)))
             .Where(m => m != null)
             .Cast<MusicItemModel>()
             .ToList();
+
+        if (musicItems.Count == 0)
+            return;
 
         // 批量添加到UI集合
         await Dispatcher.UIThread.InvokeAsync(() =>
@@ -91,6 +92,6 @@ public static class AudioFileManager
         });
 
         // 使用批量保存方法保存所有音乐项
-        await MusicPlayerViewModel.SaveMusicItemsAsync(musicItems!);
+        await MusicPlayerViewModel.SaveMusicItemsAsync(musicItems);
     }
 }

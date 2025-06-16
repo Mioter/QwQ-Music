@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -12,6 +11,8 @@ using QwQ_Music.Utilities;
 namespace QwQ_Music.Services;
 
 #if DEBUG
+using System.Net.Http;
+
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(LogData))]
 internal partial class LoggerJsonContext : JsonSerializerContext;
@@ -53,7 +54,10 @@ public static class LoggerService
     private static string LogFile => Path.Combine(SavePath, $"{currentDay:yyyy-MM-dd}.QwQ.log");
     private static FileStream? fileStream;
     private static readonly SemaphoreSlim _asyncLock = new(1, 1);
+    
+#if DEBUG
     private static readonly HttpClient _httpClient = new();
+#endif
 
     /// <summary>
     /// 获取或创建日志文件流
@@ -184,6 +188,8 @@ public static class LoggerService
     /// </summary>
     private static async Task SendLog(string status, string message, int lineNumber, string? function, string? filename)
     {
+        return;
+
         var logData = new LogData(
             DateTime.Now.ToString("HH:mm:ss.fff"),
             status,

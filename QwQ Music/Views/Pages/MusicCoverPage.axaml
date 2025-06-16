@@ -224,7 +224,7 @@
 
                                     <TextBlock Text="歌词文本对齐方式" VerticalAlignment="Center" />
                                     <ComboBox
-                                        Width="80"
+                                        Width="100"
                                         MinHeight="30"
                                         ItemsSource="{x:Static configModel:LyricConfig.TextAlignments}"
                                         SelectedItem="{Binding RolledLyric.LyricTextAlignment}" />

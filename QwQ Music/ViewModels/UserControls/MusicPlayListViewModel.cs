@@ -18,7 +18,7 @@ public partial class MusicPlayListViewModel : ViewModelBase
             return;
 
         MusicPlayerViewModel.IsPlaying = false;
-        MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem).ConfigureAwait(false);
+        _ = MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem).ConfigureAwait(false);
     }
 
     [RelayCommand]

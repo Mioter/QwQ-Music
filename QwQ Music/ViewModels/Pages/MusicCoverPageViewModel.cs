@@ -68,14 +68,17 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
     {
         try
         {
-            await UpdateCoverImage(musicItem);
-            await UpdateColorsList(musicItem);
+            // 合并封面图片和颜色列表更新任务
+            var coverTask = UpdateCoverImage(musicItem);
+            var colorsTask = UpdateColorsList(musicItem);
+
+            await Task.WhenAll(coverTask, colorsTask).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            await LoggerService.ErrorAsync(
-                $"{nameof(MusicPlayerViewModelOnCurrentMusicItemChanged)} 发生错误 : {ex.Message}"
-            );
+            await LoggerService
+                .ErrorAsync($"{nameof(MusicPlayerViewModelOnCurrentMusicItemChanged)} 发生错误 : {ex.Message}")
+                .ConfigureAwait(false);
         }
     }
 
@@ -90,7 +93,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
             if (currentCoverPath != null)
             {
-                var bitmap = await MusicExtractor.LoadOriginalBitmap(currentCoverPath);
+                var bitmap = await MusicExtractor.LoadOriginalBitmap(currentCoverPath).ConfigureAwait(false);
                 if (bitmap != null)
                 {
                     CoverImage = bitmap;
@@ -99,7 +102,9 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
             }
 
             // 尝试从音频文件中提取封面
-            string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(musicItem.FilePath);
+            string? newCoverPath = await MusicExtractor
+                .ExtractAndSaveCoverFromAudioAsync(musicItem.FilePath)
+                .ConfigureAwait(false);
             if (newCoverPath != null)
             {
                 currentCoverPath = newCoverPath;

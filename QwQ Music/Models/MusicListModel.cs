@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.ViewModels;
+using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.Models;
 
@@ -157,18 +158,8 @@ public partial class MusicListModel : ObservableObject
 
         MusicItems = new ObservableCollection<MusicItemModel>(await LoadMusicItemsAsync());
 
-        if (latestPlayedMusicList == null)
-        {
-            IsError = true;
-            NotificationService.ShowLight(
-                new Notification("错误", $"获取歌单《{Name}》最近播放音乐失败！"),
-                NotificationType.Error
-            );
-            return null;
-        }
-
         // 设置最近播放的音乐
-        if (latestPlayedMusicList.Count > 0)
+        if (latestPlayedMusicList is { Count: > 0 })
             LatestPlayedMusic = latestPlayedMusicList[0];
 
         IsInitialized = true;

@@ -269,19 +269,19 @@ public partial class DesktopLyricConfig : ObservableObject
 
     [ObservableProperty]
     public partial double LyricAltFontSize { get; set; } = 12;
-    
+
     [ObservableProperty]
     public partial double LyricMainLetterSpacing { get; set; } = 5;
 
     [ObservableProperty]
     public partial double LyricAltLetterSpacing { get; set; } = 3;
-    
+
     [ObservableProperty]
     public partial double LyricMainStrokeThickness { get; set; } = 5;
 
     [ObservableProperty]
-    public partial double LyricAltStrokeThickness { get; set; } = 3;    
-    
+    public partial double LyricAltStrokeThickness { get; set; } = 3;
+
     [ObservableProperty]
     public partial double LyricMainTranslateSpacing { get; set; } = 3;
 

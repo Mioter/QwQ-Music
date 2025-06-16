@@ -232,9 +232,6 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
         return true;
     }
 
-    public async Task<MusicTagExtensions> GetExtensionsInfo() =>
-        await MusicExtractor.ExtractExtensionsInfoAsync(FilePath);
-
     public Task<LyricsData> Lyrics => MusicExtractor.ExtractMusicLyricsAsync(FilePath);
 
     public static MusicItemModel FromDictionary(Dictionary<string, object> data)

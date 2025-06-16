@@ -68,10 +68,7 @@ public partial class MainWindow : Window
                     if (_isOpenClosingDialog)
                     {
                         NotificationService.ShowLight(
-                            new Notification(
-                                "注意",
-                                "请不要再点啦，先选择关闭行为吧！"
-                            ),
+                            new Notification("注意", "请不要再点啦，先选择关闭行为吧！"),
                             NotificationType.Information,
                             showClose: true
                         );
@@ -118,7 +115,7 @@ public partial class MainWindow : Window
 
         if (model.IsCancel)
         {
-            _isOpenClosingDialog  = false;
+            _isOpenClosingDialog = false;
             return;
         }
 
@@ -134,11 +131,11 @@ public partial class MainWindow : Window
                 break;
             case Definitions.Enums.ClosingBehavior.HideToTray:
                 Hide();
-                _isOpenClosingDialog  = false;
+                _isOpenClosingDialog = false;
                 break;
             case Definitions.Enums.ClosingBehavior.AskAbout:
             default:
-                _isOpenClosingDialog  = false;
+                _isOpenClosingDialog = false;
                 return;
         }
     }

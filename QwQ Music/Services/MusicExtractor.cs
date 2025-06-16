@@ -50,71 +50,65 @@ public static class MusicExtractor
     }
 
     /// <summary>
-    /// 异步获取扩展信息
+    /// 获取扩展信息
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>包含扩展信息的字典。</returns>
-    public static async Task<MusicTagExtensions> ExtractExtensionsInfoAsync(string? filePath)
+    public static MusicTagExtensions ExtractExtensionsInfo(string? filePath)
     {
-        return await Task.Run(() =>
-        {
-            var track = new Track(filePath);
-            return new MusicTagExtensions(
-                track.Genre ?? string.Empty,
-                track.Year,
-                track.Copyright ?? string.Empty,
-                track.DiscNumber.HasValue ? (uint)track.DiscNumber.Value : 0,
-                track.TrackNumber.HasValue ? (uint)track.TrackNumber.Value : 0,
-                (int)track.SampleRate,
-                track.ChannelsArrangement.NbChannels,
-                track.Bitrate,
-                track.BitDepth,
-                // 添加更多基本信息
-                track.OriginalAlbum ?? string.Empty,
-                track.OriginalArtist ?? string.Empty,
-                track.AlbumArtist ?? string.Empty,
-                track.Publisher ?? string.Empty,
-                track.Description ?? string.Empty,
-                track.Language ?? string.Empty,
-                // 添加技术信息
-                track.IsVBR,
-                track.AudioFormat.DataFormat.Name,
-                track.Encoder ?? string.Empty
-            );
-        });
+        var track = new Track(filePath);
+        return new MusicTagExtensions(
+            track.Genre ?? string.Empty,
+            track.Year,
+            track.Copyright ?? string.Empty,
+            track.DiscNumber.HasValue ? (uint)track.DiscNumber.Value : 0,
+            track.TrackNumber.HasValue ? (uint)track.TrackNumber.Value : 0,
+            (int)track.SampleRate,
+            track.ChannelsArrangement.NbChannels,
+            track.Bitrate,
+            track.BitDepth,
+            // 添加更多基本信息
+            track.OriginalAlbum ?? string.Empty,
+            track.OriginalArtist ?? string.Empty,
+            track.AlbumArtist ?? string.Empty,
+            track.Publisher ?? string.Empty,
+            track.Description ?? string.Empty,
+            track.Language ?? string.Empty,
+            // 添加技术信息
+            track.IsVBR,
+            track.AudioFormat.DataFormat.Name,
+            track.Encoder ?? string.Empty
+        );
     }
 
     /// <summary>
-    /// 异步获取详细信息
+    /// 获取详细信息
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>包含详细信息的字典。</returns>
-    public static async Task<MusicDetailedInfo> ExtractDetailedInfoAsync(string filePath)
+    public static MusicDetailedInfo ExtractDetailedInfoAsync(string filePath)
     {
-        return await Task.Run(() =>
-        {
-            var track = new Track(filePath);
-            return new MusicDetailedInfo(
-                // 发布信息
-                track.Date,
-                track.OriginalReleaseDate,
-                track.PublishingDate,
-                // 专业信息
-                track.ISRC ?? string.Empty,
-                track.CatalogNumber ?? string.Empty,
-                track.ProductId ?? string.Empty,
-                // 其他信息
-                track.BPM,
-                track.Popularity,
-                track.SeriesTitle ?? string.Empty,
-                track.SeriesPart ?? string.Empty,
-                track.LongDescription ?? string.Empty,
-                track.Group ?? string.Empty,
-                // 技术信息
-                track.TechnicalInformation.AudioDataOffset,
-                track.TechnicalInformation.AudioDataSize
-            );
-        });
+        var track = new Track(filePath);
+        return new MusicDetailedInfo(
+            // 发布信息
+            track.Date,
+            track.OriginalReleaseDate,
+            track.PublishingDate,
+            // 专业信息
+            track.ISRC ?? string.Empty,
+            track.CatalogNumber ?? string.Empty,
+            track.ProductId ?? string.Empty,
+            // 其他信息
+            track.BPM,
+            track.Popularity,
+            track.SeriesTitle ?? string.Empty,
+            track.SeriesPart ?? string.Empty,
+            track.LongDescription ?? string.Empty,
+            track.Group ?? string.Empty,
+            // 技术信息
+            track.TechnicalInformation.AudioDataOffset,
+            track.TechnicalInformation.AudioDataSize
+        );
     }
 
     /// <summary>
@@ -122,13 +116,10 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>自定义字段信息字典。</returns>
-    public static async Task<Dictionary<string, string>> ExtractAdditionalFieldsAsync(string filePath)
+    public static Dictionary<string, string> ExtractAdditionalFieldsAsync(string filePath)
     {
-        return await Task.Run(() =>
-        {
-            var track = new Track(filePath);
-            return track.AdditionalFields != null ? new Dictionary<string, string>(track.AdditionalFields) : [];
-        });
+        var track = new Track(filePath);
+        return track.AdditionalFields != null ? new Dictionary<string, string>(track.AdditionalFields) : [];
     }
 
     /// <summary>
@@ -153,10 +144,15 @@ public static class MusicExtractor
             string comment = track.Comment;
             string encodingFormat = track.AudioFormat.ShortName;
 
-            string coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
+            string? coverFileName = null;
+
+            if (!string.IsNullOrEmpty(artists) || !string.IsNullOrEmpty(album))
+            {
+                coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
+            }
 
             Bitmap? coverImage = null;
-            if (track.EmbeddedPictures.Count > 0)
+            if (track.EmbeddedPictures.Count > 0 && coverFileName != null)
             {
                 coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
                 // 异步保存封面
@@ -200,7 +196,7 @@ public static class MusicExtractor
     {
         // 截断并清理文件名
         string coverFileName = PathEnsurer.CleanFileName(
-            $"{(artists.Length > 20 ? artists[..20] : artists)}-{(album.Length > 20 ? album[..20] : album)}.jpg"
+            $"{(artists.Length > 20 ? artists[..20] : artists)}-{(album.Length > 20 ? album[..20] : album)}.png"
         );
         return coverFileName; // 只返回文件名
     }
@@ -275,7 +271,12 @@ public static class MusicExtractor
         }
     }
 
-    public static Bitmap GetDefaultCover()
+    /// <summary>
+    /// 获取默认专辑封面
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="FileNotFoundException">无法找到默认封面资源时抛出异常</exception>
+    private static Bitmap GetDefaultCover()
     {
         try
         {
