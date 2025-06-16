@@ -33,18 +33,25 @@ public enum ColorExtractionAlgorithm
 public static class ColorExtraction
 {
     /// <summary>
-    /// 从位图对象获取调色板
+    ///     从位图对象获取调色板
     /// </summary>
     /// <param name="bitmap">位图对象</param>
     /// <param name="colorCount">要提取的颜色数量，默认为5</param>
     /// <param name="algorithm">颜色提取算法，默认为KMeans</param>
     /// <param name="ignoreWhite">忽略白色</param>
+    /// <param name="toLab">转化为Lab矢量</param>
+    /// <param name="useKMeansPp">使用KMeansPp</param>
     /// <returns>提取的颜色列表</returns>
+    /// <remarks>
+    ///     注意：<c>toLab</c> 与 <c>useKMeansPp</c> 仅在 <c>KMeans</c> 下有效
+    /// </remarks>
     public static List<Color> GetColorPaletteFromBitmap(
         Bitmap bitmap,
         int colorCount = 5,
         ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
-        bool ignoreWhite = true
+        bool ignoreWhite = true,
+        bool toLab = true,
+        bool useKMeansPp = true
     )
     {
         // 从位图采样颜色
@@ -55,7 +62,7 @@ public static class ColorExtraction
         var paletteResult = algorithm switch
         {
             ColorExtractionAlgorithm.KMeans => KMeansPaletteGenerator
-                .CreatePalette(vectorColors, colorCount, ignoreWhite, toLab: true, useKMeansPp: true)
+                .CreatePalette(vectorColors, colorCount, ignoreWhite, toLab, useKMeansPp)
                 .GetAwaiter()
                 .GetResult(),
 

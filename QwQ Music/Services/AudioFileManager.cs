@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls.Notifications;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using QwQ_Music.Models;
 using QwQ_Music.Utilities;
 using QwQ_Music.ViewModels;
+using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.Services;
 
@@ -35,7 +39,13 @@ public static class AudioFileManager
         var audioFilePaths = await Task.Run(() => AudioFileValidator.FilterAudioFiles(filePaths));
 
         if (audioFilePaths == null || audioFilePaths.Count == 0)
+        {
+            NotificationService.ShowLight(
+                new Notification("提示", "没有找到可导入的音频文件！"),
+                NotificationType.Information
+            );
             return;
+        }
 
         // 预加载现有路径集合
         var existingPaths = new HashSet<string?>(
@@ -45,6 +55,20 @@ public static class AudioFileManager
 
         // 过滤掉已存在的路径
         var newFilePaths = audioFilePaths.Where(path => !existingPaths.Contains(path)).ToList();
+        var existingFilePaths = audioFilePaths.Except(newFilePaths).ToList();
+
+        // 如果有已存在的文件，显示提示
+        if (existingFilePaths.Count > 0)
+        {
+            string existingTitles = string.Join(
+                "、",
+                existingFilePaths.Select(path => $"《{Path.GetFileNameWithoutExtension(path)}》")
+            );
+            NotificationService.ShowLight(
+                new Notification("提示", $"歌曲{existingTitles}已存在于播放列表中！"),
+                NotificationType.Information
+            );
+        }
 
         if (newFilePaths.Count == 0)
             return;
@@ -54,14 +78,15 @@ public static class AudioFileManager
             await Task.WhenAll(newFilePaths.Select(async path => await MusicExtractor.ExtractMusicInfoAsync(path)))
         )
             .Where(m => m != null)
-            .ToList(); // 过滤 null 值
+            .Cast<MusicItemModel>()
+            .ToList();
 
         // 批量添加到UI集合
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             foreach (var musicItem in musicItems)
             {
-                MusicPlayerViewModel.Instance.MusicItems.Add(musicItem!);
+                MusicPlayerViewModel.Instance.MusicItems.Add(musicItem);
             }
         });
 

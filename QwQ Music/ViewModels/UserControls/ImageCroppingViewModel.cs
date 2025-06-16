@@ -6,23 +6,19 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Services;
-using QwQ_Music.ViewModels.ViewModelBases;
 using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.UserControls;
 
-public partial class ImageCroppingViewModel(Bitmap sourceImage) : ViewModelBase
+public partial class ImageCroppingViewModel(Bitmap sourceImage) : ObservableObject
 {
     public Bitmap? SourceImage { get; set; } = sourceImage;
-
-    public double AspectRatio => SelectedItem.Value;
 
     [ObservableProperty]
     public partial Bitmap? CroppedImage { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(AspectRatio))]
-    public partial AspectRatioMap SelectedItem { get; set; } = AspectRatioMaps[0];
+    public partial double AspectRatio { get; set; } = AspectRatioMaps[0].Value;
 
     public static AspectRatioMap[] AspectRatioMaps { get; set; } =
         [new("1:1", 1.0), new("4:3", 4.0 / 3.0), new("16:9", 16.0 / 9.0), new("自由比例", 0.0)];

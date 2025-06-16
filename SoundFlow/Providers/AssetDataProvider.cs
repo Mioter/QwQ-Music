@@ -10,6 +10,8 @@ namespace SoundFlow.Providers;
 /// <remarks>Loads full audio directly to memory.</remarks>
 public sealed class AssetDataProvider : ISoundDataProvider
 {
+    private float[] _data;
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="AssetDataProvider" /> class.
     /// </summary>
@@ -17,10 +19,10 @@ public sealed class AssetDataProvider : ISoundDataProvider
     public AssetDataProvider(Stream stream)
     {
         var decoder = AudioEngine.Instance.CreateDecoder(stream);
-        Data = Decode(decoder);
+        _data = Decode(decoder);
         decoder.Dispose();
         SampleRate = AudioEngine.Instance.SampleRate;
-        Length = Data.Length;
+        Length = _data.Length;
     }
 
     /// <summary>
@@ -32,8 +34,6 @@ public sealed class AssetDataProvider : ISoundDataProvider
 
     /// <inheritdoc />
     public int Position { get; private set; }
-
-    public float[] Data { get; private set; }
 
     /// <inheritdoc />
     public int Length { get; } // Length in samples
@@ -59,12 +59,12 @@ public sealed class AssetDataProvider : ISoundDataProvider
     /// <inheritdoc />
     public int ReadBytes(Span<float> buffer)
     {
-        int samplesToRead = Math.Min(buffer.Length, Data.Length - Position);
-        Data.AsSpan(Position, samplesToRead).CopyTo(buffer);
+        int samplesToRead = Math.Min(buffer.Length, _data.Length - Position);
+        _data.AsSpan(Position, samplesToRead).CopyTo(buffer);
 
         Position += samplesToRead;
 
-        if (Position >= Data.Length)
+        if (Position >= _data.Length)
             EndOfStreamReached?.Invoke(this, EventArgs.Empty);
 
         PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
@@ -75,7 +75,7 @@ public sealed class AssetDataProvider : ISoundDataProvider
     /// <inheritdoc />
     public void Seek(int sampleOffset)
     {
-        Position = Math.Clamp(sampleOffset, 0, Data.Length);
+        Position = Math.Clamp(sampleOffset, 0, _data.Length);
         PositionChanged?.Invoke(this, new PositionChangedEventArgs(Position));
     }
 
@@ -125,7 +125,7 @@ public sealed class AssetDataProvider : ISoundDataProvider
             return;
 
         // Dispose of _data
-        Data = null!;
+        _data = null!;
         IsDisposed = true;
     }
 }

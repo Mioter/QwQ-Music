@@ -75,7 +75,12 @@ public partial class MainWindowViewModel : NavigationViewModel
             {
                 if (message.IsRemove)
                 {
-                    Pages.RemoveAt(NavigateService.GetChildViewIndex(NavViewName, message.Id));
+                    int index = NavigateService.GetChildViewIndex(NavViewName, message.Id);
+                    if (index <= Pages.Count && index > 0)
+                    {
+                        Pages.RemoveAt(index);
+                    }
+                    
                     NavigateService.RemoveChildView(NavViewName, message.Id);
                     var i = IconItems.FirstOrDefault(x => x.Id == message.Id);
                     if (i == null)

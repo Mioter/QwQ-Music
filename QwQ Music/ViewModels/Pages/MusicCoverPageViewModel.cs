@@ -24,6 +24,8 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
     public static RolledLyricConfig RolledLyric { get; } = ConfigInfoModel.LyricConfig.RolledLyri;
 
+    public static CoverConfig CoverConfig { get; } = ConfigInfoModel.InterfaceConfig.CoverConfig;
+
     public MusicCoverPageViewModel()
         : base("播放")
     {
@@ -130,11 +132,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         }
 
         // 提取新的颜色
-        var colorsList = await GetColorPalette(
-            musicItem.CoverPath,
-            COLOR_COUNT,
-            ConfigInfoModel.InterfaceConfig.SelectedColorExtractionAlgorithm
-        );
+        var colorsList = await GetColorPalette(musicItem.CoverPath, COLOR_COUNT);
 
         // 缓存提取的颜色
         if (colorsList != null)
@@ -147,18 +145,20 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         OnPropertyChanged(nameof(ColorsList));
     }
 
-    private static async Task<List<Color>?> GetColorPalette(
-        string imagePath,
-        int colorCount = 5,
-        ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
-        bool ignoreWhite = true
-    )
+    private static async Task<List<Color>?> GetColorPalette(string imagePath, int colorCount = 5)
     {
         // 尝试使用缓存的位图
         var bitmap = await MusicExtractor.LoadCompressedBitmap(imagePath);
         return bitmap == null
             ? null // 缓存不存在直接返回null
-            : ColorExtraction.GetColorPaletteFromBitmap(bitmap, colorCount, algorithm, ignoreWhite);
+            : ColorExtraction.GetColorPaletteFromBitmap(
+                bitmap,
+                colorCount,
+                CoverConfig.SelectedColorExtractionAlgorithm,
+                CoverConfig.IgnoreWhite,
+                CoverConfig.ToLab,
+                CoverConfig.UseKMeansPp
+            );
     }
 
     public List<Color> ColorsList { get; set; } = _defaultColors;

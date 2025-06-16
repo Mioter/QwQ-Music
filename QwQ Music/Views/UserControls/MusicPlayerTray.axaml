@@ -253,7 +253,7 @@
 
                     </WrapPanel.Styles>
 
-                    <Button Classes="Icon">
+                    <Button ToolTip.Tip="播放效果" Classes="Icon">
 
                         <PathIcon
                             Data="{StaticResource SemiIconSimilarity}"

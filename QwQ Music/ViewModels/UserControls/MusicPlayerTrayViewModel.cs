@@ -85,13 +85,13 @@ public partial class MusicPlayerTrayViewModel : ViewModelBase
     [RelayCommand]
     private static void PlaySpeedUp()
     {
-        MusicPlayerViewModel.Speed += 0.25f;
+        MusicPlayerViewModel.Speed += 0.1f;
     }
 
     [RelayCommand]
     private static void PlaySpeedDown()
     {
-        MusicPlayerViewModel.Speed -= 0.25f;
+        MusicPlayerViewModel.Speed -= 0.1f;
     }
 
     private void MusicPlayerViewModelOnPlaybackStateChanged(object? sender, bool e)

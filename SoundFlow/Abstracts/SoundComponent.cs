@@ -24,7 +24,6 @@ public abstract class SoundComponent
     private bool _solo;
     private float _volume = 1f;
     private Vector2 _volumePanFactors;
-    private Vector2 _previousVolumePanFactors;
     private readonly Lock _stateLock = new();
 
     /// <summary>
@@ -43,7 +42,6 @@ public abstract class SoundComponent
     protected SoundComponent()
     {
         UpdateVolumePanFactors();
-        _previousVolumePanFactors = _volumePanFactors;
     }
 
     /// <summary>
@@ -139,12 +137,12 @@ public abstract class SoundComponent
     /// <summary>
     ///     Modifiers applied to the component
     /// </summary>
-    public IReadOnlyList<SoundModifier> Modifiers
+    public IReadOnlyList<SoundModifier?> Modifiers
     {
         get
         {
             lock (_stateLock)
-                return new List<SoundModifier>(_modifiers);
+                return new List<SoundModifier?>(_modifiers);
         }
     }
 
@@ -162,7 +160,6 @@ public abstract class SoundComponent
 
     private void UpdateVolumePanFactors()
     {
-        _previousVolumePanFactors = _volumePanFactors;
         float panValue = Math.Clamp(_pan, 0f, 1f);
         _volumePanFactors = new Vector2(_volume * MathF.Sqrt(1f - panValue), _volume * MathF.Sqrt(panValue));
     }
@@ -332,11 +329,7 @@ public abstract class SoundComponent
                 currentModifiers = _modifiers.Count == 0 ? [] : _modifiers.ToArray();
                 currentAnalyzers = _analyzers.Count == 0 ? [] : _analyzers.ToArray();
 
-                currentVolumePan = Vector2.Lerp(
-                    _previousVolumePanFactors,
-                    _volumePanFactors,
-                    Math.Clamp(128f / workingBuffer.Length, 0, 1)
-                );
+                currentVolumePan = _volumePanFactors;
             }
 
             foreach (var modifier in currentModifiers)
@@ -393,7 +386,9 @@ public abstract class SoundComponent
         switch (AudioEngine.Channels)
         {
             case 1:
-                ApplyMonoVolume(buffer, volumePan.X + volumePan.Y);
+                // Constant power calculation for mono
+                float monoGain = MathF.Sqrt(volumePan.X * volumePan.X + volumePan.Y * volumePan.Y);
+                ApplyMonoVolume(buffer, monoGain);
                 break;
             case 2:
                 ApplyStereoVolume(buffer, volumePan);

@@ -1,5 +1,4 @@
 ﻿using System;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using QwQ_Music.Models;
@@ -21,7 +20,7 @@ public partial class DesktopLyricsWindow : Window
 
         InitializeComponent();
 
-        Position = new PixelPoint(LyricConfig.LyricPositionX, LyricConfig.LyricPositionY);
+        Position = LyricConfig.Position;
 
         PositionChanged += Window_OnPositionChanged;
         PointerPressed += OnPointerPressed;
@@ -46,8 +45,7 @@ public partial class DesktopLyricsWindow : Window
 
     private void Window_OnPositionChanged(object? sender, PixelPointEventArgs e)
     {
-        LyricConfig.LyricPositionX = Position.X;
-        LyricConfig.LyricPositionY = Position.Y;
+        LyricConfig.Position = Position;
     }
 
     public void SetPenetrate(bool enabled = true)

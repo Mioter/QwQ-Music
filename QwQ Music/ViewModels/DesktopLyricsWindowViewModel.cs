@@ -22,17 +22,31 @@ public partial class DesktopLyricsWindowViewModel : ViewModelBase
     public static DesktopLyricConfig LyricConfig => ConfigInfoModel.LyricConfig.DesktopLyric;
 
     [ObservableProperty]
-    public partial string CurrentMainLyric { get; set; } = string.Empty;
+    public partial string? CurrentMainLyric { get; set; }
 
     [ObservableProperty]
-    public partial string CurrentAltLyric { get; set; } = string.Empty;
+    public partial string? CurrentMainTranslateLyric { get; set; }
+
+    [ObservableProperty]
+    public partial string? CurrentAltLyric { get; set; }
+
+    [ObservableProperty]
+    public partial string? CurrentAltTranslateLyric { get; set; }
 
     private void LyricsModelOnLyricLineChanged(object sender, LyricLine currentLyric, LyricLine? nextLyric)
     {
         CurrentMainLyric = currentLyric.Primary;
-        if (nextLyric is { } nextLyricLine)
+
+        CurrentMainTranslateLyric = currentLyric.Translation;
+
+        if (nextLyric is not { } nextLyricLine)
         {
-            CurrentAltLyric = nextLyricLine.Primary;
+            CurrentAltLyric = null;
+            CurrentAltTranslateLyric = null;
+            return;
         }
+
+        CurrentAltLyric = nextLyricLine.Primary;
+        CurrentAltTranslateLyric = nextLyricLine.Translation;
     }
 }

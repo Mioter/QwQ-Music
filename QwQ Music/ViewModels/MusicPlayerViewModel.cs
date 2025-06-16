@@ -149,12 +149,13 @@ public partial class MusicPlayerViewModel : ViewModelBase
         get => PlayerConfig.PlaybackSpeed;
         set
         {
-            if (value < 0.5 || value > 1.5)
+            float result = Math.Clamp(value, 0.5f, 1.5f);
+            if (Math.Abs(PlayerConfig.PlaybackSpeed - result) < 1e-6f)
                 return;
 
-            PlayerConfig.PlaybackSpeed = value;
+            PlayerConfig.PlaybackSpeed = result;
             OnPropertyChanged();
-            _audioPlay.Speed = value;
+            _audioPlay.Speed = result;
         }
     }
 
@@ -791,7 +792,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
         return successItems;
     }
 
-    public static async Task SaveMusicItemsAsync(IEnumerable<MusicItemModel> items)
+    public static async Task SaveMusicItemsAsync(
+        IEnumerable<MusicItemModel> items,
+        bool isEnableSuccessPrompt = true,
+        bool isEnableFailedPrompt = true
+    )
     {
         var itemsList = items.ToList(); // 只枚举一次
         var successItems = await SaveMusicItemsFromDataBaseAsync(itemsList);
@@ -800,17 +805,17 @@ public partial class MusicPlayerViewModel : ViewModelBase
         var successSet = new HashSet<MusicItemModel>(successItems);
         var failedItems = itemsList.Where(item => !successSet.Contains(item)).ToList();
 
-        /*// 显示删除结果通知
-        if (successItems.Count > 0)
+        // 显示保存结果通知
+        if (successItems.Count > 0 && isEnableSuccessPrompt)
         {
             string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
             NotificationService.ShowLight(
                 new Notification("好欸", $"保存{successTitles}成功了！"),
                 NotificationType.Success
             );
-        }*/
+        }
 
-        if (failedItems.Count > 0)
+        if (failedItems.Count > 0 && isEnableFailedPrompt)
         {
             string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
             NotificationService.ShowLight(
@@ -917,7 +922,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         // 保存上一首歌曲的修改
         if (CurrentMusicItem is { IsInitialized: true, IsModified: true, IsError: false })
         {
-            await SaveMusicItemsAsync([CurrentMusicItem]);
+            await SaveMusicItemsAsync([CurrentMusicItem], false);
         }
 
         if (!PlayList.MusicItems.Contains(musicItem))
@@ -975,7 +980,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
             if (targetSampleRate != _audioEngine.SampleRate)
             {
-                _audioEngine.SampleRate = targetSampleRate;
+                await SetOutputSampleRate(targetSampleRate);
             }
 
             // 处理增益值
@@ -987,6 +992,22 @@ public partial class MusicPlayerViewModel : ViewModelBase
             // 初始化音频
             _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
         });
+    }
+
+    private async Task SetOutputSampleRate(int sampleRate)
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                _audioEngine.Dispose();
+                _audioEngine = new MiniAudioEngine(sampleRate);
+            });
+        }
+        catch (Exception e)
+        {
+            await Log.ErrorAsync($"设置采样率时出现错误 : {e.Message}");
+        }
     }
 
     #endregion

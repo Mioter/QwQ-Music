@@ -121,7 +121,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
 
         await OverlayDialog.ShowCustomModal<CreateMusicList, CreateMusicListViewModel, object>(model, options: options);
 
-        if (model is not { IsOk: true, Name: not null })
+        if (model.IsCancel || model.Name == null)
             return null;
 
         try
@@ -372,7 +372,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
 
         await OverlayDialog.ShowCustomModal<CreateMusicList, CreateMusicListViewModel, object>(model, options: options);
 
-        if (model is not { IsOk: true, Name: not null })
+        if (model.IsCancel || model.Name == null)
             return;
 
         try

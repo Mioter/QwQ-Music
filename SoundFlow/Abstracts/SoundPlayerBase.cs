@@ -9,12 +9,7 @@ namespace SoundFlow.Abstracts;
 /// </summary>
 public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
 {
-    private readonly Lock _stateLock = new();
-    private volatile bool _isSeeking;
-    private volatile bool _isStateChanging;
     private readonly ISoundDataProvider _dataProvider;
-    private readonly int _processingBufferSize;
-    private float[] _processingBuffer;
     private int _rawSamplePosition;
     private float _currentFractionalFrame;
     private float[] _resampleBuffer;
@@ -49,25 +44,10 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
     public bool IsLooping { get; set; }
 
     /// <inheritdoc />
-    public float Time
-    {
-        get
-        {
-            if (AudioEngine.Channels == 0)
-                return 0f;
-
-            lock (_stateLock)
-            {
-                // 计算当前播放位置（考虑播放速度）
-                float currentPosition = _rawSamplePosition / (float)AudioEngine.Channels;
-                if (_playbackSpeed != 0f)
-                {
-                    currentPosition /= _playbackSpeed;
-                }
-                return currentPosition / AudioEngine.Instance.SampleRate;
-            }
-        }
-    }
+    public float Time =>
+        _dataProvider.Length == 0 || AudioEngine.Channels == 0 || AudioEngine.Instance.SampleRate == 0
+            ? 0
+            : (float)_rawSamplePosition / AudioEngine.Channels / AudioEngine.Instance.SampleRate;
 
     /// <inheritdoc />
     public float Duration =>
@@ -109,122 +89,51 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
         _timeStretcherInputBuffer = new float[
             Math.Max(_timeStretcher.MinInputSamplesToProcess * 2, 8192 * initialChannels)
         ];
-        _processingBufferSize = 4096;
-        _processingBuffer = new float[_processingBufferSize];
     }
 
     /// <inheritdoc />
     protected override void GenerateAudio(Span<float> output)
     {
-        // 快速检查状态，避免不必要的锁
+        // Clear output if not playing or no channels.
         if (State != PlaybackState.Playing || AudioEngine.Channels == 0)
         {
             output.Clear();
             return;
         }
 
+        // Directly read from provider when playback speed is 1.0
+        if (Math.Abs(_playbackSpeed - 1.0f) < 0.001f)
+        {
+            int samplesRead = _dataProvider.ReadBytes(output);
+            _rawSamplePosition += samplesRead;
+
+            if (samplesRead < output.Length)
+            {
+                HandleEndOfStream(output[samplesRead..]);
+            }
+            return;
+        }
+
         int channels = AudioEngine.Channels;
+        // Ensure time stretcher has correct channel count.
+        if (_timeStretcher.GetTargetSpeed() == 0f && _playbackSpeed != 0f && channels > 0)
+            _timeStretcher.SetChannels(channels);
+
         if (channels == 0)
         {
             output.Clear();
             return;
         }
 
-        // 如果正在切歌，使用处理缓冲区
-        if (_isSeeking)
-        {
-            // 使用处理缓冲区来平滑过渡
-            int framesToProcess = Math.Min(output.Length / channels, _processingBufferSize / channels);
-            if (framesToProcess > 0)
-            {
-                // 使用淡出效果
-                float fadeStep = 1.0f / framesToProcess;
-                for (int i = 0; i < framesToProcess; i++)
-                {
-                    float fadeMultiplier = 1.0f - i * fadeStep;
-                    for (int ch = 0; ch < channels; ch++)
-                    {
-                        int index = i * channels + ch;
-                        if (index < _processingBuffer.Length)
-                        {
-                            output[index] = _processingBuffer[index] * fadeMultiplier;
-                        }
-                    }
-                }
-                // 清空剩余部分
-                output[(framesToProcess * channels)..].Clear();
-            }
-            else
-            {
-                output.Clear();
-            }
-            return;
-        }
-
-        // 确保时间拉伸器有正确的通道数
-        if (_timeStretcher.GetTargetSpeed() == 0f && _playbackSpeed != 0f && channels > 0)
-        {
-            lock (_stateLock)
-            {
-                _timeStretcher.SetChannels(channels);
-            }
-        }
-
-        // 安全检查：确保 _currentFractionalFrame 在合理范围内
-        if (_currentFractionalFrame < 0 || float.IsNaN(_currentFractionalFrame) || float.IsInfinity(_currentFractionalFrame))
-        {
-            _currentFractionalFrame = 0;
-        }
-
         int outputFramesTotal = output.Length / channels;
         int outputBufferOffset = 0;
-        int totalSourceSamplesAdvancedThisCall = 0;
-
-        // 限制最大帧数，防止缓冲区溢出
-        const int maxFramesPerCall = 4096;
-        outputFramesTotal = Math.Min(outputFramesTotal, maxFramesPerCall);
-
-        // 使用处理缓冲区来存储当前帧
-        if (_processingBuffer.Length < output.Length)
-        {
-            Array.Resize(ref _processingBuffer, output.Length);
-        }
+        int totalSourceSamplesAdvancedThisCall = 0; // Total samples advanced in the original source.
 
         for (int i = 0; i < outputFramesTotal; i++)
         {
-            // 如果正在切歌，使用淡出效果
-            if (_isSeeking)
-            {
-                float fadeMultiplier = 1.0f - (float)i / outputFramesTotal;
-                for (int ch = 0; ch < channels; ch++)
-                {
-                    int index = i * channels + ch;
-                    if (index < _processingBuffer.Length)
-                    {
-                        output[index] = _processingBuffer[index] * fadeMultiplier;
-                    }
-                }
-                continue;
-            }
-
             int currentIntegerFrame = (int)Math.Floor(_currentFractionalFrame);
-
-            // 安全检查：确保 currentIntegerFrame 不会导致缓冲区溢出
-            if (currentIntegerFrame < 0 || currentIntegerFrame > int.MaxValue / channels - 2)
-            {
-                _currentFractionalFrame = 0;
-                currentIntegerFrame = 0;
-            }
-
             // We need 2 frames for linear interpolation (current and next).
             int samplesRequiredInBufferForInterpolation = (currentIntegerFrame + 2) * channels;
-
-            // 安全检查：确保请求的样本数在合理范围内
-            if (samplesRequiredInBufferForInterpolation <= 0 || samplesRequiredInBufferForInterpolation > int.MaxValue / 2)
-            {
-                _currentFractionalFrame = 0;
-                samplesRequiredInBufferForInterpolation = 2 * channels;
-            }
 
             // Fill _resampleBuffer if not enough data for interpolation.
             if (_resampleBufferValidSamples < samplesRequiredInBufferForInterpolation)
@@ -300,13 +209,9 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
             }
         }
 
-        // 更新原始样本位置
+        // Update raw sample position based on actual source samples advanced.
         _rawSamplePosition += totalSourceSamplesAdvancedThisCall;
         _rawSamplePosition = Math.Min(_rawSamplePosition, _dataProvider.Length);
-
-        // 保存当前帧到处理缓冲区
-        output[..Math.Min(output.Length, _processingBuffer.Length)].CopyTo(_processingBuffer);
-
     }
 
     /// <summary>
@@ -316,20 +221,22 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
     /// <returns>The total number of original source samples advanced by this fill operation.</returns>
     private int FillResampleBuffer(int minSamplesRequiredInOutputBuffer)
     {
-        if (minSamplesRequiredInOutputBuffer <= 0)
-            return 0;
-
         int channels = AudioEngine.Channels;
         if (channels == 0)
             return 0;
-
-        // 确保请求的样本数不超过缓冲区最大可能大小
-        minSamplesRequiredInOutputBuffer = Math.Min(minSamplesRequiredInOutputBuffer, int.MaxValue / channels);
 
         // Resize the resampling buffer if too small.
         if (_resampleBuffer.Length < minSamplesRequiredInOutputBuffer)
         {
             Array.Resize(ref _resampleBuffer, Math.Max(minSamplesRequiredInOutputBuffer, _resampleBuffer.Length * 2));
+        }
+
+        // When playback speed is close to 1.0, use simpler interpolation
+        if (Math.Abs(_playbackSpeed - 1.0f) < 0.1f)
+        {
+            int directRead = _dataProvider.ReadBytes(_resampleBuffer.AsSpan(_resampleBufferValidSamples));
+            _resampleBufferValidSamples += directRead;
+            return directRead;
         }
 
         int totalSourceSamplesRepresented = 0;
@@ -342,48 +249,50 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
                 break;
 
             int availableInStretcherInput = _timeStretcherInputBufferValidSamples - _timeStretcherInputBufferReadOffset;
-            bool providerHasMoreData = _dataProvider.Position < _dataProvider.Length;
+            bool providerHasMoreData = _dataProvider.Position < _dataProvider.Length || _dataProvider.Length == -1; // -1 = unknown length or infinite stream
 
             // If time stretcher input buffer needs more data and provider has it.
             if (availableInStretcherInput < _timeStretcher.MinInputSamplesToProcess && providerHasMoreData)
             {
-                // Shift existing valid data to the beginning of the input buffer.
-                if (_timeStretcherInputBufferReadOffset > 0 && availableInStretcherInput > 0)
+                // Compact the buffer by moving the remaining valid samples to the start if we have a read offset.
+                if (_timeStretcherInputBufferReadOffset > 0)
                 {
-                    Buffer.BlockCopy(
-                        _timeStretcherInputBuffer,
-                        _timeStretcherInputBufferReadOffset * sizeof(float),
-                        _timeStretcherInputBuffer,
-                        0,
-                        availableInStretcherInput * sizeof(float)
-                    );
+                    // Calculate remaining samples. It should not be negative, but we defend against it.
+                    int remaining = _timeStretcherInputBufferValidSamples - _timeStretcherInputBufferReadOffset;
+                    if (remaining > 0)
+                    {
+                        // Shift the remaining valid data to the beginning of the input buffer.
+                        Buffer.BlockCopy(
+                            _timeStretcherInputBuffer,
+                            _timeStretcherInputBufferReadOffset * sizeof(float),
+                            _timeStretcherInputBuffer,
+                            0,
+                            remaining * sizeof(float)
+                        );
+                        _timeStretcherInputBufferValidSamples = remaining;
+                    }
+                    else
+                    {
+                        // If no samples remain, the buffer is effectively empty.
+                        _timeStretcherInputBufferValidSamples = 0;
+                    }
+                    // After compacting, the next read position is the start of the buffer.
+                    _timeStretcherInputBufferReadOffset = 0;
                 }
-
-                _timeStretcherInputBufferValidSamples = availableInStretcherInput;
-                _timeStretcherInputBufferReadOffset = 0;
 
                 // Read more data from the data provider into the time stretcher input buffer.
                 int spaceToReadIntoInput = _timeStretcherInputBuffer.Length - _timeStretcherInputBufferValidSamples;
                 if (spaceToReadIntoInput > 0)
                 {
-                    // Ensure we don't exceed buffer bounds
-                    // TODO: 临时修复缓冲区越久问题，可能导致播放不连贯
-                    if (
-                        _timeStretcherInputBufferValidSamples >= 0
-                        && _timeStretcherInputBufferValidSamples + spaceToReadIntoInput
-                            <= _timeStretcherInputBuffer.Length
-                    )
-                    {
-                        int readFromProvider = _dataProvider.ReadBytes(
-                            _timeStretcherInputBuffer.AsSpan(
-                                _timeStretcherInputBufferValidSamples,
-                                spaceToReadIntoInput
-                            )
-                        );
-                        _timeStretcherInputBufferValidSamples += readFromProvider;
-                        availableInStretcherInput = _timeStretcherInputBufferValidSamples;
-                        providerHasMoreData = _dataProvider.Position < _dataProvider.Length;
-                    }
+                    int readFromProvider = _dataProvider.ReadBytes(
+                        _timeStretcherInputBuffer.AsSpan(_timeStretcherInputBufferValidSamples, spaceToReadIntoInput)
+                    );
+                    _timeStretcherInputBufferValidSamples += readFromProvider;
+
+                    // After reading, the available samples have increased. We must recalculate it for the current loop iteration.
+                    availableInStretcherInput =
+                        _timeStretcherInputBufferValidSamples - _timeStretcherInputBufferReadOffset;
+                    providerHasMoreData = _dataProvider.Position < _dataProvider.Length;
                 }
             }
 
@@ -470,8 +379,58 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
     /// </summary>
     protected virtual void HandleEndOfStream(Span<float> remainingOutputBuffer)
     {
-        if (IsLooping)
+        // For live streams with unknown length, don't treat buffer underflow as end-of-stream
+        if (!IsLooping && _dataProvider.Length > 0)
         {
+            // Original end-of-stream handling
+            if (!remainingOutputBuffer.IsEmpty)
+            {
+                int spaceToFill = remainingOutputBuffer.Length;
+                int currentlyValidInResample = _resampleBufferValidSamples;
+
+                if (currentlyValidInResample < spaceToFill)
+                {
+                    int sourceSamplesFromFinalFill = FillResampleBuffer(
+                        Math.Max(currentlyValidInResample, spaceToFill)
+                    );
+                    _rawSamplePosition += sourceSamplesFromFinalFill;
+                    _rawSamplePosition = Math.Min(_rawSamplePosition, _dataProvider.Length);
+                }
+
+                int toCopy = Math.Min(spaceToFill, _resampleBufferValidSamples);
+                if (toCopy > 0)
+                {
+                    SafeCopyTo(_resampleBuffer.AsSpan(0, toCopy), remainingOutputBuffer.Slice(0, toCopy));
+                    int remainingInResampleAfterCopy = _resampleBufferValidSamples - toCopy;
+                    if (remainingInResampleAfterCopy > 0)
+                    {
+                        Buffer.BlockCopy(
+                            _resampleBuffer,
+                            toCopy * sizeof(float),
+                            _resampleBuffer,
+                            0,
+                            remainingInResampleAfterCopy * sizeof(float)
+                        );
+                    }
+
+                    _resampleBufferValidSamples = remainingInResampleAfterCopy;
+                    if (toCopy < spaceToFill)
+                    {
+                        remainingOutputBuffer.Slice(toCopy).Clear();
+                    }
+                }
+                else
+                {
+                    remainingOutputBuffer.Clear();
+                }
+            }
+
+            State = PlaybackState.Stopped;
+            OnPlaybackEnded();
+        }
+        else if (IsLooping)
+        {
+            // Original looping handling
             int targetLoopStart = Math.Max(0, LoopStartSamples);
             int actualLoopEnd =
                 LoopEndSamples == -1 ? _dataProvider.Length : Math.Min(LoopEndSamples, _dataProvider.Length);
@@ -483,56 +442,13 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
                 _loopingSeekPending = false;
                 if (!remainingOutputBuffer.IsEmpty)
                     GenerateAudio(remainingOutputBuffer);
-                return;
             }
         }
-
-        // If not looping or loop points are invalid, fill remaining buffer with what's left and stop.
-        if (!remainingOutputBuffer.IsEmpty)
+        // For live streams (Length <= 0), just clear the buffer and continue
+        else
         {
-            int spaceToFill = remainingOutputBuffer.Length;
-            int currentlyValidInResample = _resampleBufferValidSamples;
-
-            // Attempt one last fill of the resample buffer.
-            if (currentlyValidInResample < spaceToFill)
-            {
-                int sourceSamplesFromFinalFill = FillResampleBuffer(Math.Max(currentlyValidInResample, spaceToFill));
-                _rawSamplePosition += sourceSamplesFromFinalFill;
-                _rawSamplePosition = Math.Min(_rawSamplePosition, _dataProvider.Length);
-            }
-
-            // Copy remaining valid samples to output and clear the rest.
-            int toCopy = Math.Min(spaceToFill, _resampleBufferValidSamples);
-            if (toCopy > 0)
-            {
-                _resampleBuffer.AsSpan(0, toCopy).CopyTo(remainingOutputBuffer[..toCopy]);
-                int remainingInResampleAfterCopy = _resampleBufferValidSamples - toCopy;
-                if (remainingInResampleAfterCopy > 0)
-                {
-                    // Shift remaining samples in resample buffer.
-                    Buffer.BlockCopy(
-                        _resampleBuffer,
-                        toCopy * sizeof(float),
-                        _resampleBuffer,
-                        0,
-                        remainingInResampleAfterCopy * sizeof(float)
-                    );
-                }
-
-                _resampleBufferValidSamples = remainingInResampleAfterCopy;
-                if (toCopy < spaceToFill)
-                {
-                    remainingOutputBuffer[toCopy..].Clear(); // Clear any unfilled part.
-                }
-            }
-            else
-            {
-                remainingOutputBuffer.Clear(); // No valid samples, clear entire buffer.
-            }
+            remainingOutputBuffer.Clear();
         }
-
-        State = PlaybackState.Stopped;
-        OnPlaybackEnded();
     }
 
     /// <summary>
@@ -560,74 +476,30 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
     /// <inheritdoc />
     public void Play()
     {
-        if (_isStateChanging)
-            return;
-
-        try
-        {
-            _isStateChanging = true;
-            lock (_stateLock)
-            {
-                Enabled = true;
-                State = PlaybackState.Playing;
-            }
-        }
-        finally
-        {
-            _isStateChanging = false;
-        }
+        Enabled = true;
+        State = PlaybackState.Playing;
     }
 
     /// <inheritdoc />
     public void Pause()
     {
-        if (_isStateChanging)
-            return;
-
-        try
-        {
-            _isStateChanging = true;
-            lock (_stateLock)
-            {
-                Enabled = false;
-                State = PlaybackState.Paused;
-            }
-        }
-        finally
-        {
-            _isStateChanging = false;
-        }
+        Enabled = false;
+        State = PlaybackState.Paused;
     }
 
     /// <inheritdoc />
     public void Stop()
     {
-        if (_isStateChanging)
-            return;
-
-        try
-        {
-            _isStateChanging = true;
-            lock (_stateLock)
-            {
-                State = PlaybackState.Stopped;
-                Enabled = false;
-                Seek(0);
-                _timeStretcher.Reset();
-                _resampleBufferValidSamples = 0;
-                Array.Clear(_resampleBuffer, 0, _resampleBuffer.Length);
-                _timeStretcherInputBufferValidSamples = 0;
-                _timeStretcherInputBufferReadOffset = 0;
-                Array.Clear(_timeStretcherInputBuffer, 0, _timeStretcherInputBuffer.Length);
-                _currentFractionalFrame = 0;
-                _rawSamplePosition = 0;
-                _loopingSeekPending = false;
-            }
-        }
-        finally
-        {
-            _isStateChanging = false;
-        }
+        State = PlaybackState.Stopped;
+        Enabled = false;
+        Seek(0);
+        _timeStretcher.Reset();
+        _resampleBufferValidSamples = 0;
+        Array.Clear(_resampleBuffer, 0, _resampleBuffer.Length);
+        _timeStretcherInputBufferValidSamples = 0;
+        _timeStretcherInputBufferReadOffset = 0;
+        Array.Clear(_timeStretcherInputBuffer, 0, _timeStretcherInputBuffer.Length);
+        _currentFractionalFrame = 0f;
     }
 
     /// <inheritdoc />
@@ -673,57 +545,33 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
     /// <inheritdoc />
     public bool Seek(int sampleOffset)
     {
-        // 如果已经在切歌或状态改变中，返回 false
-        if (_isSeeking || _isStateChanging)
+        if (!_dataProvider.CanSeek || AudioEngine.Channels == 0)
             return false;
 
-        try
-        {
-            _isStateChanging = true;
-
-            if (sampleOffset < 0 || sampleOffset > _dataProvider.Length)
-                return false;
-
-            // 在切歌前重置所有状态
-            lock (_stateLock)
-            {
-                _isSeeking = true;
-                _timeStretcher.Reset();
-                _resampleBufferValidSamples = 0;
-                Array.Clear(_resampleBuffer, 0, _resampleBuffer.Length);
-                _timeStretcherInputBufferValidSamples = 0;
-                _timeStretcherInputBufferReadOffset = 0;
-                Array.Clear(_timeStretcherInputBuffer, 0, _timeStretcherInputBuffer.Length);
-                _currentFractionalFrame = 0;
-                _rawSamplePosition = sampleOffset;
-                _loopingSeekPending = false;
-
-                // 重置数据提供者的位置
-                try
-                {
-                    _dataProvider.Seek(sampleOffset);
-                }
-                catch
-                {
-                    _rawSamplePosition = Math.Min(_rawSamplePosition, _dataProvider.Length);
-                    return false;
-                }
-
-                // 确保时间拉伸器使用正确的通道数
-                if (AudioEngine.Channels > 0)
-                    _timeStretcher.SetChannels(AudioEngine.Channels);
-            }
-
-            return true;
-        }
-        finally
-        {
-            _isSeeking = false;
-            _isStateChanging = false;
-        }
+        int maxSeekableSample = _dataProvider.Length > 0 ? _dataProvider.Length - AudioEngine.Channels : 0;
+        maxSeekableSample = Math.Max(0, maxSeekableSample);
+        // Align sample offset to frame boundary.
+        sampleOffset = sampleOffset / AudioEngine.Channels * AudioEngine.Channels;
+        sampleOffset = Math.Clamp(sampleOffset, 0, maxSeekableSample);
+        _dataProvider.Seek(sampleOffset);
+        _rawSamplePosition = sampleOffset;
+        _currentFractionalFrame = 0f;
+        _resampleBufferValidSamples = 0;
+        _timeStretcher.Reset();
+        _timeStretcherInputBufferValidSamples = 0;
+        _timeStretcherInputBufferReadOffset = 0;
+        return true;
     }
 
     #endregion
+
+    private static void SafeCopyTo(Span<float> source, Span<float> destination)
+    {
+        for (int i = 0; i < Math.Min(source.Length, destination.Length); i++)
+        {
+            destination[i] = Math.Clamp(source[i], -1f, 1f);
+        }
+    }
 
     #region Loop Point Configuration Methods
 

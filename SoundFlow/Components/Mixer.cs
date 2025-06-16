@@ -12,7 +12,7 @@ public sealed class Mixer : SoundComponent, IDisposable
     private readonly ConcurrentDictionary<SoundComponent, byte> _components = new();
 
     // Separate lock for modifications to prevent conflicts with audio processing
-    private readonly object _modificationLock = new();
+    private readonly Lock _modificationLock = new();
 
     // Flag to track disposal state
     private volatile bool _isDisposed;

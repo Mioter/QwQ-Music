@@ -32,99 +32,130 @@ internal static unsafe partial class Native
     {
         public static nint Resolve(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
         {
-            if (NativeLibrary.TryLoad(libraryName, out IntPtr library))
+            // 1. Get the platform-specific library file name (e.g., "libminiaudio.so", "miniaudio.dll").
+            string platformSpecificName = GetPlatformSpecificLibraryName(libraryName);
+
+            // 2. Try to load the library using its platform-specific name, allowing OS to find it in standard paths.
+            if (NativeLibrary.TryLoad(platformSpecificName, assembly, searchPath, out IntPtr library))
                 return library;
 
-            string libraryPath = GetLibraryPath(libraryName);
+            // 3. If that fails, try to load it from the application's 'runtimes' directory for self-contained apps.
+            string relativePath = GetLibraryPath(libraryName); // This still gives the full relative path
+            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativePath);
 
-            // Safeguard against dotnet cli working directory inconsistency
-            if (NativeLibrary.TryLoad(libraryName, out library))
+            if (File.Exists(fullPath) && NativeLibrary.TryLoad(fullPath, out library))
                 return library;
 
-            libraryPath = $"{AppDomain.CurrentDomain.BaseDirectory}/{libraryPath}";
-            return NativeLibrary.Load(libraryPath);
+            // 4. If not found, use Load() to let the runtime throw a detailed DllNotFoundException.
+            return NativeLibrary.Load(fullPath);
         }
 
+        /// <summary>
+        /// Gets the platform-specific library name
+        /// </summary>
+        private static string GetPlatformSpecificLibraryName(string libraryName)
+        {
+            if (OperatingSystem.IsWindows())
+                return $"{libraryName}.dll";
+
+            if (OperatingSystem.IsMacOS())
+                return $"lib{libraryName}.dylib";
+
+            // For iOS frameworks, the binary has the same name as the framework
+            if (OperatingSystem.IsIOS())
+                return libraryName;
+
+            // Default to Linux/Android/FreeBSD convention
+            return $"lib{libraryName}.so";
+        }
+
+        /// <summary>
+        /// Constructs the relative path to the native library within the 'runtimes' folder.
+        /// </summary>
         private static string GetLibraryPath(string libraryName)
         {
             const string relativeBase = "runtimes";
+            string platformSpecificName = GetPlatformSpecificLibraryName(libraryName);
+
+            string rid;
             if (OperatingSystem.IsWindows())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.X86 => $"{relativeBase}/win-x86/native/{libraryName}.dll",
-                    Architecture.X64 => $"{relativeBase}/win-x64/native/{libraryName}.dll",
-                    Architecture.Arm64 => $"{relativeBase}/win-arm64/native/{libraryName}.dll",
+                    Architecture.X86 => "win-x86",
+                    Architecture.X64 => "win-x64",
+                    Architecture.Arm64 => "win-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported Windows architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
             }
-
-            if (OperatingSystem.IsMacOS())
+            else if (OperatingSystem.IsMacOS())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.X64 => $"{relativeBase}/osx-x64/native/lib{libraryName}.dylib",
-                    Architecture.Arm64 => $"{relativeBase}/osx-arm64/native/lib{libraryName}.dylib",
+                    Architecture.X64 => "osx-x64",
+                    Architecture.Arm64 => "osx-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported macOS architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
             }
-
-            if (OperatingSystem.IsLinux())
+            else if (OperatingSystem.IsLinux())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.X64 => $"{relativeBase}/linux-x64/native/lib{libraryName}.so",
-                    Architecture.Arm => $"{relativeBase}/linux-arm/native/lib{libraryName}.so",
-                    Architecture.Arm64 => $"{relativeBase}/linux-arm64/native/lib{libraryName}.so",
+                    Architecture.X64 => "linux-x64",
+                    Architecture.Arm => "linux-arm",
+                    Architecture.Arm64 => "linux-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported Linux architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
             }
-
-            if (OperatingSystem.IsAndroid())
+            else if (OperatingSystem.IsAndroid())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.X64 => $"{relativeBase}/android-x64/native/lib{libraryName}.so",
-                    Architecture.Arm => $"{relativeBase}/android-arm/native/lib{libraryName}.so",
-                    Architecture.Arm64 => $"{relativeBase}/android-arm64/native/lib{libraryName}.so",
+                    Architecture.X64 => "android-x64",
+                    Architecture.Arm => "android-arm",
+                    Architecture.Arm64 => "android-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported Android architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
             }
-
-            if (OperatingSystem.IsIOS())
+            else if (OperatingSystem.IsIOS())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.Arm64 => $"{relativeBase}/ios-arm64/native/{libraryName}.framework/{libraryName}",
+                    // iOS uses .framework folders
+                    Architecture.Arm64 => "ios-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported iOS architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
+                return Path.Combine(relativeBase, rid, "native", $"{libraryName}.framework", platformSpecificName);
             }
-
-            if (OperatingSystem.IsFreeBSD())
+            else if (OperatingSystem.IsFreeBSD())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.X64 => $"{relativeBase}/freebsd-x64/native/lib{libraryName}.so",
-                    Architecture.Arm64 => $"{relativeBase}/freebsd-arm64/native/lib{libraryName}.so",
+                    Architecture.X64 => "freebsd-x64",
+                    Architecture.Arm64 => "freebsd-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported FreeBSD architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
             }
+            else
+            {
+                throw new PlatformNotSupportedException(
+                    $"Unsupported operating system: {RuntimeInformation.OSDescription}"
+                );
+            }
 
-            throw new PlatformNotSupportedException(
-                $"Unsupported operating system: {RuntimeInformation.OSDescription}"
-            );
+            return Path.Combine(relativeBase, rid, "native", platformSpecificName);
         }
     }
 

@@ -28,7 +28,8 @@
 
             <ComboBox Width="120"
                       DisplayMemberBinding="{Binding Key,DataType=userControls:AspectRatioMap}"
-                      SelectedItem="{Binding SelectedItem}"
+                      SelectedValueBinding="{Binding Value,DataType=userControls:AspectRatioMap}"
+                      SelectedValue="{Binding AspectRatio}"
                       ItemsSource="{Binding AspectRatioMaps}" />
             
         </StackPanel>

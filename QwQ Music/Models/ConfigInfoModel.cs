@@ -11,13 +11,15 @@ public static class ConfigInfoModel
     #region 配置加载
 
     // 使用Lazy<T>实现真正的懒加载
-    private static readonly Lazy<MainConfig> _mainConfig = new(
+    private static readonly Lazy<SystemConfig> _systemConfig = new(
         () =>
-            JsonConfigService.Load<MainConfig>(nameof(MainConfig).ToLower(), MainConfigJsonSerializerContext.Default)
-            ?? new MainConfig()
+            JsonConfigService.Load<SystemConfig>(
+                nameof(SystemConfig).ToLower(),
+                SystemConfigJsonSerializerContext.Default
+            ) ?? new SystemConfig()
     );
 
-    public static MainConfig MainConfig => _mainConfig.Value;
+    public static SystemConfig SystemConfig => _systemConfig.Value;
 
     // PlayerConfig 实现
     private static readonly Lazy<PlayerConfig> _playerConfig = new(
@@ -64,14 +66,14 @@ public static class ConfigInfoModel
 
     #region 配置保存
 
-    public async static Task SaveMainConfig()
+    public async static Task SaveSystemConfig()
     {
-        if (_mainConfig.IsValueCreated)
+        if (_systemConfig.IsValueCreated)
         {
             await JsonConfigService.SaveAsync(
-                MainConfig,
-                nameof(MainConfig).ToLower(),
-                InterfaceConfigJsonSerializerContext.Default
+                SystemConfig,
+                nameof(SystemConfig).ToLower(),
+                SystemConfigJsonSerializerContext.Default
             );
         }
     }
@@ -130,7 +132,7 @@ public static class ConfigInfoModel
     {
         try
         {
-            await SaveMainConfig();
+            await SaveSystemConfig();
             await SaveInterfaceConfig();
             await SavePlayerConfig();
             await SaveLyricConfig();

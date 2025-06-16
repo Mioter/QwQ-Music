@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="pages:SystemConfigPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.SystemConfigPage">
+
+    <ScrollViewer
+        Margin="10"
+        VerticalScrollBarVisibility="Auto">
+
+        <StackPanel Margin="0,0,10,0">
+
+            <Expander Header="程序行为" IsExpanded="{Binding Config.IsExpandedProgramBehavior}">
+
+                <StackPanel>
+                    <Panel>
+                        <TextBlock Text="窗口关闭" VerticalAlignment="Center" />
+                        <ComboBox
+                            MinWidth="80"
+                            DisplayMemberBinding="{Binding Key,DataType=pages:ClosingBehaviorMap}"
+                            SelectedValueBinding="{Binding Value,DataType=pages:ClosingBehaviorMap}"
+                            HorizontalAlignment="Right"
+                            ItemsSource="{Binding ClosingBehaviors}"
+                            SelectedValue="{Binding Config.ClosingBehavior}" />
+                    </Panel>
+                </StackPanel>
+     
+            </Expander>
+
+        </StackPanel>
+        
+    </ScrollViewer>
+
+</UserControl>

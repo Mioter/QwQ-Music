@@ -7,17 +7,12 @@
     
     <Grid RowDefinitions="55,*,Auto" >
 
-        <StackPanel  Margin="15" Orientation="Horizontal" Spacing="10">
+        <StackPanel Margin="15" Orientation="Horizontal" Spacing="10">
 
-            <Border CornerRadius="50"  
-                    VerticalAlignment="Center" 
-                    Background="#46C01B">
-                <PathIcon 
-                    Data="{StaticResource SemiIconPlus}" 
-                    Margin="5" 
-                    Foreground="White" />
-            </Border>
-
+            <PathIcon
+                Data="{StaticResource SemiIconPlusCircle}"
+                Foreground="#46C01B" />
+            
             <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
 
         </StackPanel>
@@ -81,11 +76,19 @@
     </DockPanel>
 
         <StackPanel Margin="20" Spacing="20" HorizontalAlignment="Right" Grid.Row="2" Orientation="Horizontal">
+            
+            <StackPanel.Styles>
+                <Style Selector="Button">
+                    <Setter Property="CornerRadius" Value="8"/>
+                </Style>
+            </StackPanel.Styles>
 
-            <Button Content="取消" Command="{Binding CancelCommand}" />
+            <Button Content="取消" 
+                    Theme="{DynamicResource OutlineButton}" 
+                    Command="{Binding CancelCommand}" />
 
-            <Button Content="确认" 
-                    IsEnabled="{Binding CanOk}" 
+            <Button Content="确认"
+                    IsEnabled="{Binding CanOk}"
                     Command="{Binding OkCommand}"
                     Theme="{DynamicResource SolidButton}" />
 

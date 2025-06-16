@@ -97,7 +97,7 @@
                     <MenuItem Command="{Binding $parent[u:DialogControlBase].Close}"
                               Header="{DynamicResource STRING_MENU_DIALOG_CLOSE}">
                         <MenuItem.Icon>
-                            <PathIcon Data="{DynamicResource SemiIconClose}" Theme="{StaticResource InnerPathIcon}" />
+                            <PathIcon Data="{DynamicResource SemiIconClose}" Theme="{DynamicResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuFlyout>
@@ -190,7 +190,7 @@
                         CornerRadius="{TemplateBinding CornerRadius}"
                         Focusable="True"
                         IsHitTestVisible="True"
-                        Theme="{DynamicResource CardBorder}">
+                        Theme="{StaticResource CardBorder}">
                         
                         <Border ClipToBounds="True" CornerRadius="{TemplateBinding CornerRadius}">
                             
@@ -247,7 +247,7 @@
                                         Grid.Column="1"
                                         Margin="20,0"
                                         DockPanel.Dock="Right"
-                                        Theme="{DynamicResource OverlayCloseButton}" />
+                                        Theme="{StaticResource OverlayCloseButton}" />
                                     
                                 </Grid>
 

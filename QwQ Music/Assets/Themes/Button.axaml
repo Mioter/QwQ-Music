@@ -15,7 +15,7 @@
                     CornerRadius="{TemplateBinding CornerRadius}">
                     <PathIcon
                         Foreground="{DynamicResource SemiColorText1}"
-                        Theme="{StaticResource InnerPathIcon}"
+                        Theme="{DynamicResource InnerPathIcon}"
                         Data="{DynamicResource SemiIconClose}" />
                 </Border>
             </ControlTemplate>

@@ -85,6 +85,7 @@
             <TextBlock Text="播放" />
             <TextBlock Text="歌词" />
             <TextBlock Text="音效" />
+            <TextBlock Text="系统" />
 
         </u:SelectionList>
 
@@ -105,6 +106,7 @@
             <pages:PlayConfigPage />
             <pages:LyricConfigPage />
             <pages:SoundEffectConfigPage />
+            <pages:SystemConfigPage/>
 
         </control:IndexControl>
     </Grid>

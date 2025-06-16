@@ -31,8 +31,22 @@
                         <ComboBox
                             HorizontalAlignment="Right"
                             ItemsSource="{Binding ColorExtractionAlgorithms}"
-                            SelectedItem="{Binding InterfaceConfig.SelectedColorExtractionAlgorithm}" />
+                            SelectedItem="{Binding InterfaceConfig.CoverConfig.SelectedColorExtractionAlgorithm}" />
                     </Panel>
+
+                    <CheckBox
+                        Content="忽略白色"
+                        IsChecked="{Binding InterfaceConfig.CoverConfig.IgnoreWhite}" />
+
+                    <CheckBox
+                        Content="转化为Lab矢量"
+                        IsVisible="{Binding InterfaceConfig.CoverConfig.SelectedColorExtractionAlgorithm,Converter={StaticResource StringEqualityConverter},ConverterParameter='KMeans'}"
+                        IsChecked="{Binding InterfaceConfig.CoverConfig.ToLab}" />
+
+                    <CheckBox
+                        Content="使用UseKMeansPp"
+                        IsVisible="{Binding InterfaceConfig.CoverConfig.SelectedColorExtractionAlgorithm,Converter={StaticResource StringEqualityConverter},ConverterParameter='KMeans'}"
+                        IsChecked="{Binding InterfaceConfig.CoverConfig.UseKMeansPp}" />
 
                 </StackPanel>
 

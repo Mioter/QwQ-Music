@@ -18,8 +18,6 @@ namespace QwQ_Music.ViewModels;
 
 public partial class ApplicationViewModel : ObservableObject
 {
-    public static MusicPlayerViewModel MusicPlayerViewModel { get; set; } = MusicPlayerViewModel.Instance;
-
     [RelayCommand]
     private static void ShowMainWindow()
     {
@@ -44,7 +42,7 @@ public partial class ApplicationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private static async Task ExitApplication()
+    public static async Task ExitApplication()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return;

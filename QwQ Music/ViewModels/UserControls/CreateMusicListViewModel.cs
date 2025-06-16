@@ -5,7 +5,6 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Irihi.Avalonia.Shared.Contracts;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
@@ -17,12 +16,8 @@ using Notification = Ursa.Controls.Notification;
 namespace QwQ_Music.ViewModels.UserControls;
 
 public partial class CreateMusicListViewModel(OverlayDialogOptions options, string oldName = "")
-    : ViewModelBase,
-        IDialogContext
+    : DialogViewModelBase(options)
 {
-    [ObservableProperty]
-    public partial string Title { get; set; } = options.Title ?? "(*^▽^*)";
-
     [ObservableProperty]
     public partial Bitmap? Cover { get; set; }
 
@@ -62,8 +57,6 @@ public partial class CreateMusicListViewModel(OverlayDialogOptions options, stri
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanOk))]
     public partial string? ErrorText { get; set; } = "名称不能为空!";
-
-    public bool IsOk;
 
     [RelayCommand]
     private async Task AddCover()
@@ -125,23 +118,15 @@ public partial class CreateMusicListViewModel(OverlayDialogOptions options, stri
         }
     }
 
-    public void Close()
-    {
-        RequestClose?.Invoke(this, null);
-    }
-
     [RelayCommand]
     private void Ok()
     {
-        IsOk = true;
-        RequestClose?.Invoke(this, true);
+        Close(true);
     }
 
     [RelayCommand]
     private void Cancel()
     {
-        RequestClose?.Invoke(this, false);
+        Close(false);
     }
-
-    public event EventHandler<object?>? RequestClose;
 }

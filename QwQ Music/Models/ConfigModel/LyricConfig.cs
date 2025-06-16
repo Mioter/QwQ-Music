@@ -128,6 +128,56 @@ public class HsvColorJsonConverter : JsonConverter<HsvColor>
     }
 }
 
+public class PixelPointJsonConverter : JsonConverter<PixelPoint>
+{
+    public override PixelPoint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new JsonException();
+        }
+
+        int x = 0,
+            y = 0;
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                break;
+            }
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                throw new JsonException();
+            }
+
+            string propertyName = reader.GetString()!;
+            reader.Read();
+
+            switch (propertyName)
+            {
+                case "X":
+                    x = reader.GetInt32();
+                    break;
+                case "Y":
+                    y = reader.GetInt32();
+                    break;
+            }
+        }
+
+        return new PixelPoint(x, y);
+    }
+
+    public override void Write(Utf8JsonWriter writer, PixelPoint value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+        writer.WriteNumber("X", value.X);
+        writer.WriteNumber("Y", value.Y);
+        writer.WriteEndObject();
+    }
+}
+
 public class LyricConfig : ObservableObject
 {
     public RolledLyricConfig RolledLyri { get; set; } = new();
@@ -168,14 +218,12 @@ public partial class DesktopLyricConfig : ObservableObject
     public partial bool LyricIsVertical { get; set; }
 
     [ObservableProperty]
-    public partial int LyricPositionX { get; set; }
-
-    [ObservableProperty]
-    public partial int LyricPositionY { get; set; }
+    [JsonConverter(typeof(PixelPointJsonConverter))]
+    public partial PixelPoint Position { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LyricMargin))]
-    public partial double LyricSpacing { get; set; }
+    public partial double LyricSpacing { get; set; } = 10;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LyricWidowWidth))]
@@ -217,10 +265,28 @@ public partial class DesktopLyricConfig : ObservableObject
     public partial HsvColor LyricBackground { get; set; }
 
     [ObservableProperty]
-    public partial int LyricMainFontSize { get; set; } = 15;
+    public partial double LyricMainFontSize { get; set; } = 15;
 
     [ObservableProperty]
-    public partial int LyricAltFontSize { get; set; } = 12;
+    public partial double LyricAltFontSize { get; set; } = 12;
+    
+    [ObservableProperty]
+    public partial double LyricMainLetterSpacing { get; set; } = 5;
+
+    [ObservableProperty]
+    public partial double LyricAltLetterSpacing { get; set; } = 3;
+    
+    [ObservableProperty]
+    public partial double LyricMainStrokeThickness { get; set; } = 5;
+
+    [ObservableProperty]
+    public partial double LyricAltStrokeThickness { get; set; } = 3;    
+    
+    [ObservableProperty]
+    public partial double LyricMainTranslateSpacing { get; set; } = 3;
+
+    [ObservableProperty]
+    public partial double LyricAltTranslateSping { get; set; } = 2;
 }
 
 // 用于序列化的辅助类
