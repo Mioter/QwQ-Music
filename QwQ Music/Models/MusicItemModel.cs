@@ -195,6 +195,8 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
 
             MusicExtractor.ImageCache[CoverPath] = value;
             _coverStatus = CoverStatus.Loaded;
+
+            OnPropertyChanged();
         }
     }
 

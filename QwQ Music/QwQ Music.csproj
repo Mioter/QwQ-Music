@@ -9,8 +9,8 @@
         <LangVersion>preview</LangVersion>
         <ImplicitUsings>disable</ImplicitUsings>
         <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-        <PublishAot>true</PublishAot>
-        <TrimMode>link</TrimMode>
+<!--        <PublishAot>true</PublishAot>
+        <TrimMode>link</TrimMode>-->
     </PropertyGroup>
 
     <ItemGroup>

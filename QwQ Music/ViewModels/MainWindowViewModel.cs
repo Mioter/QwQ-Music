@@ -25,6 +25,19 @@ public partial class MainWindowViewModel : NavigationViewModel
     {
         NavigateService.CurrentViewChanged += CurrentViewChanged;
 
+        // 注册热键功能
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.ViewForward, () =>
+        {
+            if (CanGoForward)
+                ViewForwardCommand.Execute(null);
+        });
+
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.ViewBackward, () =>
+        {
+            if (CanGoBack)
+                ViewBackwardCommand.Execute(null);
+        });
+
         MessageBus
             .ReceiveMessage<ViewChangeMessage>(this)
             .WithHandler(ViewListChangeMessageHandle)

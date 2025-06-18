@@ -31,11 +31,12 @@ public partial class MusicListModel : ObservableObject
         {
             CoverImage = coverImage;
         }
+        _coverCacheKey = $"歌单-{Name}";
     }
 
     public readonly string Id = $"歌单-{UniqueIdGenerator.GetNextId()}";
 
-    private string? _coverCacheKey;
+    private string _coverCacheKey;
 
     public string Name
     {
@@ -69,7 +70,7 @@ public partial class MusicListModel : ObservableObject
                 return MusicExtractor.DefaultCover;
 
             // 尝试从缓存获取图片
-            if (MusicExtractor.ImageCache.TryGetValue(_coverCacheKey ??= $"歌单-{Name}", out var image))
+            if (MusicExtractor.ImageCache.TryGetValue(_coverCacheKey, out var image))
             {
                 _coverStatus = CoverStatus.Loaded;
                 return image!;
@@ -99,7 +100,7 @@ public partial class MusicListModel : ObservableObject
 
                 if (bitmap != null)
                 {
-                    MusicExtractor.ImageCache[_coverCacheKey ??= $"歌单-{Name}"] = bitmap;
+                    MusicExtractor.ImageCache[_coverCacheKey] = bitmap;
                     _coverStatus = CoverStatus.Loaded;
                 }
                 else
@@ -112,7 +113,7 @@ public partial class MusicListModel : ObservableObject
 
                     if (firstMusicCoverImage != null && firstMusicCoverImage != MusicExtractor.DefaultCover)
                     {
-                        MusicExtractor.ImageCache[_coverCacheKey ??= $"歌单-{Name}"] = firstMusicCoverImage;
+                        MusicExtractor.ImageCache[_coverCacheKey] = firstMusicCoverImage;
                         _coverStatus = CoverStatus.Loaded;
                     }
                     else
@@ -129,8 +130,10 @@ public partial class MusicListModel : ObservableObject
         }
         set
         {
-            MusicExtractor.ImageCache[_coverCacheKey ??= $"歌单-{Name}"] = value;
+            MusicExtractor.ImageCache[_coverCacheKey] = value;
             _coverStatus = CoverStatus.Loaded;
+
+            OnPropertyChanged();
         }
     }
 
@@ -145,7 +148,7 @@ public partial class MusicListModel : ObservableObject
     /// <summary>
     /// 初始化音乐列表
     /// </summary>
-    public async Task<MusicListModel?> LoadAsync()
+    public async Task<MusicListModel?> LoadAsync(ObservableCollection<MusicItemModel> allMusicItems)
     {
         // 获取最近播放的音乐列表
         var latestPlayedMusicList = await DataBaseService.LoadSpecifyFieldsAsync(
@@ -156,7 +159,15 @@ public partial class MusicListModel : ObservableObject
             $"{nameof(Name)} = '{Name.Replace("'", "''")}'"
         );
 
-        MusicItems = new ObservableCollection<MusicItemModel>(await LoadMusicItemsAsync());
+        // 加载播放列表并获取文件路径列表
+        var filePaths = await LoadMusicFilePathsAsync();
+
+        // 根据文件路径从 全部 MusicItems 中查找对应项目
+        var musicItems = filePaths
+            .Select(filePath => allMusicItems.FirstOrDefault(item => filePath != null && item.FilePath == filePath))
+            .OfType<MusicItemModel>();
+
+        MusicItems = new ObservableCollection<MusicItemModel>(musicItems);
 
         // 设置最近播放的音乐
         if (latestPlayedMusicList is { Count: > 0 })
@@ -165,25 +176,6 @@ public partial class MusicListModel : ObservableObject
         IsInitialized = true;
 
         return this;
-    }
-
-    /// <summary>
-    /// 加载当前歌单音乐项
-    /// </summary>
-    /// <returns>音乐项集合</returns>
-    private async Task<IEnumerable<MusicItemModel>> LoadMusicItemsAsync()
-    {
-        // 加载播放列表并获取文件路径列表
-        var filePaths = await LoadMusicFilePathsAsync();
-
-        // 根据文件路径从 全部 MusicItems 中查找对应项目
-        return filePaths
-            .Select(filePath =>
-                MusicPlayerViewModel.Instance.MusicItems.FirstOrDefault(item =>
-                    filePath != null && item.FilePath == filePath
-                )
-            )
-            .OfType<MusicItemModel>();
     }
 
     /// <summary>
@@ -201,7 +193,7 @@ public partial class MusicListModel : ObservableObject
             search: $"{nameof(Name)} = '{Name.Replace("'", "''")}'"
         );
 
-        if (filePaths != null)
+        if (filePaths?.Count >= 0)
             return filePaths;
 
         NotificationService.ShowLight(
@@ -233,7 +225,7 @@ public partial class MusicListModel : ObservableObject
             search: $"{nameof(Name)} = '{playlistName.Replace("'", "''")}'"
         );
 
-        if (filePaths != null)
+        if (filePaths?.Count > 0)
         {
             return filePaths.FirstOrDefault();
         }

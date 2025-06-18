@@ -68,66 +68,6 @@ public class ColorJsonConverter : JsonConverter<Color>
     }
 }
 
-public class HsvColorJsonConverter : JsonConverter<HsvColor>
-{
-    public override HsvColor Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.StartObject)
-        {
-            throw new JsonException();
-        }
-
-        double h = 0,
-            s = 0,
-            v = 0,
-            a = 0;
-
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndObject)
-            {
-                break;
-            }
-
-            if (reader.TokenType != JsonTokenType.PropertyName)
-            {
-                throw new JsonException();
-            }
-
-            string propertyName = reader.GetString()!;
-            reader.Read();
-
-            switch (propertyName)
-            {
-                case "A":
-                    a = reader.GetDouble();
-                    break;
-                case "H":
-                    h = reader.GetDouble();
-                    break;
-                case "S":
-                    s = reader.GetDouble();
-                    break;
-                case "V":
-                    v = reader.GetDouble();
-                    break;
-            }
-        }
-
-        return new HsvColor(a, h, s, v);
-    }
-
-    public override void Write(Utf8JsonWriter writer, HsvColor value, JsonSerializerOptions options)
-    {
-        writer.WriteStartObject();
-        writer.WriteNumber("A", value.A);
-        writer.WriteNumber("H", value.H);
-        writer.WriteNumber("S", value.S);
-        writer.WriteNumber("V", value.V);
-        writer.WriteEndObject();
-    }
-}
-
 public class PixelPointJsonConverter : JsonConverter<PixelPoint>
 {
     public override PixelPoint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -209,7 +149,7 @@ public partial class DesktopLyricConfig : ObservableObject
     public bool LockLyricWindow { get; set; }
 
     [ObservableProperty]
-    public partial bool LyricIsDoubleLine { get; set; }
+    public partial bool LyricIsDoubleLine { get; set; } = true;
 
     [ObservableProperty]
     public partial bool LyricIsDualLang { get; set; }
@@ -238,52 +178,52 @@ public partial class DesktopLyricConfig : ObservableObject
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricMainTopColor { get; set; }
+    public partial Color LyricMainTopColor { get; set; } = Color.FromArgb(255, 255, 35, 112);
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricMainBottomColor { get; set; }
+    public partial Color LyricMainBottomColor { get; set; } = Color.FromArgb(255, 180, 152, 255);
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricMainBorderColor { get; set; }
+    public partial Color LyricMainBorderColor { get; set; } = Colors.White;
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricAltTopColor { get; set; }
+    public partial Color LyricAltTopColor { get; set; } = Color.FromArgb(255, 122, 68, 255);
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricAltBottomColor { get; set; }
+    public partial Color LyricAltBottomColor { get; set; } = Color.FromArgb(255, 255, 134, 227);
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricAltBorderColor { get; set; }
+    public partial Color LyricAltBorderColor { get; set; } = Colors.White;
 
     [ObservableProperty]
-    [JsonConverter(typeof(HsvColorJsonConverter))]
-    public partial HsvColor LyricBackground { get; set; }
+    [JsonConverter(typeof(ColorJsonConverter))]
+    public partial Color LyricBackground { get; set; }
 
     [ObservableProperty]
-    public partial double LyricMainFontSize { get; set; } = 15;
+    public partial double LyricMainFontSize { get; set; } = 20;
 
     [ObservableProperty]
-    public partial double LyricAltFontSize { get; set; } = 12;
+    public partial double LyricAltFontSize { get; set; } = 18;
 
     [ObservableProperty]
-    public partial double LyricMainLetterSpacing { get; set; } = 5;
+    public partial double LyricMainLetterSpacing { get; set; } = 2;
 
     [ObservableProperty]
-    public partial double LyricAltLetterSpacing { get; set; } = 3;
+    public partial double LyricAltLetterSpacing { get; set; } = 2;
 
     [ObservableProperty]
-    public partial double LyricMainStrokeThickness { get; set; } = 5;
+    public partial double LyricMainStrokeThickness { get; set; } = 3;
 
     [ObservableProperty]
     public partial double LyricAltStrokeThickness { get; set; } = 3;
 
     [ObservableProperty]
-    public partial double LyricMainTranslateSpacing { get; set; } = 3;
+    public partial double LyricMainTranslateSpacing { get; set; } = 2;
 
     [ObservableProperty]
     public partial double LyricAltTranslateSping { get; set; } = 2;

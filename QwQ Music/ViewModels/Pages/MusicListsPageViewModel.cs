@@ -28,29 +28,17 @@ public partial class MusicListsPageViewModel : ViewModelBase
 {
     public ObservableCollection<MusicListModel> PlayListItems { get; set; } = [];
 
-    public MusicListsPageViewModel()
+    public async Task InitializeAsync(ObservableCollection<MusicItemModel> allMusicItems)
     {
-        InitializeAsync();
-    }
-
-    private async void InitializeAsync()
-    {
-        try
+        // 检查 LISTINFO 表是否存在记录
+        int count = await DataBaseService.GetRecordCountAsync(DataBaseService.Table.LISTINFO).ConfigureAwait(false);
+        if (count == 0)
         {
-            // 检查 LISTINFO 表是否存在记录
-            int count = await DataBaseService.GetRecordCountAsync(DataBaseService.Table.LISTINFO).ConfigureAwait(false);
-            if (count == 0)
-            {
-                await LoggerService.InfoAsync("歌单列表为空，跳过加载").ConfigureAwait(false);
-                return;
-            }
+            await LoggerService.DebugAsync("歌单列表为空，跳过加载").ConfigureAwait(false);
+            return;
+        }
 
-            await LoadPlayListsAsync().ConfigureAwait(false);
-        }
-        catch (Exception e)
-        {
-            await LoggerService.ErrorAsync($"初始化歌单模型出错 : {e.Message}").ConfigureAwait(false);
-        }
+        await LoadPlayListsAsync(allMusicItems).ConfigureAwait(false);
     }
 
     [RelayCommand]
@@ -389,7 +377,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
             if (model.Cover != coverImage && model.Cover != null)
             {
                 musicListItem.CoverImage = model.Cover;
-                await FileOperation.SaveImageAsync(model.Cover, newCoverPath);
+                await FileOperation.SaveImageAsync(model.Cover, newCoverPath, true);
             }
             // 如果名称变化但图片没变，重命名图片文件
             else if (name != model.Name && !string.IsNullOrEmpty(coverPath) && File.Exists(coverPath))
@@ -499,7 +487,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
         await AddToMusicList([argument.musicItem], argument.listName);
     }
 
-    private async Task LoadPlayListsAsync()
+    private async Task LoadPlayListsAsync(ObservableCollection<MusicItemModel> allMusicItems)
     {
         // 从数据库加载所有歌单名称和描述
         var playlistInfos = await DataBaseService.LoadSpecifyFieldsAsync(
@@ -548,7 +536,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
                 info.Description,
                 info.LatestPlayedMusic,
                 info.CoverPath
-            ).LoadAsync();
+            ).LoadAsync(allMusicItems);
             if (musicListModel is null)
                 return;
             // 添加到列表中

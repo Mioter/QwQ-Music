@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using Avalonia.Controls.Notifications;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
@@ -50,6 +49,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _lyricsTimer = new Timer();
         _lyricsTimer.Elapsed += OnLyricsTimerElapsed;
         _lyricsTimer.AutoReset = false;
+
+        // 注册热键功能
+        RegisterHotkeyFunctions();
     }
 
     #endregion
@@ -196,7 +198,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
             {
                 NotificationService.ShowLight(
                     new Notification(
-                        "温馨提示",
+                        "呜呜",
                         "真的...一首歌都没有了（ \n Tips : 可以点击右上角加号从文件中添加音乐哦！"
                     ),
                     NotificationType.Information,
@@ -215,7 +217,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
             var playlistTask = InitializePlaylistAsync();
 
-            await Task.WhenAll(messageTask, playlistTask).ConfigureAwait(false);
+            await Task.WhenAll(messageTask, playlistTask, MusicListsViewModel.InitializeAsync(MusicItems))
+                .ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -241,7 +244,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private async Task InitializePlaylistAsync()
     {
-        await PlayList.LoadAsync();
+        await PlayList.LoadAsync(MusicItems);
 
         if (PlayList.LatestPlayedMusic == null)
             return;
@@ -763,42 +766,35 @@ public partial class MusicPlayerViewModel : ViewModelBase
         var itemExistsMap = itemsList.Zip(existsResults, (item, exists) => (item, exists)).ToList();
 
         // 批量处理更新和插入
-        var saveTasks = itemExistsMap.Select(
-            async (pair) =>
+        var saveTasks = itemExistsMap.Select(async pair =>
+        {
+            (var item, bool exists) = pair;
+            var data = item.Dump();
+            string filePath = item.FilePath;
+
+            bool isSuccess;
+            if (exists)
             {
-                (var item, bool exists) = pair;
-                var data = item.Dump();
-                string filePath = item.FilePath;
+                isSuccess =
+                    await DataBaseService
+                        .UpdateDataAsync(data, DataBaseService.Table.MUSICS, nameof(MusicItemModel.FilePath), filePath)
+                        .ConfigureAwait(false) != DataBaseService.OperationResult.Failure;
+            }
+            else
+            {
+                isSuccess =
+                    await DataBaseService.InsertDataAsync(data, DataBaseService.Table.MUSICS).ConfigureAwait(false)
+                    != DataBaseService.OperationResult.Failure;
+            }
 
-                bool isSuccess;
-                if (exists)
+            if (isSuccess)
+            {
+                lock (successItems)
                 {
-                    isSuccess =
-                        await DataBaseService
-                            .UpdateDataAsync(
-                                data,
-                                DataBaseService.Table.MUSICS,
-                                nameof(MusicItemModel.FilePath),
-                                filePath
-                            )
-                            .ConfigureAwait(false) != DataBaseService.OperationResult.Failure;
-                }
-                else
-                {
-                    isSuccess =
-                        await DataBaseService.InsertDataAsync(data, DataBaseService.Table.MUSICS).ConfigureAwait(false)
-                        != DataBaseService.OperationResult.Failure;
-                }
-
-                if (isSuccess)
-                {
-                    lock (successItems)
-                    {
-                        successItems.Add(item);
-                    }
+                    successItems.Add(item);
                 }
             }
-        );
+        });
 
         await Task.WhenAll(saveTasks).ConfigureAwait(false);
         return successItems;
@@ -841,10 +837,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
     {
         try
         {
-            if (!string.IsNullOrEmpty(CurrentMusicItem.FilePath))
+            if (CurrentMusicItem is { IsInitialized: true, IsModified: true, IsError: false })
             {
                 await SaveMusicItemsAsync([CurrentMusicItem]);
             }
+
             await SaveMusicListAsync(PlayList); // 保存播放列表
         }
         catch (Exception e)
@@ -1024,4 +1021,62 @@ public partial class MusicPlayerViewModel : ViewModelBase
     }
 
     #endregion
+
+    /// <summary>
+    /// 注册热键功能
+    /// </summary>
+    private void RegisterHotkeyFunctions()
+    {
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.PreviousSong, () =>
+            TogglePreviousSongCommand.Execute(null));
+
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.NextSong, () =>
+            ToggleNextSongCommand.Execute(null));
+
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.PlayPause, () =>
+            TogglePlaybackCommand.Execute(null));
+
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.ToggleMute, () =>
+            ToggleMuteModeCommand.Execute(null));
+
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.TogglePlayMode, () =>
+            TogglePlayModeCommand.Execute(null));
+
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.VolumeUp, () =>
+        {
+            if (Volume < 100)
+                Volume += 5;
+        });
+
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.VolumeDown, () =>
+        {
+            if (Volume > 0)
+                Volume -= 5;
+        });
+
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.RefreshCurrentMusic, () =>
+            RefreshCurrentMusicItemCommand.Execute(null));
+
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.ShowPlaylistInfo, () =>
+        {
+            NotificationService.ShowLight(
+                new Notification(
+                    "你知道吗？",
+                    $"当前播放列表有: {PlayList.MusicItems.Count} 首音乐！\n现在正在播放第 {PlayList.MusicItems.IndexOf(CurrentMusicItem)} 首"
+                ),
+                NotificationType.Information
+            );
+        });
+
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.ShowCurrentInfo, () =>
+        {
+            NotificationService.ShowLight(
+                new Notification(
+                    "你知道吗？",
+                    $"{(IsPlaying ? "正在播放" : "已暂停")}的音乐叫做: {CurrentMusicItem.Title} 哦！\n你的音量是: {Volume}% "
+                ),
+                NotificationType.Information
+            );
+        });
+    }
 }

@@ -169,7 +169,7 @@
                                     Background="{Binding LyricConfig.DesktopLyric.LyricBackground,Converter={StaticResource ToBrushConverter}}">
                                 <Button.Flyout>
                                     <Flyout Placement="Top">
-                                        <ColorView HsvColor="{Binding LyricConfig.DesktopLyric.LyricBackground}" />
+                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricBackground}" />
                                     </Flyout>
                                 </Button.Flyout>
                             </Button>
@@ -193,7 +193,7 @@
                                 </Button.Effect>
                                 <Button.Flyout>
                                     <Flyout Placement="Top">
-                                        <ColorView HsvColor="{Binding LyricConfig.DesktopLyric.LyricMainTopColor}" />
+                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricMainTopColor}" />
                                     </Flyout>
                                 </Button.Flyout>
                             </Button>
@@ -213,7 +213,7 @@
                                 </Button.Effect>
                                 <Button.Flyout>
                                     <Flyout Placement="Top">
-                                        <ColorView HsvColor="{Binding LyricConfig.DesktopLyric.LyricMainBottomColor}" />
+                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricMainBottomColor}" />
                                     </Flyout>
                                 </Button.Flyout>
                             </Button>
@@ -233,7 +233,7 @@
                                 </Button.Effect>
                                 <Button.Flyout>
                                     <Flyout Placement="Top">
-                                        <ColorView HsvColor="{Binding LyricConfig.DesktopLyric.LyricMainBorderColor}" />
+                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricMainBorderColor}" />
                                     </Flyout>
                                 </Button.Flyout>
                             </Button>
@@ -256,7 +256,7 @@
                                 </Button.Effect>
                                 <Button.Flyout>
                                     <Flyout Placement="Top">
-                                        <ColorView HsvColor="{Binding LyricConfig.DesktopLyric.LyricAltTopColor}" />
+                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricAltTopColor}" />
                                     </Flyout>
                                 </Button.Flyout>
                             </Button>
@@ -276,7 +276,7 @@
                                 </Button.Effect>
                                 <Button.Flyout>
                                     <Flyout Placement="Top">
-                                        <ColorView HsvColor="{Binding LyricConfig.DesktopLyric.LyricAltBottomColor}" />
+                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricAltBottomColor}" />
                                     </Flyout>
                                 </Button.Flyout>
                             </Button>
@@ -296,7 +296,7 @@
                                 </Button.Effect>
                                 <Button.Flyout>
                                     <Flyout Placement="Top">
-                                        <ColorView HsvColor="{Binding LyricConfig.DesktopLyric.LyricAltBorderColor}" />
+                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricAltBorderColor}" />
                                     </Flyout>
                                 </Button.Flyout>
                             </Button>

@@ -5,7 +5,7 @@
     MinHeight="400"
     MinWidth="600"
     Title="QwQ Music"
-
+    Icon="resm:QwQ_Music.Assets.AppIcon.ico"
     Width="{Binding WindowWidth, Mode=OneWayToSource}"
     x:Class="QwQ_Music.Views.MainWindow"
     x:DataType="viewModels:MainWindowViewModel"

@@ -152,12 +152,11 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
             }
 
             // Perform linear interpolation.
-            int frameIndex0 = currentIntegerFrame;
-            float t = _currentFractionalFrame - frameIndex0;
+            float t = _currentFractionalFrame - currentIntegerFrame;
             for (int ch = 0; ch < channels; ch++)
             {
-                int sampleIndex0 = frameIndex0 * channels + ch;
-                int sampleIndex1 = (frameIndex0 + 1) * channels + ch;
+                int sampleIndex0 = currentIntegerFrame * channels + ch;
+                int sampleIndex1 = (currentIntegerFrame + 1) * channels + ch;
                 if (sampleIndex1 >= _resampleBufferValidSamples)
                 {
                     // If next sample is out of bounds, use current or 0.

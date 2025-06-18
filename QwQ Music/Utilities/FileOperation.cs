@@ -16,7 +16,8 @@ public static class FileOperation
     /// </summary>
     /// <param name="cover">专辑封面图片。</param>
     /// <param name="filePath">专辑封面文路径。</param>
-    public static async Task<bool> SaveImageAsync(Bitmap cover, string filePath)
+    /// <param name="overwrite">是否覆盖</param>
+    public static async Task<bool> SaveImageAsync(Bitmap cover, string filePath, bool overwrite = false)
     {
         // 确保目录存在
         // 注意：如果 MusicCoverSavePath 本身就不存在，CreateDirectory 需要能创建多级目录
@@ -32,11 +33,10 @@ public static class FileOperation
             return false;
         }
 
-        // 检查文件是否存在
-        if (File.Exists(filePath))
+        if (!overwrite)
         {
-            /*LoggerService.Info($"Cover already exists: {filePath}. Skipping save.");*/
-            return true;
+            if (File.Exists(filePath)) // 检查文件是否存在
+                return true;
         }
 
         try

@@ -15,7 +15,6 @@ namespace QwQ_Music.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly HotkeyService _hotkeyService;
     private bool _isClosing;
     private bool _isOpenClosingDialog;
 
@@ -26,9 +25,6 @@ public partial class MainWindow : Window
         // 修改窗口关闭事件处理
         Closing += OnClosing;
         Closed += OnClosed;
-
-        // 初始化热键服务
-        _hotkeyService = new HotkeyService(MusicPlayerViewModel.Instance);
 
         // 注册按键事件
         KeyDown += MainWindow_KeyDown;
@@ -153,9 +149,9 @@ public partial class MainWindow : Window
         BeginMoveDrag(e);
     }
 
-    private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
+    private static void MainWindow_KeyDown(object? sender, KeyEventArgs e)
     {
         // 使用热键服务处理按键事件
-        _hotkeyService.HandleKeyDown(e);
+        HotkeyService.HandleKeyDown(e);
     }
 }

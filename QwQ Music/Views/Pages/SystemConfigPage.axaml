@@ -3,9 +3,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             xmlns:u="https://irihi.tech/ursa"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="pages:SystemConfigPageViewModel"
              x:Class="QwQ_Music.Views.Pages.SystemConfigPage">
+
+    <UserControl.Styles>
+
+        <Style Selector="StackPanel">
+            <Setter Property="Spacing" Value="10" />
+        </Style>
+
+    </UserControl.Styles>
 
     <ScrollViewer
         Margin="10"
@@ -13,7 +22,7 @@
 
         <StackPanel Margin="0,0,10,0">
 
-            <Expander Header="程序行为" IsExpanded="{Binding Config.IsExpandedProgramBehavior}">
+            <Expander Header="程序" IsExpanded="{Binding Config.IsDebugMode}">
 
                 <StackPanel>
                     <Panel>
@@ -26,12 +35,103 @@
                             ItemsSource="{Binding ClosingBehaviors}"
                             SelectedValue="{Binding Config.ClosingBehavior}" />
                     </Panel>
+
+
+                    <CheckBox
+                        Content="开发者选项"
+                        Name="DeveloperOptionsCheckBox"
+                        IsChecked="{Binding Config.IsDebugMode}" />
                 </StackPanel>
-     
+
             </Expander>
 
+            <Expander Header="日志" IsExpanded="{Binding Config.IsDebugMode}"
+                      IsVisible="{Binding #DeveloperOptionsCheckBox.IsChecked}">
+
+                <StackPanel>
+
+                    <Panel>
+                        <TextBlock Text="过滤级别" VerticalAlignment="Center" />
+                        <ComboBox
+                            MinWidth="80"
+                            HorizontalAlignment="Right"
+                            ItemsSource="{Binding LogLevels}"
+                            SelectedValue="{Binding Config.LoggerServiceConfig.LogFilterLevel}" />
+                    </Panel>
+
+                    <CheckBox
+                        Content="保持文件打开"
+                        IsChecked="{Binding Config.LoggerServiceConfig.IsKeepOpen}" />
+
+                    <TextBlock Text="重试次数" />
+                    <u:NumericIntUpDown Minimum="0" Maximum="10"
+                                        Value="{Binding Config.LoggerServiceConfig.RetryCount}" />
+
+                </StackPanel>
+
+            </Expander>
+
+            <Expander Header="数据库" IsExpanded="{Binding Config.IsDebugMode}"
+                      IsVisible="{Binding #DeveloperOptionsCheckBox.IsChecked}">
+
+                <StackPanel>
+
+                    <CheckBox
+                        Content="详细操作日志"
+                        IsChecked="{Binding Config.DataBaseConfig.EnableVerboseLogging}" />
+
+                    <CheckBox
+                        Content="性能监控"
+                        IsChecked="{Binding Config.DataBaseConfig.EnablePerformanceMonitoring}" />
+
+                    <TextBlock Text="慢查询阈值" />
+                    <u:NumericIntUpDown Minimum="0" InnerRightContent="ms"
+                                        Value="{Binding Config.DataBaseConfig.SlowQueryThreshold}" />
+
+                    <TextBlock Text="命令超时时间" />
+                    <u:NumericIntUpDown Minimum="0" InnerRightContent="s"
+                                        Value="{Binding Config.DataBaseConfig.CommandTimeout}" />
+
+                    <TextBlock Text="最大重试次数" />
+                    <u:NumericIntUpDown Minimum="0" Maximum="10" InnerRightContent="次"
+                                        Value="{Binding Config.DataBaseConfig.MaxRetryCount}" />
+
+                    <TextBlock Text="重试延迟" />
+                    <u:NumericIntUpDown Minimum="0" InnerRightContent="ms"
+                                        Value="{Binding Config.DataBaseConfig.RetryDelay}" />
+
+                    <TextBlock Text="连接池大小" />
+                    <u:NumericIntUpDown Minimum="0"
+                                        Value="{Binding Config.DataBaseConfig.MaxConnectionPoolSize}" />
+
+                </StackPanel>
+            </Expander>
+
+
+            <Expander Header="配置" IsExpanded="{Binding Config.IsDebugMode}"
+                      IsVisible="{Binding #DeveloperOptionsCheckBox.IsChecked}">
+
+
+                <StackPanel>
+
+                    <CheckBox
+                        Content="启用备份"
+                        IsChecked="{Binding Config.JsonServiceConfig.EnableBackup}" />
+
+                    <CheckBox
+                        Content="性能监控"
+                        IsChecked="{Binding Config.JsonServiceConfig.EnablePerformanceLogging}" />
+
+                    <TextBlock Text="最大备份数量" />
+                    <u:NumericIntUpDown Minimum="0" Maximum="10" InnerRightContent="个"
+                                        Value="{Binding Config.JsonServiceConfig.MaxBackupCount}" />
+
+                </StackPanel>
+
+            </Expander>
         </StackPanel>
-        
+
+
     </ScrollViewer>
 
 </UserControl>

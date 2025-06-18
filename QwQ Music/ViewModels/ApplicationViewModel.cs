@@ -72,9 +72,15 @@ public partial class ApplicationViewModel : ObservableObject
 
             IconService.ClearCache();
             MousePenetrate.ClearCache();
+            HotkeyService.ClearCache();
 
-            await DataBaseService.CloseConnectionAsync();
-            await LoggerService.InfoAsync("程序已退出!");
+            await DataBaseService.DisposeAsync();
+            await LoggerService.InfoAsync(
+                "\n"
+                    + "===========================================\n"
+                    + "应用程序已退出\n"
+                    + "===========================================\n"
+            );
 
             LoggerService.Shutdown();
         }

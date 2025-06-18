@@ -11,13 +11,18 @@ public static class ConfigInfoModel
     #region 配置加载
 
     // 使用Lazy<T>实现真正的懒加载
-    private static readonly Lazy<SystemConfig> _systemConfig = new(
-        () =>
+    private static readonly Lazy<SystemConfig> _systemConfig = new(() =>
+    {
+        var config =
             JsonConfigService.Load<SystemConfig>(
                 nameof(SystemConfig).ToLower(),
                 SystemConfigJsonSerializerContext.Default
-            ) ?? new SystemConfig()
-    );
+            ) ?? new SystemConfig();
+
+        LoggerService.SetConfig(config.LoggerServiceConfig);
+        JsonConfigService.SetConfig(config.JsonServiceConfig);
+        return config;
+    });
 
     public static SystemConfig SystemConfig => _systemConfig.Value;
 
@@ -62,11 +67,29 @@ public static class ConfigInfoModel
 
     public static InterfaceConfig InterfaceConfig => _interfaceConfig.Value;
 
+    private static readonly Lazy<HotkeyConfig> _hotkeyConfig = new(() =>
+    {
+        var config =
+            JsonConfigService.Load<HotkeyConfig>(
+                nameof(HotkeyConfig).ToLower(),
+                HotkeyConfigJsonSerializerContext.Default
+            ) ?? new HotkeyConfig();
+
+        if (config.FunctionToKeyMap.Count == 0)
+        {
+            config.FunctionToKeyMap = HotkeyConfig.CreateDefaultHotkeyConfig();
+        }
+
+        return config;
+    });
+
+    public static HotkeyConfig HotkeyConfig => _hotkeyConfig.Value;
+
     #endregion
 
     #region 配置保存
 
-    public async static Task SaveSystemConfig()
+    public async static Task SaveSystemConfigAsync()
     {
         if (_systemConfig.IsValueCreated)
         {
@@ -78,7 +101,7 @@ public static class ConfigInfoModel
         }
     }
 
-    public static async Task SaveSoundEffectConfig()
+    public static async Task SaveAudioModifierConfigAsync()
     {
         // 只有当SoundEffectConfig已经被初始化时才保存
         if (_audioModifierConfig.IsValueCreated)
@@ -91,7 +114,7 @@ public static class ConfigInfoModel
         }
     }
 
-    public static async Task SaveLyricConfig()
+    public static async Task SaveLyricConfigAsync()
     {
         if (_lyricConfig.IsValueCreated)
         {
@@ -103,7 +126,7 @@ public static class ConfigInfoModel
         }
     }
 
-    public static async Task SavePlayerConfig()
+    public static async Task SavePlayerConfigAsync()
     {
         if (_playerConfig.IsValueCreated)
         {
@@ -115,7 +138,7 @@ public static class ConfigInfoModel
         }
     }
 
-    public static async Task SaveInterfaceConfig()
+    public static async Task SaveInterfaceConfigAsync()
     {
         if (_interfaceConfig.IsValueCreated)
         {
@@ -127,16 +150,38 @@ public static class ConfigInfoModel
         }
     }
 
+    public static async Task SaveHotkeyConfigAsync()
+    {
+        if (_hotkeyConfig.IsValueCreated)
+        {
+            await JsonConfigService.SaveAsync(
+                HotkeyConfig,
+                nameof(HotkeyConfig).ToLower(),
+                HotkeyConfigJsonSerializerContext.Default
+            );
+        }
+    }
+
     // 添加保存所有已加载配置的方法
     public static async Task SaveAllAsync()
     {
         try
         {
-            await SaveSystemConfig();
-            await SaveInterfaceConfig();
-            await SavePlayerConfig();
-            await SaveLyricConfig();
-            await SaveSoundEffectConfig();
+            var saveSystemConfigTask = SaveSystemConfigAsync();
+            var saveInterfaceConfigTask = SaveInterfaceConfigAsync();
+            var savePlayerConfigTask = SavePlayerConfigAsync();
+            var saveLyricConfigTask = SaveLyricConfigAsync();
+            var saveAudioModifierConfigTask = SaveAudioModifierConfigAsync();
+            var saveHotkeyConfigTask = SaveHotkeyConfigAsync();
+
+            await Task.WhenAll(
+                saveSystemConfigTask,
+                saveInterfaceConfigTask,
+                savePlayerConfigTask,
+                saveLyricConfigTask,
+                saveAudioModifierConfigTask,
+                saveHotkeyConfigTask
+            );
         }
         catch (Exception e)
         {

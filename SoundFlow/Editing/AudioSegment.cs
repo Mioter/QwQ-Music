@@ -986,19 +986,18 @@ public class AudioSegment : IDisposable
             }
 
             // Read from the reversed segment content buffer
-            long reversedReadStartSampleInCache = currentEffectiveSampleOffsetInSourcePass;
-            long samplesAvailableInReversedCache = singlePassSourceSamples - reversedReadStartSampleInCache;
+            long samplesAvailableInReversedCache = singlePassSourceSamples - currentEffectiveSampleOffsetInSourcePass;
             int toCopyFromReversed = Math.Min(samplesToReadTotal, (int)samplesAvailableInReversedCache);
             toCopyFromReversed = Math.Max(0, toCopyFromReversed);
 
             if (
                 _reversedBufferCache != null
                 && toCopyFromReversed > 0
-                && reversedReadStartSampleInCache < _reversedBufferCache.Length
+                && currentEffectiveSampleOffsetInSourcePass < _reversedBufferCache.Length
             )
             {
                 _reversedBufferCache
-                    .AsSpan((int)reversedReadStartSampleInCache, toCopyFromReversed)
+                    .AsSpan((int)currentEffectiveSampleOffsetInSourcePass, toCopyFromReversed)
                     .CopyTo(outputBuffer[..toCopyFromReversed]);
                 samplesWrittenToOutput = toCopyFromReversed;
             }

@@ -55,7 +55,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <TextBlock Text="名称 :"
                                FontWeight="Bold" />
-                    <TextBlock Text="{Binding ErrorText}"
+                    <TextBlock Text="{Binding ErrorMessage}"
                                FontSize="12"
                                VerticalAlignment="Center"
                                Classes="Danger" />
@@ -88,7 +88,7 @@
                     Command="{Binding CancelCommand}" />
 
             <Button Content="确认"
-                    IsEnabled="{Binding CanOk}"
+                    IsEnabled="{Binding ErrorMessage,Converter={x:Static StringConverters.IsNullOrEmpty}}"
                     Command="{Binding OkCommand}"
                     Theme="{DynamicResource SolidButton}" />
 

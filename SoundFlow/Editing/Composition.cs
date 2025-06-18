@@ -494,7 +494,6 @@ public class Composition : ISoundDataProvider
                 );
 
                 // Part 3 (after silence): Create a new segment
-                var part3TimelineStart = rangeEndTime;
                 var part3OriginalTimelineOffset = rangeEndTime - segmentTimelineStart; // Offset from original segment's start on timeline
                 var part3SourceOffsetFromOriginalSourceStart = TimeSpan.FromTicks(
                     (long)(part3OriginalTimelineOffset.Ticks * segment.Settings.SpeedFactor)
@@ -509,7 +508,7 @@ public class Composition : ISoundDataProvider
                         segment.SourceDataProvider,
                         part3SourceStartTime,
                         part3SourceDuration,
-                        part3TimelineStart,
+                        rangeEndTime,
                         $"{segment.Name} (After Silence)",
                         segment.Settings.Clone()
                     );

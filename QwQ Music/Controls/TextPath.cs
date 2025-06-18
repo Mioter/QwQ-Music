@@ -56,8 +56,7 @@ public class TextPath : Control
     );
 
     public static readonly StyledProperty<double> LetterSpacingProperty = AvaloniaProperty.Register<TextPath, double>(
-        nameof(LetterSpacing),
-        0.0
+        nameof(LetterSpacing)
     );
 
     public static readonly StyledProperty<string?> PlaceholderProperty = AvaloniaProperty.Register<TextPath, string?>(

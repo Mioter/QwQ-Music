@@ -31,7 +31,7 @@ public partial class CreateMusicListViewModel(OverlayDialogOptions options, stri
 
             if (string.IsNullOrWhiteSpace(field))
             {
-                ErrorText = "名称不能为空!";
+                ErrorMessage = "名称不能为空!";
                 return;
             }
 
@@ -41,22 +41,19 @@ public partial class CreateMusicListViewModel(OverlayDialogOptions options, stri
                 && field != oldName
             )
             {
-                ErrorText = "歌单名称已存在!";
+                ErrorMessage = "歌单名称已存在!";
                 return;
             }
 
-            ErrorText = null;
+            ErrorMessage = null;
         }
     }
 
     [ObservableProperty]
     public partial string? Description { get; set; }
 
-    public bool CanOk => string.IsNullOrEmpty(ErrorText);
-
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanOk))]
-    public partial string? ErrorText { get; set; } = "名称不能为空!";
+    public partial string? ErrorMessage { get; set; } = "名称不能为空!";
 
     [RelayCommand]
     private async Task AddCover()
