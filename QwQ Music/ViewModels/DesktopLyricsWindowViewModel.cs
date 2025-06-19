@@ -9,6 +9,10 @@ public partial class DesktopLyricsWindowViewModel : ViewModelBase
 {
     public DesktopLyricsWindowViewModel()
     {
+        var currentLyric = MusicPlayerViewModel.LyricsModel.CurrentLyric;
+        var nextLyric = MusicPlayerViewModel.LyricsModel.GetNextLyric(currentLyric.TimePoint);
+        LyricsModelOnLyricLineChanged(this,MusicPlayerViewModel.LyricsModel.CurrentLyric,nextLyric);
+        
         MusicPlayerViewModel.LyricsModel.LyricLineChanged += LyricsModelOnLyricLineChanged;
     }
 

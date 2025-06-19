@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using SoundFlow.Abstracts;
 using SoundFlow.Backends.MiniAudio;
@@ -10,8 +11,15 @@ public static class AudioEngineManager
 
     public static async void Create(int sampleRate = 48000)
     {
-        Dispose();
-        AudioEngine = await Task.Run(() => new MiniAudioEngine(sampleRate));
+        try
+        {
+            Dispose();
+            AudioEngine = await Task.Run(() => new MiniAudioEngine(sampleRate));
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
     }
 
     public static void Dispose()

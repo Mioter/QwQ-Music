@@ -108,13 +108,10 @@ public partial class LyricConfigPageViewModel : ViewModelBase
     {
         if (_desktopLyricsWindow == null || _desktopLyricsWindow.Screens.Primary == null)
         {
-            NotificationService.ShowLight(
-                new Notification("错误", "无法获取屏幕宽高~"),
-                NotificationType.Error
-            );
+            NotificationService.ShowLight(new Notification("错误", "无法获取屏幕宽高~"), NotificationType.Error);
             return;
         }
-    
+
         int screenWidth = _desktopLyricsWindow.Screens.Primary.Bounds.Width;
         int screenHeight = _desktopLyricsWindow.Screens.Primary.Bounds.Height;
         double scaling = _desktopLyricsWindow.Screens.Primary.Scaling;

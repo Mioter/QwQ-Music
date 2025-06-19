@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using ATL;
 using Avalonia;
@@ -25,7 +26,42 @@ public static class MusicExtractor
     {
         var lyricsData = new LyricsData();
         var track = new Track(filePath);
-        string? lyric = track.Lyricist;
+        var lyricsInfo = track.Lyrics;
+        var syncLyrics = lyricsInfo.SynchronizedLyrics;
+        if (syncLyrics is { Count: > 0 })
+        {
+            // 按时间点分组
+            var grouped = syncLyrics.GroupBy(p => p.TimestampMs).OrderBy(g => g.Key);
+
+            var lyricLines = new List<LyricLine>();
+            foreach (var group in grouped)
+            {
+                var phrases = group.ToList();
+                string? primary,
+                    translation = null;
+
+                // 方案二：尝试分隔符
+                string[] split = phrases[0].Text.Split(["//", "|", "\n"], StringSplitOptions.RemoveEmptyEntries);
+                if (split.Length == 2)
+                {
+                    primary = split[0].Trim();
+                    translation = split[1].Trim();
+                }
+                else
+                {
+                    primary = phrases[0].Text.Trim();
+                    // 方案一：同一时间点有多条
+                    if (phrases.Count > 1)
+                        translation = phrases[1].Text.Trim();
+                }
+
+                lyricLines.Add(new LyricLine(group.Key / 1000.0, primary, translation));
+            }
+            lyricsData.Lyrics = lyricLines;
+            return lyricsData;
+        }
+
+        string? lyric = lyricsInfo.UnsynchronizedLyrics;
         if (!string.IsNullOrEmpty(lyric))
             return await Task.Run(() => LyricsService.ParseLrcFile(lyric)) ?? lyricsData;
 
@@ -146,14 +182,28 @@ public static class MusicExtractor
 
             string? coverFileName = null;
 
-            if (!string.IsNullOrEmpty(artists) || !string.IsNullOrEmpty(album))
-            {
-                coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
-            }
-
             Bitmap? coverImage = null;
-            if (track.EmbeddedPictures.Count > 0 && coverFileName != null)
+            if (track.EmbeddedPictures.Count > 0)
             {
+                // 检查artists和album是否为空
+                bool isArtistsEmpty = string.IsNullOrWhiteSpace(artists);
+                bool isAlbumEmpty = string.IsNullOrWhiteSpace(album);
+                string timeStamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+                if (isArtistsEmpty && isAlbumEmpty)
+                {
+                    // 两个都为空，直接用文件名+时间戳
+                    string fileName = Path.GetFileNameWithoutExtension(filePath);
+                    coverFileName = $"{fileName}#{timeStamp}.png";
+                }
+                else
+                {
+                    if (isArtistsEmpty)
+                        artists = $"未知歌手#{timeStamp}";
+                    if (isAlbumEmpty)
+                        album = $"未知专辑#{timeStamp}";
+                    coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
+                }
+
                 coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
                 // 异步保存封面
                 await FileOperation.SaveImageAsync(
@@ -195,8 +245,10 @@ public static class MusicExtractor
     private static string GetCoverFileName(string artists, string album)
     {
         // 截断并清理文件名
+        string safeArtists = string.IsNullOrWhiteSpace(artists) ? "未知歌手" : artists;
+        string safeAlbum = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
         string coverFileName = PathEnsurer.CleanFileName(
-            $"{(artists.Length > 20 ? artists[..20] : artists)}-{(album.Length > 20 ? album[..20] : album)}.png"
+            $"{(safeArtists.Length > 20 ? safeArtists[..20] : safeArtists)}-{(safeAlbum.Length > 20 ? safeAlbum[..20] : safeAlbum)}.png"
         );
         return coverFileName; // 只返回文件名
     }

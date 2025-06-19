@@ -88,9 +88,7 @@
                 ItemsSource="{Binding MusicPlayerViewModel.PlayList.MusicItems}"
                 Margin="0,5"
                 SelectedItem="{Binding SelectedItem}"
-                behaviors:ScrollToItemBehavior.SmoothScrollingEnabled="True"
-                behaviors:ScrollToItemBehavior.ScrollDuration="0:0:0.5"
-                behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}"
+                AutoScrollToSelectedItem="True"
                 u:ScrollTo.Direction="Top">
 
                 <ListBox.ItemTemplate>

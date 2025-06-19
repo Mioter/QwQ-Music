@@ -47,8 +47,7 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel> 
         if (SelectedItem == null)
             return;
 
-        MusicPlayerViewModel.IsPlaying = false;
-        await MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
+        await MusicPlayerViewModel.ToggleMusicAsync(SelectedItem).ConfigureAwait(false);
     }
 
     [RelayCommand]

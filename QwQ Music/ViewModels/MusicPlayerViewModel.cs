@@ -408,6 +408,13 @@ public partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
+    public async Task ToggleMusicAsync(MusicItemModel musicItem)
+    {
+        await FallbackMusicItem(musicItem);
+        OnPlayingChanged(false);
+        await SetCurrentMusicItem(musicItem).ConfigureAwait(false);
+    }
+
     [RelayCommand]
     private async Task TogglePreviousSong() => await SetAndPlay(GetMusicItemIndex(CurrentIndex, false));
 
@@ -420,6 +427,10 @@ public partial class MusicPlayerViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshCurrentMusicItem()
     {
+        if (!await FallbackMusicItem(CurrentMusicItem))
+        {
+            return;
+        }
         await SetCurrentMusicItem(CurrentMusicItem, true);
         OnPlayingChanged(true);
     }
@@ -654,6 +665,27 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private async Task<bool> FallbackMusicItem(MusicItemModel musicItem)
     {
+        if (!File.Exists(CurrentMusicItem.FilePath))
+        {
+            NotificationService.ShowLight(
+                new Notification("错误", $"当前音乐不存在，请切换音乐！\n无法找到音乐文件:  {musicItem.FilePath}"),
+                NotificationType.Information
+            );
+            return false;
+        }
+
+        if (!MusicItems.Contains(musicItem))
+        {
+            await SaveMusicItemsAsync([musicItem]);
+            NotificationService.ShowLight(
+                new Notification(
+                    "注意",
+                    $"很奇怪，这个《{musicItem.Title}》不在音乐库中，不过没关系，现在在了，欸嘿~QvQ"
+                ),
+                NotificationType.Information
+            );
+        }
+
         if (PlayList.Count == 0)
         {
             PlayList.MusicItems = new ObservableCollection<MusicItemModel>(MusicItems);
@@ -663,28 +695,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
             );
         }
 
-        if (File.Exists(CurrentMusicItem.FilePath))
-        {
-            return true;
-        }
-
-        var item = MusicItems.FirstOrDefault();
-
-        if (item == null)
-        {
-            NotificationService.ShowLight(
-                new Notification("注意", "音乐库中没有任何歌词，无法播放！"),
-                NotificationType.Information
-            );
-            return false;
-        }
-
-        await SetCurrentMusicItem(item);
-
-        if (PlayList.MusicItems.Contains(CurrentMusicItem))
+        if (PlayList.MusicItems.Contains(musicItem))
             return true;
 
-        PlayList.MusicItems.Add(CurrentMusicItem);
+        PlayList.MusicItems.Add(musicItem);
+
         NotificationService.ShowLight(
             new Notification("注意", $"当前音乐《{musicItem.Title}》不在播放列表中，以自动添加到播放列表末尾~"),
             NotificationType.Information
@@ -698,8 +713,12 @@ public partial class MusicPlayerViewModel : ViewModelBase
         if (index < 0 || index >= PlayList.Count)
             return;
 
-        await SetCurrentMusicItem(PlayList.MusicItems[index], PlayerConfig.IsRestartPlay);
-        OnPlayingChanged(true);
+        var musicItem = PlayList.MusicItems[index];
+        if (await FallbackMusicItem(musicItem))
+        {
+            await SetCurrentMusicItem(musicItem, PlayerConfig.IsRestartPlay);
+            OnPlayingChanged(true);
+        }
     }
 
     [RelayCommand]
@@ -969,11 +988,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
             await SaveMusicItemsAsync([CurrentMusicItem], false).ConfigureAwait(false);
         }
 
-        if (!PlayList.MusicItems.Contains(musicItem))
-        {
-            PlayList.MusicItems = new ObservableCollection<MusicItemModel>(MusicItems);
-        }
-
         if (restart || IsNearEnd(musicItem))
         {
             musicItem.Current = TimeSpan.Zero;
@@ -1091,7 +1105,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
                 NotificationService.ShowLight(
                     new Notification(
                         "你知道吗？",
-                        $"当前播放列表有: {PlayList.MusicItems.Count} 首音乐！\n现在正在播放第 {PlayList.MusicItems.IndexOf(CurrentMusicItem)+1} 首"
+                        $"当前播放列表有: {PlayList.MusicItems.Count} 首音乐！\n现在正在播放第 {PlayList.MusicItems.IndexOf(CurrentMusicItem) + 1} 首"
                     ),
                     NotificationType.Information
                 );

@@ -387,12 +387,12 @@ public static class DataBaseService
 
         music.CommandText = $"""
             CREATE TABLE IF NOT EXISTS MUSICS(
-            {nameof(MusicItemModel.Title)} TEXT NOT NULL PRIMARY KEY,
+            {nameof(MusicItemModel.Title)} TEXT NOT NULL,
             {nameof(MusicItemModel.Artists)} TEXT,
             {nameof(MusicItemModel.Composer)} TEXT,
             {nameof(MusicItemModel.Album)} TEXT,
             {nameof(MusicItemModel.CoverPath)} TEXT,
-            {nameof(MusicItemModel.FilePath)} TEXT NOT NULL UNIQUE,
+            {nameof(MusicItemModel.FilePath)} TEXT NOT NULL UNIQUE PRIMARY KEY,
             {nameof(MusicItemModel.FileSize)} TEXT NOT NULL,
             {nameof(MusicItemModel.Current)} BLOB,
             {nameof(MusicItemModel.Duration)} BLOB NOT NULL,

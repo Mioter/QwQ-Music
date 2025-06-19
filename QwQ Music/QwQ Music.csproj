@@ -48,30 +48,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Update="UserControl\MusicPlayerTray.axaml.cs">
-            <DependentUpon>MusicPlayerTray.axaml</DependentUpon>
-            <SubType>Code</SubType>
-        </Compile>
-        <Compile Update="Views\DesktopLyricsWindow.axaml.cs">
-          <DependentUpon>DesktopLyric.axaml</DependentUpon>
-          <SubType>Code</SubType>
-        </Compile>
-        <Compile Update="Views\UserControls\MusicDataGrid.axaml.cs">
-          <DependentUpon>MusicDataGrid.axaml</DependentUpon>
-          <SubType>Code</SubType>
-        </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-      <AdditionalFiles Include="Views\Pages\ClassificationPage.axaml" />
-      <AdditionalFiles Include="Views\Pages\ConfigMainPage.axaml" />
-      <AdditionalFiles Include="Views\Pages\LyricConfigPage.axaml" />
-      <AdditionalFiles Include="Views\Pages\SoundEffectConfigPage.axaml" />
-      <AdditionalFiles Include="Views\Pages\StatisticsPage.axaml" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Services\Shader\" />
+        <ProjectReference Include="..\Impressionist\Impressionist.csproj" />
+        <ProjectReference Include="..\SoundFlow\SoundFlow.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -80,11 +58,6 @@
         <PackagePath>\</PackagePath>
         <Link>README.md</Link>
       </None>
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Impressionist\Impressionist.csproj" />
-      <ProjectReference Include="..\SoundFlow\SoundFlow.csproj" />
     </ItemGroup>
 
     <ItemGroup>

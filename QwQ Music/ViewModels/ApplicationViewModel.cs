@@ -76,6 +76,7 @@ public partial class ApplicationViewModel : ObservableObject
             HotkeyService.ClearCache();
 
             AudioEngineManager.Dispose();
+            MessageBus.Dispose();
 
             await DataBaseService.DisposeAsync();
             await LoggerService.InfoAsync(

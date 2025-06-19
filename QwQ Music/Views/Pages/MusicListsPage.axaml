@@ -16,18 +16,15 @@
                     <Setter.Value>
                         <ContextMenu>
 
-                            <MenuItem>
-                                <Button
-                                    Classes="Icon"
-                                    CornerRadius="8"
-                                    Command="{Binding MusicPlayerViewModel.TogglePlaylistCommand}"
-                                    CommandParameter="{Binding}"
-                                    Height="32" Width="32"
-                                    Padding="2">
-                                    <PathIcon Data="{StaticResource PlayIconData}" Margin="0" />
-                                </Button>
+                            <MenuItem
+                                Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).MusicPlayerViewModel.TogglePlaylistCommand}"
+                                CommandParameter="{Binding}"
+                                Header="播放">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconPlay}" Margin="4" />
+                                </MenuItem.Icon>
                             </MenuItem>
-                            
+
                             <MenuItem
                                 Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).EditMusicListCommand}"
                                 CommandParameter="{Binding}"
@@ -44,7 +41,7 @@
                                 Header="删除">
                                 <MenuItem.Icon>
                                     <PathIcon Foreground="{DynamicResource EmphasizePink3}"
-                                              Data="{StaticResource SemiIconDelete}" 
+                                              Data="{StaticResource SemiIconDelete}"
                                               Margin="2" />
                                 </MenuItem.Icon>
                             </MenuItem>

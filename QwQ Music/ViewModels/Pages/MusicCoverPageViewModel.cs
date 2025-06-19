@@ -25,12 +25,14 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
     public static RolledLyricConfig RolledLyric { get; } = ConfigManager.LyricConfig.RolledLyri;
 
-    public static CoverConfig CoverConfig { get; } = ConfigManager.InterfaceConfig.CoverConfig;
+    private static readonly CoverConfig _coverConfig = ConfigManager.InterfaceConfig.CoverConfig;
 
     public MusicCoverPageViewModel()
         : base("播放")
     {
+        MusicPlayerViewModelOnCurrentMusicItemChanged(null, MusicPlayerViewModel.CurrentMusicItem);
         MusicPlayerViewModel.CurrentMusicItemChanged += MusicPlayerViewModelOnCurrentMusicItemChanged;
+
         MessageBus
             .ReceiveMessage<ExitReminderMessage>(this)
             .WithHandler(ExitReminderMessageHandler)
@@ -160,10 +162,10 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
             : ColorExtraction.GetColorPaletteFromBitmap(
                 bitmap,
                 colorCount,
-                CoverConfig.SelectedColorExtractionAlgorithm,
-                CoverConfig.IgnoreWhite,
-                CoverConfig.ToLab,
-                CoverConfig.UseKMeansPp
+                _coverConfig.SelectedColorExtractionAlgorithm,
+                _coverConfig.IgnoreWhite,
+                _coverConfig.ToLab,
+                _coverConfig.UseKMeansPp
             );
     }
 

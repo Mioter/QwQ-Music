@@ -16,6 +16,13 @@ public static class Program
     {
         try
         {
+            LoggerService.Info(
+                "\n"
+                    + "===========================================\n"
+                    + "应用程序已启动\n"
+                    + "===========================================\n"
+            );
+
             AudioEngineManager.Create();
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
