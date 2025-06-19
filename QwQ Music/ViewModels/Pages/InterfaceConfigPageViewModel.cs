@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Helper;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Services;
 using QwQ_Music.ViewModels.ViewModelBases;
 
@@ -12,7 +12,7 @@ public partial class InterfaceConfigPageViewModel() : NavigationViewModel("ÁïåÈù
 {
     public MusicPlayerViewModel MusicPlayerViewModel { get; set; } = MusicPlayerViewModel.Instance;
 
-    public InterfaceConfig InterfaceConfig { get; set; } = ConfigInfoModel.InterfaceConfig;
+    public InterfaceConfig InterfaceConfig { get; set; } = ConfigManager.InterfaceConfig;
 
     [RelayCommand]
     private async Task ClearCoverColor()

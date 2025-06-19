@@ -1,4 +1,7 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -30,14 +33,21 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel> 
     [ObservableProperty]
     public partial MusicItemModel? SelectedItem { get; set; }
 
+    public IList<MusicItemModel>? SelectedItems { get; set; }
+
+    [RelayCommand]
+    private void SelectedItemChanged(IList items)
+    {
+        SelectedItems = items.Cast<MusicItemModel>().ToList();
+    }
+
     [RelayCommand]
     private async Task ToggleMusicAsync()
     {
         if (SelectedItem == null)
             return;
 
-        MusicPlayerViewModel.IsPlaying = false;
-        await MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem);
+        await MusicPlayerViewModel.ToggleMusicAsync(SelectedItem).ConfigureAwait(false);
     }
 
     [RelayCommand]
@@ -50,14 +60,18 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel> 
     [RelayCommand]
     private async Task AddToMusicList(string musicListName)
     {
-        if (SelectedItem != null)
-            await MusicPlayerViewModel.MusicListsViewModel.AddToMusicList(SelectedItem, musicListName);
+        if (SelectedItems is { Count: > 0 })
+        {
+            await MusicPlayerViewModel.MusicListsViewModel.AddToMusicList(SelectedItems.ToList(), musicListName);
+        }
     }
 
     [RelayCommand]
     private async Task RemoveToMusicList(string musicListName)
     {
-        if (SelectedItem != null)
-            await MusicPlayerViewModel.MusicListsViewModel.RemoveToMusicList(SelectedItem, musicListName);
+        if (SelectedItems is { Count: > 0 })
+        {
+            await MusicPlayerViewModel.MusicListsViewModel.RemoveToMusicList(SelectedItems.ToList(), musicListName);
+        }
     }
 }

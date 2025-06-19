@@ -40,7 +40,7 @@
                     Watermark="搜索音乐"
                     Width="200" />
 
-                <u:IconButton Command="{Binding OpenFileCommand}" Icon="{StaticResource SemiIconPlus}" />
+                <u:IconButton ToolTip.Tip="从文件添加音乐" Command="{Binding OpenFileCommand}" Icon="{StaticResource SemiIconPlus}" />
 
                 <u:IconButton
                     Command="{Binding SelectedCurrentMusicItemCommand}"
@@ -145,7 +145,7 @@
 
                                     <MenuItem Header="下一首"
                                               Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
-                                              CommandParameter="{Binding}">
+                                              CommandParameter="{Binding $parent[DataGrid].SelectedItems}">
                                         <MenuItem.Icon>
                                             <PathIcon Data="{StaticResource SemiIconTriangleDown}" Margin="2" />
                                         </MenuItem.Icon>
@@ -153,7 +153,7 @@
 
                                     <MenuItem Header="新建歌单"
                                               Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.CreateAndAddToMusicListCommand}"
-                                              CommandParameter="{Binding}">
+                                              CommandParameter="{Binding $parent[DataGrid].SelectedItems}">
                                         <MenuItem.Icon>
                                             <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
                                         </MenuItem.Icon>
@@ -191,8 +191,8 @@
 
                                 <!--  删除  -->
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.DeleteMusicItemCommand}"
-                                    CommandParameter="{Binding}"
+                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.DeleteMusicItemsCommand}"
+                                    CommandParameter="{Binding $parent[DataGrid].SelectedItems}"
                                     Header="删除音乐">
                                     <MenuItem.Icon>
                                         <PathIcon Data="{StaticResource SemiIconDelete}" Margin="1"
@@ -339,9 +339,15 @@
 
             <Interaction.Behaviors>
 
-                <EventTriggerBehavior EventName="DoubleTapped">
+                <DoubleTappedTrigger>
                     <InvokeCommandAction Command="{Binding ToggleMusicCommand}" />
-                </EventTriggerBehavior>
+                </DoubleTappedTrigger>
+
+                <RoutedEventTriggerBehavior RoutedEvent="{x:Static DataGrid.SelectionChangedEvent}">
+                    <InvokeCommandAction
+                        Command="{Binding SelectedItemChangedCommand}"
+                        CommandParameter="{Binding $parent[DataGrid].SelectedItems}" />
+                </RoutedEventTriggerBehavior>
 
             </Interaction.Behaviors>
 

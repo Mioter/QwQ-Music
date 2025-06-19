@@ -1,45 +1,55 @@
-﻿using Avalonia;
+﻿using System;
 using Avalonia.Controls;
-using Avalonia.Media;
+using Avalonia.Input;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
-using static QwQ_Music.Models.LanguageModel;
-using static QwQ_Music.Services.MousePenetrateService;
+using QwQ_Music.Utilities;
+using DesktopLyricConfig = QwQ_Music.Models.ConfigModels.DesktopLyricConfig;
 
 namespace QwQ_Music.Views;
 
 public partial class DesktopLyricsWindow : Window
 {
-    public static DesktopLyricConfig DesktopLyricConfig => ConfigInfoModel.LyricConfig.DesktopLyric;
+    public static DesktopLyricConfig LyricConfig => ConfigManager.LyricConfig.DesktopLyric;
 
     public DesktopLyricsWindow()
     {
-        if (!DesktopLyricConfig.LyricIsEnabled)
+        if (!LyricConfig.LyricIsEnabled)
         {
             return;
         }
 
         InitializeComponent();
 
-        if (DesktopLyricConfig.LyricIsVertical)
-        {
-            MainLyric.RenderTransform = new RotateTransform(90);
-            AltLyric.RenderTransform = new RotateTransform(90);
-        }
+        Position = LyricConfig.Position;
 
-        MainLyric.Text = Lang["Loading..."];
-        if (DesktopLyricConfig is { LyricIsDoubleLine: false, LyricIsDualLang: false })
-        {
-            AltLyric.IsVisible = false;
-            Grid.SetRowSpan(MainLyric, 2);
-        }
-        else
-            AltLyric.Text = Lang["Loading..."];
+        PositionChanged += Window_OnPositionChanged;
+        PointerPressed += OnPointerPressed;
+        Closed += OnClosed;
 
-        Width = DesktopLyricConfig.Size.Width;
-        Height = DesktopLyricConfig.Size.Height;
-        Position = new PixelPoint(DesktopLyricConfig.LyricPositionX, DesktopLyricConfig.LyricPositionY);
         base.Show();
-        SetPenetrate(TryGetPlatformHandle()!.Handle);
+
+        SetPenetrate(LyricConfig.LockLyricWindow);
+    }
+
+    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        BeginMoveDrag(e);
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        Closed -= OnClosed;
+        PositionChanged -= Window_OnPositionChanged;
+        PointerPressed -= OnPointerPressed;
+    }
+
+    private void Window_OnPositionChanged(object? sender, PixelPointEventArgs e)
+    {
+        LyricConfig.Position = Position;
+    }
+
+    public void SetPenetrate(bool enabled = true)
+    {
+        MousePenetrate.SetPenetrate(TryGetPlatformHandle()!.Handle, enabled);
     }
 }

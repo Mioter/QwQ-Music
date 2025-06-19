@@ -1,23 +1,56 @@
-﻿using System.Collections.Generic;
-using Avalonia.Layout;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.ViewModels.ViewModelBases;
+using DesktopLyricConfig = QwQ_Music.Models.ConfigModels.DesktopLyricConfig;
 
 namespace QwQ_Music.ViewModels;
 
-public static class DesktopLyricsWindowViewModel
+public partial class DesktopLyricsWindowViewModel : ViewModelBase
 {
-    public static Dictionary<int, string[]>? Lyrics { get; set; }
+    public DesktopLyricsWindowViewModel()
+    {
+        var currentLyric = MusicPlayerViewModel.LyricsModel.CurrentLyric;
+        var nextLyric = MusicPlayerViewModel.LyricsModel.GetNextLyric(currentLyric.TimePoint);
+        LyricsModelOnLyricLineChanged(this,MusicPlayerViewModel.LyricsModel.CurrentLyric,nextLyric);
+        
+        MusicPlayerViewModel.LyricsModel.LyricLineChanged += LyricsModelOnLyricLineChanged;
+    }
 
-    public static DesktopLyricConfig Config => ConfigInfoModel.LyricConfig.DesktopLyric;
+    public void Unsubscribe()
+    {
+        MusicPlayerViewModel.LyricsModel.LyricLineChanged -= LyricsModelOnLyricLineChanged;
+    }
 
-    public static Orientation LyricOrientation =>
-        Config.LyricIsVertical ? Orientation.Vertical : Orientation.Horizontal;
+    public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
-    public static void UpdateLyrics() { }
+    public static DesktopLyricConfig LyricConfig => ConfigManager.LyricConfig.DesktopLyric;
 
-    public static void SyncCurrentLyrics() { }
+    [ObservableProperty]
+    public partial string? CurrentMainLyric { get; set; }
 
-    public static string CurrentMainLyric { get; set; } = string.Empty;
-    public static string CurrentAltLyric { get; set; } = string.Empty;
+    [ObservableProperty]
+    public partial string? CurrentMainTranslateLyric { get; set; }
+
+    [ObservableProperty]
+    public partial string? CurrentAltLyric { get; set; }
+
+    [ObservableProperty]
+    public partial string? CurrentAltTranslateLyric { get; set; }
+
+    private void LyricsModelOnLyricLineChanged(object sender, LyricLine currentLyric, LyricLine? nextLyric)
+    {
+        CurrentMainLyric = currentLyric.Primary;
+
+        CurrentMainTranslateLyric = currentLyric.Translation;
+
+        if (nextLyric is not { } nextLyricLine)
+        {
+            CurrentAltLyric = null;
+            CurrentAltTranslateLyric = null;
+            return;
+        }
+
+        CurrentAltLyric = nextLyricLine.Primary;
+        CurrentAltTranslateLyric = nextLyricLine.Translation;
+    }
 }

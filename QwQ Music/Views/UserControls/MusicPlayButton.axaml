@@ -13,6 +13,7 @@
     xmlns:userControls="clr-namespace:QwQ_Music.ViewModels.UserControls">
     <Button
         Classes="None"
+        behaviors:DynamicCornerBehavior.IsEnabled="True"
         Command="{Binding MusicPlayerViewModel.TogglePlaybackCommand}"
         Name="PlayButton">
 
@@ -92,5 +93,15 @@
             </control:SwitchControl>
 
         </Panel>
+
+        <ToolTip.Tip>
+
+            <control:SwitchControl Condition="{Binding MusicPlayerViewModel.IsPlaying}" 
+                                   TrueContent="暂停⏸️" 
+                                   FalseContent="播放▶️"/>
+
+        </ToolTip.Tip>
+
+        
     </Button>
 </UserControl>

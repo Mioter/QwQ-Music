@@ -12,8 +12,7 @@
     xmlns:u="https://irihi.tech/ursa"
     xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
     xmlns:pages1="clr-namespace:QwQ_Music.Views.Pages">
-
-
+    
     <Grid RowDefinitions="Auto,*">
 
         <u:SelectionList

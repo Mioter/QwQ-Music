@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
@@ -12,13 +13,12 @@ public partial class MusicPlayListViewModel : ViewModelBase
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     [RelayCommand]
-    private void ToggleMusic()
+    private async Task ToggleMusicAsync()
     {
         if (SelectedItem == null)
             return;
 
-        MusicPlayerViewModel.IsPlaying = false;
-        MusicPlayerViewModel.SetCurrentMusicItem(SelectedItem).ConfigureAwait(false);
+        await MusicPlayerViewModel.ToggleMusicAsync(SelectedItem).ConfigureAwait(false);
     }
 
     [RelayCommand]

@@ -5,12 +5,11 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.Models.ModelBases;
 using QwQ_Music.Services;
 
 namespace QwQ_Music.Models;
 
-public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
+public class MusicItemModel : ObservableObject
 {
     public MusicItemModel(
         string title = "",
@@ -47,6 +46,8 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
         {
             CoverImage = coverImage;
         }
+
+        IsInitialized = true;
     }
 
     public bool IsInitialized { get; private init; }
@@ -120,7 +121,14 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
     public string? CoverPath
     {
         get;
-        set => SetPropertyWithModified(ref field, value);
+        set
+        {
+            if (SetPropertyWithModified(ref field, value))
+            {
+                _coverStatus = null;
+                OnPropertyChanged(nameof(CoverImage));
+            }
+        }
     } // 初始值来自构造函数
 
     public string[]? CoverColors
@@ -142,22 +150,22 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
     {
         get
         {
+            // 如果封面路径不存在，返回默认封面
             if (string.IsNullOrEmpty(CoverPath) || _coverStatus == CoverStatus.NotExist)
                 return MusicExtractor.DefaultCover;
 
-            switch (_coverStatus)
+            // 如果正在加载中，返回默认封面
+            if (_coverStatus == CoverStatus.Loading)
+                return MusicExtractor.DefaultCover;
+
+            // 尝试从缓存获取图片
+            if (MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image))
             {
-                // 如果已有缓存图片，直接返回
-                case CoverStatus.Loaded when MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image):
-                    return image;
-                case null:
-                    break;
-                // 如果正在加载中，暂时返回默认封面，等待后台任务完成
-                default:
-                    return MusicExtractor.DefaultCover;
+                _coverStatus = CoverStatus.Loaded;
+                return image!;
             }
 
-            // 标记为正在加载
+            // 缓存未命中，标记为正在加载
             _coverStatus = CoverStatus.Loading;
 
             // 启动异步加载任务
@@ -193,13 +201,21 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
 
             MusicExtractor.ImageCache[CoverPath] = value;
             _coverStatus = CoverStatus.Loaded;
+
+            OnPropertyChanged();
         }
     }
 
     public string? Remarks
     {
         get;
-        set => SetPropertyWithModified(ref field, value, true);
+        set => SetPropertyWithModified(ref field, value);
+    }
+
+    public int LyricOffset
+    {
+        get;
+        set => SetPropertyWithModified(ref field, value);
     }
 
     // 通用的设置属性并标记修改的方法
@@ -223,9 +239,6 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
 
         return true;
     }
-
-    public async Task<MusicTagExtensions> GetExtensionsInfo() =>
-        await MusicExtractor.ExtractExtensionsInfoAsync(FilePath);
 
     public Task<LyricsData> Lyrics => MusicExtractor.ExtractMusicLyricsAsync(FilePath);
 
@@ -269,6 +282,7 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
         SafeExtract(data, nameof(Comment), val => result.Comment = val?.ToString());
         SafeExtract(data, nameof(EncodingFormat), val => result.EncodingFormat = val?.ToString());
         SafeExtract(data, nameof(Remarks), val => result.Remarks = val?.ToString());
+        SafeExtract(data, nameof(LyricOffset), val => result.LyricOffset = val != null ? Convert.ToInt32(val) : 0);
 
         result.IsLoading = false;
 
@@ -311,6 +325,7 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
             [nameof(Comment)] = Comment,
             [nameof(EncodingFormat)] = EncodingFormat,
             [nameof(Remarks)] = Remarks,
+            [nameof(LyricOffset)] = LyricOffset.ToString(),
         };
         return result;
     }

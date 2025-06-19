@@ -1,4 +1,5 @@
 ﻿# 忽略idea文件
+.vs/
 .idea/
 .vscode/
 
@@ -8,3 +9,9 @@ obj/
 
 # 忽略user文件
 *.user
+
+# 忽略日志文件
+*.log
+
+# 格式化配置文件
+.csharpierrc.yaml

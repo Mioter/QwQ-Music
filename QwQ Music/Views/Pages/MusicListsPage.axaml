@@ -7,7 +7,7 @@
              x:DataType="pages:MusicListsPageViewModel"
              x:Class="QwQ_Music.Views.Pages.MusicListsPage">
     
-    <ItemsControl ItemsSource="{Binding PlayListItems}" Margin="10">
+    <ItemsControl Background="Transparent" ItemsSource="{Binding PlayListItems}" Margin="10">
 
         <ItemsControl.Styles>
 
@@ -15,13 +15,22 @@
                 <Setter Property="ContextMenu">
                     <Setter.Value>
                         <ContextMenu>
-                            
+
+                            <MenuItem
+                                Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).MusicPlayerViewModel.TogglePlaylistCommand}"
+                                CommandParameter="{Binding}"
+                                Header="播放">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconPlay}" Margin="4" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
                             <MenuItem
                                 Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).EditMusicListCommand}"
                                 CommandParameter="{Binding}"
                                 Header="编辑">
                                 <MenuItem.Icon>
-                                    <PathIcon Data="{StaticResource SemiIconEdit}" 
+                                    <PathIcon Data="{StaticResource SemiIconEdit}"
                                               Margin="2" />
                                 </MenuItem.Icon>
                             </MenuItem>
@@ -32,7 +41,7 @@
                                 Header="删除">
                                 <MenuItem.Icon>
                                     <PathIcon Foreground="{DynamicResource EmphasizePink3}"
-                                              Data="{StaticResource SemiIconDelete}" 
+                                              Data="{StaticResource SemiIconDelete}"
                                               Margin="2" />
                                 </MenuItem.Icon>
                             </MenuItem>
@@ -109,6 +118,16 @@
 
         </ItemsControl.ItemTemplate>
 
+        <ItemsControl.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="新建歌单"
+                          Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).CreateMusicListCommand}">
+                    <MenuItem.Icon>
+                        <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+        </ItemsControl.ContextMenu>
 
     </ItemsControl>
 

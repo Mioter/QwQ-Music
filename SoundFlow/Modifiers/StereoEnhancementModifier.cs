@@ -46,7 +46,7 @@ public sealed class StereoEnhancementModifier : SoundModifier
     /// 低频混合<br />
     /// Bass mixing
     /// </summary>
-    public bool BassMixing { get; set; } = false;
+    public bool BassMixing { get; set; }
 
     /// <summary>
     /// 高频增强 (0.0-2.0)<br />
@@ -88,7 +88,7 @@ public sealed class StereoEnhancementModifier : SoundModifier
     /// 低通滤波器系数<br />
     /// Bass filter coefficient
     /// </summary>
-    private const float BassFilterFreq = 200f; // 200Hz截止频率
+    private const float BASS_FILTER_FREQ = 200f; // 200Hz截止频率
 
     /// <inheritdoc />
     public override void Process(Span<float> buffer)
@@ -103,7 +103,7 @@ public sealed class StereoEnhancementModifier : SoundModifier
             return;
 
         float sampleTime = AudioEngine.Instance.InverseSampleRate;
-        float bassFilterCoeff = 2 * MathF.PI * BassFilterFreq;
+        float bassFilterCoeff = 2 * MathF.PI * BASS_FILTER_FREQ;
         float alpha = bassFilterCoeff * sampleTime;
         float alphaComplement = 1 - alpha;
 

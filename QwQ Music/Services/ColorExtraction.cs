@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -32,18 +33,25 @@ public enum ColorExtractionAlgorithm
 public static class ColorExtraction
 {
     /// <summary>
-    /// 从位图对象获取调色板
+    ///     从位图对象获取调色板
     /// </summary>
     /// <param name="bitmap">位图对象</param>
     /// <param name="colorCount">要提取的颜色数量，默认为5</param>
     /// <param name="algorithm">颜色提取算法，默认为KMeans</param>
     /// <param name="ignoreWhite">忽略白色</param>
+    /// <param name="toLab">转化为Lab矢量</param>
+    /// <param name="useKMeansPp">使用KMeansPp</param>
     /// <returns>提取的颜色列表</returns>
+    /// <remarks>
+    ///     注意：<c>toLab</c> 与 <c>useKMeansPp</c> 仅在 <c>KMeans</c> 下有效
+    /// </remarks>
     public static List<Color> GetColorPaletteFromBitmap(
         Bitmap bitmap,
         int colorCount = 5,
         ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
-        bool ignoreWhite = true
+        bool ignoreWhite = true,
+        bool toLab = true,
+        bool useKMeansPp = true
     )
     {
         // 从位图采样颜色
@@ -53,19 +61,13 @@ public static class ColorExtraction
         // 根据选择的算法生成调色板
         var paletteResult = algorithm switch
         {
-            ColorExtractionAlgorithm.KMeans => PaletteGenerators
-                .KMeansPaletteGenerator.CreatePalette(
-                    vectorColors,
-                    colorCount,
-                    ignoreWhite,
-                    toLab: true,
-                    useKMeansPp: true
-                )
+            ColorExtractionAlgorithm.KMeans => KMeansPaletteGenerator
+                .CreatePalette(vectorColors, colorCount, ignoreWhite, toLab, useKMeansPp)
                 .GetAwaiter()
                 .GetResult(),
 
-            ColorExtractionAlgorithm.OctTree => PaletteGenerators
-                .OctTreePaletteGenerator.CreatePalette(vectorColors, colorCount, ignoreWhite)
+            ColorExtractionAlgorithm.OctTree => OctTreePaletteGenerator
+                .CreatePalette(vectorColors, colorCount, ignoreWhite)
                 .GetAwaiter()
                 .GetResult(),
 
@@ -99,13 +101,10 @@ public static class ColorExtraction
         );
 
         using var fb = writeableBitmap.Lock();
-        var pixelData = new byte[fb.RowBytes * height];
+        byte[] pixelData = new byte[fb.RowBytes * height];
 
         // 将原始位图数据复制到可写位图
-        var handle = System.Runtime.InteropServices.GCHandle.Alloc(
-            pixelData,
-            System.Runtime.InteropServices.GCHandleType.Pinned
-        );
+        var handle = GCHandle.Alloc(pixelData, GCHandleType.Pinned);
         try
         {
             bitmap.CopyPixels(

@@ -1,13 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls.Notifications;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.ViewModels;
+using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.Models;
 
@@ -30,9 +31,12 @@ public partial class MusicListModel : ObservableObject
         {
             CoverImage = coverImage;
         }
+        _coverCacheKey = $"歌单-{Name}";
     }
 
-    private string? _coverCacheKey;
+    public readonly string Id = $"歌单-{UniqueIdGenerator.GetNextId()}";
+
+    private string _coverCacheKey;
 
     public string Name
     {
@@ -61,16 +65,15 @@ public partial class MusicListModel : ObservableObject
     {
         get
         {
-            // 如果已有缓存图片，直接返回
-            if (MusicExtractor.ImageCache.TryGetValue(_coverCacheKey ??= $"歌单-{Name}", out var cachedImage))
-            {
-                return cachedImage;
-            }
-
-            // 如果正在加载中，暂时返回默认封面
+            // 如果正在加载中，返回默认封面
             if (_coverStatus == CoverStatus.Loading)
-            {
                 return MusicExtractor.DefaultCover;
+
+            // 尝试从缓存获取图片
+            if (MusicExtractor.ImageCache.TryGetValue(_coverCacheKey, out var image))
+            {
+                _coverStatus = CoverStatus.Loaded;
+                return image!;
             }
 
             // 如果封面路径不存在，尝试从 MusicItems 中获取
@@ -87,7 +90,7 @@ public partial class MusicListModel : ObservableObject
                 return MusicExtractor.DefaultCover;
             }
 
-            // 标记为正在加载
+            // 缓存未命中，标记为正在加载
             _coverStatus = CoverStatus.Loading;
 
             // 启动异步加载任务
@@ -97,7 +100,7 @@ public partial class MusicListModel : ObservableObject
 
                 if (bitmap != null)
                 {
-                    MusicExtractor.ImageCache[_coverCacheKey ??= $"歌单-{Name}"] = bitmap;
+                    MusicExtractor.ImageCache[_coverCacheKey] = bitmap;
                     _coverStatus = CoverStatus.Loaded;
                 }
                 else
@@ -110,11 +113,13 @@ public partial class MusicListModel : ObservableObject
 
                     if (firstMusicCoverImage != null && firstMusicCoverImage != MusicExtractor.DefaultCover)
                     {
-                        MusicExtractor.ImageCache[_coverCacheKey ??= $"歌单-{Name}"] = firstMusicCoverImage;
+                        MusicExtractor.ImageCache[_coverCacheKey] = firstMusicCoverImage;
                         _coverStatus = CoverStatus.Loaded;
                     }
-
-                    _coverStatus = CoverStatus.NotExist;
+                    else
+                    {
+                        _coverStatus = CoverStatus.NotExist;
+                    }
                 }
 
                 OnPropertyChanged(); // 通知 UI 更新
@@ -125,8 +130,10 @@ public partial class MusicListModel : ObservableObject
         }
         set
         {
-            MusicExtractor.ImageCache[_coverCacheKey ??= $"歌单-{Name}"] = value;
+            MusicExtractor.ImageCache[_coverCacheKey] = value;
             _coverStatus = CoverStatus.Loaded;
+
+            OnPropertyChanged();
         }
     }
 
@@ -136,46 +143,39 @@ public partial class MusicListModel : ObservableObject
 
     public bool IsInitialized { get; private set; }
 
+    public bool IsError { get; private set; }
+
     /// <summary>
     /// 初始化音乐列表
     /// </summary>
-    public async Task LoadAsync()
+    public async Task<MusicListModel?> LoadAsync(ObservableCollection<MusicItemModel> allMusicItems)
     {
         // 获取最近播放的音乐列表
         var latestPlayedMusicList = await DataBaseService.LoadSpecifyFieldsAsync(
             DataBaseService.Table.LISTINFO,
             [nameof(LatestPlayedMusic)],
-            dict => dict.TryGetValue(nameof(LatestPlayedMusic), out object? value) ? value.ToString() ?? null : null,
+            dict => dict.TryGetValue(nameof(LatestPlayedMusic), out object? value) ? value?.ToString() ?? null : null,
             ..1,
             $"{nameof(Name)} = '{Name.Replace("'", "''")}'"
         );
 
-        MusicItems = new ObservableCollection<MusicItemModel>(await LoadMusicItemsAsync());
-
-        // 设置最近播放的音乐
-        if (latestPlayedMusicList.Count > 0)
-            LatestPlayedMusic = latestPlayedMusicList[0];
-
-        IsInitialized = true;
-    }
-
-    /// <summary>
-    /// 加载当前歌单音乐项
-    /// </summary>
-    /// <returns>音乐项集合</returns>
-    private async Task<IEnumerable<MusicItemModel>> LoadMusicItemsAsync()
-    {
         // 加载播放列表并获取文件路径列表
         var filePaths = await LoadMusicFilePathsAsync();
 
         // 根据文件路径从 全部 MusicItems 中查找对应项目
-        return filePaths
-            .Select(filePath =>
-                MusicPlayerViewModel.Instance.MusicItems.FirstOrDefault(item =>
-                    filePath != null && item.FilePath == filePath
-                )
-            )
+        var musicItems = filePaths
+            .Select(filePath => allMusicItems.FirstOrDefault(item => filePath != null && item.FilePath == filePath))
             .OfType<MusicItemModel>();
+
+        MusicItems = new ObservableCollection<MusicItemModel>(musicItems);
+
+        // 设置最近播放的音乐
+        if (latestPlayedMusicList is { Count: > 0 })
+            LatestPlayedMusic = latestPlayedMusicList[0];
+
+        IsInitialized = true;
+
+        return this;
     }
 
     /// <summary>
@@ -185,13 +185,23 @@ public partial class MusicListModel : ObservableObject
     private async Task<List<string?>> LoadMusicFilePathsAsync()
     {
         // 创建一个列表来存储文件路径
-        return await DataBaseService.LoadSpecifyFieldsAsync(
+        var filePaths = await DataBaseService.LoadSpecifyFieldsAsync(
             DataBaseService.Table.MUSICLISTS,
             [nameof(MusicItemModel.FilePath)],
             dict =>
                 dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? value) ? value.ToString() ?? null : null,
             search: $"{nameof(Name)} = '{Name.Replace("'", "''")}'"
         );
+
+        if (filePaths?.Count >= 0)
+            return filePaths;
+
+        NotificationService.ShowLight(
+            new Notification("错误", $"获取歌单《{Name}》中的音乐文件路径失败！"),
+            NotificationType.Error
+        );
+        IsError = true;
+        return [];
     }
 
     public Dictionary<string, string?> Dump()
@@ -207,85 +217,23 @@ public partial class MusicListModel : ObservableObject
 
     private static async Task<string?> GetFirstSongInPlaylist(string playlistName)
     {
-        try
-        {
-            // 获取歌单中的第一首歌曲路径
-            var filePaths = await DataBaseService.LoadSpecifyFieldsAsync(
-                DataBaseService.Table.MUSICLISTS,
-                [nameof(MusicItemModel.FilePath)],
-                dict => dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? path) ? path.ToString() : null,
-                search: $"{nameof(Name)} = '{playlistName.Replace("'", "''")}'"
-            );
+        // 获取歌单中的第一首歌曲路径
+        var filePaths = await DataBaseService.LoadSpecifyFieldsAsync(
+            DataBaseService.Table.MUSICLISTS,
+            [nameof(MusicItemModel.FilePath)],
+            dict => dict.TryGetValue(nameof(MusicItemModel.FilePath), out object? path) ? path.ToString() : null,
+            search: $"{nameof(Name)} = '{playlistName.Replace("'", "''")}'"
+        );
 
+        if (filePaths?.Count > 0)
+        {
             return filePaths.FirstOrDefault();
         }
-        catch (Exception ex)
-        {
-            await LoggerService.ErrorAsync($"获取歌单第一首歌曲失败: {ex.Message}");
-            return null;
-        }
-    }
 
-    /// <summary>
-    /// 将当前对象的属性拷贝到目标对象
-    /// </summary>
-    /// <param name="target">目标对象</param>
-    public void CopyTo(MusicListModel target)
-    {
-        target.Name = Name;
-        target.Description = Description;
-        target.CoverPath = CoverPath;
-        target.LatestPlayedMusic = LatestPlayedMusic;
-        target.IsInitialized = IsInitialized;
-
-        // 深拷贝 MusicItems 集合
-        target.MusicItems.Clear();
-        foreach (var item in MusicItems)
-        {
-            target.MusicItems.Add(item);
-        }
-
-        // 如果当前对象有封面图片，则拷贝到目标对象
-        if (CoverPath != null && MusicExtractor.ImageCache.TryGetValue(CoverPath, out var coverImage))
-        {
-            target.CoverImage = coverImage;
-        }
-    }
-
-    /// <summary>
-    /// 从源对象拷贝属性到当前对象
-    /// </summary>
-    /// <param name="source">源对象</param>
-    public void CopyFrom(MusicListModel source)
-    {
-        Name = source.Name;
-        Description = source.Description;
-        CoverPath = source.CoverPath;
-        LatestPlayedMusic = source.LatestPlayedMusic;
-        IsInitialized = source.IsInitialized;
-
-        // 深拷贝 MusicItems 集合
-        MusicItems.Clear();
-        foreach (var item in source.MusicItems)
-        {
-            MusicItems.Add(item);
-        }
-
-        // 如果源对象有封面图片，则拷贝到当前对象
-        if (source.CoverPath != null && MusicExtractor.ImageCache.TryGetValue(source.CoverPath, out var coverImage))
-        {
-            CoverImage = coverImage;
-        }
-    }
-
-    /// <summary>
-    /// 创建当前对象的深拷贝
-    /// </summary>
-    /// <returns>新的 MusicListModel 实例</returns>
-    public MusicListModel Clone()
-    {
-        var clone = new MusicListModel();
-        CopyTo(clone);
-        return clone;
+        NotificationService.ShowLight(
+            new Notification("错误", $"获取歌单《{playlistName}》第一首音乐失败！"),
+            NotificationType.Error
+        );
+        return null;
     }
 }

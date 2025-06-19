@@ -12,7 +12,7 @@ public class SpectrumVisualizer : IVisualizer
     private Color _barColor = new(0, 1, 0);
 
     /// <inheritdoc />
-    public string Name { get; } = "Spectrum Visualizer";
+    public string Name => "Spectrum Visualizer";
 
     /// <summary>
     /// Gets or sets the color of the spectrum bars.

@@ -17,11 +17,11 @@ public static class NavigateService
     private static int currentHistoryIndex;
     private static readonly Dictionary<string, string[]?> _viewTree = new()
     {
-        { "窗口", ["主页", "分类", "统计", "设置"] },
+        { "窗口", ["主页", "分类", "其他", "设置"] },
         { "主页", null },
         { "分类", null },
-        { "统计", null },
-        { "设置", ["界面", "播放", "歌词", "音效"] },
+        { "其他", ["统计", "玩的"] },
+        { "设置", ["界面", "播放", "歌词", "音效", "系统", "按键"] },
         {
             "音效",
             [
@@ -87,7 +87,7 @@ public static class NavigateService
     // 存储每个导航容器（父视图）的导航触发事件
     public static Dictionary<string, Action<int>?> NavigateEvents { get; set; } = new();
 
-    // 当前活动视图改变时的事件
+    // 当前活动视图改变时的事件，此事件用于通知订阅者当前视图名称
     public static Action<string>? CurrentViewChanged { get; set; }
 
     // 当前最深层级的活动视图名称
@@ -95,6 +95,9 @@ public static class NavigateService
 
     // 标记是否为内部导航（前进/后退），避免重复记录历史
     private static bool isNavigatingInternally;
+
+    // 标记是否为内部导航（前进/后退），避免重复记录历史
+    private static bool isNavigatingMultistage;
 
     // 前进/后退状态属性
     public static bool CanGoBack => currentHistoryIndex > 0;
@@ -105,7 +108,7 @@ public static class NavigateService
     /// </summary>
     private static void UpdateNavigationHistory()
     {
-        if (isNavigatingInternally)
+        if (isNavigatingInternally || isNavigatingMultistage)
             return;
 
         // 如果当前索引不是历史记录的末尾，说明执行了后退操作后又进行了新的导航，
@@ -141,9 +144,6 @@ public static class NavigateService
         }
 
         string targetChildView = children[targetChildIndex];
-
-        // 更新当前视图为导航目标的子视图
-        CurrentView = targetChildView;
 
         // 更新 ViewIndex 中父视图的当前子视图索引
         if (ViewIndex.TryGetValue(viewName, out var indexInfo))
@@ -204,7 +204,10 @@ public static class NavigateService
         // 从最顶层的父视图开始，依次触发导航事件
         while (navigationStack.Count > 0)
         {
+            isNavigatingMultistage = navigationStack.Count > 1;
+
             (string parentName, int indexToSelect) = navigationStack.Pop();
+
             // 触发父视图的导航事件，但不添加到历史记录 (因为这是程序化导航)
             // 注意：NavigateEvents 的 Action<int> 参数是子视图的索引
             NavigateEvents.TryGetValue(parentName, out var navigateAction);
@@ -212,6 +215,9 @@ public static class NavigateService
             // NavigateEvent 会被调用，更新 CurrentView 和 ViewIndex[parentName] 的 CurrentChildIndex
         }
 
+        // 以下代码会导致View移出ViewTree后导航索引到空处。
+
+        /*
         // 最后确保 CurrentView 更新正确，并触发 Changed 事件
         // （NavigateEvent 内部会处理这个，但如果栈为空，需要手动确保）
         if (navigationStack.Count != 0 || CurrentView == targetViewName)
@@ -237,6 +243,7 @@ public static class NavigateService
         CurrentView = deepestView;
         CurrentViewChanged?.Invoke(CurrentView);
         UpdateNavigationHistory(); // NavigateTo 应该更新历史记录
+        */
     }
 
     /// <summary>
@@ -330,7 +337,7 @@ public static class NavigateService
     public static bool AddChildView(string parentViewName, string childViewName)
     {
         // 检查父视图是否存在
-        if (!_viewTree.ContainsKey(parentViewName))
+        if (!_viewTree.TryGetValue(parentViewName, out string[]? value))
             return false;
 
         // 检查子视图是否已存在
@@ -338,7 +345,7 @@ public static class NavigateService
             return false;
 
         // 获取父视图的现有子视图列表
-        string[] children = _viewTree[parentViewName] ?? [];
+        string[] children = value ?? [];
 
         // 创建新的子视图数组
         string[] newChildren = new string[children.Length + 1];
@@ -413,13 +420,13 @@ public static class NavigateService
         while (queue.Count > 0)
         {
             string current = queue.Dequeue();
-            if (_viewTree.TryGetValue(current, out string[]? children) && children != null)
+            if (!_viewTree.TryGetValue(current, out string[]? children) || children == null)
+                continue;
+
+            foreach (string child in children)
             {
-                foreach (string child in children)
-                {
-                    viewsToRemove.Add(child);
-                    queue.Enqueue(child);
-                }
+                viewsToRemove.Add(child);
+                queue.Enqueue(child);
             }
         }
 
@@ -432,14 +439,13 @@ public static class NavigateService
         // 更新当前历史索引
         if (currentHistoryIndex >= _navigationHistory.Count)
         {
-            currentHistoryIndex = _navigationHistory.Count - 1;
+            currentHistoryIndex = _navigationHistory.Count;
         }
 
         // 如果当前视图被删除，导航到最后一个有效的历史记录
-        if (viewsToRemove.Contains(CurrentView) && _navigationHistory.Count > 0)
+        if (viewsToRemove.Contains(CurrentView))
         {
-            CurrentView = _navigationHistory[currentHistoryIndex];
-            CurrentViewChanged?.Invoke(CurrentView);
+            GoBack();
         }
     }
 

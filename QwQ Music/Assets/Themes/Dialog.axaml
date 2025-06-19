@@ -190,7 +190,7 @@
                         CornerRadius="{TemplateBinding CornerRadius}"
                         Focusable="True"
                         IsHitTestVisible="True"
-                        Theme="{DynamicResource CardBorder}">
+                        Theme="{StaticResource CardBorder}">
                         
                         <Border ClipToBounds="True" CornerRadius="{TemplateBinding CornerRadius}">
                             
@@ -247,7 +247,7 @@
                                         Grid.Column="1"
                                         Margin="20,0"
                                         DockPanel.Dock="Right"
-                                        Theme="{DynamicResource OverlayCloseButton}" />
+                                        Theme="{StaticResource OverlayCloseButton}" />
                                     
                                 </Grid>
 

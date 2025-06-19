@@ -21,6 +21,7 @@ public static class LanguageModel
             {
                 ["MusicName"] = "音乐",
                 ["ClassificationName"] = "分类",
+                ["OtherName"] = "其他",
                 ["StatisticsName"] = "统计",
                 ["SettingsName"] = "设置",
                 ["LyricConfigName"] = "歌词",

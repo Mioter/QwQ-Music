@@ -152,7 +152,7 @@
 
                                 <PathIcon
                                     Name="PART_ExpandIcon"
-                                    Theme="{DynamicResource InnerPathIcon}"
+                                    Theme="{StaticResource InnerPathIcon}"
                                     VerticalAlignment="Center"
                                     Data="{DynamicResource MenuItemExpandIconGlyph}"
                                     Foreground="{DynamicResource MenuItemExpandIconForeground}" />
@@ -264,7 +264,7 @@
             <Setter Property="Content">
                 <Template>
                     <PathIcon
-                        Theme="{DynamicResource InnerPathIcon}"
+                        Theme="{StaticResource InnerPathIcon}"
                         Foreground="{Binding $parent[MenuItem].Foreground}"
                         Data="{StaticResource MenuCheckGlyph}" />
                 </Template>

@@ -5,7 +5,6 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Irihi.Avalonia.Shared.Contracts;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
@@ -16,7 +15,8 @@ using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.UserControls;
 
-public partial class CreateMusicListViewModel(string oldName = "") : ViewModelBase, IDialogContext
+public partial class CreateMusicListViewModel(OverlayDialogOptions options, string oldName = "")
+    : DialogViewModelBase(options)
 {
     [ObservableProperty]
     public partial Bitmap? Cover { get; set; }
@@ -31,7 +31,7 @@ public partial class CreateMusicListViewModel(string oldName = "") : ViewModelBa
 
             if (string.IsNullOrWhiteSpace(field))
             {
-                ErrorText = "名称不能为空!";
+                ErrorMessage = "名称不能为空!";
                 return;
             }
 
@@ -41,24 +41,19 @@ public partial class CreateMusicListViewModel(string oldName = "") : ViewModelBa
                 && field != oldName
             )
             {
-                ErrorText = "歌单名称已存在!";
+                ErrorMessage = "歌单名称已存在!";
                 return;
             }
 
-            ErrorText = null;
+            ErrorMessage = null;
         }
     }
 
     [ObservableProperty]
     public partial string? Description { get; set; }
 
-    public bool CanOk => string.IsNullOrEmpty(ErrorText);
-
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanOk))]
-    public partial string? ErrorText { get; set; } = "名称不能为空!";
-
-    public bool IsOk;
+    public partial string? ErrorMessage { get; set; } = "名称不能为空!";
 
     [RelayCommand]
     private async Task AddCover()
@@ -88,11 +83,7 @@ public partial class CreateMusicListViewModel(string oldName = "") : ViewModelBa
 
     private static async Task<Bitmap?> OpenImageFile()
     {
-        var topLevel = App.TopLevel;
-        if (topLevel == null)
-            return null;
-
-        var files = await topLevel.StorageProvider.OpenFilePickerAsync(
+        var files = await App.TopLevel.StorageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions
             {
                 Title = "选择图片",
@@ -124,23 +115,15 @@ public partial class CreateMusicListViewModel(string oldName = "") : ViewModelBa
         }
     }
 
-    public void Close()
-    {
-        RequestClose?.Invoke(this, null);
-    }
-
     [RelayCommand]
     private void Ok()
     {
-        IsOk = true;
-        RequestClose?.Invoke(this, true);
+        Close(true);
     }
 
     [RelayCommand]
     private void Cancel()
     {
-        RequestClose?.Invoke(this, false);
+        Close(false);
     }
-
-    public event EventHandler<object?>? RequestClose;
 }

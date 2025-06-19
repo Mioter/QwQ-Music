@@ -62,7 +62,7 @@ public class Love
         double centerY = bounds.Height / 2.0 - bounds.Height * 0.1; // 上移 10%
 
         const int totalPoints = 80; // 总点数
-        const double scale = 60; // 缩放系数
+        double scale = Math.Min(bounds.Width * 0.02, bounds.Height * 0.05); // 屏幕宽度的一定比例，取较小值
         const double verticalScale = 0.85; // 垂直方向比例系数
         const double minSpacing = 70; // 最小窗口间距
 

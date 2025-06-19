@@ -4,7 +4,8 @@
     Height="{Binding WindowHeight, Mode=OneWayToSource}"
     MinHeight="400"
     MinWidth="600"
-    Title="QwQ"
+    Title="QwQ Music"
+    Icon="resm:QwQ_Music.Assets.AppIcon.ico"
     Width="{Binding WindowWidth, Mode=OneWayToSource}"
     x:Class="QwQ_Music.Views.MainWindow"
     x:DataType="viewModels:MainWindowViewModel"
@@ -76,8 +77,7 @@
         <StackPanel Orientation="Horizontal" Margin="20,0" Spacing="20">
             <!-- 标题文本 -->
             <TextBlock
-                FontFamily="{StaticResource VivoSans}"
-                FontWeight="ExtraBold"
+                FontWeight="Bold"
                 HorizontalAlignment="Left"
                 IsHitTestVisible="False"
                 Text="QwQ Music"
@@ -156,127 +156,131 @@
 
                 </ToggleButton>
 
-                <u:SelectionList Grid.Row="1" 
-                                 ItemsSource="{Binding IconItems}"
-                                 SelectedIndex="{Binding NavigationIndex}">
+                <ScrollViewer Grid.Row="1">
+                    
+                    <u:SelectionList
+                        ItemsSource="{Binding IconItems}"
+                        SelectedIndex="{Binding NavigationIndex}">
 
-                    <u:SelectionList.Indicator>
-                        <Border
-                            Background="{DynamicResource SemiBlue5}"
-                            BoxShadow="0 0 10 0 LightGray"
-                            Classes.Expanded="{Binding IsNavigationExpand}"
-                            CornerRadius="8">
-                            <Border.Transitions>
-                                <Transitions>
-                                    <TransformOperationsTransition
-                                        Duration="0:0:0.3"
-                                        Easing="CircularEaseOut"
-                                        Property="RenderTransform" />
-                                </Transitions>
-                            </Border.Transitions>
-                        </Border>
-                    </u:SelectionList.Indicator>
+                        <u:SelectionList.Indicator>
+                            <Border
+                                Background="{DynamicResource SemiBlue5}"
+                                BoxShadow="0 0 10 0 LightGray"
+                                Classes.Expanded="{Binding IsNavigationExpand}"
+                                CornerRadius="8">
+                                <Border.Transitions>
+                                    <Transitions>
+                                        <TransformOperationsTransition
+                                            Duration="0:0:0.3"
+                                            Easing="CircularEaseOut"
+                                            Property="RenderTransform" />
+                                    </Transitions>
+                                </Border.Transitions>
+                            </Border>
+                        </u:SelectionList.Indicator>
 
-                    <u:SelectionList.Styles>
+                        <u:SelectionList.Styles>
 
-                        <Style Selector="Border.Expanded">
-                            <Setter Property="RenderTransform" Value="scale(1.1,1)" />
-                        </Style>
-
-                        <Style Selector="u|SelectionListItem">
-                            <Setter Property="Height" Value="35" />
-                            <Setter Property="Margin" Value="20,10" />
-                            <Setter Property="Padding" Value="10" />
-                            <Setter Property="FontWeight" Value="Bold" />
-                            <Setter Property="Transitions">
-                                <Transitions>
-                                    <BrushTransition Duration="0:0:0.3" Property="Foreground" />
-                                    <TransformOperationsTransition Duration="0:0:0.3" Property="RenderTransform" />
-                                </Transitions>
-                            </Setter>
-
-                            <Style Selector="^:selected">
-                                <Setter Property="FontWeight" Value="ExtraBold" />
-                                <Setter Property="Foreground" Value="White" />
-                                <Setter Property="RenderTransform" Value="scale(1.1)" />
+                            <Style Selector="Border.Expanded">
+                                <Setter Property="RenderTransform" Value="scale(1.1,1)" />
                             </Style>
-                        </Style>
-                        
-                    </u:SelectionList.Styles>
 
-                    <u:SelectionList.ItemTemplate>
-                        <DataTemplate>
-                            <Panel>
-                                <Button
-                                    CornerRadius="10"
-                                    Height="10"
-                                    Width="10"
-                                    Margin="0"
-                                    Command="{Binding $parent[Window].((viewModels:MainWindowViewModel)DataContext).RemoveIconItemCommand}"
-                                    CommandParameter="{Binding}"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Top"
-                                    RenderTransform="translate(-10px,-10px)"
-                                    Padding="0"
-                                    Classes="Icon">
-                                    
-                                    <Button.Transitions>
-                                        <Transitions>
-                                            <DoubleTransition Property="Opacity" Duration="0:0:0.3"/>
-                                        </Transitions>
-                                    </Button.Transitions>
-                                    
-                                    <Button.Content>
-                                        <PathIcon Data="{StaticResource SemiIconClear}"
-                                                  Foreground="{StaticResource EmphasizePink3}" />
-                                    </Button.Content>
+                            <Style Selector="u|SelectionListItem">
+                                <Setter Property="Height" Value="35" />
+                                <Setter Property="Margin" Value="20,10" />
+                                <Setter Property="Padding" Value="10" />
+                                <Setter Property="FontWeight" Value="Bold" />
+                                <Setter Property="Transitions">
+                                    <Transitions>
+                                        <BrushTransition Duration="0:0:0.3" Property="Foreground" />
+                                        <TransformOperationsTransition Duration="0:0:0.3" Property="RenderTransform" />
+                                    </Transitions>
+                                </Setter>
 
-                                    <Button.IsVisible>
-                                        <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                            <Binding
-                                                Path="!$parent[u:SelectionListItem].((viewModels:IconItem)DataContext).AlwaysHide" />
-                                            <Binding Path="$parent[u:SelectionListItem].IsPointerOver" />
-                                        </MultiBinding>
-                                    </Button.IsVisible>
+                                <Style Selector="^:selected">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                    <Setter Property="Foreground" Value="White" />
+                                    <Setter Property="RenderTransform" Value="scale(1.1)" />
+                                </Style>
+                            </Style>
 
-                                </Button>
-                                
-                                <StackPanel Orientation="Horizontal" Spacing="10">
+                        </u:SelectionList.Styles>
 
-                                    <StackPanel.Styles>
+                        <u:SelectionList.ItemTemplate>
+                            <DataTemplate>
+                                <Panel>
+                                    <Button
+                                        CornerRadius="10"
+                                        Height="10"
+                                        Width="10"
+                                        Margin="0"
+                                        Command="{Binding $parent[Window].((viewModels:MainWindowViewModel)DataContext).RemoveIconItemCommand}"
+                                        CommandParameter="{Binding}"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        RenderTransform="translate(-10px,-10px)"
+                                        Padding="0"
+                                        Classes="Icon">
 
-                                        <Style Selector="StackPanel > TextBlock">
-                                            <Setter Property="VerticalAlignment" Value="Center" />
-                                        </Style>
+                                        <Button.Transitions>
+                                            <Transitions>
+                                                <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+                                            </Transitions>
+                                        </Button.Transitions>
 
-                                    </StackPanel.Styles>
+                                        <Button.Content>
+                                            <PathIcon Data="{StaticResource SemiIconClear}"
+                                                      Foreground="{StaticResource EmphasizePink3}" />
+                                        </Button.Content>
 
-                                    <ContentControl Content="{Binding Source}">
+                                        <Button.IsVisible>
+                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                <Binding
+                                                    Path="!$parent[u:SelectionListItem].((viewModels:IconItem)DataContext).AlwaysHide" />
+                                                <Binding Path="$parent[u:SelectionListItem].IsPointerOver" />
+                                            </MultiBinding>
+                                        </Button.IsVisible>
 
-                                        <ContentControl.DataTemplates>
+                                    </Button>
 
-                                            <DataTemplate DataType="definitions:GeometryIconSource">
-                                                <PathIcon Data="{Binding Geometry}" />
-                                            </DataTemplate>
-                                            <DataTemplate DataType="definitions:BitmapIconSource">
-                                                <Border ClipToBounds="True" CornerRadius="3">
-                                                    <Image Source="{Binding Bitmap}" />
-                                                </Border>
-                                            </DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
 
-                                        </ContentControl.DataTemplates>
+                                        <StackPanel.Styles>
 
-                                    </ContentControl>
+                                            <Style Selector="StackPanel > TextBlock">
+                                                <Setter Property="VerticalAlignment" Value="Center" />
+                                            </Style>
 
-                                    <TextBlock Text="{Binding Name}" />
+                                        </StackPanel.Styles>
 
-                                </StackPanel>
-                            </Panel>
-                        </DataTemplate>
-                    </u:SelectionList.ItemTemplate>
+                                        <ContentControl Content="{Binding Source}">
 
-                </u:SelectionList>
+                                            <ContentControl.DataTemplates>
 
+                                                <DataTemplate DataType="definitions:GeometryIconSource">
+                                                    <PathIcon Data="{Binding Geometry}" />
+                                                </DataTemplate>
+                                                <DataTemplate DataType="definitions:BitmapIconSource">
+                                                    <Border ClipToBounds="True" CornerRadius="3">
+                                                        <Image Source="{Binding Bitmap}" />
+                                                    </Border>
+                                                </DataTemplate>
+
+                                            </ContentControl.DataTemplates>
+
+                                        </ContentControl>
+
+                                        <TextBlock Text="{Binding Title}" />
+
+                                    </StackPanel>
+                                </Panel>
+                            </DataTemplate>
+                        </u:SelectionList.ItemTemplate>
+
+                    </u:SelectionList>
+                    
+                </ScrollViewer>
+                
             </Grid>
 
             <TransitioningContentControl Grid.Column="1"  Content="{Binding CurrentPage}">
@@ -320,9 +324,9 @@
 
             <Interaction.Behaviors>
 
-                <EventTriggerBehavior EventName="PointerWheelChanged">
+                <PointerWheelChangedTrigger>
                     <InvokeCommandAction Command="{Binding PointerWheelChangedCommand}" PassEventArgsToCommand="True" />
-                </EventTriggerBehavior>
+                </PointerWheelChangedTrigger>
 
             </Interaction.Behaviors>
 
@@ -439,7 +443,6 @@
             </Border>
 
             <Button
-                Background="{x:Null}"
                 Classes="None"
                 Width="80"
                 Classes.TrayFoldedUp="{Binding !IsMusicAlbumCoverTrayVisible}"

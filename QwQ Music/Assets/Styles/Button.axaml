@@ -9,7 +9,7 @@
     <Style Selector="Button.None">
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="MinWidth" Value="0" />
-        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Background" Value="{x:Null}" />
         <Setter Property="Template">
             <ControlTemplate TargetType="Button">
                 <ContentPresenter

@@ -1,0 +1,84 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+             xmlns:pages1="clr-namespace:QwQ_Music.Views.Pages"
+             xmlns:u="https://irihi.tech/ursa"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             x:DataType="pages:OtherPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.OtherPage">
+    
+        <Grid RowDefinitions="Auto,*">
+
+        <u:SelectionList
+            HorizontalAlignment="Left"
+            Margin="10,0"
+            SelectedIndex="{Binding NavigationIndex}">
+
+            <u:SelectionList.Styles>
+
+                <Style Selector="u|SelectionListItem">
+                    <Setter Property="RenderTransformOrigin" Value="50%,100%" />
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <TransformOperationsTransition Duration="0:0:0.12" Property="RenderTransform" />
+                        </Transitions>
+                    </Setter>
+
+                    <Style Selector="^:selected">
+                        <Setter Property="FontWeight" Value="Bold" />
+                        <Setter Property="RenderTransform" Value="scale(1.12)" />
+                    </Style>
+                </Style>
+
+            </u:SelectionList.Styles>
+
+            <u:SelectionList.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </u:SelectionList.ItemsPanel>
+
+            <u:SelectionList.Indicator>
+                <Border
+                    Background="{DynamicResource SemiBlue5}"
+                    CornerRadius="2"
+                    Height="2"
+                    Margin="10,0"
+                    VerticalAlignment="Bottom" />
+            </u:SelectionList.Indicator>
+
+            <u:SelectionList.Styles>
+
+                <Style Selector="u|SelectionListItem">
+                    <Setter Property="Padding" Value="10,5" />
+                </Style>
+            </u:SelectionList.Styles>
+
+            <TextBlock Text="统计" />
+            <TextBlock Text="玩的" />
+
+        </u:SelectionList>
+
+        <control:IndexControl Grid.Row="1" Index="{Binding NavigationIndex}">
+            <control:IndexControl.PageTransition>
+                <CompositePageTransition>
+                    <CrossFade Duration="0:0:0.5" />
+                    <PageSlide
+                        Duration="0:0:0.3"
+                        Orientation="Horizontal"
+                        SlideInEasing="QuadraticEaseIn"
+                        SlideOutEasing="QuadraticEaseOut" />
+                </CompositePageTransition>
+            </control:IndexControl.PageTransition>
+
+            <pages1:StatisticsPage/>
+            <pages1:MiaomiaoLittleToyPage />
+
+        </control:IndexControl>
+
+    </Grid>
+    
+</UserControl>

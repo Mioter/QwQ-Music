@@ -8,24 +8,31 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Shader;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ.Avalonia.Utilities.MessageBus;
+using CoverConfig = QwQ_Music.Models.ConfigModels.CoverConfig;
+using RolledLyricConfig = QwQ_Music.Models.ConfigModels.RolledLyricConfig;
 
 namespace QwQ_Music.ViewModels.Pages;
 
 public partial class MusicCoverPageViewModel : NavigationViewModel
 {
+    public static string OffsetName => LanguageModel.Lang[nameof(OffsetName)];
+
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
-    public static RolledLyricsConfig RolledLyricsConfig { get; } = ConfigInfoModel.LyricConfig.RolledLyricsConfig;
+    public static RolledLyricConfig RolledLyric { get; } = ConfigManager.LyricConfig.RolledLyri;
+
+    private static readonly CoverConfig _coverConfig = ConfigManager.InterfaceConfig.CoverConfig;
 
     public MusicCoverPageViewModel()
         : base("播放")
     {
+        MusicPlayerViewModelOnCurrentMusicItemChanged(null, MusicPlayerViewModel.CurrentMusicItem);
         MusicPlayerViewModel.CurrentMusicItemChanged += MusicPlayerViewModelOnCurrentMusicItemChanged;
+
         MessageBus
             .ReceiveMessage<ExitReminderMessage>(this)
             .WithHandler(ExitReminderMessageHandler)
@@ -64,14 +71,17 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
     {
         try
         {
-            await UpdateCoverImage(musicItem);
-            await UpdateColorsList(musicItem);
+            // 合并封面图片和颜色列表更新任务
+            var coverTask = UpdateCoverImage(musicItem);
+            var colorsTask = UpdateColorsList(musicItem);
+
+            await Task.WhenAll(coverTask, colorsTask).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            await LoggerService.ErrorAsync(
-                $"{nameof(MusicPlayerViewModelOnCurrentMusicItemChanged)} 发生错误 : {ex.Message}"
-            );
+            await LoggerService
+                .ErrorAsync($"{nameof(MusicPlayerViewModelOnCurrentMusicItemChanged)} 发生错误 : {ex.Message}")
+                .ConfigureAwait(false);
         }
     }
 
@@ -86,7 +96,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
             if (currentCoverPath != null)
             {
-                var bitmap = await MusicExtractor.LoadOriginalBitmap(currentCoverPath);
+                var bitmap = await MusicExtractor.LoadOriginalBitmap(currentCoverPath).ConfigureAwait(false);
                 if (bitmap != null)
                 {
                     CoverImage = bitmap;
@@ -95,7 +105,9 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
             }
 
             // 尝试从音频文件中提取封面
-            string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(musicItem.FilePath);
+            string? newCoverPath = await MusicExtractor
+                .ExtractAndSaveCoverFromAudioAsync(musicItem.FilePath)
+                .ConfigureAwait(false);
             if (newCoverPath != null)
             {
                 currentCoverPath = newCoverPath;
@@ -128,11 +140,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         }
 
         // 提取新的颜色
-        var colorsList = await GetColorPalette(
-            musicItem.CoverPath,
-            COLOR_COUNT,
-            ConfigInfoModel.InterfaceConfig.SelectedColorExtractionAlgorithm
-        );
+        var colorsList = await GetColorPalette(musicItem.CoverPath, COLOR_COUNT);
 
         // 缓存提取的颜色
         if (colorsList != null)
@@ -145,18 +153,20 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         OnPropertyChanged(nameof(ColorsList));
     }
 
-    private static async Task<List<Color>?> GetColorPalette(
-        string imagePath,
-        int colorCount = 5,
-        ColorExtractionAlgorithm algorithm = ColorExtractionAlgorithm.KMeans,
-        bool ignoreWhite = true
-    )
+    private static async Task<List<Color>?> GetColorPalette(string imagePath, int colorCount = 5)
     {
         // 尝试使用缓存的位图
         var bitmap = await MusicExtractor.LoadCompressedBitmap(imagePath);
         return bitmap == null
             ? null // 缓存不存在直接返回null
-            : ColorExtraction.GetColorPaletteFromBitmap(bitmap, colorCount, algorithm, ignoreWhite);
+            : ColorExtraction.GetColorPaletteFromBitmap(
+                bitmap,
+                colorCount,
+                _coverConfig.SelectedColorExtractionAlgorithm,
+                _coverConfig.IgnoreWhite,
+                _coverConfig.ToLab,
+                _coverConfig.UseKMeansPp
+            );
     }
 
     public List<Color> ColorsList { get; set; } = _defaultColors;

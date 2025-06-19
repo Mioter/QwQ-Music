@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using QwQ_Music.Services;
+using System.Runtime.InteropServices;
 
 namespace QwQ_Music.Utilities;
 
@@ -47,26 +47,50 @@ public static class PathEnsurer
         Path.GetInvalidFileNameChars().Aggregate(fileName, (current, c) => current.Replace(c, '&'));
 
     /// <summary>
-    /// 在文件资源管理器中打开
+    /// 在系统默认文件管理器中打开指定文件或目录
     /// </summary>
-    /// <param name="filePath">文件路径</param>
-    public static void OpenInExplorer(string filePath)
+    /// <param name="path">文件或目录路径</param>
+    public static void OpenInFileManager(string path)
     {
-        try
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            // 使用 explorer.exe 打开文件所在的文件夹并选中该文件
+            // Windows: 使用 explorer.exe
             Process.Start(
                 new ProcessStartInfo
                 {
                     FileName = "explorer.exe",
-                    Arguments = $"/select,\"{filePath}\"",
+                    Arguments = $"/select,\"{path}\"",
                     UseShellExecute = true,
                 }
             );
         }
-        catch (Exception ex)
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            LoggerService.Error($"打开文件位置失败: {ex.Message}");
+            // macOS: 使用 open 命令
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "open",
+                    Arguments = $"-R \"{path}\"",
+                    UseShellExecute = true,
+                }
+            );
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            // Linux: 尝试使用 xdg-open
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "xdg-open",
+                    Arguments = $"\"{Path.GetDirectoryName(path)}\"",
+                    UseShellExecute = true,
+                }
+            );
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("当前操作系统不支持此操作");
         }
     }
 

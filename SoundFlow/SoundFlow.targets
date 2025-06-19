@@ -70,5 +70,17 @@
             <OutputPath>miniaudio.framework</OutputPath>
         </RuntimeTargets>
 
+        <!-- FreeBSD Runtimes -->
+        <RuntimeTargets Include="$(MSBuildThisFileDirectory)..\runtimes\freebsd-x64\native\libminiaudio.so" AssetKind="Native">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <RuntimeIdentifier>freebsd-x64</RuntimeIdentifier>
+            <OutputPath>libminiaudio.so</OutputPath>
+        </RuntimeTargets>
+        <RuntimeTargets Include="$(MSBuildThisFileDirectory)..\runtimes\freebsd-arm64\native\libminiaudio.so" AssetKind="Native">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <RuntimeIdentifier>freebsd-arm64</RuntimeIdentifier>
+            <OutputPath>libminiaudio.so</OutputPath>
+        </RuntimeTargets>
+
     </ItemGroup>
 </Project>

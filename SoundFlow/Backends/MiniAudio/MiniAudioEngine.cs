@@ -23,7 +23,7 @@ public sealed class MiniAudioEngine(
     private nint _currentCaptureDeviceId = nint.Zero;
 
     /// <inheritdoc />
-    protected override bool RequiresBackendThread { get; } = false;
+    protected override bool RequiresBackendThread => false;
 
     /// <inheritdoc />
     protected override void InitializeAudioDevice()
@@ -113,14 +113,14 @@ public sealed class MiniAudioEngine(
 
     /// <inheritdoc />
     public override ISoundEncoder CreateEncoder(
-        string filePath,
+        Stream stream,
         EncodingFormat encodingFormat,
         SampleFormat sampleFormat,
         int encodingChannels,
         int sampleRate
     )
     {
-        return new MiniAudioEncoder(filePath, encodingFormat, sampleFormat, encodingChannels, sampleRate);
+        return new MiniAudioEncoder(stream, encodingFormat, sampleFormat, encodingChannels, sampleRate);
     }
 
     /// <inheritdoc />

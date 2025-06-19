@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Controls;
@@ -24,24 +23,70 @@ public partial class MainWindowViewModel : NavigationViewModel
     public MainWindowViewModel()
         : base("窗口")
     {
+        NavigateService.CurrentViewChanged += CurrentViewChanged;
+
+        // 注册热键功能
+        HotkeyService.RegisterFunctionAction(
+            HotkeyFunction.ViewForward,
+            () =>
+            {
+                if (CanGoForward)
+                    ViewForwardCommand.Execute(null);
+            }
+        );
+
+        HotkeyService.RegisterFunctionAction(
+            HotkeyFunction.ViewBackward,
+            () =>
+            {
+                if (CanGoBack)
+                    ViewBackwardCommand.Execute(null);
+            }
+        );
+
         MessageBus
             .ReceiveMessage<ViewChangeMessage>(this)
-            .WithHandler(ViewChangeMessageHandle)
+            .WithHandler(ViewListChangeMessageHandle)
+            .AsWeakReference()
+            .Subscribe();
+
+        MessageBus
+            .ReceiveMessage<ExitReminderMessage>(this)
+            .WithHandler(ExitReminderMessageHandler)
             .AsWeakReference()
             .Subscribe();
     }
 
-    public ObservableCollection<IconItem> IconItems { get; set; } =
+    private void ExitReminderMessageHandler(ExitReminderMessage message, object sender)
+    {
+        NavigateService.CurrentViewChanged -= CurrentViewChanged;
+    }
+
+    private void CurrentViewChanged(string obj)
+    {
+        CanGoBack = NavigateService.CanGoBack;
+        CanGoForward = NavigateService.CanGoForward;
+    }
+
+    public static ObservableCollection<IconItem> IconItems { get; set; } =
         [
-            new(MusicName, new GeometryIconSource(IconService.GetIcon("SemiIconSong")), true),
-            new(ClassificationName, new GeometryIconSource(IconService.GetIcon("SemiIconDisc")), true),
-            new(StatisticsName, new GeometryIconSource(IconService.GetIcon("SemiIconKanban")), true),
-            new(SettingsName, new GeometryIconSource(IconService.GetIcon("SemiIconSetting")), true),
+            new(MusicName, new GeometryIconSource(IconService.GetIcon("SemiIconSong")), "", true),
+            new(ClassificationName, new GeometryIconSource(IconService.GetIcon("SemiIconDisc")), "", true),
+            new(OtherName, new GeometryIconSource(IconService.GetIcon("SemiIconKanban")), "", true),
+            new(SettingsName, new GeometryIconSource(IconService.GetIcon("SemiIconSetting")), "", true),
         ];
 
-    private readonly Dictionary<string, string> _viewNameMap = [];
+    public static void UpdateIconItems(string id, string name, IconSource coverImage)
+    {
+        var item = IconItems.FirstOrDefault(i => i.Id == id);
+        if (item == null)
+            return;
 
-    private async void ViewChangeMessageHandle(ViewChangeMessage message, object sender)
+        item.Title = name;
+        item.Source = coverImage;
+    }
+
+    private async void ViewListChangeMessageHandle(ViewChangeMessage message, object sender)
     {
         try
         {
@@ -49,27 +94,31 @@ public partial class MainWindowViewModel : NavigationViewModel
             {
                 if (message.IsRemove)
                 {
-                    Pages.RemoveAt(NavigateService.GetChildViewIndex(NavViewName, _viewNameMap[message.ViewTitle]));
-                    NavigateService.RemoveChildView(NavViewName, _viewNameMap[message.ViewTitle]);
-                    var i = IconItems.FirstOrDefault(x => x.Name == message.ViewTitle);
+                    int index = NavigateService.GetChildViewIndex(NavViewName, message.Id);
+                    if (index <= Pages.Count && index > 0)
+                    {
+                        Pages.RemoveAt(index);
+                    }
+
+                    NavigateService.RemoveChildView(NavViewName, message.Id);
+                    var i = IconItems.FirstOrDefault(x => x.Id == message.Id);
                     if (i == null)
                         return;
 
                     IconItems.Remove(i);
-                    _viewNameMap.Remove(i.Name);
                 }
                 else if (message.View != null)
                 {
-                    string viewName = $"{message.GetType()}-{message.ViewTitle}";
-                    if (IconItems.FirstOrDefault(x => $"{message.GetType()}-{x.Name}" == $"{viewName}") == null)
+                    if (IconItems.FirstOrDefault(x => x.Id == message.Id) == null)
                     {
-                        IconItems.Add(new IconItem(message.ViewTitle, new BitmapIconSource(message.ViewIcon)));
+                        IconItems.Add(
+                            new IconItem(message.ViewTitle, new BitmapIconSource(message.ViewIcon), message.Id)
+                        );
 
                         Pages.Add(message.View);
-                        NavigateService.AddChildView(NavViewName, viewName);
-                        _viewNameMap.Add(message.ViewTitle, viewName);
+                        NavigateService.AddChildView(NavViewName, message.Id);
                     }
-                    NavigationIndex = NavigateService.GetChildViewIndex(NavViewName, viewName);
+                    NavigationIndex = NavigateService.GetChildViewIndex(NavViewName, message.Id);
                 }
             });
         }
@@ -77,8 +126,7 @@ public partial class MainWindowViewModel : NavigationViewModel
         {
             NotificationService.ShowLight(
                 new Notification("坏欸", $"查看歌单《{message.ViewTitle}》失败了！QwQ遇到了错误 : \n {e.Message} "),
-                NotificationType.Error,
-                showClose: false
+                NotificationType.Error
             );
         }
     }
@@ -86,22 +134,21 @@ public partial class MainWindowViewModel : NavigationViewModel
     [RelayCommand]
     private void RemoveIconItem(IconItem iconItem)
     {
-        Pages.RemoveAt(NavigateService.GetChildViewIndex(NavViewName, _viewNameMap[iconItem.Name]));
-        NavigateService.RemoveChildView(NavViewName, _viewNameMap[iconItem.Name]);
+        Pages.RemoveAt(NavigateService.GetChildViewIndex(NavViewName, iconItem.Id));
+        NavigateService.RemoveChildView(NavViewName, iconItem.Id);
         IconItems.Remove(iconItem);
-        _viewNameMap.Remove(iconItem.Name);
     }
 
     public static string MusicName => Lang[nameof(MusicName)];
     public static string ClassificationName => Lang[nameof(ClassificationName)];
-    public static string StatisticsName => Lang[nameof(StatisticsName)];
+    public static string OtherName => Lang[nameof(OtherName)];
     public static string SettingsName => Lang[nameof(SettingsName)];
 
     public static ObservableCollection<Control> Pages { get; } =
         [
             new AllMusicPage { DataContext = new AllMusicPageViewModel() },
             new ClassificationPage { DataContext = new ClassificationPageViewModel() },
-            new StatisticsPage { DataContext = new StatisticsPageViewModel() },
+            new OtherPage { DataContext = new OtherPageViewModel() },
             new ConfigMainPage { DataContext = new ConfigPageViewModel() },
         ];
 
@@ -222,41 +269,37 @@ public partial class MainWindowViewModel : NavigationViewModel
     [NotifyCanExecuteChangedFor(nameof(ViewForwardCommand))]
     public partial bool CanGoForward { get; set; }
 
-    protected override bool InNavigateTo(int index)
-    {
-        if (index < IconItems.Count && index >= 0)
-            return base.InNavigateTo(index);
-
-        ViewBackward();
-        return false;
-    }
-
     protected override void OnNavigateTo(int index)
     {
         base.OnNavigateTo(index);
+        if (index >= Pages.Count || index < 0)
+            return;
         CurrentPage = Pages[index];
-        UpdateNavigationProperties();
-    }
-
-    private void UpdateNavigationProperties()
-    {
-        CanGoBack = NavigateService.CanGoBack;
-        CanGoForward = NavigateService.CanGoForward;
     }
 
     [RelayCommand(CanExecute = nameof(CanGoForward))]
     private void ViewForward()
     {
         NavigateService.GoForward();
-        UpdateNavigationProperties();
     }
 
     [RelayCommand(CanExecute = nameof(CanGoBack))]
     private void ViewBackward()
     {
         NavigateService.GoBack();
-        UpdateNavigationProperties();
     }
 }
 
-public record IconItem(string Name, IconSource Source, bool AlwaysHide = false);
+public partial class IconItem(string title, IconSource source, string id = "", bool alwaysHide = false)
+    : ObservableObject
+{
+    [ObservableProperty]
+    public partial string Title { get; set; } = title;
+
+    [ObservableProperty]
+    public partial IconSource Source { get; set; } = source;
+
+    public bool AlwaysHide => alwaysHide;
+
+    public string Id = id;
+}

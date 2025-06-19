@@ -1,0 +1,168 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             xmlns:u="https://irihi.tech/ursa"
+             xmlns:models1="clr-namespace:QwQ_Music.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="pages:HotkeyConfigPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.HotkeyConfigPage">
+
+    <ScrollViewer Margin="10">
+
+        <StackPanel Spacing="10" Margin="10,0">
+
+            <StackPanel.Styles>
+
+                <Style Selector="u|KeyGestureInput">
+                    <Setter Property="MinWidth" Value="120" />
+                    <Setter Property="CornerRadius" Value="8" />
+                </Style>
+
+                <Style Selector="Button">
+                    <Setter Property="CornerRadius" Value="8" />
+                </Style>
+
+            </StackPanel.Styles>
+
+            <Panel>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="启用热键" FontWeight="Bold" VerticalAlignment="Center" FontSize="15" />
+                    <ToggleSwitch Name="EnableHotkeyChecked"
+                                  Theme="{StaticResource SimpleToggleSwitch}"
+                                  OffContent="〇" OnContent="｜"
+                                  IsChecked="{Binding HotkeyConfig.IsEnableHotkey}" />
+                </StackPanel>
+
+                <!-- 操作按钮 -->
+                <StackPanel IsEnabled="{Binding #EnableHotkeyChecked.IsChecked}" Orientation="Horizontal" Spacing="20"
+                            HorizontalAlignment="Right">
+                    <Button Content="重置"
+                            Classes="Tertiary"
+                            Command="{Binding ResetToDefaultCommand}" />
+                    <Button Content="验证"
+                            Classes="Secondary"
+                            Command="{Binding ValidateConfigCommand}" />
+                    <Button Content="清空"
+                            Classes="Danger"
+                            Command="{Binding ClearKeyGesturesCommand}" />
+                </StackPanel>
+
+            </Panel>
+
+            <!--
+            ~1~ 全部冲突提示 @1@
+            <u:Banner IsVisible="{Binding HasAnyConflict}"
+                      Classes="Bordered"
+                      Content="{Binding AllConflictMessages}"
+                      CornerRadius="8"
+                      FontSize="12"
+                      Type="Error"
+                      Header="检测到按键冲突"
+                      HorizontalContentAlignment="Stretch" />
+                      -->
+
+            <!-- 热键配置列表 -->
+            <ItemsControl IsEnabled="{Binding #EnableHotkeyChecked.IsChecked}"
+                          ItemsSource="{Binding HotkeyItems}">
+
+                <ItemsControl.ItemTemplate>
+
+                    <DataTemplate x:DataType="models1:HotkeyItemModel">
+
+                        <StackPanel Spacing="10">
+
+                            <Panel>
+                                <!-- 功能名称 -->
+                                <TextBlock VerticalAlignment="Center" Text="{Binding FunctionName}"
+                                           FontWeight="Bold" />
+
+                                <!-- 添加新按键按钮 -->
+                                <Button
+                                    CornerRadius="15"
+                                    HorizontalAlignment="Right"
+                                    Command="{Binding $parent[UserControl].((pages:HotkeyConfigPageViewModel)DataContext).AddNewHotkeyCommand}"
+                                    CommandParameter="{Binding Function}"
+                                    Padding="5"
+                                    Theme="{DynamicResource BorderlessButton}">
+                                    <PathIcon Height="12" Width="20" Data="{StaticResource SemiIconPlus}" />
+                                </Button>
+
+                            </Panel>
+
+                            <!-- 默认按键显示 -->
+                            <Button IsVisible="{Binding !KeyGestures.Count}"
+                                    Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                    FontWeight="Normal"
+                                    Command="{Binding $parent[UserControl].((pages:HotkeyConfigPageViewModel)DataContext).AddNewHotkeyCommand}"
+                                    CommandParameter="{Binding Function}"
+                                    Theme="{DynamicResource OutlineButton}"
+                                    Content="无按键"
+                                    MinWidth="200"
+                                    HorizontalAlignment="Stretch" />
+
+                            <!-- 按键列表 -->
+                            <ItemsControl ItemsSource="{Binding KeyGestures}">
+
+                                <ItemsControl.ItemTemplate>
+
+                                    <DataTemplate x:DataType="KeyGesture">
+
+                                        <Grid ColumnDefinitions="*,Auto" MinWidth="200">
+
+                                            <Button Grid.Column="0"
+                                                    Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                                    FontWeight="Normal"
+                                                    Command="{Binding $parent[ItemsControl].((models1:HotkeyItemModel)DataContext).ModifyGestureCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Theme="{DynamicResource OutlineButton}"
+                                                    Content="{Binding Mode=TwoWay}"
+                                                    HorizontalAlignment="Stretch" />
+
+                                            <Button Grid.Column="1"
+                                                    Classes="Danger"
+                                                    Theme="{DynamicResource OutlineButton}"
+                                                    Margin="10,0,0,0"
+                                                    Padding="5"
+                                                    Command="{Binding $parent[ItemsControl].((models1:HotkeyItemModel)DataContext).RemoveHotkeyCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <PathIcon Data="{StaticResource SemiIconPlus}" Height="12"
+                                                          Width="20" RenderTransform="rotate(45deg)" />
+                                            </Button>
+                                            
+                                        </Grid>
+
+                                    </DataTemplate>
+
+                                </ItemsControl.ItemTemplate>
+
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel ItemSpacing="20" LineSpacing="10" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                            </ItemsControl>
+                            
+                        </StackPanel>
+
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+                <ItemsControl.ItemsPanel>
+
+                    <ItemsPanelTemplate>
+                        <WrapPanel ItemSpacing="20" LineSpacing="20" />
+                    </ItemsPanelTemplate>
+
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+
+
+        </StackPanel>
+
+
+    </ScrollViewer>
+
+</UserControl>

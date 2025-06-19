@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls.Notifications;
+using Avalonia.Threading;
 using WindowNotificationManager = Ursa.Controls.WindowNotificationManager;
 
 namespace QwQ_Music.Services;
@@ -23,7 +24,10 @@ public static class NotificationService
         string[]? classes = null
     )
     {
-        NotificationManager?.Show(content, type, expiration, showIcon, showClose, onClick, onClose, classes);
+        Dispatcher.UIThread.Post(() =>
+        {
+            NotificationManager?.Show(content, type, expiration, showIcon, showClose, onClick, onClose, classes);
+        });
     }
 
     public static void ShowLight(
@@ -36,6 +40,9 @@ public static class NotificationService
         Action? onClose = null
     )
     {
-        NotificationManager?.Show(content, type, expiration, showIcon, showClose, onClick, onClose, ["Light"]);
+        Dispatcher.UIThread.Post(() =>
+        {
+            NotificationManager?.Show(content, type, expiration, showIcon, showClose, onClick, onClose, ["Light"]);
+        });
     }
 }

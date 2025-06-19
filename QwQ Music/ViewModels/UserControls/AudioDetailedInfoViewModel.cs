@@ -114,16 +114,12 @@ public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem, MusicT
     [RelayCommand]
     private async Task CopyText(MusicInfoKeyValuePair keyValuePair)
     {
-        var topLevel = App.TopLevel;
-        if (topLevel != null)
-        {
-            // 使用topLevel进行操作
-            var clipboard = topLevel.Clipboard;
-            if (clipboard == null)
-                return;
+        // 使用topLevel进行操作
+        var clipboard = App.TopLevel.Clipboard;
+        if (clipboard == null)
+            return;
 
-            await clipboard.SetTextAsync(SelectedText ?? $"{keyValuePair.Key} : {keyValuePair.Value}");
-        }
+        await clipboard.SetTextAsync(SelectedText ?? $"{keyValuePair.Key} : {keyValuePair.Value}");
     }
 }
 

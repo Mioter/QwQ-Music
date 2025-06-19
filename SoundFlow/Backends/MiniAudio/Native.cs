@@ -7,16 +7,21 @@ namespace SoundFlow.Backends.MiniAudio;
 
 internal static unsafe partial class Native
 {
-    private const string LibraryName = "miniaudio";
+    private const string LIBRARY_NAME = "miniaudio";
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate void AudioCallback(nint device, nint output, nint input, uint length);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate Result DecoderRead(nint pDecoder, nint pBufferOut, ulong bytesToRead, out uint* pBytesRead);
+    public delegate Result BufferProcessingCallback(
+        nint pCodecContext, // The native decoder/encoder instance pointer (ma_decoder*, ma_encoder*)
+        nint pBuffer, // The buffer pointer (void* pBufferOut or const void* pBufferIn)
+        ulong bytesRequested, // The number of bytes requested (bytesToRead or bytesToWrite)
+        out ulong* bytesTransferred // The actual number of bytes processed/transferred (size_t*)
+    );
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate Result DecoderSeek(nint pDecoder, long byteOffset, SeekPoint origin);
+    public delegate Result SeekCallback(nint pDecoder, long byteOffset, SeekPoint origin);
 
     static Native()
     {
@@ -27,97 +32,148 @@ internal static unsafe partial class Native
     {
         public static nint Resolve(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
         {
-            if (NativeLibrary.TryLoad(libraryName, out IntPtr library))
+            // 1. Get the platform-specific library file name (e.g., "libminiaudio.so", "miniaudio.dll").
+            string platformSpecificName = GetPlatformSpecificLibraryName(libraryName);
+
+            // 2. Try to load the library using its platform-specific name, allowing OS to find it in standard paths.
+            if (NativeLibrary.TryLoad(platformSpecificName, assembly, searchPath, out IntPtr library))
                 return library;
 
-            string libraryPath = GetLibraryPath(libraryName);
-            // Safeguard against dotnet cli working directory inconsistency
-            if (!File.Exists(libraryPath))
-                libraryPath = $"{Path.GetDirectoryName(assembly.Location)}/{libraryPath}";
+            // 3. If that fails, try to load it from the application's 'runtimes' directory for self-contained apps.
+            string relativePath = GetLibraryPath(libraryName); // This still gives the full relative path
+            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativePath);
 
-            return NativeLibrary.Load(libraryPath);
+            if (File.Exists(fullPath) && NativeLibrary.TryLoad(fullPath, out library))
+                return library;
+
+            // 4. If not found, use Load() to let the runtime throw a detailed DllNotFoundException.
+            return NativeLibrary.Load(fullPath);
         }
 
+        /// <summary>
+        /// Gets the platform-specific library name
+        /// </summary>
+        private static string GetPlatformSpecificLibraryName(string libraryName)
+        {
+            if (OperatingSystem.IsWindows())
+                return $"{libraryName}.dll";
+
+            if (OperatingSystem.IsMacOS())
+                return $"lib{libraryName}.dylib";
+
+            // For iOS frameworks, the binary has the same name as the framework
+            if (OperatingSystem.IsIOS())
+                return libraryName;
+
+            // Default to Linux/Android/FreeBSD convention
+            return $"lib{libraryName}.so";
+        }
+
+        /// <summary>
+        /// Constructs the relative path to the native library within the 'runtimes' folder.
+        /// </summary>
         private static string GetLibraryPath(string libraryName)
         {
             const string relativeBase = "runtimes";
+            string platformSpecificName = GetPlatformSpecificLibraryName(libraryName);
+
+            string rid;
             if (OperatingSystem.IsWindows())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.X86 => $"{relativeBase}/win-x86/native/{libraryName}.dll",
-                    Architecture.X64 => $"{relativeBase}/win-x64/native/{libraryName}.dll",
-                    Architecture.Arm64 => $"{relativeBase}/win-arm64/native/{libraryName}.dll",
+                    Architecture.X86 => "win-x86",
+                    Architecture.X64 => "win-x64",
+                    Architecture.Arm64 => "win-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported Windows architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
             }
-
-            if (OperatingSystem.IsMacOS())
+            else if (OperatingSystem.IsMacOS())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.X64 => $"{relativeBase}/osx-x64/native/lib{libraryName}.dylib",
-                    Architecture.Arm64 => $"{relativeBase}/osx-arm64/native/lib{libraryName}.dylib",
+                    Architecture.X64 => "osx-x64",
+                    Architecture.Arm64 => "osx-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported macOS architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
             }
-
-            if (OperatingSystem.IsLinux())
+            else if (OperatingSystem.IsLinux())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.X64 => $"{relativeBase}/linux-x64/native/lib{libraryName}.so",
-                    Architecture.Arm => $"{relativeBase}/linux-arm/native/lib{libraryName}.so",
-                    Architecture.Arm64 => $"{relativeBase}/linux-arm64/native/lib{libraryName}.so",
+                    Architecture.X64 => "linux-x64",
+                    Architecture.Arm => "linux-arm",
+                    Architecture.Arm64 => "linux-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported Linux architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
             }
-
-            if (OperatingSystem.IsAndroid())
+            else if (OperatingSystem.IsAndroid())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.X64 => $"{relativeBase}/android-x64/native/lib{libraryName}.so",
-                    Architecture.Arm => $"{relativeBase}/android-arm/native/lib{libraryName}.so",
-                    Architecture.Arm64 => $"{relativeBase}/android-arm64/native/lib{libraryName}.so",
+                    Architecture.X64 => "android-x64",
+                    Architecture.Arm => "android-arm",
+                    Architecture.Arm64 => "android-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported Android architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
             }
-
-            if (OperatingSystem.IsIOS())
+            else if (OperatingSystem.IsIOS())
             {
-                return RuntimeInformation.ProcessArchitecture switch
+                rid = RuntimeInformation.ProcessArchitecture switch
                 {
-                    Architecture.Arm64 => $"{relativeBase}/ios-arm64/native/{libraryName}.framework/{libraryName}",
+                    // iOS uses .framework folders
+                    Architecture.Arm64 => "ios-arm64",
                     _ => throw new PlatformNotSupportedException(
                         $"Unsupported iOS architecture: {RuntimeInformation.ProcessArchitecture}"
                     ),
                 };
+                return Path.Combine(relativeBase, rid, "native", $"{libraryName}.framework", platformSpecificName);
+            }
+            else if (OperatingSystem.IsFreeBSD())
+            {
+                rid = RuntimeInformation.ProcessArchitecture switch
+                {
+                    Architecture.X64 => "freebsd-x64",
+                    Architecture.Arm64 => "freebsd-arm64",
+                    _ => throw new PlatformNotSupportedException(
+                        $"Unsupported FreeBSD architecture: {RuntimeInformation.ProcessArchitecture}"
+                    ),
+                };
+            }
+            else
+            {
+                throw new PlatformNotSupportedException(
+                    $"Unsupported operating system: {RuntimeInformation.OSDescription}"
+                );
             }
 
-            throw new PlatformNotSupportedException(
-                $"Unsupported operating system: {RuntimeInformation.OSDescription}"
-            );
+            return Path.Combine(relativeBase, rid, "native", platformSpecificName);
         }
     }
 
     #region Encoder
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_encoder_init_file", StringMarshalling = StringMarshalling.Utf8)]
-    public static partial Result EncoderInitFile(string filePath, nint pConfig, nint pEncoder);
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_encoder_init", StringMarshalling = StringMarshalling.Utf8)]
+    public static partial Result EncoderInit(
+        BufferProcessingCallback onRead,
+        SeekCallback onSeekCallback,
+        nint pUserData,
+        nint pConfig,
+        nint pEncoder
+    );
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_encoder_uninit")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_encoder_uninit")]
     public static partial void EncoderUninit(nint pEncoder);
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_encoder_write_pcm_frames")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_encoder_write_pcm_frames")]
     public static partial Result EncoderWritePcmFrames(
         nint pEncoder,
         nint pFramesIn,
@@ -129,47 +185,47 @@ internal static unsafe partial class Native
 
     #region Decoder
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_decoder_init")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_decoder_init")]
     public static partial Result DecoderInit(
-        DecoderRead onRead,
-        DecoderSeek onSeek,
+        BufferProcessingCallback onRead,
+        SeekCallback onSeekCallback,
         nint pUserData,
         nint pConfig,
         nint pDecoder
     );
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_decoder_uninit")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_decoder_uninit")]
     public static partial Result DecoderUninit(nint pDecoder);
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_decoder_read_pcm_frames")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_decoder_read_pcm_frames")]
     public static partial Result DecoderReadPcmFrames(
         nint decoder,
         nint framesOut,
         uint frameCount,
-        out uint* framesRead
+        out ulong framesRead
     );
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_decoder_seek_to_pcm_frame")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_decoder_seek_to_pcm_frame")]
     public static partial Result DecoderSeekToPcmFrame(nint decoder, ulong frame);
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_decoder_get_length_in_pcm_frames")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_decoder_get_length_in_pcm_frames")]
     public static partial Result DecoderGetLengthInPcmFrames(nint decoder, out uint* length);
 
     #endregion
 
     #region Context
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_context_init")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_context_init")]
     public static partial Result ContextInit(nint backends, uint backendCount, nint config, nint context);
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_context_uninit")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_context_uninit")]
     public static partial void ContextUninit(nint context);
 
     #endregion
 
     #region Device
 
-    [LibraryImport(LibraryName, EntryPoint = "sf_get_devices")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "sf_get_devices")]
     public static partial Result GetDevices(
         nint context,
         out nint pPlaybackDevices,
@@ -178,38 +234,38 @@ internal static unsafe partial class Native
         out nint captureDeviceCount
     );
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_device_init")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_device_init")]
     public static partial Result DeviceInit(nint context, nint config, nint device);
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_device_uninit")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_device_uninit")]
     public static partial void DeviceUninit(nint device);
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_device_start")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_device_start")]
     public static partial Result DeviceStart(nint device);
 
-    [LibraryImport(LibraryName, EntryPoint = "ma_device_stop")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "ma_device_stop")]
     public static partial Result DeviceStop(nint device);
 
     #endregion
 
     #region Allocations
 
-    [LibraryImport(LibraryName, EntryPoint = "sf_allocate_encoder")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "sf_allocate_encoder")]
     public static partial nint AllocateEncoder();
 
-    [LibraryImport(LibraryName, EntryPoint = "sf_allocate_decoder")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "sf_allocate_decoder")]
     public static partial nint AllocateDecoder();
 
-    [LibraryImport(LibraryName, EntryPoint = "sf_allocate_context")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "sf_allocate_context")]
     public static partial nint AllocateContext();
 
-    [LibraryImport(LibraryName, EntryPoint = "sf_allocate_device")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "sf_allocate_device")]
     public static partial nint AllocateDevice();
 
-    [LibraryImport(LibraryName, EntryPoint = "sf_allocate_decoder_config")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "sf_allocate_decoder_config")]
     public static partial nint AllocateDecoderConfig(SampleFormat format, uint channels, uint sampleRate);
 
-    [LibraryImport(LibraryName, EntryPoint = "sf_allocate_encoder_config")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "sf_allocate_encoder_config")]
     public static partial nint AllocateEncoderConfig(
         EncodingFormat encodingFormat,
         SampleFormat format,
@@ -217,7 +273,7 @@ internal static unsafe partial class Native
         uint sampleRate
     );
 
-    [LibraryImport(LibraryName, EntryPoint = "sf_allocate_device_config")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "sf_allocate_device_config")]
     public static partial nint AllocateDeviceConfig(
         Capability capabilityType,
         SampleFormat format,
@@ -232,7 +288,7 @@ internal static unsafe partial class Native
 
     #region Utils
 
-    [LibraryImport(LibraryName, EntryPoint = "sf_free")]
+    [LibraryImport(LIBRARY_NAME, EntryPoint = "sf_free")]
     public static partial void Free(nint ptr);
 
     #endregion

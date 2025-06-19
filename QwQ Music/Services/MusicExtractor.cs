@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using ATL;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Utilities;
 using File = System.IO.File;
 
@@ -15,8 +16,9 @@ namespace QwQ_Music.Services;
 public static class MusicExtractor
 {
     private const int DEFAULT_THUMBNAIL_WIDTH = 128; // 默认缩略图宽度，降低了原来的256
+    private const int MAX_CACHE_SIZE = 80; // 最大缓存数量
 
-    public static readonly Dictionary<string, Bitmap> ImageCache = [];
+    public static readonly WeakImageCache ImageCache = new();
 
     public static readonly Bitmap DefaultCover = GetDefaultCover();
 
@@ -24,7 +26,42 @@ public static class MusicExtractor
     {
         var lyricsData = new LyricsData();
         var track = new Track(filePath);
-        string? lyric = track.Lyricist;
+        var lyricsInfo = track.Lyrics;
+        var syncLyrics = lyricsInfo.SynchronizedLyrics;
+        if (syncLyrics is { Count: > 0 })
+        {
+            // 按时间点分组
+            var grouped = syncLyrics.GroupBy(p => p.TimestampMs).OrderBy(g => g.Key);
+
+            var lyricLines = new List<LyricLine>();
+            foreach (var group in grouped)
+            {
+                var phrases = group.ToList();
+                string? primary,
+                    translation = null;
+
+                // 方案二：尝试分隔符
+                string[] split = phrases[0].Text.Split(["//", "|", "\n"], StringSplitOptions.RemoveEmptyEntries);
+                if (split.Length == 2)
+                {
+                    primary = split[0].Trim();
+                    translation = split[1].Trim();
+                }
+                else
+                {
+                    primary = phrases[0].Text.Trim();
+                    // 方案一：同一时间点有多条
+                    if (phrases.Count > 1)
+                        translation = phrases[1].Text.Trim();
+                }
+
+                lyricLines.Add(new LyricLine(group.Key / 1000.0, primary, translation));
+            }
+            lyricsData.Lyrics = lyricLines;
+            return lyricsData;
+        }
+
+        string? lyric = lyricsInfo.UnsynchronizedLyrics;
         if (!string.IsNullOrEmpty(lyric))
             return await Task.Run(() => LyricsService.ParseLrcFile(lyric)) ?? lyricsData;
 
@@ -49,71 +86,65 @@ public static class MusicExtractor
     }
 
     /// <summary>
-    /// 异步获取扩展信息
+    /// 获取扩展信息
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>包含扩展信息的字典。</returns>
-    public static async Task<MusicTagExtensions> ExtractExtensionsInfoAsync(string? filePath)
+    public static MusicTagExtensions ExtractExtensionsInfo(string? filePath)
     {
-        return await Task.Run(() =>
-        {
-            var track = new Track(filePath);
-            return new MusicTagExtensions(
-                track.Genre ?? string.Empty,
-                track.Year,
-                track.Copyright ?? string.Empty,
-                track.DiscNumber.HasValue ? (uint)track.DiscNumber.Value : 0,
-                track.TrackNumber.HasValue ? (uint)track.TrackNumber.Value : 0,
-                (int)track.SampleRate,
-                track.ChannelsArrangement.NbChannels,
-                track.Bitrate,
-                track.BitDepth,
-                // 添加更多基本信息
-                track.OriginalAlbum ?? string.Empty,
-                track.OriginalArtist ?? string.Empty,
-                track.AlbumArtist ?? string.Empty,
-                track.Publisher ?? string.Empty,
-                track.Description ?? string.Empty,
-                track.Language ?? string.Empty,
-                // 添加技术信息
-                track.IsVBR,
-                track.AudioFormat.DataFormat.Name,
-                track.Encoder ?? string.Empty
-            );
-        });
+        var track = new Track(filePath);
+        return new MusicTagExtensions(
+            track.Genre ?? string.Empty,
+            track.Year,
+            track.Copyright ?? string.Empty,
+            track.DiscNumber.HasValue ? (uint)track.DiscNumber.Value : 0,
+            track.TrackNumber.HasValue ? (uint)track.TrackNumber.Value : 0,
+            (int)track.SampleRate,
+            track.ChannelsArrangement.NbChannels,
+            track.Bitrate,
+            track.BitDepth,
+            // 添加更多基本信息
+            track.OriginalAlbum ?? string.Empty,
+            track.OriginalArtist ?? string.Empty,
+            track.AlbumArtist ?? string.Empty,
+            track.Publisher ?? string.Empty,
+            track.Description ?? string.Empty,
+            track.Language ?? string.Empty,
+            // 添加技术信息
+            track.IsVBR,
+            track.AudioFormat.DataFormat.Name,
+            track.Encoder ?? string.Empty
+        );
     }
 
     /// <summary>
-    /// 异步获取详细信息
+    /// 获取详细信息
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>包含详细信息的字典。</returns>
-    public static async Task<MusicDetailedInfo> ExtractDetailedInfoAsync(string filePath)
+    public static MusicDetailedInfo ExtractDetailedInfoAsync(string filePath)
     {
-        return await Task.Run(() =>
-        {
-            var track = new Track(filePath);
-            return new MusicDetailedInfo(
-                // 发布信息
-                track.Date,
-                track.OriginalReleaseDate,
-                track.PublishingDate,
-                // 专业信息
-                track.ISRC ?? string.Empty,
-                track.CatalogNumber ?? string.Empty,
-                track.ProductId ?? string.Empty,
-                // 其他信息
-                track.BPM,
-                track.Popularity,
-                track.SeriesTitle ?? string.Empty,
-                track.SeriesPart ?? string.Empty,
-                track.LongDescription ?? string.Empty,
-                track.Group ?? string.Empty,
-                // 技术信息
-                track.TechnicalInformation.AudioDataOffset,
-                track.TechnicalInformation.AudioDataSize
-            );
-        });
+        var track = new Track(filePath);
+        return new MusicDetailedInfo(
+            // 发布信息
+            track.Date,
+            track.OriginalReleaseDate,
+            track.PublishingDate,
+            // 专业信息
+            track.ISRC ?? string.Empty,
+            track.CatalogNumber ?? string.Empty,
+            track.ProductId ?? string.Empty,
+            // 其他信息
+            track.BPM,
+            track.Popularity,
+            track.SeriesTitle ?? string.Empty,
+            track.SeriesPart ?? string.Empty,
+            track.LongDescription ?? string.Empty,
+            track.Group ?? string.Empty,
+            // 技术信息
+            track.TechnicalInformation.AudioDataOffset,
+            track.TechnicalInformation.AudioDataSize
+        );
     }
 
     /// <summary>
@@ -121,13 +152,10 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>自定义字段信息字典。</returns>
-    public static async Task<Dictionary<string, string>> ExtractAdditionalFieldsAsync(string filePath)
+    public static Dictionary<string, string> ExtractAdditionalFieldsAsync(string filePath)
     {
-        return await Task.Run(() =>
-        {
-            var track = new Track(filePath);
-            return track.AdditionalFields != null ? new Dictionary<string, string>(track.AdditionalFields) : [];
-        });
+        var track = new Track(filePath);
+        return track.AdditionalFields != null ? new Dictionary<string, string>(track.AdditionalFields) : [];
     }
 
     /// <summary>
@@ -152,12 +180,37 @@ public static class MusicExtractor
             string comment = track.Comment;
             string encodingFormat = track.AudioFormat.ShortName;
 
-            string? coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
+            string? coverFileName = null;
 
-            var coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
+            Bitmap? coverImage = null;
+            if (track.EmbeddedPictures.Count > 0)
+            {
+                // 检查artists和album是否为空
+                bool isArtistsEmpty = string.IsNullOrWhiteSpace(artists);
+                bool isAlbumEmpty = string.IsNullOrWhiteSpace(album);
+                string timeStamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+                if (isArtistsEmpty && isAlbumEmpty)
+                {
+                    // 两个都为空，直接用文件名+时间戳
+                    string fileName = Path.GetFileNameWithoutExtension(filePath);
+                    coverFileName = $"{fileName}#{timeStamp}.png";
+                }
+                else
+                {
+                    if (isArtistsEmpty)
+                        artists = $"未知歌手#{timeStamp}";
+                    if (isAlbumEmpty)
+                        album = $"未知专辑#{timeStamp}";
+                    coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
+                }
 
-            // 异步保存封面，传递文件名
-            await FileOperation.SaveImageAsync(coverImage, Path.Combine(MainConfig.MusicCoverSavePath, coverFileName));
+                coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
+                // 异步保存封面
+                await FileOperation.SaveImageAsync(
+                    coverImage,
+                    Path.Combine(MainConfig.MusicCoverSavePath, coverFileName)
+                );
+            }
 
             var musicItem = new MusicItemModel(
                 title,
@@ -192,8 +245,10 @@ public static class MusicExtractor
     private static string GetCoverFileName(string artists, string album)
     {
         // 截断并清理文件名
+        string safeArtists = string.IsNullOrWhiteSpace(artists) ? "未知歌手" : artists;
+        string safeAlbum = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
         string coverFileName = PathEnsurer.CleanFileName(
-            $"{(artists.Length > 20 ? artists[..20] : artists)}-{(album.Length > 20 ? album[..20] : album)}.jpg"
+            $"{(safeArtists.Length > 20 ? safeArtists[..20] : safeArtists)}-{(safeAlbum.Length > 20 ? safeAlbum[..20] : safeAlbum)}.png"
         );
         return coverFileName; // 只返回文件名
     }
@@ -268,7 +323,12 @@ public static class MusicExtractor
         }
     }
 
-    public static Bitmap GetDefaultCover()
+    /// <summary>
+    /// 获取默认专辑封面
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="FileNotFoundException">无法找到默认封面资源时抛出异常</exception>
+    private static Bitmap GetDefaultCover()
     {
         try
         {

@@ -1,16 +1,16 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.Notifications;
-using Avalonia.Media.Imaging;
-using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities;
@@ -26,42 +26,38 @@ namespace QwQ_Music.ViewModels.Pages;
 
 public partial class MusicListsPageViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    public partial ObservableCollection<MusicListModel> PlayListItems { get; set; } = [];
+    public MusicPlayerViewModel? MusicPlayerViewModel { get; set; }
 
-    public MusicListsPageViewModel()
-    {
-        InitializeAsync();
-    }
+    public ObservableCollection<MusicListModel> PlayListItems { get; set; } = [];
 
-    private async void InitializeAsync()
+    public async Task InitializeAsync(ObservableCollection<MusicItemModel> allMusicItems)
     {
-        try
+        // 检查 LISTINFO 表是否存在记录
+        int count = await DataBaseService.GetRecordCountAsync(DataBaseService.Table.LISTINFO).ConfigureAwait(false);
+        if (count == 0)
         {
-            await LoadPlayListsAsync();
+            await LoggerService.DebugAsync("歌单列表为空，跳过加载").ConfigureAwait(false);
+            return;
         }
-        catch (Exception e)
-        {
-            await LoggerService.ErrorAsync($"初始化歌单模型出错 : {e.Message}");
-        }
+
+        await LoadPlayListsAsync(allMusicItems).ConfigureAwait(false);
     }
 
     [RelayCommand]
     private static async Task OpenMusicLists(MusicListModel model)
     {
-        if (!model.IsInitialized)
-            await model.LoadAsync();
-
         await MessageBus
             .CreateMessage(
                 new ViewChangeMessage(
+                    model.Id,
                     model.Name,
                     model.CoverImage,
                     new ViewMusicListPage { DataContext = new ViewMusicListPageViewModel(model) }
                 )
             )
             .AddReceivers<MainWindowViewModel>()
-            .PublishAsync();
+            .PublishAsync()
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -70,37 +66,38 @@ public partial class MusicListsPageViewModel : ViewModelBase
     /// <param name="model">歌单模型</param>
     private async Task AddMusicListModel(MusicListModel model)
     {
-        try
+        PlayListItems.Add(model);
+
+        var result = await DataBaseService.InsertDataAsync(model.Dump(), DataBaseService.Table.LISTINFO);
+
+        if (result == DataBaseService.OperationResult.Success)
         {
-            PlayListItems.Add(model);
-            await DataBaseService.InsertDataAsync(model.Dump(), DataBaseService.Table.LISTINFO);
             NotificationService.ShowLight(
                 new Notification("成功", $"歌单《{model.Name}》创建成功！"),
                 NotificationType.Success
             );
+            return;
         }
-        catch (Exception ex)
-        {
-            await LoggerService.ErrorAsync($"添加《{model.Name}》歌单失败: {ex.Message}");
-            PlayListItems.Remove(model);
-            NotificationService.ShowLight(
-                new Notification("错误", $"创建歌单《{model.Name}》失败！\n{ex.Message}"),
-                NotificationType.Error
-            );
-            throw;
-        }
+
+        await LoggerService.ErrorAsync($"添加《{model.Name}》歌单失败");
+        PlayListItems.Remove(model);
+        NotificationService.ShowLight(
+            new Notification("错误", $"创建歌单《{model.Name}》失败！"),
+            NotificationType.Error
+        );
     }
 
     [RelayCommand]
-    private async Task CreateAndAddToMusicList(MusicItemModel musicItem)
+    private async Task CreateAndAddToMusicList(IList items)
     {
         var list = await CreateMusicList();
         if (list == null || string.IsNullOrEmpty(list.Name))
             return;
 
-        await AddToMusicList(musicItem, list.Name);
+        await AddToMusicList(items.Cast<MusicItemModel>().ToList(), list.Name);
     }
 
+    [RelayCommand]
     private async Task<CreateMusicListViewModel?> CreateMusicList()
     {
         var options = new OverlayDialogOptions
@@ -111,11 +108,11 @@ public partial class MusicListsPageViewModel : ViewModelBase
             CanResize = false,
         };
 
-        var model = new CreateMusicListViewModel();
+        var model = new CreateMusicListViewModel(options);
 
         await OverlayDialog.ShowCustomModal<CreateMusicList, CreateMusicListViewModel, object>(model, options: options);
 
-        if (model is not { IsOk: true, Name: not null })
+        if (model.IsCancel || model.Name == null)
             return null;
 
         try
@@ -143,6 +140,198 @@ public partial class MusicListsPageViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 批量添加音乐项到指定名称歌单
+    /// </summary>
+    /// <param name="musicItems">音乐项列表</param>
+    /// <param name="listName">歌单名称</param>
+    public async Task AddToMusicList(List<MusicItemModel> musicItems, string listName)
+    {
+        if (musicItems.Count == 0)
+            return;
+
+        var model = PlayListItems.FirstOrDefault(x => x.Name == listName);
+        if (model == null)
+            return;
+
+        // 过滤掉已存在的音乐项
+        var newItems = musicItems.Where(item => !model.MusicItems.Contains(item)).ToList();
+        var existingItems = musicItems.Except(newItems).ToList();
+
+        // 如果有已存在的音乐项，显示提示
+        if (existingItems.Count > 0)
+        {
+            string existingTitles = string.Join("、", existingItems.Select(item => $"《{item.Title}》"));
+            NotificationService.ShowLight(
+                new Notification("提示", $"歌曲{existingTitles}已存在于歌单 {listName} 中！"),
+                NotificationType.Information
+            );
+        }
+
+        if (newItems.Count == 0)
+            return;
+
+        // 在后台线程中并行处理所有添加操作
+        var successItems = new List<MusicItemModel>();
+
+        var addTasks = newItems.Select(async item =>
+        {
+            var playlistData = new Dictionary<string, string?>
+            {
+                [nameof(MusicListModel.Name)] = listName,
+                [nameof(MusicItemModel.FilePath)] = item.FilePath,
+            };
+
+            var result = await DataBaseService.InsertDataAsync(playlistData, DataBaseService.Table.MUSICLISTS);
+            if (result == DataBaseService.OperationResult.Success)
+            {
+                successItems.Add(item);
+            }
+        });
+
+        await Task.WhenAll(addTasks);
+
+        // 在UI线程中更新集合
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            foreach (var item in successItems)
+            {
+                model.MusicItems.Add(item);
+            }
+        });
+
+        var failedItems = newItems.Except(successItems).ToList();
+
+        // 显示添加结果通知
+        if (successItems.Count > 0)
+        {
+            string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
+            NotificationService.ShowLight(
+                new Notification("成功", $"已将歌曲{successTitles}添加到歌单：{listName}！"),
+                NotificationType.Success
+            );
+        }
+
+        if (failedItems.Count > 0)
+        {
+            string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
+            NotificationService.ShowLight(
+                new Notification("错误", $"添加歌曲{failedTitles}到歌单失败！"),
+                NotificationType.Error
+            );
+        }
+    }
+
+    /// <summary>
+    /// 批量从指定名称歌单中移除音乐项
+    /// </summary>
+    /// <param name="musicItems">音乐项列表</param>
+    /// <param name="listName">歌单名称</param>
+    public async Task RemoveToMusicList(List<MusicItemModel> musicItems, string listName)
+    {
+        if (musicItems.Count == 0)
+            return;
+
+        var model = PlayListItems.FirstOrDefault(x => x.Name == listName);
+        if (model == null)
+            return;
+
+        // 过滤出实际存在于歌单中的音乐项
+        var existingItems = musicItems.Where(item => model.MusicItems.Contains(item)).ToList();
+        if (existingItems.Count == 0)
+            return;
+
+        // 在后台线程中并行处理所有删除操作
+        var successItems = new List<MusicItemModel>();
+
+        var removeTasks = existingItems.Select(async item =>
+        {
+            var result = await DataBaseService.DeleteDataAsync(
+                DataBaseService.Table.MUSICLISTS,
+                nameof(MusicItemModel.FilePath),
+                item.FilePath
+            );
+
+            if (result == DataBaseService.OperationResult.Success)
+            {
+                successItems.Add(item);
+            }
+        });
+
+        await Task.WhenAll(removeTasks);
+
+        // 在UI线程中更新集合
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            foreach (var item in successItems)
+            {
+                model.MusicItems.Remove(item);
+            }
+        });
+
+        var failedItems = existingItems.Except(successItems).ToList();
+
+        // 显示移除结果通知
+        if (successItems.Count > 0)
+        {
+            string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
+            NotificationService.ShowLight(
+                new Notification("成功", $"已将歌曲{successTitles}从歌单 {listName} 中移除！"),
+                NotificationType.Success
+            );
+        }
+
+        if (failedItems.Count > 0)
+        {
+            string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
+            NotificationService.ShowLight(
+                new Notification("错误", $"从歌单移除歌曲{failedTitles}失败！"),
+                NotificationType.Error
+            );
+        }
+    }
+
+    /// <summary>
+    /// 编辑歌单模型
+    /// </summary>
+    /// <param name="oldName">原歌单名称</param>
+    /// <param name="newModel">新的歌单模型</param>
+    private static async Task<bool> EditMusicListModelInDataBase(string oldName, MusicListModel newModel)
+    {
+        // 如果歌单名称发生变化，需要更新数据库中的记录
+        if (oldName != newModel.Name)
+        {
+            // 更新歌单信息表中的记录
+            var result1 = await DataBaseService.UpdateDataAsync(
+                newModel.Dump(),
+                DataBaseService.Table.LISTINFO,
+                nameof(MusicListModel.Name),
+                oldName
+            );
+
+            // 更新歌单音乐关联表中的记录
+            var result2 = await DataBaseService.UpdateDataAsync(
+                new Dictionary<string, string?> { [nameof(MusicListModel.Name)] = newModel.Name },
+                DataBaseService.Table.MUSICLISTS,
+                nameof(MusicListModel.Name),
+                oldName
+            );
+
+            return result1 == DataBaseService.OperationResult.Success
+                && result2 == DataBaseService.OperationResult.Success;
+        }
+
+        // 如果歌单名称没有变化，只更新歌单信息
+        var result = await DataBaseService.UpdateDataAsync(
+            newModel.Dump(),
+            DataBaseService.Table.LISTINFO,
+            nameof(MusicListModel.Name),
+            oldName
+        );
+
+        return result == DataBaseService.OperationResult.Success;
+    }
+
     [RelayCommand]
     private static async Task EditMusicList(MusicListModel musicListItem)
     {
@@ -154,23 +343,27 @@ public partial class MusicListsPageViewModel : ViewModelBase
             CanResize = false,
         };
 
-        (string Name, string? Description, string? CoverPath, Bitmap CoverImage) oldValue = (
+        (string name, string description, string? coverPath, var coverImage) = (
             musicListItem.Name,
             musicListItem.Description,
             musicListItem.CoverPath,
             musicListItem.CoverImage
         );
 
-        var model = new CreateMusicListViewModel(oldName: musicListItem.Name)
+        var originalBitmap = await MusicExtractor.LoadOriginalBitmap(
+            Path.Combine(MainConfig.PlaylistCoverSavePath, $"{musicListItem.Name}.png")
+        );
+
+        var model = new CreateMusicListViewModel(options, oldName: musicListItem.Name)
         {
             Name = musicListItem.Name,
             Description = musicListItem.Description,
-            Cover = musicListItem.CoverImage,
+            Cover = originalBitmap,
         };
 
         await OverlayDialog.ShowCustomModal<CreateMusicList, CreateMusicListViewModel, object>(model, options: options);
 
-        if (model is not { IsOk: true, Name: not null })
+        if (model.IsCancel || model.Name == null)
             return;
 
         try
@@ -183,89 +376,50 @@ public partial class MusicListsPageViewModel : ViewModelBase
             musicListItem.CoverPath = newCoverPath;
 
             // 如果封面图片发生变化，保存新图片
-            if (model.Cover != oldValue.CoverImage)
+            if (model.Cover != coverImage && model.Cover != null)
             {
                 musicListItem.CoverImage = model.Cover;
-                await FileOperation.SaveImageAsync(model.Cover, newCoverPath);
+                await FileOperation.SaveImageAsync(model.Cover, newCoverPath, true);
             }
             // 如果名称变化但图片没变，重命名图片文件
-            else if (
-                oldValue.Name != model.Name
-                && !string.IsNullOrEmpty(oldValue.CoverPath)
-                && File.Exists(oldValue.CoverPath)
-            )
+            else if (name != model.Name && !string.IsNullOrEmpty(coverPath) && File.Exists(coverPath))
             {
-                File.Move(oldValue.CoverPath, newCoverPath);
+                File.Move(coverPath, newCoverPath);
                 // 更新图片缓存
-                MusicExtractor.ImageCache.Remove($"歌单-{oldValue.Name}");
-                MusicExtractor.ImageCache.Add($"歌单-{model.Name}", model.Cover);
+                MusicExtractor.ImageCache.Remove($"歌单-{name}");
+                MusicExtractor.ImageCache.Add($"歌单-{model.Name}", musicListItem.CoverImage);
             }
 
             // 更新数据库
-            await EditMusicListModelInDataBase(oldValue.Name, musicListItem);
+            if (await EditMusicListModelInDataBase(name, musicListItem))
+            {
+                MainWindowViewModel.UpdateIconItems(
+                    musicListItem.Id,
+                    musicListItem.Name,
+                    new BitmapIconSource(musicListItem.CoverImage)
+                );
 
-            NotificationService.ShowLight(
-                new Notification("成功", $"歌单编辑《{model.Name}》成功！"),
-                NotificationType.Success
-            );
+                NotificationService.ShowLight(
+                    new Notification("成功", $"编辑歌单《{name}》成功！"),
+                    NotificationType.Success
+                );
+            }
+            else
+            {
+                throw new Exception("更新数据库失败");
+            }
         }
         catch (Exception ex)
         {
             await LoggerService.ErrorAsync($"编辑歌单失败: {ex.Message}");
             // 恢复原始状态
-            musicListItem.Name = oldValue.Name;
-            musicListItem.Description = oldValue.Description;
-            musicListItem.CoverPath = oldValue.CoverPath;
+            musicListItem.Name = name;
+            musicListItem.Description = description;
+            musicListItem.CoverPath = coverPath;
             NotificationService.ShowLight(
                 new Notification("错误", $"编辑歌单《{model.Name}》失败！\n{ex.Message}"),
                 NotificationType.Error
             );
-        }
-    }
-
-    /// <summary>
-    /// 编辑歌单模型
-    /// </summary>
-    /// <param name="oldName">原歌单名称</param>
-    /// <param name="newModel">新的歌单模型</param>
-    private static async Task EditMusicListModelInDataBase(string oldName, MusicListModel newModel)
-    {
-        try
-        {
-            // 如果歌单名称发生变化，需要更新数据库中的记录
-            if (oldName != newModel.Name)
-            {
-                // 更新歌单信息表中的记录
-                await DataBaseService.UpdateDataAsync(
-                    newModel.Dump(),
-                    DataBaseService.Table.LISTINFO,
-                    nameof(MusicListModel.Name),
-                    oldName
-                );
-
-                // 更新歌单音乐关联表中的记录
-                await DataBaseService.UpdateDataAsync(
-                    new Dictionary<string, string?> { [nameof(MusicListModel.Name)] = newModel.Name },
-                    DataBaseService.Table.MUSICLISTS,
-                    nameof(MusicListModel.Name),
-                    oldName
-                );
-            }
-            else
-            {
-                // 如果歌单名称没有变化，只更新歌单信息
-                await DataBaseService.UpdateDataAsync(
-                    newModel.Dump(),
-                    DataBaseService.Table.LISTINFO,
-                    nameof(MusicListModel.Name),
-                    oldName
-                );
-            }
-        }
-        catch (Exception ex)
-        {
-            await LoggerService.ErrorAsync($"更新数据库失败: {ex.Message}");
-            throw;
         }
     }
 
@@ -309,7 +463,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
             );
 
             await MessageBus
-                .CreateMessage(new ViewChangeMessage(model.Name, model.CoverImage, null, true))
+                .CreateMessage(new ViewChangeMessage(model.Id, model.Name, model.CoverImage, null, true))
                 .AddReceivers<MainWindowViewModel>()
                 .PublishAsync();
 
@@ -332,139 +486,63 @@ public partial class MusicListsPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task AddToMusicList((MusicItemModel musicItem, string listName) argument)
     {
-        await AddToMusicList(argument.musicItem, argument.listName);
+        await AddToMusicList([argument.musicItem], argument.listName);
     }
 
-    /// <summary>
-    /// 添加音乐项到指定名称歌单
-    /// </summary>
-    /// <param name="musicItem">音乐项</param>
-    /// <param name="listName">歌单名称</param>
-    public async Task AddToMusicList(MusicItemModel musicItem, string listName)
+    private async Task LoadPlayListsAsync(ObservableCollection<MusicItemModel> allMusicItems)
     {
-        try
-        {
-            var model = PlayListItems.FirstOrDefault(x => x.Name == listName);
-
-            if (model == null || model.MusicItems.Contains(musicItem))
-                return;
-
-            model.MusicItems.Add(musicItem);
-            var playlistData = new Dictionary<string, string?>
+        // 从数据库加载所有歌单名称和描述
+        var playlistInfos = await DataBaseService.LoadSpecifyFieldsAsync(
+            DataBaseService.Table.LISTINFO,
+            [
+                nameof(MusicListModel.Name),
+                nameof(MusicListModel.Description),
+                nameof(MusicListModel.CoverPath),
+                nameof(MusicListModel.LatestPlayedMusic),
+            ],
+            dict => new
             {
-                [nameof(MusicListModel.Name)] = listName,
-                [nameof(MusicItemModel.FilePath)] = musicItem.FilePath,
-            };
-            await DataBaseService.InsertDataAsync(playlistData, DataBaseService.Table.MUSICLISTS);
-
-            NotificationService.ShowLight(
-                new Notification("成功", $"已将歌曲《{musicItem.Title}》添加到歌单 : {listName}！"),
-                NotificationType.Success
-            );
-        }
-        catch (Exception ex)
-        {
-            await LoggerService.ErrorAsync($"添加音乐《{musicItem.Title}》到歌单失败: {ex.Message}");
-            NotificationService.ShowLight(
-                new Notification("错误", $"添加音乐《{musicItem.Title}》到歌单失败！\n{ex.Message}"),
-                NotificationType.Error
-            );
-            throw;
-        }
-    }
-
-    [RelayCommand]
-    private async Task RemoveToMusicList((MusicItemModel musicItem, string listName) argument)
-    {
-        await RemoveToMusicList(argument.musicItem, argument.listName);
-    }
-
-    /// <summary>
-    /// 从指定名称歌单中移除音乐项
-    /// </summary>
-    /// <param name="musicItem">音乐项</param>
-    /// <param name="listName">歌单名称</param>
-    public async Task RemoveToMusicList(MusicItemModel musicItem, string listName)
-    {
-        try
-        {
-            var model = PlayListItems.FirstOrDefault(x => x.Name == listName);
-
-            if (model == null || !model.MusicItems.Contains(musicItem))
-                return;
-
-            model.MusicItems.Remove(musicItem);
-            await DataBaseService.DeleteDataAsync(
-                DataBaseService.Table.MUSICLISTS,
-                nameof(MusicItemModel.FilePath),
-                musicItem.FilePath
-            );
-
-            NotificationService.ShowLight(
-                new Notification("成功", $"已将歌曲《{musicItem.Title}》从歌单 {listName} 中移除！"),
-                NotificationType.Success
-            );
-        }
-        catch (Exception ex)
-        {
-            await LoggerService.ErrorAsync($"从歌单移除音乐失败: {ex.Message}");
-            NotificationService.ShowLight(
-                new Notification("错误", $"从歌单《{musicItem.Title}》移除音乐失败！\n{ex.Message}"),
-                NotificationType.Error
-            );
-            throw;
-        }
-    }
-
-    private async Task LoadPlayListsAsync()
-    {
-        try
-        {
-            // 从数据库加载所有歌单名称和描述
-            var playlistInfos = await DataBaseService.LoadSpecifyFieldsAsync(
-                DataBaseService.Table.LISTINFO,
-                [
-                    nameof(MusicListModel.Name),
-                    nameof(MusicListModel.Description),
-                    nameof(MusicListModel.CoverPath),
-                    nameof(MusicListModel.LatestPlayedMusic),
-                ],
-                dict => new
-                {
-                    Name = dict.TryGetValue(nameof(MusicListModel.Name), out object? name)
-                        ? name.ToString() ?? string.Empty
-                        : string.Empty,
-                    Description = dict.TryGetValue(nameof(MusicListModel.Description), out object? desc)
-                        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-                        ? desc?.ToString()
-                        : null,
-                    CoverPath = dict.TryGetValue(nameof(MusicListModel.CoverPath), out object? coverPath)
-                        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-                        ? coverPath?.ToString()
-                        : null,
-                    LatestPlayedMusic = dict.TryGetValue(nameof(MusicListModel.LatestPlayedMusic), out object? latest)
-                        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-                        ? latest?.ToString()
-                        : null,
-                }
-            );
-
-            foreach (var info in playlistInfos.Where(info => !string.IsNullOrEmpty(info.Name)))
-            {
-                // 添加到列表中
-                PlayListItems.Add(
-                    new MusicListModel(info.Name, info.Description, info.LatestPlayedMusic, info.CoverPath)
-                );
+                Name = dict.TryGetValue(nameof(MusicListModel.Name), out object? name)
+                    ? name.ToString() ?? string.Empty
+                    : string.Empty,
+                Description = dict.TryGetValue(nameof(MusicListModel.Description), out object? desc)
+                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+                    ? desc?.ToString()
+                    : null,
+                CoverPath = dict.TryGetValue(nameof(MusicListModel.CoverPath), out object? coverPath)
+                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+                    ? coverPath?.ToString()
+                    : null,
+                LatestPlayedMusic = dict.TryGetValue(nameof(MusicListModel.LatestPlayedMusic), out object? latest)
+                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+                    ? latest?.ToString()
+                    : null,
             }
-        }
-        catch (Exception ex)
+        );
+
+        if (playlistInfos is null)
         {
-            await LoggerService.ErrorAsync($"加载歌单列表失败: {ex.Message}");
+            await LoggerService.ErrorAsync("加载歌单列表失败: 结果为 null");
             NotificationService.ShowLight(
-                new Notification("错误", $"加载歌单列表失败！\n{ex.Message}"),
+                new Notification("错误", "加载歌单列表失败！结果为 null"),
                 NotificationType.Error
             );
-            throw;
+
+            return;
+        }
+
+        foreach (var info in playlistInfos.Where(info => !string.IsNullOrEmpty(info.Name)))
+        {
+            var musicListModel = await new MusicListModel(
+                info.Name,
+                info.Description,
+                info.LatestPlayedMusic,
+                info.CoverPath
+            ).LoadAsync(allMusicItems);
+            if (musicListModel is null)
+                return;
+            // 添加到列表中
+            PlayListItems.Add(musicListModel);
         }
     }
 }

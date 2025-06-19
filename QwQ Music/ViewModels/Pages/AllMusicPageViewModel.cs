@@ -13,8 +13,6 @@ namespace QwQ_Music.ViewModels.Pages;
 
 public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicPlayerViewModel.Instance.MusicItems)
 {
-    private const string FILE_PICKER_TITLE = "选择音乐文件";
-
     protected override void OnSearchTextChanged(string? value)
     {
         var source = string.IsNullOrEmpty(value)
@@ -33,12 +31,8 @@ public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicPlayer
     [RelayCommand]
     private static async Task OpenFileAsync()
     {
-        var topLevel = App.TopLevel;
-        if (topLevel == null)
-            return;
-
-        var items = await topLevel.StorageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions { Title = FILE_PICKER_TITLE, AllowMultiple = true }
+        var items = await App.TopLevel.StorageProvider.OpenFilePickerAsync(
+            new FilePickerOpenOptions { Title = "选择音乐文件", AllowMultiple = true }
         );
 
         if (items.Count == 0)

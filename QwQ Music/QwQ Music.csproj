@@ -8,66 +8,48 @@
         <TargetFramework>net9.0</TargetFramework>
         <LangVersion>preview</LangVersion>
         <ImplicitUsings>disable</ImplicitUsings>
-        
+        <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+<!--        <PublishAot>true</PublishAot>
+        <TrimMode>link</TrimMode>-->
     </PropertyGroup>
 
     <ItemGroup>
-        <AvaloniaResource Include="Assets\**" Exclude="Assets\Shaders\**;Assets\Fonts\**;Assets\Images\**" />
+        <AvaloniaResource Include="Assets\**" Exclude="Assets\Shaders\**;Assets\Fonts\**;Assets\Images\**;Assets\AppIcon.ico" />
         <EmbeddedResource Include="Assets\Images\**" />
         <EmbeddedResource Include="Assets\Shaders\**" />
         <EmbeddedResource Include="Assets\Fonts\**" />
+        <EmbeddedResource Include="Assets\AppIcon.ico" />
     </ItemGroup>
     
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.3.0" />
-        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.0" />
-        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.0" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.0" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.0" />
+        <PackageReference Include="Avalonia" Version="11.3.1" />
+        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.1" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.1" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.1" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.1" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.0">
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.1">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.3.0.6" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
         <PackageReference Include="Irihi.Ursa" Version="1.11.1" />
         <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.11.1" />
-        <PackageReference Include="QwQ.Avalonia" Version="0.1.5.1" />
+        <PackageReference Include="managed-midi" Version="1.10.1" />
+        <PackageReference Include="QwQ.Avalonia" Version="0.1.6-beta2" />
         <PackageReference Include="Semi.Avalonia" Version="11.2.1.8" />
         <PackageReference Include="Semi.Avalonia.ColorPicker" Version="11.2.1.8" />
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.8" />
         <PackageReference Include="SkiaSharp" Version="3.119.0" />
         <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.0" />
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.4.25258.110" />
-        <PackageReference Include="z440.atl.core" Version="6.24.0" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.5.25277.114" />
+        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.0.10" />
+        <PackageReference Include="z440.atl.core" Version="6.26.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Update="UserControl\MusicPlayerTray.axaml.cs">
-            <DependentUpon>MusicPlayerTray.axaml</DependentUpon>
-            <SubType>Code</SubType>
-        </Compile>
-        <Compile Update="Views\DesktopLyricsWindow.axaml.cs">
-          <DependentUpon>DesktopLyric.axaml</DependentUpon>
-          <SubType>Code</SubType>
-        </Compile>
-        <Compile Update="Views\UserControls\MusicDataGrid.axaml.cs">
-          <DependentUpon>MusicDataGrid.axaml</DependentUpon>
-          <SubType>Code</SubType>
-        </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-      <AdditionalFiles Include="Views\Pages\ClassificationPage.axaml" />
-      <AdditionalFiles Include="Views\Pages\ConfigMainPage.axaml" />
-      <AdditionalFiles Include="Views\Pages\LyricConfigPage.axaml" />
-      <AdditionalFiles Include="Views\Pages\SoundEffectConfigPage.axaml" />
-      <AdditionalFiles Include="Views\Pages\StatisticsPage.axaml" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Services\Shader\" />
+        <ProjectReference Include="..\Impressionist\Impressionist.csproj" />
+        <ProjectReference Include="..\SoundFlow\SoundFlow.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -76,11 +58,6 @@
         <PackagePath>\</PackagePath>
         <Link>README.md</Link>
       </None>
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Impressionist\Impressionist.csproj" />
-      <ProjectReference Include="..\SoundFlow\SoundFlow.csproj" />
     </ItemGroup>
 
     <ItemGroup>
