@@ -1,7 +1,13 @@
-﻿using Avalonia.Threading;
+﻿using System;
+using System.Collections.Generic;
+using Avalonia;
+using Avalonia.Controls.Notifications;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
+using QwQ_Music.Services;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ_Music.Views;
 using QwQ.Avalonia.Utilities.MessageBus;
@@ -9,7 +15,7 @@ using static QwQ_Music.Models.LanguageModel;
 
 namespace QwQ_Music.ViewModels.Pages;
 
-public class LyricConfigPageViewModel : ViewModelBase
+public partial class LyricConfigPageViewModel : ViewModelBase
 {
     public static string IsEnabledName => Lang[nameof(IsEnabledName)];
     public static string IsDoubleLineName => Lang[nameof(IsDoubleLineName)];
@@ -78,7 +84,7 @@ public class LyricConfigPageViewModel : ViewModelBase
         }
     }
 
-    public static LyricConfig LyricConfig { get; } = ConfigInfoModel.LyricConfig;
+    public static LyricConfig LyricConfig { get; } = ConfigManager.LyricConfig;
 
     private void ShowLyricWindow()
     {
@@ -95,5 +101,42 @@ public class LyricConfigPageViewModel : ViewModelBase
         _desktopLyricsWindowViewModel?.Unsubscribe();
         _desktopLyricsWindow = null;
         _desktopLyricsWindowViewModel = null;
+    }
+
+    [RelayCommand]
+    private void SetWindowPosition(string position)
+    {
+        if (_desktopLyricsWindow == null || _desktopLyricsWindow.Screens.Primary == null)
+        {
+            NotificationService.ShowLight(
+                new Notification("错误", "无法获取屏幕宽高~"),
+                NotificationType.Error
+            );
+            return;
+        }
+    
+        int screenWidth = _desktopLyricsWindow.Screens.Primary.Bounds.Width;
+        int screenHeight = _desktopLyricsWindow.Screens.Primary.Bounds.Height;
+        double scaling = _desktopLyricsWindow.Screens.Primary.Scaling;
+        double windowWidth = _desktopLyricsWindow.Width * scaling;
+        double windowHeight = _desktopLyricsWindow.Height * scaling;
+
+        var positions = new Dictionary<string, Func<PixelPoint>>
+        {
+            ["↖"] = () => new PixelPoint(0, 0),
+            // ReSharper disable once PossibleLossOfFraction
+            ["↑"] = () => new PixelPoint((int)(screenWidth / 2 - windowWidth / 2), 0),
+            ["↗"] = () => new PixelPoint((int)(screenWidth - windowWidth), 0),
+            ["↙"] = () => new PixelPoint(0, (int)(screenHeight - windowHeight)),
+            // ReSharper disable once PossibleLossOfFraction
+            ["↓"] = () => new PixelPoint((int)(screenWidth / 2 - windowWidth / 2), (int)(screenHeight - windowHeight)),
+            ["↘"] = () => new PixelPoint((int)(screenWidth - windowWidth), (int)(screenHeight - windowHeight)),
+        };
+
+        if (positions.TryGetValue(position, out var getPosition))
+        {
+            _desktopLyricsWindow.Position = getPosition();
+        }
+        // 如果不是已知位置，则保持原位置
     }
 }

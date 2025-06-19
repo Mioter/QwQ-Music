@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Services;
 
-namespace QwQ_Music.Models.ConfigModel;
+namespace QwQ_Music.Models.ConfigModels;
 
 public class InterfaceConfig
 {
@@ -27,7 +26,3 @@ public partial class CoverConfig : ObservableObject
     public partial ColorExtractionAlgorithm SelectedColorExtractionAlgorithm { get; set; } =
         ColorExtractionAlgorithm.KMeans;
 }
-
-[JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(InterfaceConfig))]
-internal partial class InterfaceConfigJsonSerializerContext : JsonSerializerContext;

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Avalonia.Input;
 using QwQ_Music.Services;
 
-namespace QwQ_Music.Models.ConfigModel;
+namespace QwQ_Music.Models.ConfigModels;
 
 /// <summary>
 /// 可序列化的KeyGesture包装类
@@ -89,7 +89,3 @@ public class HotkeyConfig
         };
     }
 }
-
-[JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(HotkeyConfig))]
-internal partial class HotkeyConfigJsonSerializerContext : JsonSerializerContext;

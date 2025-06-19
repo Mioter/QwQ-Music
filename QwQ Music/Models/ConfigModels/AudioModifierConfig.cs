@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Helper;
 using SoundFlow.Modifiers;
 
-namespace QwQ_Music.Models.ConfigModel;
+namespace QwQ_Music.Models.ConfigModels;
 
 public class AudioModifierConfig : ObservableObject
 {
@@ -36,7 +36,3 @@ public class AudioModifierConfig : ObservableObject
     public static TremoloModifier.TremoloWaveform[] TremoloWaveforms { get; set; } =
         EnumHelper<TremoloModifier.TremoloWaveform>.ToArray();
 }
-
-[JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(AudioModifierConfig))]
-internal partial class AudioModifierConfigJsonSerializerContext : JsonSerializerContext;

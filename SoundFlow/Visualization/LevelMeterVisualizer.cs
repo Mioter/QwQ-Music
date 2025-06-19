@@ -17,7 +17,7 @@ public class LevelMeterVisualizer : IVisualizer
     private const float PEAK_HOLD_DURATION = 1000; // Milliseconds
 
     /// <inheritdoc />
-    public string Name { get; } = "Level Meter Visualizer";
+    public string Name => "Level Meter Visualizer";
 
     /// <summary>
     /// Gets or sets the color of the level bar.

@@ -16,7 +16,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
     xmlns:enums="clr-namespace:QwQ_Music.Definitions.Enums"
-    xmlns:configModel="clr-namespace:QwQ_Music.Models.ConfigModel">
+    xmlns:configModels="clr-namespace:QwQ_Music.Models.ConfigModels">
 
     <Panel>
 
@@ -226,7 +226,7 @@
                                     <ComboBox
                                         Width="100"
                                         MinHeight="30"
-                                        ItemsSource="{x:Static configModel:LyricConfig.TextAlignments}"
+                                        ItemsSource="{x:Static configModels:LyricConfig.TextAlignments}"
                                         SelectedItem="{Binding RolledLyric.LyricTextAlignment}" />
 
 

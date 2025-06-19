@@ -1,8 +1,7 @@
-using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Definitions.Enums;
 
-namespace QwQ_Music.Models.ConfigModel;
+namespace QwQ_Music.Models.ConfigModels;
 
 public partial class PlayerConfig : ObservableObject
 {
@@ -34,7 +33,3 @@ public partial class PlayerConfig : ObservableObject
     [ObservableProperty]
     public partial PlayMode PlayMode { get; set; } = PlayMode.Sequential;
 }
-
-[JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(PlayerConfig))]
-internal partial class PlayerConfigJsonSerializerContext : JsonSerializerContext;

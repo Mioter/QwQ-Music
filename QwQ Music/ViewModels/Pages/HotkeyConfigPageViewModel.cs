@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Services;
 using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
@@ -17,7 +17,7 @@ namespace QwQ_Music.ViewModels.Pages;
 
 public partial class HotkeyConfigPageViewModel : ViewModelBase
 {
-    public HotkeyConfig HotkeyConfig { get; } = ConfigInfoModel.HotkeyConfig;
+    public HotkeyConfig HotkeyConfig { get; } = ConfigManager.HotkeyConfig;
 
     /// <summary>
     /// 热键配置项列表
@@ -123,8 +123,17 @@ public partial class HotkeyConfigPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ClearKeyGestures()
+    private async Task ClearKeyGestures()
     {
+        var result = await MessageBox.ShowOverlayAsync(
+            "你真的要清除使用热键配置吗?",
+            "警告",
+            icon: MessageBoxIcon.Warning,
+            button: MessageBoxButton.YesNo
+        );
+        if (result != MessageBoxResult.Yes)
+            return;
+
         foreach (var item in HotkeyItems)
         {
             item.ClearKeyGestures();

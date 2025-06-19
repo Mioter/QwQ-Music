@@ -5,9 +5,9 @@
     xmlns:u="https://irihi.tech/ursa"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
-    xmlns:configModel="clr-namespace:QwQ_Music.Models.ConfigModel"
     xmlns:converters="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls.ColorPicker"
-    xmlns:converters1="clr-namespace:Avalonia.Controls.Primitives.Converters;assembly=Avalonia.Controls.ColorPicker">
+    xmlns:converters1="clr-namespace:Avalonia.Controls.Primitives.Converters;assembly=Avalonia.Controls.ColorPicker"
+    xmlns:configModels="clr-namespace:QwQ_Music.Models.ConfigModels">
 
     <UserControl.Resources>
         <converters:ToBrushConverter x:Key="ToBrushConverter" />
@@ -40,7 +40,7 @@
                         <ComboBox
                             Width="80"
                             HorizontalAlignment="Right"
-                            ItemsSource="{x:Static configModel:LyricConfig.TextAlignments}"
+                            ItemsSource="{x:Static configModels:LyricConfig.TextAlignments}"
                             SelectedItem="{Binding LyricConfig.RolledLyri.LyricTextAlignment}" />
                     </Panel>
 
@@ -86,13 +86,35 @@
 
                     </StackPanel>
 
+                    <UniformGrid Columns="3" HorizontalAlignment="Left" ColumnSpacing="10" RowSpacing="10">
+
+                        <UniformGrid.Styles>
+
+                            <Style Selector="Button">
+                                <Setter Property="CornerRadius" Value="8"/>
+                                <Setter Property="Theme" Value="{DynamicResource OutlineButton}" />
+                                <Setter Property="Command" Value="{Binding SetWindowPositionCommand}" />
+                                <Setter Property="CommandParameter" Value="{Binding $self.Content}" />
+                            </Style>
+
+                        </UniformGrid.Styles>
+
+                        <Button Content="↖" />
+                        <Button Content="↑" />
+                        <Button Content="↗" />
+                        <Button Content="↙" />
+                        <Button Content="↓" />
+                        <Button Content="↘" />
+
+                    </UniformGrid>
+                    
                     <Panel>
                         <TextBlock Text="歌词文本对齐方式" VerticalAlignment="Center" />
 
                         <ComboBox
                             Width="80"
                             HorizontalAlignment="Right"
-                            ItemsSource="{x:Static configModel:LyricConfig.TextAlignments}"
+                            ItemsSource="{x:Static configModels:LyricConfig.TextAlignments}"
                             SelectedItem="{Binding LyricConfig.DesktopLyric.LyricTextAlignment}" />
                     </Panel>
 

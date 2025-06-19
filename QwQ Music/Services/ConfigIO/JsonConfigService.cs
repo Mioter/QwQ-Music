@@ -7,7 +7,8 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Services.ConfigIO;
@@ -44,32 +45,19 @@ public static class JsonConfigService
     private const string BACKUP_TIMESTAMP_FORMAT = "yyyyMMdd_HHmmss";
 
     // 配置项
-    public static string SavePath { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "config");
-    private static JsonServiceConfig? jsonServiceConfig;
+    public static string SavePath => MainConfig.ConfigSavePath;
+
     public static string FileExtension { get; set; } = ".QwQ.json";
     public static string BackupExtension { get; set; } = ".backup";
-    public static bool EnableBackup => jsonServiceConfig?.EnableBackup ?? false;
-    public static bool EnablePerformanceLogging => jsonServiceConfig?.EnablePerformanceLogging ?? false;
-    public static int MaxBackupCount => jsonServiceConfig?.MaxBackupCount ?? 3;
+
+    private static readonly JsonServiceConfig _jsonServiceConfig = ConfigManager.JsonServiceConfig;
+    public static bool EnableBackup => _jsonServiceConfig.EnableBackup;
+    public static bool EnablePerformanceLogging => _jsonServiceConfig.EnablePerformanceLogging;
+    public static int MaxBackupCount => _jsonServiceConfig.MaxBackupCount;
 
     // 内部状态
     private static readonly Lock _restoreLock = new();
     private static bool isRestoring;
-
-    /// <summary>
-    /// 配置Json服务行为
-    /// </summary>
-    /// <param name="config">配置对象</param>
-    public static void SetConfig(JsonServiceConfig config)
-    {
-        jsonServiceConfig = config;
-        LoggerService.Info(
-            "\n"
-                + "===========================================\n"
-                + "Json配置已加载\n"
-                + "===========================================\n"
-        );
-    }
 
     /// <summary>
     /// 同步保存方法
@@ -330,7 +318,7 @@ public static class JsonConfigService
         status.AppendLine($"启用性能日志: {EnablePerformanceLogging}");
         status.AppendLine($"最大备份数量: {MaxBackupCount}");
         status.AppendLine($"正在恢复: {isRestoring}");
-        status.AppendLine($"服务状态: 运行中");
+        status.AppendLine("服务状态: 运行中");
 
         return status.ToString();
     }
@@ -393,7 +381,9 @@ public static class JsonConfigService
     /// </summary>
     private static void HandleSaveError(Exception ex, string fullPath, string fileName)
     {
-        LoggerService.Error($"保存配置文件失败: {fullPath}, 错误类型: {ex.GetType().Name}, 错误: {ex.Message}");
+        LoggerService.Error(
+            $"保存配置文件失败: 文件名: {fileName}, 路径: {fullPath}, 错误类型: {ex.GetType().Name}, 错误: {ex.Message}"
+        );
         LoggerService.Debug($"异常详情: {ex}");
 
         // 清理临时文件

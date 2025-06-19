@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Helper;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Audio;
 using QwQ_Music.Utilities;
@@ -15,16 +15,17 @@ using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ.Avalonia.Utilities.MessageBus;
 using QwQ.Avalonia.Utilities.TaskManager;
 using SoundFlow.Modifiers;
+using PlayerConfig = QwQ_Music.Models.ConfigModels.PlayerConfig;
 
 namespace QwQ_Music.ViewModels.Pages;
 
 public partial class PlayConfigPageViewModel : ViewModelBase
 {
-    public PlayerConfig PlayerConfig { get; } = ConfigInfoModel.PlayerConfig;
+    public PlayerConfig PlayerConfig { get; } = ConfigManager.PlayerConfig;
 
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
-    public AudioModifierConfig AudioModifierConfig { get; } = ConfigInfoModel.AudioModifierConfig;
+    public AudioModifierConfig AudioModifierConfig { get; } = ConfigManager.AudioModifierConfig;
 
     public PlayConfigPageViewModel()
     {

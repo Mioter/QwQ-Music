@@ -8,11 +8,12 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Shader;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ.Avalonia.Utilities.MessageBus;
+using CoverConfig = QwQ_Music.Models.ConfigModels.CoverConfig;
+using RolledLyricConfig = QwQ_Music.Models.ConfigModels.RolledLyricConfig;
 
 namespace QwQ_Music.ViewModels.Pages;
 
@@ -22,9 +23,9 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
-    public static RolledLyricConfig RolledLyric { get; } = ConfigInfoModel.LyricConfig.RolledLyri;
+    public static RolledLyricConfig RolledLyric { get; } = ConfigManager.LyricConfig.RolledLyri;
 
-    public static CoverConfig CoverConfig { get; } = ConfigInfoModel.InterfaceConfig.CoverConfig;
+    public static CoverConfig CoverConfig { get; } = ConfigManager.InterfaceConfig.CoverConfig;
 
     public MusicCoverPageViewModel()
         : base("播放")

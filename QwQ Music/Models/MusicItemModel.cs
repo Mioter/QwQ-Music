@@ -5,12 +5,11 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.Models.ModelBases;
 using QwQ_Music.Services;
 
 namespace QwQ_Music.Models;
 
-public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
+public class MusicItemModel : ObservableObject
 {
     public MusicItemModel(
         string title = "",
@@ -122,7 +121,14 @@ public class MusicItemModel : ObservableObject, IModelBase<MusicItemModel>
     public string? CoverPath
     {
         get;
-        set => SetPropertyWithModified(ref field, value);
+        set
+        {
+            if (SetPropertyWithModified(ref field, value))
+            {
+                _coverStatus = null;
+                OnPropertyChanged(nameof(CoverImage));
+            }
+        }
     } // 初始值来自构造函数
 
     public string[]? CoverColors

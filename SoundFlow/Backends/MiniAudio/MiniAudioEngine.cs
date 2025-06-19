@@ -23,7 +23,7 @@ public sealed class MiniAudioEngine(
     private nint _currentCaptureDeviceId = nint.Zero;
 
     /// <inheritdoc />
-    protected override bool RequiresBackendThread { get; } = false;
+    protected override bool RequiresBackendThread => false;
 
     /// <inheritdoc />
     protected override void InitializeAudioDevice()

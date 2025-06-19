@@ -154,7 +154,7 @@ public partial class MusicListModel : ObservableObject
         var latestPlayedMusicList = await DataBaseService.LoadSpecifyFieldsAsync(
             DataBaseService.Table.LISTINFO,
             [nameof(LatestPlayedMusic)],
-            dict => dict.TryGetValue(nameof(LatestPlayedMusic), out object? value) ? value.ToString() ?? null : null,
+            dict => dict.TryGetValue(nameof(LatestPlayedMusic), out object? value) ? value?.ToString() ?? null : null,
             ..1,
             $"{nameof(Name)} = '{Name.Replace("'", "''")}'"
         );

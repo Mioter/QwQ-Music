@@ -1,11 +1,18 @@
 using System.IO;
 using QwQ_Music.Utilities;
 
-namespace QwQ_Music.Models.ConfigModel;
+namespace QwQ_Music.Models.ConfigModels;
 
-public class MainConfig
+public static class MainConfig
 {
-    public static string DatabaseSavePath => Path.Combine(Directory.GetCurrentDirectory(), "config", "data.db");
+    public static string ConfigSavePath =>
+        PathEnsurer.EnsureDirectoryExists(Path.Combine(Directory.GetCurrentDirectory(), "config"));
+
+    public static string LogSavePath =>
+        PathEnsurer.EnsureDirectoryExists(Path.Combine(Directory.GetCurrentDirectory(), "logs"));
+
+    public static string DatabaseSavePath =>
+        PathEnsurer.EnsureFileAndDirectoryExist(Path.Combine(Directory.GetCurrentDirectory(), "data", "music.QwQ.db"));
 
     public static string MusicCoverSavePath =>
         PathEnsurer.EnsureDirectoryExists(Path.Combine(Directory.GetCurrentDirectory(), "cache", "music-cover"));

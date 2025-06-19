@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Avalonia.Threading;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 using SoundFlow.Components;
 using SoundFlow.Enums;
 using SoundFlow.Providers;
@@ -18,7 +18,7 @@ public class AudioPlay : IAudioPlay
     private DispatcherTimer? _progressTimer;
     private DispatcherTimer? _fadeOutTimer; // 添加一个字段来跟踪当前的淡出定时器
 
-    private readonly AudioModifierConfig _audioModifierConfig = ConfigInfoModel.AudioModifierConfig;
+    private readonly AudioModifierConfig _audioModifierConfig = ConfigManager.AudioModifierConfig;
 
     /// <inheritdoc />
     public event EventHandler<double>? PositionChanged;

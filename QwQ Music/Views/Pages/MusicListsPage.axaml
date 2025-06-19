@@ -15,13 +15,25 @@
                 <Setter Property="ContextMenu">
                     <Setter.Value>
                         <ContextMenu>
+
+                            <MenuItem>
+                                <Button
+                                    Classes="Icon"
+                                    CornerRadius="8"
+                                    Command="{Binding MusicPlayerViewModel.TogglePlaylistCommand}"
+                                    CommandParameter="{Binding}"
+                                    Height="32" Width="32"
+                                    Padding="2">
+                                    <PathIcon Data="{StaticResource PlayIconData}" Margin="0" />
+                                </Button>
+                            </MenuItem>
                             
                             <MenuItem
                                 Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).EditMusicListCommand}"
                                 CommandParameter="{Binding}"
                                 Header="编辑">
                                 <MenuItem.Icon>
-                                    <PathIcon Data="{StaticResource SemiIconEdit}" 
+                                    <PathIcon Data="{StaticResource SemiIconEdit}"
                                               Margin="2" />
                                 </MenuItem.Icon>
                             </MenuItem>

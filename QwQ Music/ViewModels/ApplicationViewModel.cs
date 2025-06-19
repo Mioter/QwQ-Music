@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
+using QwQ_Music.Services.Audio;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities;
 using QwQ_Music.Views;
@@ -56,11 +57,11 @@ public partial class ApplicationViewModel : ObservableObject
         desktop.Shutdown();
     }
 
-    private static async Task OnShutdown()
+    internal static async Task OnShutdown()
     {
         try
         {
-            await ConfigInfoModel.SaveAllAsync();
+            await ConfigManager.SaveConfigAsync();
 
             await MusicPlayerViewModel.Instance.ShutdownAsync();
 
@@ -73,6 +74,8 @@ public partial class ApplicationViewModel : ObservableObject
             IconService.ClearCache();
             MousePenetrate.ClearCache();
             HotkeyService.ClearCache();
+
+            AudioEngineManager.Dispose();
 
             await DataBaseService.DisposeAsync();
             await LoggerService.InfoAsync(

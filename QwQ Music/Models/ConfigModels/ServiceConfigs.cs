@@ -1,22 +1,23 @@
-using System.Text.Json.Serialization;
-using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.Definitions.Enums;
 using QwQ_Music.Services;
 
-namespace QwQ_Music.Models.ConfigModel;
+namespace QwQ_Music.Models.ConfigModels;
 
-public partial class SystemConfig : ObservableObject
+public class JsonServiceConfig
 {
-    public bool IsDebugMode { get; set; }
+    /// <summary>
+    /// 启用备份
+    /// </summary>
+    public bool EnableBackup { get; set; }
 
-    [ObservableProperty]
-    public partial ClosingBehavior ClosingBehavior { get; set; } = ClosingBehavior.AskAbout;
+    /// <summary>
+    /// 启用性能监控
+    /// </summary>
+    public bool EnablePerformanceLogging { get; set; } = true;
 
-    public LoggerServiceConfig LoggerServiceConfig { get; set; } = new();
-
-    public DataBaseConfig DataBaseConfig { get; set; } = new();
-
-    public JsonServiceConfig JsonServiceConfig { get; set; } = new();
+    /// <summary>
+    /// 最大备份次数
+    /// </summary>
+    public int MaxBackupCount { get; set; } = 3;
 }
 
 public class LoggerServiceConfig
@@ -34,7 +35,7 @@ public class LoggerServiceConfig
     /// <summary>
     /// 日志过滤级别
     /// </summary>
-    public LogLevel LogFilterLevel { get; set; } = LogLevel.Info;
+    public LogLevel Level { get; set; } = LogLevel.Info;
 }
 
 public class DataBaseConfig
@@ -74,25 +75,3 @@ public class DataBaseConfig
     /// </summary>
     public int MaxConnectionPoolSize { get; set; } = 10;
 }
-
-public class JsonServiceConfig
-{
-    /// <summary>
-    /// 启用备份
-    /// </summary>
-    public bool EnableBackup { get; set; }
-
-    /// <summary>
-    /// 启用性能监控
-    /// </summary>
-    public bool EnablePerformanceLogging { get; set; } = true;
-
-    /// <summary>
-    /// 最大备份次数
-    /// </summary>
-    public int MaxBackupCount { get; set; } = 3;
-}
-
-[JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(SystemConfig))]
-internal partial class SystemConfigJsonSerializerContext : JsonSerializerContext;

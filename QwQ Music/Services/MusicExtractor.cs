@@ -6,7 +6,7 @@ using ATL;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Utilities;
 using File = System.IO.File;
 

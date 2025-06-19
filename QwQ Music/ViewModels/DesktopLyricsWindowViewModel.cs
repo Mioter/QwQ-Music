@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.ViewModels.ViewModelBases;
+using DesktopLyricConfig = QwQ_Music.Models.ConfigModels.DesktopLyricConfig;
 
 namespace QwQ_Music.ViewModels;
 
@@ -19,7 +19,7 @@ public partial class DesktopLyricsWindowViewModel : ViewModelBase
 
     public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
-    public static DesktopLyricConfig LyricConfig => ConfigInfoModel.LyricConfig.DesktopLyric;
+    public static DesktopLyricConfig LyricConfig => ConfigManager.LyricConfig.DesktopLyric;
 
     [ObservableProperty]
     public partial string? CurrentMainLyric { get; set; }

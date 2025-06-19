@@ -13,7 +13,6 @@ using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Definitions.Enums;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Audio;
 using QwQ_Music.Services.ConfigIO;
@@ -23,10 +22,10 @@ using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ_Music.Views.UserControls;
 using QwQ.Avalonia.Utilities.MessageBus;
-using SoundFlow.Backends.MiniAudio;
 using Ursa.Controls;
 using Log = QwQ_Music.Services.LoggerService;
 using Notification = Ursa.Controls.Notification;
+using PlayerConfig = QwQ_Music.Models.ConfigModels.PlayerConfig;
 
 namespace QwQ_Music.ViewModels;
 
@@ -50,6 +49,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _lyricsTimer.Elapsed += OnLyricsTimerElapsed;
         _lyricsTimer.AutoReset = false;
 
+        MusicListsViewModel.MusicPlayerViewModel = this;
         // 注册热键功能
         RegisterHotkeyFunctions();
     }
@@ -58,7 +58,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     #region 属性和字段
 
-    private MiniAudioEngine _audioEngine = new(PlayerConfig.SampleRate);
     private readonly AudioPlay _audioPlay = new();
     private readonly Timer _lyricsTimer;
     private bool _isLyricsTimerEnabled;
@@ -82,7 +81,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial ObservableCollection<MusicItemModel> MusicItems { get; set; } = [];
-    public static PlayerConfig PlayerConfig { get; } = ConfigInfoModel.PlayerConfig;
+    public static PlayerConfig PlayerConfig { get; } = ConfigManager.PlayerConfig;
     public MusicListsPageViewModel MusicListsViewModel { get; } = new();
 
     public LyricsModel LyricsModel { get; } = new();
@@ -263,7 +262,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             await SetCurrentMusicItem(musicItem);
             NotificationService.ShowLight(
-                new Notification("不嘻嘻", "找不到上次播放的音乐了，已经切换为当前播放列表第一首~"),
+                new Notification("不嘻嘻", "上次播放的音乐不在播放列表中，已经切换为当前播放列表第一首~"),
                 NotificationType.Information
             );
             return;
@@ -283,7 +282,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _lyricsTimer.Elapsed -= OnLyricsTimerElapsed;
         _lyricsTimer.Dispose();
 
-        _audioEngine.Dispose();
         _audioPlay.Dispose();
 
         await SaveAsync();
@@ -379,17 +377,25 @@ public partial class MusicPlayerViewModel : ViewModelBase
     [RelayCommand]
     private async Task TogglePlayback()
     {
-        if (await FallbackMusicItem())
+        if (MusicItems.Count == 0)
+        {
+            NotificationService.ShowLight(
+                new Notification("注意", "音乐库啥也没有，需要我为你播放一首空空如也吗？"),
+                NotificationType.Information
+            );
             return;
+        }
 
-        OnPlayingChanged(!IsPlaying);
+        if (await FallbackMusicItem(CurrentMusicItem))
+        {
+            OnPlayingChanged(!IsPlaying);
+        }
     }
 
     [RelayCommand]
-    private async Task PlaySpecifiedMusic(MusicItemModel? musicItem)
+    private async Task PlaySpecifiedMusic(MusicItemModel musicItem)
     {
-        if (musicItem == null)
-            return;
+        await FallbackMusicItem(musicItem);
 
         if (CurrentMusicItem.Equals(musicItem))
         {
@@ -646,18 +652,45 @@ public partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
-    private async Task<bool> FallbackMusicItem()
+    private async Task<bool> FallbackMusicItem(MusicItemModel musicItem)
     {
-        if (File.Exists(CurrentMusicItem.FilePath))
-            return false;
-
         if (PlayList.Count == 0)
+        {
             PlayList.MusicItems = new ObservableCollection<MusicItemModel>(MusicItems);
+            NotificationService.ShowLight(
+                new Notification("注意", $"当前音乐列表为空，以自动填充为全部音乐！共 {MusicItems.Count} 首~"),
+                NotificationType.Information
+            );
+        }
+
+        if (File.Exists(CurrentMusicItem.FilePath))
+        {
+            return true;
+        }
 
         var item = MusicItems.FirstOrDefault();
-        if (item != null)
-            await SetCurrentMusicItem(item);
-        return item == null;
+
+        if (item == null)
+        {
+            NotificationService.ShowLight(
+                new Notification("注意", "音乐库中没有任何歌词，无法播放！"),
+                NotificationType.Information
+            );
+            return false;
+        }
+
+        await SetCurrentMusicItem(item);
+
+        if (PlayList.MusicItems.Contains(CurrentMusicItem))
+            return true;
+
+        PlayList.MusicItems.Add(CurrentMusicItem);
+        NotificationService.ShowLight(
+            new Notification("注意", $"当前音乐《{musicItem.Title}》不在播放列表中，以自动添加到播放列表末尾~"),
+            NotificationType.Information
+        );
+
+        return true;
     }
 
     private async Task SetAndPlay(int index)
@@ -979,7 +1012,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         if (
             musicItem.Gain > 0f
             && !PlayerConfig.IsAutoSetSampleRate
-            && PlayerConfig.SampleRate == _audioEngine.SampleRate
+            && AudioEngineManager.AudioEngine != null
+            && PlayerConfig.SampleRate == AudioEngineManager.AudioEngine.SampleRate
         )
         {
             _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
@@ -992,9 +1026,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
         // 处理采样率
         int targetSampleRate = PlayerConfig.IsAutoSetSampleRate ? ex.SamplingRate : PlayerConfig.SampleRate;
 
-        if (targetSampleRate != _audioEngine.SampleRate)
+        if (AudioEngineManager.AudioEngine != null && targetSampleRate != AudioEngineManager.AudioEngine.SampleRate)
         {
-            SetOutputSampleRate(targetSampleRate);
+            AudioEngineManager.Create(targetSampleRate);
         }
 
         // 处理增益值
@@ -1007,19 +1041,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
     }
 
-    private void SetOutputSampleRate(int sampleRate)
-    {
-        try
-        {
-            _audioEngine.Dispose();
-            _audioEngine = new MiniAudioEngine(sampleRate);
-        }
-        catch (Exception e)
-        {
-            Log.Error($"设置采样率时出现错误 : {e.Message}");
-        }
-    }
-
     #endregion
 
     /// <summary>
@@ -1027,56 +1048,68 @@ public partial class MusicPlayerViewModel : ViewModelBase
     /// </summary>
     private void RegisterHotkeyFunctions()
     {
-        HotkeyService.RegisterFunctionAction(HotkeyFunction.PreviousSong, () =>
-            TogglePreviousSongCommand.Execute(null));
+        HotkeyService.RegisterFunctionAction(
+            HotkeyFunction.PreviousSong,
+            () => TogglePreviousSongCommand.Execute(null)
+        );
 
-        HotkeyService.RegisterFunctionAction(HotkeyFunction.NextSong, () =>
-            ToggleNextSongCommand.Execute(null));
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.NextSong, () => ToggleNextSongCommand.Execute(null));
 
-        HotkeyService.RegisterFunctionAction(HotkeyFunction.PlayPause, () =>
-            TogglePlaybackCommand.Execute(null));
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.PlayPause, () => TogglePlaybackCommand.Execute(null));
 
-        HotkeyService.RegisterFunctionAction(HotkeyFunction.ToggleMute, () =>
-            ToggleMuteModeCommand.Execute(null));
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.ToggleMute, () => ToggleMuteModeCommand.Execute(null));
 
-        HotkeyService.RegisterFunctionAction(HotkeyFunction.TogglePlayMode, () =>
-            TogglePlayModeCommand.Execute(null));
+        HotkeyService.RegisterFunctionAction(HotkeyFunction.TogglePlayMode, () => TogglePlayModeCommand.Execute(null));
 
-        HotkeyService.RegisterFunctionAction(HotkeyFunction.VolumeUp, () =>
-        {
-            if (Volume < 100)
-                Volume += 5;
-        });
+        HotkeyService.RegisterFunctionAction(
+            HotkeyFunction.VolumeUp,
+            () =>
+            {
+                if (Volume < 100)
+                    Volume += 5;
+            }
+        );
 
-        HotkeyService.RegisterFunctionAction(HotkeyFunction.VolumeDown, () =>
-        {
-            if (Volume > 0)
-                Volume -= 5;
-        });
+        HotkeyService.RegisterFunctionAction(
+            HotkeyFunction.VolumeDown,
+            () =>
+            {
+                if (Volume > 0)
+                    Volume -= 5;
+            }
+        );
 
-        HotkeyService.RegisterFunctionAction(HotkeyFunction.RefreshCurrentMusic, () =>
-            RefreshCurrentMusicItemCommand.Execute(null));
+        HotkeyService.RegisterFunctionAction(
+            HotkeyFunction.RefreshCurrentMusic,
+            () => RefreshCurrentMusicItemCommand.Execute(null)
+        );
 
-        HotkeyService.RegisterFunctionAction(HotkeyFunction.ShowPlaylistInfo, () =>
-        {
-            NotificationService.ShowLight(
-                new Notification(
-                    "你知道吗？",
-                    $"当前播放列表有: {PlayList.MusicItems.Count} 首音乐！\n现在正在播放第 {PlayList.MusicItems.IndexOf(CurrentMusicItem)} 首"
-                ),
-                NotificationType.Information
-            );
-        });
+        HotkeyService.RegisterFunctionAction(
+            HotkeyFunction.ShowPlaylistInfo,
+            () =>
+            {
+                NotificationService.ShowLight(
+                    new Notification(
+                        "你知道吗？",
+                        $"当前播放列表有: {PlayList.MusicItems.Count} 首音乐！\n现在正在播放第 {PlayList.MusicItems.IndexOf(CurrentMusicItem)+1} 首"
+                    ),
+                    NotificationType.Information
+                );
+            }
+        );
 
-        HotkeyService.RegisterFunctionAction(HotkeyFunction.ShowCurrentInfo, () =>
-        {
-            NotificationService.ShowLight(
-                new Notification(
-                    "你知道吗？",
-                    $"{(IsPlaying ? "正在播放" : "已暂停")}的音乐叫做: {CurrentMusicItem.Title} 哦！\n你的音量是: {Volume}% "
-                ),
-                NotificationType.Information
-            );
-        });
+        HotkeyService.RegisterFunctionAction(
+            HotkeyFunction.ShowCurrentInfo,
+            () =>
+            {
+                NotificationService.ShowLight(
+                    new Notification(
+                        "你知道吗？",
+                        $"{(IsPlaying ? "正在播放" : "已暂停")}的音乐叫做: {CurrentMusicItem.Title} 哦！\n你的音量是: {Volume}% "
+                    ),
+                    NotificationType.Information
+                );
+            }
+        );
     }
 }

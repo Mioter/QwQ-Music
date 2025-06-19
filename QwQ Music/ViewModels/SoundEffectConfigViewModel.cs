@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.ViewModels.ViewModelBases;
 using SoundFlow.Modifiers;
 
@@ -10,7 +10,7 @@ namespace QwQ_Music.ViewModels;
 
 public partial class SoundEffectConfigViewModel() : NavigationViewModel("音效")
 {
-    public AudioModifierConfig AudioModifierConfig { get; } = ConfigInfoModel.AudioModifierConfig;
+    public AudioModifierConfig AudioModifierConfig { get; } = ConfigManager.AudioModifierConfig;
 
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 

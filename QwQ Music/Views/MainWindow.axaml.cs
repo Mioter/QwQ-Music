@@ -58,7 +58,7 @@ public partial class MainWindow : Window
 
             e.Cancel = true;
 
-            switch (ConfigInfoModel.SystemConfig.ClosingBehavior)
+            switch (ConfigManager.SystemConfig.ClosingBehavior)
             {
                 case Definitions.Enums.ClosingBehavior.AskAbout:
                     if (_isOpenClosingDialog)
@@ -117,7 +117,7 @@ public partial class MainWindow : Window
 
         if (model.IsEnablePrompt)
         {
-            ConfigInfoModel.SystemConfig.ClosingBehavior = model.ClosingBehavior;
+            ConfigManager.SystemConfig.ClosingBehavior = model.ClosingBehavior;
         }
 
         switch (model.ClosingBehavior)

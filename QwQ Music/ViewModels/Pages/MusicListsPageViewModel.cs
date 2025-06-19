@@ -10,7 +10,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities;
@@ -26,6 +26,8 @@ namespace QwQ_Music.ViewModels.Pages;
 
 public partial class MusicListsPageViewModel : ViewModelBase
 {
+    public MusicPlayerViewModel? MusicPlayerViewModel { get; set; }
+
     public ObservableCollection<MusicListModel> PlayListItems { get; set; } = [];
 
     public async Task InitializeAsync(ObservableCollection<MusicItemModel> allMusicItems)

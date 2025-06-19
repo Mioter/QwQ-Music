@@ -9,7 +9,7 @@ namespace SoundFlow.Visualization;
 public class WaveformVisualizer : IVisualizer
 {
     /// <inheritdoc />
-    public string Name { get; } = "Waveform Visualizer";
+    public string Name => "Waveform Visualizer";
 
     /// <summary>
     /// Gets the waveform data.

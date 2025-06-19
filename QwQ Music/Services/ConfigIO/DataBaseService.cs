@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Utilities;
 using Log = QwQ_Music.Services.LoggerService;
 
@@ -21,7 +21,7 @@ public static class DataBaseService
 {
     #region 配置项
 
-    private static readonly DataBaseConfig _dataBaseConfig = ConfigInfoModel.SystemConfig.DataBaseConfig;
+    private static readonly DataBaseConfig _dataBaseConfig = ConfigManager.DataBaseConfig;
 
     /// <summary>
     /// 是否启用详细日志记录
@@ -613,9 +613,6 @@ public static class DataBaseService
             yield break;
         }
 
-        if (limit.Equals(default))
-            limit = ..50;
-
         await EnsureTableExistsAsync();
 
         await _poolLock.WaitAsync();
@@ -708,9 +705,6 @@ public static class DataBaseService
             Log.Error("数据库服务已释放，无法执行查询");
             yield break;
         }
-
-        if (limit.Equals(default))
-            limit = ..50;
 
         EnsureTableExists();
 
@@ -822,7 +816,12 @@ public static class DataBaseService
             sqlCommand += $" ORDER BY {sortBy} {sort:G} ";
         }
 
-        sqlCommand += $" LIMIT {limit.Start},{limit.End} ";
+        // 优化limit处理：如果limit为Range.All（..），则不拼接LIMIT语句
+
+        if (!limit.Equals(default))
+        {
+            sqlCommand += $" LIMIT {limit.Start},{limit.End} ";
+        }
 
         return sqlCommand;
     }
@@ -851,9 +850,6 @@ public static class DataBaseService
             await Log.ErrorAsync("字段列表为空，无法执行查询");
             return null;
         }
-
-        if (limit.Equals(default))
-            limit = ..50;
 
         await EnsureTableExistsAsync();
 
@@ -937,9 +933,6 @@ public static class DataBaseService
             Log.Error("字段列表为空，无法执行查询");
             return null;
         }
-
-        if (limit.Equals(default))
-            limit = ..50;
 
         EnsureTableExists();
 
@@ -1028,7 +1021,11 @@ public static class DataBaseService
             sqlCommand += $" ORDER BY {sortBy} {sort:G} ";
         }
 
-        sqlCommand += $" LIMIT {limit.Start},{limit.End}";
+        // 优化limit处理：如果limit为Range.All（..），则不拼接LIMIT语句
+        if (!limit.Equals(default))
+        {
+            sqlCommand += $" LIMIT {limit.Start},{limit.End} ";
+        }
 
         return sqlCommand;
     }

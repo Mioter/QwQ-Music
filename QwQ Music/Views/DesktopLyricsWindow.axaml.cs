@@ -2,14 +2,14 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
 using QwQ_Music.Utilities;
+using DesktopLyricConfig = QwQ_Music.Models.ConfigModels.DesktopLyricConfig;
 
 namespace QwQ_Music.Views;
 
 public partial class DesktopLyricsWindow : Window
 {
-    public static DesktopLyricConfig LyricConfig => ConfigInfoModel.LyricConfig.DesktopLyric;
+    public static DesktopLyricConfig LyricConfig => ConfigManager.LyricConfig.DesktopLyric;
 
     public DesktopLyricsWindow()
     {

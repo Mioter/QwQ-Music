@@ -6,8 +6,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using QwQ_Music.Models.ConfigModel;
-using QwQ_Music.Utilities;
+using QwQ_Music.Models;
+using QwQ_Music.Models.ConfigModels;
 
 namespace QwQ_Music.Services;
 
@@ -49,14 +49,12 @@ public static class LoggerService
     private const int FILE_SHARING_RETRY_DELAY_MS = 200;
 
     // 配置项
-    public static readonly string SavePath = PathEnsurer.EnsureDirectoryExists(
-        Path.Combine(AppContext.BaseDirectory, "logs")
-    );
+    public static readonly string SavePath = MainConfig.LogSavePath;
 
-    private static LoggerServiceConfig? loggerServiceConfig;
-    public static bool IsKeepOpen => loggerServiceConfig?.IsKeepOpen ?? true;
-    public static int RetryCount => loggerServiceConfig?.RetryCount ?? 3;
-    public static LogLevel Level => loggerServiceConfig?.LogFilterLevel ?? LogLevel.Debug;
+    private static readonly LoggerServiceConfig _loggerServiceConfig = ConfigManager.LoggerServiceConfig;
+    public static bool IsKeepOpen => _loggerServiceConfig.IsKeepOpen;
+    public static int RetryCount => _loggerServiceConfig.RetryCount;
+    public static LogLevel Level => _loggerServiceConfig.Level;
 
     // 内部状态
     private static DateTime currentDay = DateTime.Today;
@@ -70,20 +68,6 @@ public static class LoggerService
 #if DEBUG
     private static readonly HttpClient _httpClient = new();
 #endif
-
-    /// <summary>
-    /// 配置日志服务行为
-    /// </summary>
-    public static void SetConfig(LoggerServiceConfig config)
-    {
-        loggerServiceConfig = config;
-        Info(
-            "\n"
-                + "===========================================\n"
-                + "日志配置已加载\n"
-                + "===========================================\n"
-        );
-    }
 
     /// <summary>
     /// 获取当前日志文件路径

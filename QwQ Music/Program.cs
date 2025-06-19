@@ -1,6 +1,8 @@
 ﻿using System;
 using Avalonia;
 using QwQ_Music.Services;
+using QwQ_Music.Services.Audio;
+using QwQ_Music.ViewModels;
 
 namespace QwQ_Music;
 
@@ -14,12 +16,13 @@ public static class Program
     {
         try
         {
+            AudioEngineManager.Create();
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
         catch (Exception e)
         {
             LoggerService.Error($"捕捉到未处理异常:\n {e.Message}\n {e.StackTrace}");
-            LoggerService.Shutdown();
+            ApplicationViewModel.OnShutdown().Wait();
             throw;
         }
     }

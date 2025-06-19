@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Input;
 using QwQ_Music.Models;
-using QwQ_Music.Models.ConfigModel;
+using QwQ_Music.Models.ConfigModels;
 
 namespace QwQ_Music.Services;
 
@@ -78,7 +78,7 @@ public enum HotkeyFunction
 /// </summary>
 public static class HotkeyService
 {
-    private static readonly HotkeyConfig _hotkeyConfig = ConfigInfoModel.HotkeyConfig;
+    private static readonly HotkeyConfig _hotkeyConfig = ConfigManager.HotkeyConfig;
     private static Dictionary<HotkeyFunction, List<SerializableKeyGesture>> FunctionToKeyMap =>
         _hotkeyConfig.FunctionToKeyMap;
     private static readonly Dictionary<HotkeyFunction, Action> _functionToActionMap = [];
@@ -110,7 +110,7 @@ public static class HotkeyService
     {
         _functionToActionMap.Clear();
     }
-    
+
     /// <summary>
     /// 注册热键
     /// </summary>
@@ -356,7 +356,7 @@ public static class HotkeyService
     public static void ClearCache()
     {
         UnregisterAllFunctionActions();
-        
+
         FunctionToKeyMap.Clear();
         _functionToActionMap.Clear();
     }

@@ -133,7 +133,7 @@ public abstract class AudioEngine : IDisposable
     ///     True if <see cref="AudioEngine"/> manages a backend thread, false otherwise.
     ///     Subclasses override to indicate backend threading requirements.
     /// </summary>
-    protected virtual bool RequiresBackendThread { get; } = true;
+    protected virtual bool RequiresBackendThread => true;
 
     /// <summary>
     ///     Gets the currently selected playback device.

@@ -6,7 +6,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace QwQ_Music.Models.ConfigModel;
+namespace QwQ_Music.Models.ConfigModels;
 
 public class ColorJsonConverter : JsonConverter<Color>
 {
@@ -228,15 +228,3 @@ public partial class DesktopLyricConfig : ObservableObject
     [ObservableProperty]
     public partial double LyricAltTranslateSping { get; set; } = 2;
 }
-
-// 用于序列化的辅助类
-public class SizeSerializationHelper
-{
-    public double Width { get; set; }
-    public double Height { get; set; }
-}
-
-[JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(LyricConfig))]
-[JsonSerializable(typeof(SizeSerializationHelper))]
-internal partial class LyricConfigJsonSerializerContext : JsonSerializerContext;
