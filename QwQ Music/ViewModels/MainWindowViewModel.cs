@@ -4,12 +4,16 @@ using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Input;
+using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Services;
+using QwQ_Music.Utilities;
 using QwQ_Music.ViewModels.Pages;
+using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ_Music.Views.Pages;
 using QwQ.Avalonia.Utilities.MessageBus;
@@ -55,6 +59,25 @@ public partial class MainWindowViewModel : NavigationViewModel
             .WithHandler(ExitReminderMessageHandler)
             .AsWeakReference()
             .Subscribe();
+
+        MessageBus
+            .ReceiveMessage<ThemeColorChangeMessage>(this)
+            .WithHandler(ThemeColorChangeMessageHandler)
+            .SubscribeAsWeakReference();
+    }
+
+    private void ThemeColorChangeMessageHandler(ThemeColorChangeMessage message, object sender)
+    {
+        if (IsMusicCoverPageVisible)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                ResourceDictionaryManager.Set(
+                    "CaptionButtonForeground",
+                    message.Theme == ThemeVariant.Light ? Brushes.DimGray : Brushes.GhostWhite
+                );
+            });
+        }
     }
 
     private void ExitReminderMessageHandler(ExitReminderMessage message, object sender)
@@ -189,9 +212,30 @@ public partial class MainWindowViewModel : NavigationViewModel
     [NotifyPropertyChangedFor(nameof(IsBackgroundLayerVisible), nameof(MusicPlayListWidth))]
     public partial bool IsMusicPlayListVisible { get; set; }
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MusicCoverPageHeight))]
-    public partial bool IsMusicCoverPageVisible { get; set; }
+    public bool IsMusicCoverPageVisible
+    {
+        get;
+        set
+        {
+            if (!SetProperty(ref field, value))
+                return;
+
+            OnPropertyChanged(nameof(MusicCoverPageHeight));
+
+            ResourceDictionaryManager.Set(
+                "CaptionButtonForeground",
+                (field ? MusicCoverPageViewModel.ThemeVariant : App.MainWindow.ActualThemeVariant) == ThemeVariant.Light
+                    ? Brushes.DimGray
+                    : Brushes.GhostWhite
+            );
+
+            MessageBus
+                .CreateMessage(new IsPageVisibleChangeMessage(field, typeof(MusicCoverPage)))
+                .FromSender(this)
+                .AddReceivers(typeof(MusicPlayListViewModel))
+                .Publish();
+        }
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(NavigationWidth), nameof(IsMusicAlbumCoverTrayVisible))]

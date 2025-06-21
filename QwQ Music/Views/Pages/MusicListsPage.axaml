@@ -40,7 +40,7 @@
                                 CommandParameter="{Binding}"
                                 Header="删除">
                                 <MenuItem.Icon>
-                                    <PathIcon Foreground="{DynamicResource EmphasizePink3}"
+                                    <PathIcon Foreground="{DynamicResource SemiRed4Color}"
                                               Data="{StaticResource SemiIconDelete}"
                                               Margin="2" />
                                 </MenuItem.Icon>

@@ -6,96 +6,101 @@ namespace QwQ_Music.Services;
 
 public static class AudioFileValidator
 {
-    private static readonly List<string> _supportedAudioFormats =
+    public static readonly List<string> SupportedAudioFormats =
     [
-        "AAC",
-        "MP4",
-        "M4A",
-        "M4B",
+        ".AAC",
+        ".MP4",
+        ".M4A",
+        ".M4B",
         // Apple Core Audio
-        "CAF",
+        ".CAF",
         // Audible
-        "AAX",
-        "AA",
+        ".AAX",
+        ".AA",
         // Audio Interchange File Format
-        "AIF",
-        "AIFF",
-        "AIFC",
+        ".AIF",
+        ".AIFF",
+        ".AIFC",
         // Digital Theatre System
-        "DTS",
+        ".DTS",
         // Direct Stream Digital
-        "DSD",
-        "DSF",
+        ".DSD",
+        ".DSF",
         // Dolby Digital
-        "AC3",
+        ".AC3",
         // Extended Module
-        "XM",
+        ".XM",
         // Free Lossless Audio Codec
-        "FLAC",
+        ".FLAC",
         // Genesis YM2612
-        "GYM",
+        ".GYM",
         // Impulse Tracker
-        "IT",
+        ".IT",
         // Matroska Audio, WebM Audio
-        "MKA",
-        "WEBM",
+        ".MKA",
+        ".WEBM",
         // Musical Instruments Digital Interface
-        "MID",
-        "MIDI",
+        ".MID",
+        ".MIDI",
         // Monkey's Audio
-        "APE",
+        ".APE",
         // MPEG Audio Layer
-        "MP1",
-        "MP2",
-        "MP3",
+        ".MP1",
+        ".MP2",
+        ".MP3",
         // MusePack / MPEGplus
-        "MPC",
-        "MP+",
+        ".MPC",
+        ".MP+",
         // Noisetracker/Soundtracker/Protracker
-        "MOD",
+        ".MOD",
         // OGG : Vorbis, Opus, Embedded FLAC, Speex
-        "OGG",
-        "OGA",
-        "OPUS",
-        "SPX",
+        ".OGG",
+        ".OGA",
+        ".OPUS",
+        ".SPX",
         // OptimFROG
-        "OFR",
-        "OFS",
+        ".OFR",
+        ".OFS",
         // Portable Sound Format
-        "PSF",
-        "PSF1",
-        "PSF2",
-        "MINIPSF",
-        "MINIPSF1",
-        "MINIPSF2",
-        "SSF",
-        "MINISSF",
-        "GSF",
-        "MINIGSF",
-        "QSF",
-        "MINIQSF",
+        ".PSF",
+        ".PSF1",
+        ".PSF2",
+        ".MINIPSF",
+        ".MINIPSF1",
+        ".MINIPSF2",
+        ".SSF",
+        ".MINISSF",
+        ".GSF",
+        ".MINIGSF",
+        ".QSF",
+        ".MINIQSF",
         // ScreamTracker
-        "S3M",
+        ".S3M",
         // SPC700 (Super Nintendo Sound files)
-        "SPC",
+        ".SPC",
         // Toms' losslesss Audio Kompressor
-        "TAK",
+        ".TAK",
         // True Audio
-        "TTA",
+        ".TTA",
         // TwinVQ
-        "VQF",
+        ".VQF",
         // PCM (uncompressed audio)
-        "WAV",
-        "BWAV",
-        "BWF",
+        ".WAV",
+        ".BWAV",
+        ".BWF",
         // Video Game Music (SEGA systems sound files)
-        "VGM",
-        "VGZ",
+        ".VGM",
+        ".VGZ",
         // WavPack
-        "WV",
+        ".WV",
         // Windows Media Audio/Advanced Systems Format
-        "WMA",
-        "ASF",
+        ".WMA",
+        ".ASF",
+    ];
+
+    public static readonly List<string> SupportedAudioFormatsExtend =
+    [
+        ".NCM",
     ];
 
     private static bool IsAudioFile(string filePath)
@@ -107,7 +112,8 @@ public static class AudioFileValidator
     {
         try
         {
-            return _supportedAudioFormats.Contains($"{Path.GetExtension(path).TrimStart('.').ToUpper()}");
+            return SupportedAudioFormats.Contains($"{Path.GetExtension(path).ToUpper()}")
+             || SupportedAudioFormatsExtend.Contains(Path.GetExtension(path).ToUpper());
         }
         catch
         {

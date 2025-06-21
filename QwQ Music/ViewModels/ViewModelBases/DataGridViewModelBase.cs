@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
+using QwQ_Music.Services;
+using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.ViewModelBases;
 
@@ -72,6 +75,29 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel> 
         if (SelectedItems is { Count: > 0 })
         {
             await MusicPlayerViewModel.MusicListsViewModel.RemoveToMusicList(SelectedItems.ToList(), musicListName);
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteMusicItemsAsync(IList items)
+    {
+        if (items is not { Count: > 0 })
+        {
+            NotificationService.ShowLight(
+                new Notification("提示", "请先选择音乐项哦~"),
+                NotificationType.Success
+            );
+            return;
+        }
+        
+        var musicItems = items.Cast<MusicItemModel>().ToList();
+
+        if (await MusicPlayerViewModel.DeleteMusicItemsAsync(musicItems))
+        {
+            foreach (var item in musicItems)
+            {
+                MusicItems.Remove(item);
+            }
         }
     }
 }

@@ -58,19 +58,9 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
             quantizer.AddColorRange(color.Key, color.Value);
         }
         quantizer.Quantize(clusterCount);
-        List<Vector3> quantizeResult;
-        if (colorIsDark)
-        {
-            quantizeResult = quantizer.GetPaletteResult().OrderBy(t => t.LengthSquared()).Take(clusterCount).ToList();
-        }
-        else
-        {
-            quantizeResult = quantizer
-                .GetPaletteResult()
-                .OrderByDescending(t => t.LengthSquared())
-                .Take(clusterCount)
-                .ToList();
-        }
+        var quantizeResult = colorIsDark
+            ? quantizer.GetPaletteResult().OrderBy(t => t.LengthSquared()).Take(clusterCount).ToList()
+            : quantizer.GetPaletteResult().OrderByDescending(t => t.LengthSquared()).Take(clusterCount).ToList();
         List<Vector3> result;
         if (quantizeResult.Count < clusterCount)
         {
@@ -92,12 +82,12 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
     private class PaletteQuantizer
     {
         private readonly Node _root;
-        private readonly Dictionary<int, List<Node>> _levelNodes;
+        private readonly IDictionary<int, List<Node>> _levelNodes;
 
         public PaletteQuantizer()
         {
             _root = new Node(this);
-            _levelNodes = [];
+            _levelNodes = new Dictionary<int, List<Node>>();
             for (int i = 0; i < 8; i++)
             {
                 _levelNodes[i] = [];
@@ -121,7 +111,7 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
 
         public List<Vector3> GetPaletteResult()
         {
-            return [.. _root.GetPaletteResult().Keys];
+            return _root.GetPaletteResult().Keys.ToList();
         }
 
         public Vector3 GetThemeResult()
@@ -136,7 +126,8 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
             bool toBreak = false;
             while (level >= 0 && nodesToRemove > 0)
             {
-                var leaves = _levelNodes[level].Where(n => n.ChildrenCount - 1 <= 1e-6f).OrderBy(n => n.ChildrenCount);
+                int remove = nodesToRemove;
+                var leaves = _levelNodes[level].Where(n => n.ChildrenCount - 1 <= remove).OrderBy(n => n.ChildrenCount);
                 foreach (var leaf in leaves)
                 {
                     if (leaf.ChildrenCount > nodesToRemove)
@@ -215,6 +206,7 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
             {
                 return Color;
             }
+
             byte index = GetIndex(color, level);
             return _children[index].GetColor(color, level + 1);
         }

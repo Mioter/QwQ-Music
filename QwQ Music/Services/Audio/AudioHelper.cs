@@ -19,8 +19,8 @@ public static class AudioHelper
 
     public static IEnumerable<float[]> ReadAudioBlocks(string filePath, int sampleRate, int channels)
     {
-        var fileStream = File.OpenRead(filePath);
-        var reader = new StreamDataProvider(fileStream);
+        using var fileStream = File.OpenRead(filePath);
+        using var reader = new StreamDataProvider(fileStream);
         float[] buffer = new float[sampleRate * channels]; // 1秒缓冲
 
         int samplesRead;

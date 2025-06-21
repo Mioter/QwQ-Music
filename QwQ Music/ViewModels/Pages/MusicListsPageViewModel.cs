@@ -26,7 +26,7 @@ namespace QwQ_Music.ViewModels.Pages;
 
 public partial class MusicListsPageViewModel : ViewModelBase
 {
-    public MusicPlayerViewModel? MusicPlayerViewModel { get; set; }
+    public static MusicPlayerViewModel? MusicPlayerViewModel { get; set; }
 
     public ObservableCollection<MusicListModel> PlayListItems { get; set; } = [];
 
@@ -46,6 +46,11 @@ public partial class MusicListsPageViewModel : ViewModelBase
     [RelayCommand]
     private static async Task OpenMusicLists(MusicListModel model)
     {
+        if (!model.IsInitialized && MusicPlayerViewModel?.MusicItems != null)
+        {
+            await model.LoadAsync(MusicPlayerViewModel.MusicItems);
+        }
+
         await MessageBus
             .CreateMessage(
                 new ViewChangeMessage(
@@ -533,14 +538,12 @@ public partial class MusicListsPageViewModel : ViewModelBase
 
         foreach (var info in playlistInfos.Where(info => !string.IsNullOrEmpty(info.Name)))
         {
-            var musicListModel = await new MusicListModel(
+            var musicListModel = new MusicListModel(
                 info.Name,
                 info.Description,
                 info.LatestPlayedMusic,
                 info.CoverPath
-            ).LoadAsync(allMusicItems);
-            if (musicListModel is null)
-                return;
+            );
             // 添加到列表中
             PlayListItems.Add(musicListModel);
         }

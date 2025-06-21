@@ -1,0 +1,3 @@
+[submodule "NcmdumpCSharp"]
+	path = NcmdumpCSharp
+	url = https://github.com/Mioter/NcmdumpCSharp

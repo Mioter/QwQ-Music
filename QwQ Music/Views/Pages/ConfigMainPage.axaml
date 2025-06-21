@@ -47,7 +47,7 @@
                     <Setter Property="RenderTransformOrigin" Value="50%,100%"/>
                     <Setter Property="Transitions">
                         <Transitions>
-                            <TransformOperationsTransition Duration="0:0:0.12" Property="RenderTransform" />
+                            <TransformOperationsTransition Duration="0:0:0.2" Easing="QuadraticEaseIn" Property="RenderTransform" />
                         </Transitions>
                     </Setter>
 

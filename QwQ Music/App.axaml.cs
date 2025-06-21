@@ -15,6 +15,10 @@ namespace QwQ_Music;
 
 public class App : Application
 {
+    public static TopLevel TopLevel { get; private set; } = null!;
+
+    public static MainWindow MainWindow { get; private set; } = null!;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -34,7 +38,7 @@ public class App : Application
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
-            TopLevel = desktop.MainWindow = new MainWindow();
+            TopLevel = desktop.MainWindow = MainWindow = new MainWindow();
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
         }
         base.OnFrameworkInitializationCompleted();
@@ -93,6 +97,4 @@ public class App : Application
             BindingPlugins.DataValidators.Remove(plugin);
         }
     }
-
-    public static TopLevel TopLevel { get; private set; } = null!;
 }

@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using MusicPlayListViewModel = QwQ_Music.ViewModels.UserControls.MusicPlayListViewModel;
 
@@ -10,15 +9,5 @@ public partial class MusicPlayList : UserControl
     {
         InitializeComponent();
         DataContext = new MusicPlayListViewModel();
-    }
-
-    public static readonly StyledProperty<bool> IsTransparentProperty = AvaloniaProperty.Register<MusicPlayList, bool>(
-        nameof(IsTransparent)
-    );
-
-    public bool IsTransparent
-    {
-        get => GetValue(IsTransparentProperty);
-        set => SetValue(IsTransparentProperty, value);
     }
 }

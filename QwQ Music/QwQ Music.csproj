@@ -50,6 +50,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Impressionist\Impressionist.csproj" />
         <ProjectReference Include="..\SoundFlow\SoundFlow.csproj" />
+        <ProjectReference Include="..\NcmdumpCSharp\NcmdumpCSharp\NcmdumpCSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>

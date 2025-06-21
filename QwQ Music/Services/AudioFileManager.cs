@@ -22,7 +22,18 @@ public static class AudioFileManager
     {
         var paths = FileOperation.ConvertStorageItemsToPathStrings(items);
         if (paths.Count == 0)
+        {
+            NotificationService.ShowLight(
+                new Notification("提示", "获取的文件数量为 0 ！"),
+                NotificationType.Information
+            );
             return;
+        }
+
+        NotificationService.ShowLight(
+            new Notification("提示", "开始导入中，请稍等....！"),
+            NotificationType.Information
+        );
 
         var allFilePaths = await Task.Run(() => FileOperation.GetAllFilePaths(paths)).ConfigureAwait(false);
         await ImportMusicFilesAsync(allFilePaths).ConfigureAwait(false);
@@ -92,6 +103,6 @@ public static class AudioFileManager
         });
 
         // 使用批量保存方法保存所有音乐项
-        await MusicPlayerViewModel.SaveMusicItemsAsync(musicItems);
+        await MusicDataPersistence.SaveMusicItemsAsync(musicItems);
     }
 }

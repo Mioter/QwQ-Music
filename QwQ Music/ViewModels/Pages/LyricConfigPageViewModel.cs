@@ -43,6 +43,8 @@ public partial class LyricConfigPageViewModel : ViewModelBase
             .Subscribe();
 
         ToggleWindowDisplayStatus(LyricIsEnabled);
+        OnPropertyChanged(nameof(LyricWidth));
+        SetLyricsWindowWidth(LyricConfig.DesktopLyric.LyricIsDoubleLine);
     }
 
     public bool LyricIsEnabled
@@ -84,6 +86,60 @@ public partial class LyricConfigPageViewModel : ViewModelBase
         }
     }
 
+    public double LyricWidth
+    {
+        get => LyricConfig.DesktopLyric.LyricWidth;
+        set
+        {
+            LyricConfig.DesktopLyric.LyricWidth = value;
+
+            SetLyricsWindowWidth(LyricConfig.DesktopLyric.LyricIsDoubleLine);
+        }
+    }
+
+    private static double LyricWidowWidth =>
+        LyricConfig.DesktopLyric.LyricWidth + LyricConfig.DesktopLyric.LyricSpacing * 2;
+
+    public bool LyricIsDoubleLine
+    {
+        get => LyricConfig.DesktopLyric.LyricIsDoubleLine;
+        set
+        {
+            if (LyricIsDoubleLine == value)
+                return;
+
+            LyricConfig.DesktopLyric.LyricIsDoubleLine = value;
+
+            SetLyricsWindowWidth(value);
+        }
+    }
+
+    private void SetLyricsWindowWidth(bool value)
+    {
+        if (_desktopLyricsWindow == null)
+            return;
+
+        // 获取屏幕缩放
+        double scaling = _desktopLyricsWindow.Screens.Primary?.Scaling ?? 1.0;
+
+        // 计算当前窗口中心位置（使用浮点数避免精度丢失）
+        var currentCenter = new Point(
+            _desktopLyricsWindow.Position.X + _desktopLyricsWindow.Width * scaling / 2,
+            _desktopLyricsWindow.Position.Y + _desktopLyricsWindow.Height * scaling / 2
+        );
+
+        // 调整窗口宽度
+        double newWidth = value ? LyricWidowWidth : LyricWidowWidth * 2;
+        _desktopLyricsWindow.Width = newWidth;
+
+        // 重新计算位置，保持中心点不变（考虑缩放）
+        var newPosition = new PixelPoint(
+            (int)(currentCenter.X - newWidth * scaling / 2),
+            (int)(currentCenter.Y - _desktopLyricsWindow.Height * scaling / 2)
+        );
+        _desktopLyricsWindow.Position = newPosition;
+    }
+
     public static LyricConfig LyricConfig { get; } = ConfigManager.LyricConfig;
 
     private void ShowLyricWindow()
@@ -91,6 +147,7 @@ public partial class LyricConfigPageViewModel : ViewModelBase
         _desktopLyricsWindow = new DesktopLyricsWindow
         {
             DataContext = _desktopLyricsWindowViewModel = new DesktopLyricsWindowViewModel(),
+            Width = LyricWidowWidth,
         };
         _desktopLyricsWindow.Show();
     }
@@ -112,8 +169,8 @@ public partial class LyricConfigPageViewModel : ViewModelBase
             return;
         }
 
-        int screenWidth = _desktopLyricsWindow.Screens.Primary.Bounds.Width;
-        int screenHeight = _desktopLyricsWindow.Screens.Primary.Bounds.Height;
+        int screenWidth = _desktopLyricsWindow.Screens.Primary.WorkingArea.Width;
+        int screenHeight = _desktopLyricsWindow.Screens.Primary.WorkingArea.Height;
         double scaling = _desktopLyricsWindow.Screens.Primary.Scaling;
         double windowWidth = _desktopLyricsWindow.Width * scaling;
         double windowHeight = _desktopLyricsWindow.Height * scaling;

@@ -33,20 +33,22 @@ public static class FileOperation
             return false;
         }
 
-        if (!overwrite)
-        {
-            if (File.Exists(filePath)) // 检查文件是否存在
-                return true;
-        }
-
         try
         {
-            // 将文件流的创建和保存操作移至 Task.Run 内部
             await Task.Run(() =>
                 {
-                    // 在后台线程中创建、使用和释放文件流
-                    using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
-                    cover.Save(fs); // Bitmap.Save 是同步操作
+                    // 使用 FileMode.CreateNew 来原子性地处理文件创建，避免竞态条件
+                    var fileMode = overwrite ? FileMode.Create : FileMode.CreateNew;
+                    try
+                    {
+                        using var fs = new FileStream(filePath, fileMode, FileAccess.Write, FileShare.Read);
+                        cover.Save(fs); // Bitmap.Save 是同步操作
+                    }
+                    catch (IOException) when (!overwrite && File.Exists(filePath))
+                    {
+                        // 当不允许覆盖且文件已存在时，CreateNew会抛出IOException。
+                        // 这种情况符合预期，因为文件已经存在，所以我们当作成功处理。
+                    }
                 })
                 .ConfigureAwait(false); // 继续使用 ConfigureAwait(false)
 

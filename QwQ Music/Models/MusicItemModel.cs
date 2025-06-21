@@ -11,37 +11,32 @@ namespace QwQ_Music.Models;
 
 public class MusicItemModel : ObservableObject
 {
+    public MusicItemModel() { }
+
     public MusicItemModel(
-        string title = "",
-        string? artists = null,
-        string? composer = null,
-        string? album = null,
-        string? coverPath = null,
-        string filePath = "",
-        string fileSize = "",
-        TimeSpan? current = null,
-        TimeSpan duration = default,
-        string? encodingFormat = null,
-        string? comment = null,
-        Bitmap? coverImage = null,
-        double gain = -1.0f,
-        string[]? coverColor = null
+        string title,
+        string artists,
+        string composer,
+        string album,
+        string? coverFileName,
+        string filePath,
+        string fileSize,
+        TimeSpan duration,
+        string encodingFormat,
+        string comment,
+        Bitmap? coverImage
     )
     {
-        Title = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
-        Artists = string.IsNullOrWhiteSpace(artists) ? "未知歌手" : artists;
-        Composer = string.IsNullOrWhiteSpace(composer) ? "未知作曲" : composer;
-        Album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
-        Current = current ?? TimeSpan.Zero;
-        Duration = duration;
+        Title = title;
+        Artists = artists;
+        Composer = composer;
+        Album = album;
+        CoverPath = coverFileName;
         FilePath = filePath;
         FileSize = fileSize;
-        Gain = gain;
+        Duration = duration;
         EncodingFormat = encodingFormat;
-        CoverPath = coverPath;
-        CoverColors = coverColor;
         Comment = comment;
-
         if (coverImage != null)
         {
             CoverImage = coverImage;
@@ -56,31 +51,31 @@ public class MusicItemModel : ObservableObject
 
     public bool IsError { get; private set; }
 
-    public bool IsModified { get; set; } = true;
+    public bool IsModified { get; set; }
 
     public string Title
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    }
+    } = "未知标题";
 
     public string Artists
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    }
+    } = "未知歌手";
 
     public string Composer
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    }
+    } = "未知作曲";
 
     public string Album
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    }
+    } = "未知专辑";
 
     public TimeSpan Current
     {
@@ -98,13 +93,13 @@ public class MusicItemModel : ObservableObject
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    }
+    } = "";
 
     public string FileSize
     {
         get;
         set => SetPropertyWithModified(ref field, value);
-    }
+    } = "";
 
     public double Gain
     {
