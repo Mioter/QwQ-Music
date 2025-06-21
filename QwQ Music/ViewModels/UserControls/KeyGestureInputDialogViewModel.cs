@@ -45,16 +45,16 @@ public partial class KeyGestureInputDialogViewModel(
         // 检查冲突
         string? conflict = HotkeyService.CheckKeyConflict(hotkeyItem.Function, gesture);
 
-        if (conflict == null)
+        if (conflict != null)
         {
-            if (!hotkeyItem.KeyGestures.Any(g => g.Equals(gesture)))
-                return true;
-
-            ErrorMessage = "按键正在被当前功能使用";
+            ErrorMessage = conflict;
             return false;
         }
 
-        ErrorMessage = conflict;
+        if (!hotkeyItem.KeyGestures.Any(g => g.Equals(gesture)))
+            return true;
+
+        ErrorMessage = "按键正在被当前功能使用";
         return false;
     }
 

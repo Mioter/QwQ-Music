@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
+using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
@@ -19,6 +20,9 @@ namespace QwQ_Music.ViewModels;
 
 public partial class ApplicationViewModel : ObservableObject
 {
+    [ObservableProperty]
+    public partial ThemeVariant ThemeVariant { set; get; } = ThemeVariant.Default;
+
     [RelayCommand]
     private static void ShowMainWindow()
     {

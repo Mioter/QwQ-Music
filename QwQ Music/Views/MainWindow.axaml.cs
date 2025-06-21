@@ -33,7 +33,6 @@ public partial class MainWindow : Window
         Height = 800;
 
         DataContext = new MainWindowViewModel();
-        MusicCoverPagePanel.PointerPressed += MusicCoverPagePanelOnPointerPressed;
     }
 
     public void ShowMainWindow()
@@ -140,12 +139,14 @@ public partial class MainWindow : Window
     {
         Closing -= OnClosing;
         Closed -= OnClosed;
-        MusicCoverPagePanel.PointerPressed -= MusicCoverPagePanelOnPointerPressed;
         KeyDown -= MainWindow_KeyDown;
     }
 
-    private void MusicCoverPagePanelOnPointerPressed(object? sender, PointerPressedEventArgs e)
+    private void MusicCoverPageOnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        if (WindowState == WindowState.FullScreen)
+            return;
+
         BeginMoveDrag(e);
     }
 

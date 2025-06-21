@@ -5,10 +5,8 @@
     ShowInTaskbar="False"
     SystemDecorations="None"
     Topmost="True"
-    Padding="5"
-    Width="{Binding LyricConfig.LyricWidowWidth}"
     SizeToContent="Height"
-    Background="{Binding LyricConfig.LyricBackground,Converter={StaticResource ToBrushConverter},Mode=TwoWay}"
+    Background="{x:Null}"
     WindowStartupLocation="Manual"
     x:Class="QwQ_Music.Views.DesktopLyricsWindow"
     x:DataType="viewModel:DesktopLyricsWindowViewModel"
@@ -16,14 +14,53 @@
     xmlns:viewModel="using:QwQ_Music.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls.ColorPicker"
-    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control">
+    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+    xmlns:helper="clr-namespace:QwQ_Music.Helper">
 
     <Window.Resources>
         <converters:ToBrushConverter x:Key="ToBrushConverter" />
     </Window.Resources>
-    
-    <Panel Width="{Binding LyricConfig.LyricWidth}">
-        
+
+    <Panel>
+        <Border Name="LyricBorder"
+                Background="{Binding LyricConfig.LyricBackground,Converter={StaticResource ToBrushConverter}}"
+                CornerRadius="{Binding LyricConfig.WindowCornerRadius}"
+                BorderThickness="2">
+            
+            <Border.Styles>
+
+                <Style Selector="Border.RunLyricBorder">
+                    
+                    <Setter Property="BorderBrush">
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                            <LinearGradientBrush.GradientStops>
+                                <GradientStop Offset="0" Color="{Binding LyricConfig.LyricMainTopColor}" />
+                                <GradientStop Offset="0.5" Color="{Binding LyricConfig.LyricMainBorderColor}" />
+                                <GradientStop Offset="1" Color="{Binding LyricConfig.LyricMainBottomColor}" />
+                            </LinearGradientBrush.GradientStops>
+
+                        </LinearGradientBrush>
+                    </Setter>
+                    
+                    <Style.Animations>
+                        <Animation
+                            Duration="0:0:3"
+                            FillMode="Forward"
+                            IterationCount="Infinite">
+                            <KeyFrame Cue="0%">
+                                <Setter Property="helper:LinearGradientBrushHelper.RotateAngle" Value="0" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="helper:LinearGradientBrushHelper.RotateAngle" Value="360" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+                
+            </Border.Styles>
+            
+        </Border>
+
         <StackPanel Spacing="{Binding LyricConfig.LyricSpacing}"
                     HorizontalAlignment="{Binding LyricConfig.LyricTextAlignment}"
                     VerticalAlignment="Center"
@@ -41,10 +78,11 @@
             </Interaction.Behaviors>
 
             <StackPanel.Styles>
+                
                 <Style Selector="StackPanel">
                     <Setter Property="VerticalAlignment" Value="Center" />
                 </Style>
-                
+
                 <Style Selector="StackPanel > control|TextPath">
                     <Setter Property="VerticalAlignment" Value="Center" />
                     <Setter Property="HorizontalAlignment" Value="{Binding LyricConfig.LyricTextAlignment}" />
@@ -54,7 +92,7 @@
             </StackPanel.Styles>
 
             <StackPanel Spacing="{Binding LyricConfig.LyricMainTranslateSpacing}">
-                
+
                 <!-- 主歌词 -->
                 <control:TextPath
                     StrokeThickness="{Binding LyricConfig.LyricMainStrokeThickness}"
@@ -71,7 +109,7 @@
                     </control:TextPath.Foreground>
 
                 </control:TextPath>
-                
+
                 <!-- 主歌词翻译 -->
                 <control:TextPath
                     StrokeThickness="{Binding LyricConfig.LyricMainStrokeThickness}"
@@ -80,7 +118,7 @@
                     FontSize="{Binding LyricConfig.LyricMainFontSize}"
                     Placeholder=" . . . "
                     Text="{Binding CurrentMainTranslateLyric}">
-                    
+
                     <control:TextPath.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
                             <Binding Path="CurrentMainTranslateLyric" Converter="{x:Static ObjectConverters.IsNotNull}" />
@@ -96,7 +134,7 @@
                     </control:TextPath.Foreground>
 
                 </control:TextPath>
-                
+
             </StackPanel>
 
             <StackPanel Spacing="{Binding LyricConfig.LyricAltTranslateSping}">
@@ -115,9 +153,9 @@
                             <GradientStop Color="{Binding LyricConfig.LyricAltBottomColor}" Offset="1" />
                         </LinearGradientBrush>
                     </control:TextPath.Foreground>
-                    
+
                 </control:TextPath>
-                
+
                 <!-- 副歌词翻译 -->
                 <control:TextPath
                     StrokeThickness="{Binding LyricConfig.LyricAltStrokeThickness}"
@@ -126,7 +164,7 @@
                     FontSize="{Binding LyricConfig.LyricAltFontSize}"
                     Placeholder=" . . . "
                     Text="{Binding CurrentAltTranslateLyric}">
-                    
+
                     <control:TextPath.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
                             <Binding Path="CurrentAltTranslateLyric" Converter="{x:Static ObjectConverters.IsNotNull}" />
@@ -141,10 +179,12 @@
                         </LinearGradientBrush>
                     </control:TextPath.Foreground>
 
-                </control:TextPath>   
-                
+                </control:TextPath>
+
             </StackPanel>
+
         </StackPanel>
         
     </Panel>
+    
 </Window>

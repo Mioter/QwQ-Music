@@ -25,7 +25,7 @@
     -->
 
     <Window.Styles>
-
+        
         <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons">
             <Setter Property="MinHeight" Value="40" />
         </Style>
@@ -230,7 +230,7 @@
 
                                         <Button.Content>
                                             <PathIcon Data="{StaticResource SemiIconClear}"
-                                                      Foreground="{StaticResource EmphasizePink3}" />
+                                                      Foreground="{StaticResource SemiRed4Color}" />
                                         </Button.Content>
 
                                         <Button.IsVisible>
@@ -467,6 +467,7 @@
                     </userControls:MusicAlbumCover.RenderTransform>
 
                 </userControls:MusicAlbumCover>
+                
             </Button>
 
             <Panel.RenderTransform>
@@ -584,7 +585,7 @@
                 </Style>
             </Panel.Styles>
 
-            <pages:MusicCoverPage />
+            <pages:MusicCoverPage PointerPressed="MusicCoverPageOnPointerPressed" />
 
         </Panel>
 
@@ -658,8 +659,7 @@
                 </Transitions>
             </Panel.Transitions>
 
-            <userControls:MusicPlayList
-                IsTransparent="{Binding $parent[Window].((viewModels:MainWindowViewModel)DataContext).IsMusicCoverPageVisible}" />
+            <userControls:MusicPlayList />
 
         </Panel>
 

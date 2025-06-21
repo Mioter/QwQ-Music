@@ -5,7 +5,7 @@
     <!-- Add Resources Here -->
     <ControlTheme x:Key="{x:Type u:MessageBoxControl}" TargetType="u:MessageBoxControl">
         <Setter Property="CornerRadius" Value="{StaticResource DialogCornerRadius}" />
-        <Setter Property="Padding" Value="20,0" />
+        <Setter Property="Padding" Value="10,0" />
         <Setter Property="u:DialogControlBase.CanDragMove" Value="True" />
         <Setter Property="Template">
             <ControlTemplate TargetType="u:MessageBoxControl">
@@ -16,6 +16,7 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Classes="Shadow"
+                    Margin="50"
                     MinHeight="180"
                     MinWidth="300"
                     ClipToBounds="False"
@@ -78,6 +79,7 @@
                                     VerticalScrollBarVisibility="Auto">
                                     
                                     <ContentPresenter
+                                        Margin="10,0"
                                         Name="PART_ContentPresenter"
                                         VerticalAlignment="Center"
                                         Content="{TemplateBinding Content}"

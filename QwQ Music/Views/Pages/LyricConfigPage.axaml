@@ -64,7 +64,7 @@
 
                     <CheckBox
                         Content="{Binding IsDoubleLineName}"
-                        IsChecked="{Binding LyricConfig.DesktopLyric.LyricIsDoubleLine}" />
+                        IsChecked="{Binding LyricIsDoubleLine}" />
 
                     <CheckBox
                         Content="{Binding IsDualLangName}"
@@ -120,8 +120,12 @@
 
                     <TextBlock Text="歌词宽度" />
                     <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                        Value="{Binding LyricConfig.DesktopLyric.LyricWidth}" />
-
+                                        Value="{Binding LyricWidth}" />
+                    
+                    <TextBlock Text="背景圆角" />
+                    <u:NumericIntUpDown Minimum="0" InnerRightContent="dip"
+                                        Value="{Binding LyricConfig.DesktopLyric.CornerRadius}" />
+                    
                     <TextBlock Text="歌词间距" />
                     <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
                                         Name="LyricSpacingIntUpDown"

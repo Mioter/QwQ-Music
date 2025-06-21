@@ -17,17 +17,26 @@
 
         </StackPanel>
 
-        <Grid Grid.Row="1" RowDefinitions="Auto,*" Height="100" Width="300">
+        <Grid Grid.Row="1" RowDefinitions="Auto,*,Auto" Height="100" Width="300">
+            
             <TextBlock HorizontalAlignment="Center"
                        Classes="Danger"
                        Text="{Binding ErrorMessage}" />
 
             <u:KeyGestureInput
+                Name="GestureInputInDialog"
                 Grid.Row="1" Gesture="{Binding KeyGesture,Mode=TwoWay}"
                 HorizontalAlignment="Center"
                 MinWidth="120"
                 CornerRadius="8"
                 VerticalAlignment="Center" />
+
+            <TextBlock Grid.Row="2" 
+                       HorizontalAlignment="Center"
+                       Classes="Tertiary"
+                       IsVisible="{Binding #GestureInputInDialog.Gesture,Converter={x:Static ObjectConverters.IsNotNull}}"
+                       Text="{Binding #GestureInputInDialog.Gesture,StringFormat=' 你输入了: {0} '}" />
+
         </Grid>
 
         <StackPanel Margin="20" Spacing="20" HorizontalAlignment="Right" Grid.Row="2" Orientation="Horizontal">

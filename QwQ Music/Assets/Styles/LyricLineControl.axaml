@@ -62,13 +62,13 @@
 
     <Style Selector="controls|LyricLineControl.current /template/ TextBlock">
         <!--<Setter Property="FontSize" Value="18" />-->
-        <Setter Property="Foreground" Value="Black" />
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorText0}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <!-- 普通歌词样式 -->
     <Style Selector="controls|LyricLineControl /template/ TextBlock">
-        <Setter Property="Foreground" Value="#3e3e3e" />
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorText1}" />
     </Style>
     
     <!--

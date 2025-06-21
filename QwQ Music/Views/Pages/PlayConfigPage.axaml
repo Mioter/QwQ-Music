@@ -215,7 +215,7 @@
                                     <u:IconButton.Icon>
                                         <PathIcon
                                             Data="{StaticResource SemiIconDelete}"
-                                            Foreground="{DynamicResource EmphasizePink3}"
+                                            Foreground="{DynamicResource SemiRed4Color}"
                                             Height="12" />
                                     </u:IconButton.Icon>
                                 </u:IconButton>

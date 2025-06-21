@@ -23,24 +23,40 @@ public partial class DesktopLyricsWindow : Window
         Position = LyricConfig.Position;
 
         PositionChanged += Window_OnPositionChanged;
-        PointerPressed += OnPointerPressed;
         Closed += OnClosed;
-
         base.Show();
 
         SetPenetrate(LyricConfig.LockLyricWindow);
     }
 
-    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        SizeToContent = SizeToContent.Height;
+        base.OnPointerReleased(e);
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         BeginMoveDrag(e);
+        base.OnPointerPressed(e);
+    }
+
+    protected override void OnPointerEntered(PointerEventArgs e)
+    {
+        LyricBorder.Classes.Add("RunLyricBorder");
+        base.OnPointerEntered(e);
+    }
+
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
+        LyricBorder.Classes.Remove("RunLyricBorder");
+        base.OnPointerExited(e);
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
         Closed -= OnClosed;
         PositionChanged -= Window_OnPositionChanged;
-        PointerPressed -= OnPointerPressed;
     }
 
     private void Window_OnPositionChanged(object? sender, PixelPointEventArgs e)

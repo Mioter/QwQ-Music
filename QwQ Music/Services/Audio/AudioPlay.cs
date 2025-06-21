@@ -58,7 +58,7 @@ public class AudioPlay : IAudioPlay
         get;
         set
         {
-            field = Math.Clamp(value / 100, 0.0f, 1.0f);
+            field = Math.Clamp(value, 0.0f, 1.0f);
 
             if (_soundPlayer != null)
             {
@@ -195,6 +195,19 @@ public class AudioPlay : IAudioPlay
 
         _soundPlayer.Seek((float)positionInSeconds);
     }
+    
+    public void InitializeAudio(Stream audioStream, double replayGain)
+    {
+        try
+        {
+            DisposeCurrentTrack();
+            InitializeNewTrack(audioStream, replayGain);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"初始化音轨失败: {ex.Message}");
+        }
+    }
 
     /// <inheritdoc />
     public void InitializeAudio(string filePath, double replayGain)
@@ -202,7 +215,7 @@ public class AudioPlay : IAudioPlay
         try
         {
             DisposeCurrentTrack();
-            InitializeNewTrack(filePath, replayGain);
+            InitializeNewTrack(File.OpenRead(filePath), replayGain);
         }
         catch (Exception ex)
         {
@@ -213,11 +226,10 @@ public class AudioPlay : IAudioPlay
     /// <summary>
     /// 初始化新音轨
     /// </summary>
-    private void InitializeNewTrack(string audioFilePath, double replayGain)
+    private void InitializeNewTrack(Stream audioStream, double replayGain)
     {
         // 创建文件流数据提供者
-        var fileStream = File.OpenRead(audioFilePath);
-        var dataProvider = new StreamDataProvider(fileStream);
+        var dataProvider = new StreamDataProvider(audioStream);
 
         // 创建SoundPlayer并加载音频文件
         _soundPlayer = new SoundPlayer(dataProvider)
@@ -340,3 +352,4 @@ public class AudioPlay : IAudioPlay
         GC.SuppressFinalize(this);
     }
 }
+

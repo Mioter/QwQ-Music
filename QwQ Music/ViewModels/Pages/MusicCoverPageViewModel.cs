@@ -3,14 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Shader;
+using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
+using QwQ_Music.Views.Pages;
 using QwQ.Avalonia.Utilities.MessageBus;
 using CoverConfig = QwQ_Music.Models.ConfigModels.CoverConfig;
 using RolledLyricConfig = QwQ_Music.Models.ConfigModels.RolledLyricConfig;
@@ -21,7 +26,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 {
     public static string OffsetName => LanguageModel.Lang[nameof(OffsetName)];
 
-    public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
+    public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
     public static RolledLyricConfig RolledLyric { get; } = ConfigManager.LyricConfig.RolledLyri;
 
@@ -60,10 +65,15 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         {
             if (SetProperty(ref field, value))
             {
-                MusicPlayerViewModel.CurrentDurationInSeconds = field;
+                MusicPlayerViewModel.Seek(field);
             }
         }
     }
+
+    [ObservableProperty]
+    public partial List<Color> ColorsList { get; set; } = _defaultColors;
+
+    public static ThemeVariant ThemeVariant { get; set; } = ThemeVariant.Dark;
 
     private const int COLOR_COUNT = 4;
 
@@ -76,6 +86,14 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
             var colorsTask = UpdateColorsList(musicItem);
 
             await Task.WhenAll(coverTask, colorsTask).ConfigureAwait(false);
+
+            UpdateThemeVariantFromColors();
+
+            await MessageBus
+                .CreateMessage(new ThemeColorChangeMessage(ThemeVariant, typeof(MusicCoverPage)))
+                .FromSender(this)
+                .AddReceivers(typeof(MusicPlayListViewModel), typeof(MainWindowViewModel))
+                .PublishAsync();
         }
         catch (Exception ex)
         {
@@ -127,7 +145,6 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         if (string.IsNullOrWhiteSpace(musicItem.CoverPath))
         {
             ColorsList = _defaultColors;
-            OnPropertyChanged(nameof(ColorsList));
             return;
         }
 
@@ -135,7 +152,6 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         if (musicItem.CoverColors is { Length: >= COLOR_COUNT })
         {
             ColorsList = [.. musicItem.CoverColors.Select(Color.Parse)];
-            OnPropertyChanged(nameof(ColorsList));
             return;
         }
 
@@ -150,7 +166,24 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
         // 使用提取的颜色，为null则使用默认颜色
         ColorsList = colorsList ?? _defaultColors;
-        OnPropertyChanged(nameof(ColorsList));
+    }
+
+    private void UpdateThemeVariantFromColors()
+    {
+        if (ColorsList.Count == 0)
+        {
+            ThemeVariant = ThemeVariant.Default;
+            return;
+        }
+
+        // 计算平均亮度
+        double totalLuminance = ColorsList.Sum(c => (0.299 * c.R + 0.587 * c.G + 0.114 * c.B) / 255.0);
+        double avgLuminance = totalLuminance / ColorsList.Count;
+
+        // 根据平均亮度设置主题（反色）
+        ThemeVariant = avgLuminance > 0.5 ? ThemeVariant.Light : ThemeVariant.Dark;
+
+        OnPropertyChanged(nameof(ThemeVariant));
     }
 
     private static async Task<List<Color>?> GetColorPalette(string imagePath, int colorCount = 5)
@@ -169,8 +202,6 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
             );
     }
 
-    public List<Color> ColorsList { get; set; } = _defaultColors;
-
     private static readonly List<Color> _defaultColors =
     [
         Color.Parse("#FFE2D9"),
@@ -178,4 +209,22 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         Color.Parse("#DFE7FF"),
         Color.Parse("#E4F2FF"),
     ];
+    
+    [RelayCommand]
+    private  void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs e)
+    {
+        // 阻止事件冒泡到父级元素
+        e.Handled = true;
+
+        switch (e.Delta.Y)
+        {
+            // 根据你的需求处理滚轮滚动事件
+            case > 0:
+                MusicPlayerViewModel.Volume += 2;
+                break;
+            case < 0:
+                MusicPlayerViewModel.Volume -= 2;
+                break;
+        }
+    }
 }

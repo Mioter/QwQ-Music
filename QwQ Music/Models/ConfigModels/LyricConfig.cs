@@ -166,12 +166,15 @@ public partial class DesktopLyricConfig : ObservableObject
     public partial double LyricSpacing { get; set; } = 10;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(LyricWidowWidth))]
     public partial double LyricWidth { get; set; } = 500;
 
-    public double LyricWidowWidth => LyricWidth + LyricSpacing * 2;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WindowCornerRadius))]
+    public partial double CornerRadius { get; set; }
 
-    public Thickness LyricMargin => new(0, LyricSpacing);
+    public CornerRadius WindowCornerRadius => new(CornerRadius);
+
+    public Thickness LyricMargin => new(LyricSpacing);
 
     [ObservableProperty]
     public partial HorizontalAlignment LyricTextAlignment { get; set; } = HorizontalAlignment.Center;

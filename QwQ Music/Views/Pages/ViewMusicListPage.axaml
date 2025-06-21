@@ -215,7 +215,7 @@
                                         </MenuItem>
 
                                         <MenuItem
-                                            Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.ClearMusicItemCurrentDurationCommand}"
+                                            Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.SetZeroToCurrentPointerCommand}"
                                             CommandParameter="{Binding}"
                                             Header="清空播放时长">
                                             <MenuItem.Icon>
@@ -229,7 +229,7 @@
                                             Header="移出歌单">
                                             <MenuItem.Icon>
                                                 <PathIcon Data="{StaticResource SemiIconForward}" Margin="2"
-                                                          Foreground="{StaticResource EmphasizePink3}"
+                                                          Foreground="{StaticResource SemiRed4Color}"
                                                           RenderTransform="rotate(180deg)" />
                                             </MenuItem.Icon>
                                         </MenuItem>
@@ -255,12 +255,12 @@
 
                                         <!--  删除  -->
                                         <MenuItem
-                                            Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).MusicPlayerViewModel.DeleteMusicItemsCommand}"
+                                            Command="{Binding $parent[UserControl].((pages:ViewMusicListPageViewModel)DataContext).DeleteMusicItemsCommand}"
                                             CommandParameter="{Binding $parent[DataGrid].SelectedItems}"
                                             Header="删除音乐">
                                             <MenuItem.Icon>
                                                 <PathIcon Data="{StaticResource SemiIconDelete}" Margin="1"
-                                                          Foreground="{StaticResource EmphasizePink3}" />
+                                                          Foreground="{StaticResource SemiRed4Color}" />
                                             </MenuItem.Icon>
                                         </MenuItem>
 

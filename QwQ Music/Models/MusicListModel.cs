@@ -148,7 +148,7 @@ public partial class MusicListModel : ObservableObject
     /// <summary>
     /// 初始化音乐列表
     /// </summary>
-    public async Task<MusicListModel?> LoadAsync(ObservableCollection<MusicItemModel> allMusicItems)
+    public async Task<MusicListModel> LoadAsync(ObservableCollection<MusicItemModel> allMusicItems)
     {
         // 获取最近播放的音乐列表
         var latestPlayedMusicList = await DataBaseService.LoadSpecifyFieldsAsync(

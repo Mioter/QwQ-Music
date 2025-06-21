@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Media;
+using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Services;
 
@@ -34,12 +33,8 @@ public static class IconService
 
         try
         {
-            var app =
-                Application.Current
-                ?? throw new InvalidOperationException("Application.Current 为空，无法获取应用程序实例");
-
             var icon =
-                app.FindResource(key) as StreamGeometry
+                ResourceDictionaryManager.Get<StreamGeometry>(key)
                 ?? throw new KeyNotFoundException($"未找到键为 '{key}' 的图标资源");
 
             // 将图标添加到缓存

@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoundFlow", "SoundFlow\Soun
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Impressionist", "Impressionist\Impressionist.csproj", "{42AE5625-3356-4597-8495-C81125D3D6D3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NcmdumpCSharp", "NcmdumpCSharp\NcmdumpCSharp\NcmdumpCSharp.csproj", "{944E78E2-BF53-4F47-A263-E4D293705D79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{42AE5625-3356-4597-8495-C81125D3D6D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42AE5625-3356-4597-8495-C81125D3D6D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42AE5625-3356-4597-8495-C81125D3D6D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{944E78E2-BF53-4F47-A263-E4D293705D79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{944E78E2-BF53-4F47-A263-E4D293705D79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{944E78E2-BF53-4F47-A263-E4D293705D79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{944E78E2-BF53-4F47-A263-E4D293705D79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

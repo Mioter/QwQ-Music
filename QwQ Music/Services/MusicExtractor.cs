@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ATL;
 using Avalonia;
 using Avalonia.Media.Imaging;
+using NcmdumpCSharp.Core;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Utilities;
@@ -165,75 +166,142 @@ public static class MusicExtractor
     /// <returns>包含音乐信息的模型。</returns>
     public static async Task<MusicItemModel?> ExtractMusicInfoAsync(string filePath)
     {
-        try
+        var (metadata, error) = Path.GetExtension(filePath).ToUpperInvariant() switch
         {
-            var track = new Track(filePath);
-            long fileSizeBytes = new FileInfo(filePath).Length;
-            string fileSize = FileOperation.FormatFileSize(fileSizeBytes);
-            string title = string.IsNullOrWhiteSpace(track.Title)
-                ? Path.GetFileNameWithoutExtension(filePath)
-                : track.Title;
-            string composer = track.Composer;
-            string artists = track.Artist;
-            string album = track.Album;
-            var duration = TimeSpan.FromMilliseconds(track.DurationMs);
-            string comment = track.Comment;
-            string encodingFormat = track.AudioFormat.ShortName;
+            ".NCM" => await ExtractNcmMetadataAsync(filePath),
+            _ => await ExtractTrackMetadataAsync(filePath)
+        };
 
-            string? coverFileName = null;
-
-            Bitmap? coverImage = null;
-            if (track.EmbeddedPictures.Count > 0)
-            {
-                // 检查artists和album是否为空
-                bool isArtistsEmpty = string.IsNullOrWhiteSpace(artists);
-                bool isAlbumEmpty = string.IsNullOrWhiteSpace(album);
-                string timeStamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
-                if (isArtistsEmpty && isAlbumEmpty)
-                {
-                    // 两个都为空，直接用文件名+时间戳
-                    string fileName = Path.GetFileNameWithoutExtension(filePath);
-                    coverFileName = $"{fileName}#{timeStamp}.png";
-                }
-                else
-                {
-                    if (isArtistsEmpty)
-                        artists = $"未知歌手#{timeStamp}";
-                    if (isAlbumEmpty)
-                        album = $"未知专辑#{timeStamp}";
-                    coverFileName = GetCoverFileName(artists, album); // 获取清理后的文件名
-                }
-
-                coverImage = new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData));
-                // 异步保存封面
-                await FileOperation.SaveImageAsync(
-                    coverImage,
-                    Path.Combine(MainConfig.MusicCoverSavePath, coverFileName)
-                );
-            }
-
-            var musicItem = new MusicItemModel(
-                title,
-                artists,
-                composer,
-                album,
-                coverFileName, // 传递文件名
-                filePath,
-                fileSize,
-                null,
-                duration,
-                encodingFormat,
-                comment,
-                coverImage
-            );
-
-            return musicItem;
-        }
-        catch (Exception ex)
+        if (error != null)
         {
-            await LoggerService.ErrorAsync($"Error reading metadata from {filePath}: {ex.Message}");
+            await LoggerService.ErrorAsync($"Error reading metadata from {filePath}: {error.Message}");
             return null;
         }
+        if (metadata == null)
+        {
+            await LoggerService.ErrorAsync($"Failed to extract metadata from {filePath} for an unknown reason.");
+            return null;
+        }
+
+        var fileInfo = new FileInfo(filePath);
+        string fileSize = FileOperation.FormatFileSize(fileInfo.Length);
+
+        string? coverFileName = null;
+        Bitmap? coverImage = null;
+
+        if (metadata.CoverImageData != null)
+        {
+            (coverFileName, metadata.Artists, metadata.Album) = PrepareCoverInfo(metadata.Artists, metadata.Album, filePath);
+            coverImage = new Bitmap(new MemoryStream(metadata.CoverImageData));
+            await FileOperation.SaveImageAsync(
+                coverImage,
+                Path.Combine(MainConfig.MusicCoverSavePath, coverFileName)
+            );
+        }
+
+        return new MusicItemModel(
+            metadata.Title,
+            metadata.Artists,
+            metadata.Composer,
+            metadata.Album,
+            coverFileName,
+            filePath,
+            fileSize,
+            metadata.Duration,
+            metadata.EncodingFormat,
+            metadata.Comment,
+            coverImage
+        );
+    }
+
+    private sealed class MusicMetadata
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Artists { get; set; } = string.Empty;
+        public string Album { get; set; } = string.Empty;
+        public string Composer { get; set; } = string.Empty;
+        public string Comment { get; set; } = string.Empty;
+        public string EncodingFormat { get; set; } = string.Empty;
+        public TimeSpan Duration { get; set; }
+        public byte[]? CoverImageData { get; set; }
+    }
+    
+    private static Task<(MusicMetadata?, Exception?)> ExtractNcmMetadataAsync(string filePath)
+    {
+        return Task.Run(() =>
+        {
+            try
+            {
+                using var crypt = new NeteaseCrypt(filePath);
+                if (crypt.Metadata == null)
+                {
+                    return (null, new InvalidDataException("NCM metadata is null."));
+                }
+
+                var metadata = crypt.Metadata;
+                var musicMetadata = new MusicMetadata
+                {
+                    Title = string.IsNullOrWhiteSpace(metadata.Name) ? Path.GetFileNameWithoutExtension(filePath) : metadata.Name,
+                    Artists = metadata.Artist,
+                    Album = metadata.Album,
+                    Duration = TimeSpan.FromMilliseconds(metadata.Duration),
+                    EncodingFormat = metadata.Format,
+                    CoverImageData = crypt.ImageData
+                };
+                return ((MusicMetadata?)musicMetadata, (Exception?)null);
+            }
+            catch (Exception ex)
+            {
+                return (null, ex);
+            }
+        });
+    }
+
+    private static Task<(MusicMetadata?, Exception?)> ExtractTrackMetadataAsync(string filePath)
+    {
+        return Task.Run(() =>
+        {
+            try
+            {
+                var track = new Track(filePath);
+                var musicMetadata = new MusicMetadata
+                {
+                    Title = string.IsNullOrWhiteSpace(track.Title) ? Path.GetFileNameWithoutExtension(filePath) : track.Title,
+                    Artists = track.Artist,
+                    Album = track.Album,
+                    Composer = track.Composer,
+                    Comment = track.Comment,
+                    Duration = TimeSpan.FromMilliseconds(track.DurationMs),
+                    EncodingFormat = track.AudioFormat.ShortName,
+                    CoverImageData = track.EmbeddedPictures.Count > 0 ? track.EmbeddedPictures[0].PictureData : null
+                };
+                return ((MusicMetadata?)musicMetadata, (Exception?)null);
+            }
+            catch (Exception ex)
+            {
+                return (null, ex);
+            }
+        });
+    }
+    
+    private static (string coverFileName, string artists, string album) PrepareCoverInfo(string artists, string album, string filePath)
+    {
+        bool isArtistsEmpty = string.IsNullOrWhiteSpace(artists);
+        bool isAlbumEmpty = string.IsNullOrWhiteSpace(album);
+        string timeStamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+
+        if (isArtistsEmpty && isAlbumEmpty)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+            return ($"{fileName}#{timeStamp}.png", artists, album);
+        }
+
+        string finalArtists = isArtistsEmpty ? $"未知歌手#{timeStamp}" : artists;
+        string finalAlbum = isAlbumEmpty ? $"未知专辑#{timeStamp}" : album;
+        
+        string coverFileName = GetCoverFileName(finalArtists, finalAlbum);
+        
+        return (coverFileName, finalArtists, finalAlbum);
     }
 
     /// <summary>
