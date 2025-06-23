@@ -22,7 +22,7 @@
     </Window.Resources>
 
     <Panel>
-        <Border Name="LyricBorder"
+        <Border Classes.RunLyricBorder="{Binding $parent[Window].IsPointerOver}"
                 Background="{Binding LyricConfig.LyricBackground,Converter={StaticResource ToBrushConverter}}"
                 CornerRadius="{Binding LyricConfig.WindowCornerRadius}"
                 BorderThickness="2">

@@ -83,13 +83,10 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel> 
     {
         if (items is not { Count: > 0 })
         {
-            NotificationService.ShowLight(
-                new Notification("提示", "请先选择音乐项哦~"),
-                NotificationType.Success
-            );
+            NotificationService.ShowLight(new Notification("提示", "请先选择音乐项哦~"), NotificationType.Success);
             return;
         }
-        
+
         var musicItems = items.Cast<MusicItemModel>().ToList();
 
         if (await MusicPlayerViewModel.DeleteMusicItemsAsync(musicItems))

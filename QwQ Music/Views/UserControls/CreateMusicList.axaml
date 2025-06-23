@@ -60,7 +60,7 @@
                                VerticalAlignment="Center"
                                Classes="Danger" />
                 </StackPanel>
-            <TextBox CornerRadius="8" Text="{Binding   Name}" />
+            <TextBox Name="NameTextBlock" CornerRadius="8" Text="{Binding   Name}" />
         </StackPanel>
 
         <StackPanel>

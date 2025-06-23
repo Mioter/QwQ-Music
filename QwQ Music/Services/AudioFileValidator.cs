@@ -98,10 +98,7 @@ public static class AudioFileValidator
         ".ASF",
     ];
 
-    public static readonly List<string> SupportedAudioFormatsExtend =
-    [
-        ".NCM",
-    ];
+    public static readonly List<string> SupportedAudioFormatsExtend = [".NCM"];
 
     private static bool IsAudioFile(string filePath)
     {
@@ -113,7 +110,7 @@ public static class AudioFileValidator
         try
         {
             return SupportedAudioFormats.Contains($"{Path.GetExtension(path).ToUpper()}")
-             || SupportedAudioFormatsExtend.Contains(Path.GetExtension(path).ToUpper());
+                || SupportedAudioFormatsExtend.Contains(Path.GetExtension(path).ToUpper());
         }
         catch
         {

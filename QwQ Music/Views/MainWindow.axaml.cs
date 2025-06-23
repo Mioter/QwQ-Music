@@ -22,13 +22,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // 修改窗口关闭事件处理
-        Closing += OnClosing;
-        Closed += OnClosed;
-
-        // 注册按键事件
-        KeyDown += MainWindow_KeyDown;
-
         Width = 1200;
         Height = 800;
 
@@ -48,7 +41,7 @@ public partial class MainWindow : Window
         Close();
     }
 
-    private async void OnClosing(object? sender, WindowClosingEventArgs e)
+    protected override async void OnClosing(WindowClosingEventArgs e)
     {
         try
         {
@@ -83,6 +76,7 @@ public partial class MainWindow : Window
                     await ApplicationViewModel.ExitApplication();
                     break;
             }
+            base.OnClosing(e);
         }
         catch (Exception ex)
         {
@@ -135,13 +129,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnClosed(object? sender, EventArgs e)
-    {
-        Closing -= OnClosing;
-        Closed -= OnClosed;
-        KeyDown -= MainWindow_KeyDown;
-    }
-
     private void MusicCoverPageOnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (WindowState == WindowState.FullScreen)
@@ -150,9 +137,10 @@ public partial class MainWindow : Window
         BeginMoveDrag(e);
     }
 
-    private static void MainWindow_KeyDown(object? sender, KeyEventArgs e)
+    protected override void OnKeyDown(KeyEventArgs e)
     {
         // 使用热键服务处理按键事件
         HotkeyService.HandleKeyDown(e);
+        base.OnKeyDown(e);
     }
 }

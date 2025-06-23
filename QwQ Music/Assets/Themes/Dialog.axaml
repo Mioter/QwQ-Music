@@ -17,9 +17,9 @@
         <Setter Property="RenderTransform" Value="scale(1.0)" />
         <Setter Property="Template">
             <ControlTemplate TargetType="u:CustomDialogControl">
-                
+
                 <Panel>
-                    
+
                     <Border
                         Name="PART_Border"
                         Padding="0"
@@ -32,31 +32,31 @@
                         Focusable="True"
                         IsHitTestVisible="True"
                         Theme="{DynamicResource CardBorder}">
-                        
+
                         <Border ClipToBounds="True" CornerRadius="{TemplateBinding CornerRadius}">
-                            
+
                             <Grid RowDefinitions="Auto, *">
-                                
+
                                 <ScrollViewer
                                     Grid.Row="0"
                                     Grid.RowSpan="2"
                                     HorizontalScrollBarVisibility="{Binding (ScrollViewer.HorizontalScrollBarVisibility), RelativeSource={RelativeSource TemplatedParent}}"
                                     VerticalScrollBarVisibility="{Binding (ScrollViewer.VerticalScrollBarVisibility), RelativeSource={RelativeSource TemplatedParent}}">
-                                    
-                                    <ContentPresenter 
-                                        Name="PART_ContentPresenter" 
+
+                                    <ContentPresenter
+                                        Name="PART_ContentPresenter"
                                         Content="{TemplateBinding Content}" />
-                                    
+
                                 </ScrollViewer>
-                                
+
                                 <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
-                                    
+
                                     <Panel
                                         Name="{x:Static u:DialogControlBase.PART_TitleArea}"
                                         Grid.Column="0"
                                         Grid.ColumnSpan="2"
                                         Background="Transparent" />
-                                    
+
                                     <Button
                                         Name="{x:Static u:MessageBoxWindow.PART_CloseButton}"
                                         Grid.Column="1"
@@ -64,22 +64,22 @@
                                         DockPanel.Dock="Right"
                                         VerticalAlignment="Center"
                                         Theme="{DynamicResource OverlayCloseButton}" />
-                                    
+
                                 </Grid>
-                                
+
                             </Grid>
-                            
+
                         </Border>
-                        
+
                     </Border>
-                    
+
                     <u:DialogResizer Margin="{Binding #PART_Border.Margin}" IsVisible="{TemplateBinding CanResize}" />
-                    
+
                 </Panel>
-                
+
             </ControlTemplate>
         </Setter>
-        
+
         <Style Selector="^:full-screen">
             <Setter Property="CornerRadius" Value="0" />
             <Style Selector="^ /template/ Border#PART_Border">
@@ -90,7 +90,7 @@
                 <Setter Property="Background" Value="{DynamicResource BorderCardBackground}" />
             </Style>
         </Style>
-        
+
         <Style Selector="^ /template/ Panel#PART_TitleArea">
             <Setter Property="ContextFlyout">
                 <MenuFlyout>
@@ -103,12 +103,12 @@
                 </MenuFlyout>
             </Setter>
         </Style>
-        
+
         <Style Selector="^:not(:modal) /template/ Panel#PART_TitleArea">
             <Setter Property="ContextFlyout">
-                
+
                 <MenuFlyout>
-                    
+
                     <MenuItem
                         Command="{Binding $parent[u:DialogControlBase].UpdateLayer}"
                         CommandParameter="{x:Static u:DialogLayerChangeType.BringForward}"
@@ -118,7 +118,7 @@
                                       Theme="{StaticResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                     <MenuItem
                         Command="{Binding $parent[u:DialogControlBase].UpdateLayer}"
                         CommandParameter="{x:Static u:DialogLayerChangeType.BringToFront}"
@@ -128,7 +128,7 @@
                                       Theme="{StaticResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                     <MenuItem
                         Command="{Binding $parent[u:DialogControlBase].UpdateLayer}"
                         CommandParameter="{x:Static u:DialogLayerChangeType.SendBackward}"
@@ -138,7 +138,7 @@
                                       Theme="{StaticResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                     <MenuItem
                         Command="{Binding $parent[u:DialogControlBase].UpdateLayer}"
                         CommandParameter="{x:Static u:DialogLayerChangeType.SendToBack}"
@@ -148,16 +148,16 @@
                                       Theme="{StaticResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                     <MenuItem Command="{Binding $parent[u:DialogControlBase].Close}"
                               Header="{DynamicResource STRING_MENU_DIALOG_CLOSE}">
                         <MenuItem.Icon>
                             <PathIcon Data="{DynamicResource SemiIconClose}" Theme="{StaticResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                 </MenuFlyout>
-                
+
             </Setter>
         </Style>
     </ControlTheme>
@@ -175,9 +175,9 @@
         </Setter>
         <Setter Property="Template">
             <ControlTemplate TargetType="u:DefaultDialogControl">
-                
-                <Panel>
-                    
+
+                <Panel Margin="50">
+
                     <Border
                         Name="PART_Border"
                         Padding="0"
@@ -191,36 +191,24 @@
                         Focusable="True"
                         IsHitTestVisible="True"
                         Theme="{StaticResource CardBorder}">
-                        
+
                         <Border ClipToBounds="True" CornerRadius="{TemplateBinding CornerRadius}">
-                            
+
                             <Grid RowDefinitions="Auto, *, Auto" Margin="0,20">
-                                
-                                <ScrollViewer
-                                    Grid.Row="1"
-                                    Margin="10,20,10,0"
-                                    HorizontalScrollBarVisibility="{Binding (ScrollViewer.HorizontalScrollBarVisibility), RelativeSource={RelativeSource TemplatedParent}}"
-                                    VerticalScrollBarVisibility="{Binding (ScrollViewer.VerticalScrollBarVisibility), RelativeSource={RelativeSource TemplatedParent}}">
-                                    
-                                    <ContentPresenter
-                                        Name="PART_ContentPresenter"
-                                        Margin="10,0"
-                                        Content="{TemplateBinding Content}" />
-                                    
-                                </ScrollViewer>
-                                
+
+
                                 <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
-                                    
+
                                     <Panel
                                         Name="{x:Static u:DialogControlBase.PART_TitleArea}"
                                         Grid.Column="0"
                                         Grid.ColumnSpan="2"
                                         Background="Transparent" />
 
-                                    <StackPanel 
-                                        Grid.Column="0" 
-                                        Spacing="10" 
-                                        Margin="20,0" 
+                                    <StackPanel
+                                        Grid.Column="0"
+                                        Spacing="10"
+                                        Margin="20,0"
                                         Orientation="Horizontal">
 
                                         <PathIcon
@@ -241,15 +229,28 @@
                                             TextWrapping="Wrap" />
 
                                     </StackPanel>
-                                    
+
                                     <Button
                                         Name="{x:Static u:MessageBoxWindow.PART_CloseButton}"
                                         Grid.Column="1"
                                         Margin="20,0"
                                         DockPanel.Dock="Right"
                                         Theme="{StaticResource OverlayCloseButton}" />
-                                    
+
                                 </Grid>
+
+                                <ScrollViewer
+                                    Grid.Row="1"
+                                    Margin="10,10,10,0"
+                                    HorizontalScrollBarVisibility="{Binding (ScrollViewer.HorizontalScrollBarVisibility), RelativeSource={RelativeSource TemplatedParent}}"
+                                    VerticalScrollBarVisibility="{Binding (ScrollViewer.VerticalScrollBarVisibility), RelativeSource={RelativeSource TemplatedParent}}">
+
+                                    <ContentPresenter
+                                        Name="PART_ContentPresenter"
+                                        Margin="10,0"
+                                        Content="{TemplateBinding Content}" />
+
+                                </ScrollViewer>
 
                                 <StackPanel
                                     Grid.Row="2"
@@ -258,31 +259,31 @@
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Right"
                                     Spacing="20">
-                                    
-                                    <Button Name="{x:Static u:DefaultDialogControl.PART_CancelButton}"  />
+
+                                    <Button Name="{x:Static u:DefaultDialogControl.PART_CancelButton}" />
                                     <Button Name="{x:Static u:DefaultDialogControl.PART_NoButton}" />
                                     <Button Name="{x:Static u:DefaultDialogControl.PART_YesButton}" />
-                                    <Button Name="{x:Static u:DefaultDialogControl.PART_OKButton}"  />
-                                    
+                                    <Button Name="{x:Static u:DefaultDialogControl.PART_OKButton}" />
+
                                 </StackPanel>
 
                             </Grid>
-                            
+
                         </Border>
-                        
+
                     </Border>
-                    
+
                     <u:DialogResizer Margin="{Binding #PART_Border.Margin}" IsVisible="{TemplateBinding CanResize}" />
-                    
+
                 </Panel>
-                
+
             </ControlTemplate>
         </Setter>
-        
+
         <Style Selector="^:full-screen">
             <Setter Property="CornerRadius" Value="0" />
         </Style>
-        
+
         <Style Selector="^:full-screen /template/ Border#PART_Border">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
@@ -290,34 +291,34 @@
             <Setter Property="Margin" Value="0" />
             <Setter Property="Background" Value="{DynamicResource BorderCardBackground}" />
         </Style>
-        
+
         <Style Selector="^ /template/ Button#PART_CancelButton">
             <Setter Property="Grid.Column" Value="0" />
             <Setter Property="helpers:ClassHelper.Classes" Value="Tertiary" />
             <Setter Property="Content" Value="{DynamicResource STRING_MENU_DIALOG_CANCEL}" />
         </Style>
-        
+
         <Style Selector="^ /template/ Button#PART_NoButton">
             <Setter Property="Grid.Column" Value="1" />
             <Setter Property="helpers:ClassHelper.Classes" Value="Danger" />
             <Setter Property="Content" Value="{DynamicResource STRING_MENU_DIALOG_NO}" />
             <Setter Property="Theme" Value="{DynamicResource SolidButton}" />
         </Style>
-        
+
         <Style Selector="^ /template/ Button#PART_YesButton">
             <Setter Property="Grid.Column" Value="2" />
             <Setter Property="helpers:ClassHelper.Classes" Value="Primary" />
             <Setter Property="Content" Value="{DynamicResource STRING_MENU_DIALOG_YES}" />
             <Setter Property="Theme" Value="{DynamicResource SolidButton}" />
         </Style>
-        
+
         <Style Selector="^ /template/ Button#PART_OKButton">
             <Setter Property="Grid.Column" Value="3" />
             <Setter Property="helpers:ClassHelper.Classes" Value="Primary" />
             <Setter Property="Content" Value="{DynamicResource STRING_MENU_DIALOG_OK}" />
             <Setter Property="Theme" Value="{DynamicResource SolidButton}" />
         </Style>
-        
+
         <Style Selector="^[Mode=None]">
             <Style Selector="^ /template/ PathIcon#PART_Icon">
                 <Setter Property="IsVisible" Value="False" />
@@ -338,7 +339,7 @@
                 <Setter Property="helpers:ClassHelper.Classes" Value="Tertiary" />
             </Style>
         </Style>
-        
+
         <Style Selector="^[Mode=Info]">
             <Style Selector="^ /template/ PathIcon#PART_Icon">
                 <Setter Property="IsVisible" Value="True" />
@@ -358,7 +359,7 @@
                 <Setter Property="helpers:ClassHelper.Classes" Value="Tertiary" />
             </Style>
         </Style>
-        
+
         <Style Selector="^[Mode=Warning]">
             <Style Selector="^ /template/ PathIcon#PART_Icon">
                 <Setter Property="IsVisible" Value="True" />
@@ -381,7 +382,7 @@
                 <Setter Property="helpers:ClassHelper.Classes" Value="Tertiary" />
             </Style>
         </Style>
-        
+
         <Style Selector="^[Mode=Error]">
             <Style Selector="^ /template/ PathIcon#PART_Icon">
                 <Setter Property="IsVisible" Value="True" />
@@ -401,7 +402,7 @@
                 <Setter Property="helpers:ClassHelper.Classes" Value="Tertiary" />
             </Style>
         </Style>
-        
+
         <Style Selector="^[Mode=Question]">
             <Style Selector="^ /template/ PathIcon#PART_Icon">
                 <Setter Property="IsVisible" Value="True" />
@@ -421,7 +422,7 @@
                 <Setter Property="helpers:ClassHelper.Classes" Value="Tertiary" />
             </Style>
         </Style>
-        
+
         <Style Selector="^[Mode=Success]">
             <Style Selector="^ /template/ PathIcon#PART_Icon">
                 <Setter Property="IsVisible" Value="True" />
@@ -441,7 +442,7 @@
                 <Setter Property="helpers:ClassHelper.Classes" Value="Tertiary" />
             </Style>
         </Style>
-        
+
         <Style Selector="^ /template/ Panel#PART_TitleArea">
             <Setter Property="ContextFlyout">
                 <MenuFlyout>
@@ -454,11 +455,11 @@
                 </MenuFlyout>
             </Setter>
         </Style>
-        
+
         <Style Selector="^:not(:modal) /template/ Panel#PART_TitleArea">
             <Setter Property="ContextFlyout">
                 <MenuFlyout>
-                    
+
                     <MenuItem
                         Command="{Binding $parent[u:DialogControlBase].UpdateLayer}"
                         CommandParameter="{x:Static u:DialogLayerChangeType.BringForward}"
@@ -468,7 +469,7 @@
                                       Theme="{StaticResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                     <MenuItem
                         Command="{Binding $parent[u:DialogControlBase].UpdateLayer}"
                         CommandParameter="{x:Static u:DialogLayerChangeType.BringToFront}"
@@ -478,7 +479,7 @@
                                       Theme="{StaticResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                     <MenuItem
                         Command="{Binding $parent[u:DialogControlBase].UpdateLayer}"
                         CommandParameter="{x:Static u:DialogLayerChangeType.SendBackward}"
@@ -488,7 +489,7 @@
                                       Theme="{StaticResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                     <MenuItem
                         Command="{Binding $parent[u:DialogControlBase].UpdateLayer}"
                         CommandParameter="{x:Static u:DialogLayerChangeType.SendToBack}"
@@ -498,7 +499,7 @@
                                       Theme="{StaticResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                     <MenuItem
                         Command="{Binding $parent[u:DialogControlBase].Close}"
                         CommandParameter="{x:Static u:DialogLayerChangeType.BringForward}"
@@ -507,10 +508,10 @@
                             <PathIcon Data="{DynamicResource SemiIconClose}" Theme="{StaticResource InnerPathIcon}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    
+
                 </MenuFlyout>
             </Setter>
         </Style>
     </ControlTheme>
-    
+
 </ResourceDictionary>

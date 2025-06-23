@@ -402,9 +402,22 @@
                         Property="Width" />
                 </Transitions>
             </Panel.Transitions>
+            
+            <Border BoxShadow="0 0 10 0 LightGray" Margin="20"
+                    CornerRadius="25">
+                <Panel>
+                    <Border
+                        Opacity="0.8"
+                        Background="{DynamicResource SemiColorBackground3}"
+                        Width="{Binding #MusicPlayerTray.Bounds.Width}"
+                        Height="{Binding #MusicPlayerTray.Bounds.Height}"
+                        CornerRadius="25">
+                    </Border>
 
-            <userControls:MusicPlayerTray Name="MusicPlayerTray" />
+                    <userControls:MusicPlayerTray Name="MusicPlayerTray" />
 
+                </Panel>
+            </Border>
         </Panel>
 
         <Panel

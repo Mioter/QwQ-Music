@@ -7,7 +7,7 @@ namespace QwQ_Music.Definitions;
 
 public record ExitReminderMessage(bool Success);
 
-public record LoadCompletedMessage(string Name);
+public record OperateCompletedMessage(string Name);
 
 public record IsPageVisibleChangeMessage(bool IsVisible, Type PageType);
 

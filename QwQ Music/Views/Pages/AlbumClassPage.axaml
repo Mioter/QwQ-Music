@@ -1,0 +1,154 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+             x:DataType="pages:AlbumClassPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.AlbumClassPage">
+
+    <ScrollViewer Margin="10">
+
+        <ItemsRepeater ItemsSource="{Binding AlbumItems}">
+
+            <ItemsRepeater.Styles>
+
+                <Style Selector="Button">
+                    <Setter Property="Margin" Value="0,0,10,10" />
+                    <Setter Property="Padding" Value="10" />
+                    <Setter Property="CornerRadius" Value="12" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Command"
+                            Value="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).PlayAlbumMusicCommand}" />
+                    <Setter Property="CommandParameter" Value="{Binding }" />
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem
+                                    Command="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).PlayAlbumMusicCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="播放">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconPlay}" Margin="4" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+
+                </Style>
+
+            </ItemsRepeater.Styles>
+
+            <ItemsRepeater.Layout>
+                <WrapLayout />
+            </ItemsRepeater.Layout>
+
+            <ItemsRepeater.ItemTemplate>
+
+                <DataTemplate>
+
+                    <Button>
+
+                        <StackPanel
+                            Width="80"
+                            Spacing="5">
+
+                            <Border
+                                Margin="5"
+                                HorizontalAlignment="Center"
+                                CornerRadius="12"
+                                BoxShadow="0 0 10 0 LightGray"
+                                VerticalAlignment="Center">
+
+                                <Border CornerRadius="10"
+                                        Margin="5"
+                                        Background="{DynamicResource SemiColorBackground3}"
+                                        ClipToBounds="True">
+                                    <Image
+                                        Source="{Binding CoverImage}" />
+                                </Border>
+
+                            </Border>
+
+                            <!--
+                            ~1~<TextBlock
+                                HorizontalAlignment="Center"
+                                TextAlignment="Center"
+                                Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                Text="{Binding Title}"
+                                FontWeight="Bold" />@1@
+                            
+                            <control:RunningText
+                                Direction="RightToLeft"
+                                Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                Text="{Binding Title}"
+                                FontWeight="Bold" 
+                                Speed="30" />
+
+                            ~1~
+                            <TextBlock
+                                Text="{Binding Artist}"
+                                FontSize="12"
+                                HorizontalAlignment="Center"
+                                TextAlignment="Center"
+                                TextTrimming="CharacterEllipsis"
+                                Classes="Tertiary" />
+                                @1@
+
+                            <control:RunningText
+                                Text="{Binding Artist}"
+                                FontSize="12" Direction="RightToLeft"
+                                Foreground="{DynamicResource TextBlockTertiaryForeground}"
+                                Speed="30" />
+                                -->
+
+                        </StackPanel>
+
+                        <!--
+                        <DockPanel
+                            Height="60"
+                            Width="160"
+                            HorizontalSpacing="10"
+                            VerticalSpacing="5">
+
+                            <Border DockPanel.Dock="Left"
+                                    BoxShadow="0 0 10 0 LightGray"
+                                    CornerRadius="12"
+                                    VerticalAlignment="Top">
+
+                                <Border CornerRadius="12"
+                                        ClipToBounds="True">
+                                    <Image
+                                        Source="{Binding CoverImage}" />
+                                </Border>
+
+                            </Border>
+
+                            <TextBlock DockPanel.Dock="Top"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                       Text="{Binding Title}"
+                                       FontWeight="Bold" />
+
+                            <TextBlock DockPanel.Dock="Bottom"
+                                       Text="{Binding Artist}"
+                                       MaxLines="2"
+                                       FontSize="12"
+                                       TextTrimming="CharacterEllipsis"
+                                       TextWrapping="Wrap"
+                                       Classes="Tertiary" />
+
+                        </DockPanel>
+                        -->
+                        
+                    </Button>
+
+                </DataTemplate>
+
+            </ItemsRepeater.ItemTemplate>
+
+        </ItemsRepeater>
+
+    </ScrollViewer>
+
+</UserControl>

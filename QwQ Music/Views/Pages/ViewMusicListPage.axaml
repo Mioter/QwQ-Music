@@ -58,7 +58,7 @@
                 <Button
                     Classes="Icon"
                     CornerRadius="8"
-                    Command="{Binding MusicPlayerViewModel.TogglePlaylistCommand}"
+                    Command="{Binding TogglePlaylistCommand}"
                     CommandParameter="{Binding MusicListModel}"
                     Height="32" Width="32"
                     Padding="2">

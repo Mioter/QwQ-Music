@@ -3,47 +3,24 @@
     x:Class="QwQ_Music.Views.UserControls.AudioDetailedInfo"
     x:DataType="userControls:AudioDetailedInfoViewModel"
     xmlns="https://github.com/avaloniaui"
+    Width="600"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:userControls="clr-namespace:QwQ_Music.ViewModels.UserControls">
 
-    <ListBox 
-        Height="350"
-        Width="600" 
+    <ItemsRepeater
         ItemsSource="{Binding MusicInfoKeyValuePairs}">
 
-        <ListBox.Styles>
+        <ItemsRepeater.Layout>
+            <WrapLayout />
+        </ItemsRepeater.Layout>
 
-            <Style Selector="ListBoxItem">
-                <Setter Property="Padding" Value="10" />
-                <Setter Property="Background" Value="{x:Null}" />
-
-                <Style Selector="^:selected">
-                    <Setter Property="Background" Value="{x:Null}" />
-                </Style>
-
-                <Style Selector="^:pointerover">
-                    <Setter Property="Background" Value="{x:Null}" />
-                </Style>
-
-                <Style Selector="^:pressed">
-                    <Setter Property="Background" Value="{x:Null}" />
-                </Style>
-            </Style>
-
-        </ListBox.Styles>
-
-        <ListBox.ItemsPanel>
-            <ItemsPanelTemplate>
-                <WrapPanel ItemSpacing="10" />
-            </ItemsPanelTemplate>
-        </ListBox.ItemsPanel>
-
-        <ListBox.ItemTemplate>
+        <ItemsRepeater.ItemTemplate>
             <DataTemplate>
                 <SelectableTextBlock
                     MinWidth="260"
+                    Margin="10"
                     SelectedText="{Binding $parent[UserControl].((userControls:AudioDetailedInfoViewModel)DataContext).SelectedText}"
                     TextWrapping="Wrap"
                     VerticalAlignment="Center">
@@ -61,8 +38,8 @@
                     </SelectableTextBlock.ContextMenu>
                 </SelectableTextBlock>
             </DataTemplate>
-        </ListBox.ItemTemplate>
+        </ItemsRepeater.ItemTemplate>
 
-    </ListBox>
+    </ItemsRepeater>
 
 </UserControl>

@@ -2,15 +2,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.Notifications;
+using QwQ_Music.Definitions;
 using QwQ_Music.Models;
 using QwQ_Music.Services.ConfigIO;
+using QwQ_Music.ViewModels;
+using QwQ_Music.ViewModels.Pages;
+using QwQ.Avalonia.Utilities.MessageBus;
 using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.Services;
 
 public static class MusicDataPersistence
 {
-    
     /// <summary>
     /// 批量保存音乐项到数据库
     /// </summary>
@@ -80,7 +83,13 @@ public static class MusicDataPersistence
         // 使用HashSet提高查找效率
         var successSet = new HashSet<MusicItemModel>(successItems);
         var failedItems = itemsList.Where(item => !successSet.Contains(item)).ToList();
-
+        
+        await MessageBus
+            .CreateMessage(new OperateCompletedMessage(nameof(MusicPlayerViewModel.MusicItems)))
+            .AddReceivers(typeof(PlayConfigPageViewModel),typeof(AlbumClassPageViewModel))
+            .SetAsOneTime()
+            .PublishAsync();
+        
         // 显示保存结果通知
         if (successItems.Count > 0 && isEnableSuccessPrompt)
         {
@@ -100,7 +109,6 @@ public static class MusicDataPersistence
             );
         }
     }
-    
 
     /// <summary>
     /// 保存播放列表到数据库
@@ -175,5 +183,4 @@ public static class MusicDataPersistence
 
         await Task.WhenAll(allTasks).ConfigureAwait(false);
     }
-    
 }

@@ -209,9 +209,9 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         Color.Parse("#DFE7FF"),
         Color.Parse("#E4F2FF"),
     ];
-    
+
     [RelayCommand]
-    private  void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs e)
+    private void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs e)
     {
         // 阻止事件冒泡到父级元素
         e.Handled = true;

@@ -26,7 +26,7 @@ namespace QwQ_Music.ViewModels.Pages;
 
 public partial class MusicListsPageViewModel : ViewModelBase
 {
-    public static MusicPlayerViewModel? MusicPlayerViewModel { get; set; }
+    public static MusicPlayerViewModel MusicPlayerViewModel { get; set; } = null!;
 
     public ObservableCollection<MusicListModel> PlayListItems { get; set; } = [];
 
@@ -44,25 +44,47 @@ public partial class MusicListsPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private static async Task OpenMusicLists(MusicListModel model)
+    private static async Task OpenMusicLists(MusicListModel musicList)
     {
-        if (!model.IsInitialized && MusicPlayerViewModel?.MusicItems != null)
+        if (!musicList.IsInitialized)
         {
-            await model.LoadAsync(MusicPlayerViewModel.MusicItems);
+            await musicList.LoadAsync(MusicPlayerViewModel.MusicItems);
         }
 
         await MessageBus
             .CreateMessage(
                 new ViewChangeMessage(
-                    model.Id,
-                    model.Name,
-                    model.CoverImage,
-                    new ViewMusicListPage { DataContext = new ViewMusicListPageViewModel(model) }
+                    musicList.Id,
+                    musicList.Name,
+                    musicList.CoverImage,
+                    new ViewMusicListPage { DataContext = new ViewMusicListPageViewModel(musicList) }
                 )
             )
             .AddReceivers<MainWindowViewModel>()
             .PublishAsync()
             .ConfigureAwait(false);
+    }
+
+    [RelayCommand]
+    private static async Task TogglePlaylist(MusicListModel musicList)
+    {
+        if (musicList.MusicItems.Count <= 0)
+            return;
+
+        if (!musicList.IsInitialized)
+        {
+            await musicList.LoadAsync(MusicPlayerViewModel.MusicItems);
+        }
+
+        MusicItemModel? selectedMusic = null;
+
+        // 如果有最近播放记录，尝试找到对应歌曲
+        if (musicList.LatestPlayedMusic != null)
+        {
+            selectedMusic = musicList.MusicItems.FirstOrDefault(x => x.FilePath == musicList.LatestPlayedMusic);
+        }
+
+        await MusicPlayerViewModel.TogglePlaylist(musicList.MusicItems, selectedMusic);
     }
 
     /// <summary>

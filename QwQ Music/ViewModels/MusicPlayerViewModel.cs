@@ -191,9 +191,9 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
             // 合并消息发送和播放列表初始化
             var messageTask = MessageBus
-                .CreateMessage(new LoadCompletedMessage(nameof(MusicItems)))
+                .CreateMessage(new OperateCompletedMessage(nameof(MusicItems)))
                 .FromSender(this)
-                .AddReceivers<PlayConfigPageViewModel>()
+                .AddReceivers(typeof(PlayConfigPageViewModel),typeof(AlbumClassPageViewModel))
                 .SetAsOneTime()
                 .PublishAsync();
 
@@ -486,24 +486,17 @@ public partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
-    private async Task TogglePlaylist(MusicListModel musicList)
+    public async Task TogglePlaylist(
+        ObservableCollection<MusicItemModel> musicItems,
+        MusicItemModel? priorityPlayMusicItem = null
+    )
     {
-        PlayList.MusicItems = new ObservableCollection<MusicItemModel>(musicList.MusicItems);
+        PlayList.MusicItems = new ObservableCollection<MusicItemModel>(musicItems);
 
-        if (musicList.MusicItems.Count <= 0)
+        if (musicItems.Count <= 0)
             return;
 
-        MusicItemModel? selectedMusic = null;
-
-        // 如果有最近播放记录，尝试找到对应歌曲
-        if (musicList.LatestPlayedMusic != null)
-        {
-            selectedMusic = musicList.MusicItems.FirstOrDefault(x => x.FilePath == musicList.LatestPlayedMusic);
-        }
-
-        // 如果没有找到最近播放的，就选第一个
-        selectedMusic ??= musicList.MusicItems.First();
+        var selectedMusic = priorityPlayMusicItem ?? musicItems.First();
 
         await PlaySpecifiedMusic(selectedMusic);
     }
@@ -526,7 +519,10 @@ public partial class MusicPlayerViewModel : ViewModelBase
         };
 
         await OverlayDialog.ShowModal<AudioDetailedInfo, AudioDetailedInfoViewModel>(
-            new AudioDetailedInfoViewModel(musicItem, MusicExtractor.ExtractExtensionsInfo(musicItem.FilePath)),
+            new AudioDetailedInfoViewModel(
+                musicItem,
+                MusicExtractor.ExtractExtensionsInfo(musicItem.FilePath)
+            ).MoreDetailedInfor(),
             options: options
         );
     }
@@ -592,7 +588,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
         return successItems;
     }
-    
+
     public async Task<bool> DeleteMusicItemsAsync(List<MusicItemModel> musicItems)
     {
         if (musicItems.Count == 0)
@@ -649,7 +645,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
                 NotificationType.Error
             );
         }
-        
+
         return true;
     }
 
@@ -826,22 +822,27 @@ public partial class MusicPlayerViewModel : ViewModelBase
         try
         {
             var lyrics = await musicItem.Lyrics;
-            
-            if (AudioFileValidator.SupportedAudioFormatsExtend.Contains(Path.GetExtension(musicItem.FilePath).ToUpper(), StringComparer.OrdinalIgnoreCase))
+
+            if (
+                AudioFileValidator.SupportedAudioFormatsExtend.Contains(
+                    Path.GetExtension(musicItem.FilePath).ToUpper(),
+                    StringComparer.OrdinalIgnoreCase
+                )
+            )
             {
-               await InitializeNcmAudioTrackAsync(musicItem).ConfigureAwait(false);
+                await InitializeNcmAudioTrackAsync(musicItem).ConfigureAwait(false);
             }
             else
             {
-               await Task.Run(() => InitializeAudioTrackAsync(musicItem)).ConfigureAwait(false); 
+                await Task.Run(() => InitializeAudioTrackAsync(musicItem)).ConfigureAwait(false);
             }
-            
+
             CurrentPlayPosition = 0;
             CurrentMusicItem = musicItem;
             LyricOffset = musicItem.LyricOffset;
             LyricsModel.UpdateLyricsData(lyrics);
             Seek(musicItem.Current.TotalSeconds);
-            
+
             CurrentMusicItemChanged?.Invoke(this, musicItem);
             PlayList.LatestPlayedMusic = CurrentMusicItem.FilePath;
         }
@@ -853,7 +854,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
     private void InitializeAudioTrackAsync(MusicItemModel musicItem)
     {
-        
         // 如果采样率匹配且增益值已设置，直接初始化音频并返回
         if (
             musicItem.Gain > 0f
@@ -886,7 +886,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         // 初始化音频
         _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
     }
-    
+
     private async Task InitializeNcmAudioTrackAsync(MusicItemModel musicItem)
     {
         try
@@ -905,17 +905,14 @@ public partial class MusicPlayerViewModel : ViewModelBase
             await Log.ErrorAsync($"初始化NCM音轨失败: {musicItem.FilePath}\n{e.Message}");
 
             NotificationService.ShowLight(
-                new Notification(
-                    "播放失败",
-                    $"初始化NCM音轨失败: {musicItem.FilePath}"
-                ),
+                new Notification("播放失败", $"初始化NCM音轨失败: {musicItem.FilePath}"),
                 NotificationType.Error
             );
         }
     }
 
     #endregion
-    
+
     private async Task SaveAsync()
     {
         try

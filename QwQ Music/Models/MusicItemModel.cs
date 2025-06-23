@@ -27,10 +27,10 @@ public class MusicItemModel : ObservableObject
         Bitmap? coverImage
     )
     {
-        Title = title;
-        Artists = artists;
-        Composer = composer;
-        Album = album;
+        Title = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
+        Artists = string.IsNullOrWhiteSpace(artists) ? "未知歌手" : artists;
+        Composer = string.IsNullOrWhiteSpace(composer) ? "未知作曲" : composer;
+        Album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
         CoverPath = coverFileName;
         FilePath = filePath;
         FileSize = fileSize;

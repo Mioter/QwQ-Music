@@ -19,6 +19,7 @@
         <semi:ColorPickerSemiTheme />
         <u-Semi:SemiTheme Locale="zh-CN" />
         
+        <StyleInclude Source="avares://QwQ.Avalonia.Control/Themes/_indexes.axaml" />
         <StyleInclude Source="Assets/Animations/_indexes.axaml" />
         <StyleInclude Source="Assets/Styles/_indexes.axaml" />
 
@@ -54,7 +55,6 @@
                 <ResourceInclude Source="Assets/Themes/_indexes.axaml" />
                 <ResourceInclude Source="Assets/Icons/_indexes.axaml" />
                 <ResourceInclude Source="Assets/Variables/_indexes.axaml"/>
-                <ResourceInclude Source="avares://QwQ.Avalonia.Control/Theme/_indexes.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
 
@@ -68,9 +68,6 @@
         <FontFamily x:Key="Cjtw85">resm:QwQ_Music.Assets.Fonts.CJTW85.ttf#公众号-犬神志</FontFamily>
         
         <CornerRadius x:Key="FlyoutCornerRadius">8</CornerRadius>
-        <x:Double x:Key="FlyoutMinWidth">30</x:Double>
-        <Thickness x:Key="FlyoutPadding">0</Thickness>
-        <x:Double x:Key="FlyoutMinHeight">30</x:Double>
 
         <CornerRadius x:Key="ButtonCornerRadius">5</CornerRadius>
         <CornerRadius x:Key="ComboBoxSelectorCornerRadius">8</CornerRadius>

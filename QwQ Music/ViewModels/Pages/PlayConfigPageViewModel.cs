@@ -36,13 +36,13 @@ public partial class PlayConfigPageViewModel : ViewModelBase
             .AsWeakReference()
             .Subscribe();
         MessageBus
-            .ReceiveMessage<LoadCompletedMessage>(this)
+            .ReceiveMessage<OperateCompletedMessage>(this)
             .WithHandler(LoadCompletedMessageHandler)
             .AsWeakReference()
             .Subscribe();
     }
 
-    private async void LoadCompletedMessageHandler(LoadCompletedMessage obj, object? sender)
+    private async void LoadCompletedMessageHandler(OperateCompletedMessage obj, object? sender)
     {
         try
         {
