@@ -70,22 +70,38 @@
 
                             </Border>
 
-                            <!--
-                            ~1~<TextBlock
+                            <!--<TextBlock
                                 HorizontalAlignment="Center"
                                 TextAlignment="Center"
                                 Foreground="{DynamicResource TextBlockDefaultForeground}"
                                 Text="{Binding Title}"
-                                FontWeight="Bold" />@1@
-                            
+                                FontWeight="Bold" />-->
+
                             <control:RunningText
                                 Direction="RightToLeft"
+                                TextAlignment="Center"
                                 Foreground="{DynamicResource TextBlockDefaultForeground}"
                                 Text="{Binding Title}"
-                                FontWeight="Bold" 
-                                Speed="30" />
+                                FontWeight="Bold"
+                                FontFamily="{StaticResource Cjtw85}"
+                                Speed="60">
+                                <Interaction.Behaviors>
+                                    <DataTriggerBehavior Binding="{Binding $parent[Button].IsPointerOver}"
+                                                         Value="True">
+                                        <ChangeAvaloniaPropertyAction
+                                            TargetProperty="{x:Static control:RunningText.BehaviorProperty}"
+                                            Value="Auto" />
+                                    </DataTriggerBehavior>
+                                    <DataTriggerBehavior Binding="{Binding $parent[Button].IsPointerOver}"
+                                                         Value="False">
+                                        <ChangeAvaloniaPropertyAction
+                                            TargetProperty="{x:Static control:RunningText.BehaviorProperty}"
+                                            Value="Pause" />
+                                    </DataTriggerBehavior>
+                                </Interaction.Behaviors>
+                            </control:RunningText>
 
-                            ~1~
+                            <!--
                             <TextBlock
                                 Text="{Binding Artist}"
                                 FontSize="12"
@@ -93,14 +109,30 @@
                                 TextAlignment="Center"
                                 TextTrimming="CharacterEllipsis"
                                 Classes="Tertiary" />
-                                @1@
+                                -->
 
                             <control:RunningText
+                                TextAlignment="Center"
                                 Text="{Binding Artist}"
                                 FontSize="12" Direction="RightToLeft"
+                                FontFamily="{StaticResource Cjtw85}"
                                 Foreground="{DynamicResource TextBlockTertiaryForeground}"
-                                Speed="30" />
-                                -->
+                                Speed="60">
+                                <Interaction.Behaviors>
+                                    <DataTriggerBehavior Binding="{Binding $parent[Button].IsPointerOver}"
+                                                         Value="True">
+                                        <ChangeAvaloniaPropertyAction
+                                            TargetProperty="{x:Static control:RunningText.BehaviorProperty}"
+                                            Value="Auto" />
+                                    </DataTriggerBehavior>
+                                    <DataTriggerBehavior Binding="{Binding $parent[Button].IsPointerOver}"
+                                                         Value="False">
+                                        <ChangeAvaloniaPropertyAction
+                                            TargetProperty="{x:Static control:RunningText.BehaviorProperty}"
+                                            Value="Pause" />
+                                    </DataTriggerBehavior>
+                                </Interaction.Behaviors>
+                            </control:RunningText>
 
                         </StackPanel>
 

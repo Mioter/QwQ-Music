@@ -230,22 +230,22 @@
                             </Style>
 
                         </StackPanel.Styles>
-                        
-                        <StackPanel.Resources>
-                        
-                            <!-- ReSharper disable once Xaml.RedundantResource -->
-                            <x:Double x:Key="FlyoutMinWidth">30</x:Double>
-                            <!-- ReSharper disable once Xaml.RedundantResource -->
-                            <Thickness x:Key="FlyoutPadding">0</Thickness>
-                            <!-- ReSharper disable once Xaml.RedundantResource -->
-                            <x:Double x:Key="FlyoutMinHeight">30</x:Double>
-                        
-                        </StackPanel.Resources>
 
                         <Button
                             Classes="Icon"
                             ToolTip.Placement="Top"
                             ToolTip.VerticalOffset="-10">
+                            
+                            <Button.Resources>
+                        
+                                <!-- ReSharper disable once Xaml.RedundantResource -->
+                                <x:Double x:Key="FlyoutMinWidth">30</x:Double>
+                                <!-- ReSharper disable once Xaml.RedundantResource -->
+                                <Thickness x:Key="FlyoutPadding">0</Thickness>
+                                <!-- ReSharper disable once Xaml.RedundantResource -->
+                                <x:Double x:Key="FlyoutMinHeight">30</x:Double>
+                        
+                            </Button.Resources>
 
                             <Button.Styles>
                                 <Style Selector="PathIcon.Half">

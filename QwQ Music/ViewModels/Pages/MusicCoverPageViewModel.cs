@@ -28,7 +28,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
-    public static RolledLyricConfig RolledLyric { get; } = ConfigManager.LyricConfig.RolledLyri;
+    public static RolledLyricConfig RolledLyric { get; } = ConfigManager.LyricConfig.RolledLyric;
 
     private static readonly CoverConfig _coverConfig = ConfigManager.InterfaceConfig.CoverConfig;
 

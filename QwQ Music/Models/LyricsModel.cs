@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace QwQ_Music.Models;
 
 /// 歌词行结构体
-public record struct LyricLine(double TimePoint, string Primary, string? Translation = null);
+public record struct LyricLine(double TimePoint, string? Primary, string? Translation = null);
 
 public partial class LyricsModel : ObservableObject
 {
@@ -21,7 +21,10 @@ public partial class LyricsModel : ObservableObject
     public partial int LyricsIndex { get; set; }
 
     [ObservableProperty]
-    public partial LyricLine CurrentLyric { get; set; }
+    public partial LyricLine CurrentLyric { get; private set; }
+
+    [ObservableProperty]
+    public partial LyricLine NextLyricLine { get; private set; }
 
     [ObservableProperty]
     public partial LyricsData LyricsData { get; private set; } = new();
@@ -40,11 +43,13 @@ public partial class LyricsModel : ObservableObject
             _timePoints.AddRange(lyricsData.Lyrics.Select(l => l.TimePoint).OrderBy(t => t));
             CurrentLyric = lyricsData.Lyrics[0];
             LyricsIndex = 0;
+            NextLyricLine = lyricsData.Lyrics.Count > 1 ? lyricsData.Lyrics[1] : new LyricLine(0,null);
         }
         else
         {
             CurrentLyric = new LyricLine(0, "暂无歌词");
             LyricsIndex = -1;
+            NextLyricLine = new LyricLine(0,null);
         }
     }
 
@@ -115,6 +120,7 @@ public partial class LyricsModel : ObservableObject
 
         LyricsIndex = newIndex;
         CurrentLyric = LyricsData.Lyrics[LyricsIndex];
+        NextLyricLine = (LyricsIndex + 1 < LyricsData.Lyrics.Count) ? LyricsData.Lyrics[LyricsIndex + 1] : new LyricLine(0,null);
 
         // 触发歌词变更事件，同时传递当前歌词和下一句歌词
         LyricLineChanged?.Invoke(this, CurrentLyric, GetNextLyric(timePoints));

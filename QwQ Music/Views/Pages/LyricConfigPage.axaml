@@ -41,10 +41,10 @@
                             Width="80"
                             HorizontalAlignment="Right"
                             ItemsSource="{x:Static configModels:LyricConfig.TextAlignments}"
-                            SelectedItem="{Binding LyricConfig.RolledLyri.LyricTextAlignment}" />
+                            SelectedItem="{Binding LyricConfig.RolledLyric.LyricTextAlignment}" />
                     </Panel>
 
-                    <CheckBox Content="显示翻译" IsChecked="{Binding LyricConfig.RolledLyri.ShowTranslation}" />
+                    <CheckBox Content="显示翻译" IsChecked="{Binding LyricConfig.RolledLyric.ShowTranslation}" />
 
                 </StackPanel>
 

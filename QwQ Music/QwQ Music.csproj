@@ -37,7 +37,7 @@
         <PackageReference Include="Irihi.Ursa" Version="1.11.1" />
         <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.11.1" />
         <PackageReference Include="managed-midi" Version="1.10.1" />
-        <PackageReference Include="QwQ.Avalonia" Version="0.1.6-beta3" />
+        <PackageReference Include="QwQ.Avalonia" Version="0.1.7.1" />
         <PackageReference Include="Semi.Avalonia" Version="11.2.1.8" />
         <PackageReference Include="Semi.Avalonia.ColorPicker" Version="11.2.1.8" />
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.8" />

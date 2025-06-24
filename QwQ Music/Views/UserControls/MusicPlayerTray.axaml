@@ -63,6 +63,7 @@
             <control:RunningText
                 Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Title}"
                 Direction="RightToLeft"
+                FontFamily="{StaticResource Cjtw85}"
                 FontWeight="Bold"
                 Speed="30" />
 
@@ -79,6 +80,7 @@
                         Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Artists}"
                         Direction="RightToLeft"
                         FontSize="12"
+                        FontFamily="{StaticResource Cjtw85}"
                         Foreground="{DynamicResource TextBlockTertiaryForeground}"
                         Speed="30" />
 
@@ -95,15 +97,32 @@
 
                 <control:SwitchControl.TrueContent>
 
-                    <!-- TODO 提供根据是否双行条件选择显示翻译还是下一句-->
-                    <control:RunningText
-                        Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric.Primary}"
-                        Direction="RightToLeft"
-                        FontSize="12"
-                        Foreground="{DynamicResource TextBlockTertiaryForeground}"
-                        Speed="30" />
+                    <control:SwitchControl Condition="{Binding RolledLyric.ShowTranslation}">
 
-                    <!--<TextBlock
+                        <control:SwitchControl.TrueContent>
+
+                            <control:RunningText
+                                Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric.Translation}"
+                                Direction="RightToLeft"
+                                FontFamily="{StaticResource Cjtw85}"
+                                FontSize="12" PlaceholderText="♪ ♪ ♪"
+                                Foreground="{DynamicResource TextBlockTertiaryForeground}"
+                                Speed="30" />
+
+                        </control:SwitchControl.TrueContent>>
+
+                        <control:SwitchControl.FalseContent>
+
+                            <control:RunningText
+                                Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric.Primary}"
+                                Direction="RightToLeft"
+                                FontSize="12"
+                                FontFamily="{StaticResource Cjtw85}"
+                                PlaceholderText="♪ ♪ ♪"
+                                Foreground="{DynamicResource TextBlockTertiaryForeground}"
+                                Speed="30" />
+
+                            <!--<TextBlock
                             Classes="Tertiary"
                             FontSize="12"
                             MaxLines="2"
@@ -112,6 +131,10 @@
                             TextWrapping="Wrap"
                             ToolTip.Tip="{Binding RelativeSource={RelativeSource Self}, Path=Text}"
                             behaviors:PlaceholderBehavior.Placeholder="♪ ♪ ♪" />-->
+
+                        </control:SwitchControl.FalseContent>
+                    </control:SwitchControl>
+
 
                 </control:SwitchControl.TrueContent>
 

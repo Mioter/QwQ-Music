@@ -155,9 +155,7 @@ public partial class LyricConfigPageViewModel : ViewModelBase
     private void HideLyricWindow()
     {
         _desktopLyricsWindow?.Close();
-        _desktopLyricsWindowViewModel?.Unsubscribe();
         _desktopLyricsWindow = null;
-        _desktopLyricsWindowViewModel = null;
     }
 
     [RelayCommand]
