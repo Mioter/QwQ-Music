@@ -816,9 +816,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             musicItem.Current = TimeSpan.Zero;
         }
-
-        _audioPlay.Stop();
-
+        
         try
         {
             var lyrics = await musicItem.Lyrics;
@@ -836,7 +834,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
             {
                 await Task.Run(() => InitializeAudioTrackAsync(musicItem)).ConfigureAwait(false);
             }
-
+            
+            _audioPlay.Stop();
             CurrentPlayPosition = 0;
             CurrentMusicItem = musicItem;
             LyricOffset = musicItem.LyricOffset;
@@ -849,6 +848,11 @@ public partial class MusicPlayerViewModel : ViewModelBase
         catch (Exception ex)
         {
             await Log.ErrorAsync($"初始化新音轨失败: {ex.Message}").ConfigureAwait(false);
+            
+            NotificationService.ShowLight(
+                new Notification("播放失败", $"初始化新音轨失败: {ex.Message}\n可能的原因: 当前{musicItem.EncodingFormat}格式不支持解码"),
+                NotificationType.Error
+            );
         }
     }
 
