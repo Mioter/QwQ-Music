@@ -83,13 +83,13 @@ public static class MusicDataPersistence
         // 使用HashSet提高查找效率
         var successSet = new HashSet<MusicItemModel>(successItems);
         var failedItems = itemsList.Where(item => !successSet.Contains(item)).ToList();
-        
+
         await MessageBus
             .CreateMessage(new OperateCompletedMessage(nameof(MusicPlayerViewModel.MusicItems)))
-            .AddReceivers(typeof(PlayConfigPageViewModel),typeof(AlbumClassPageViewModel))
+            .AddReceivers(typeof(PlayConfigPageViewModel), typeof(AlbumClassPageViewModel))
             .SetAsOneTime()
             .PublishAsync();
-        
+
         // 显示保存结果通知
         if (successItems.Count > 0 && isEnableSuccessPrompt)
         {

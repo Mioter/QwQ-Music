@@ -1,8 +1,11 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.Notifications;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
@@ -13,38 +16,28 @@ using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.Pages;
 
-public partial class AlbumClassPageViewModel : ViewModelBase
+public partial class AlbumClassPageViewModel : DataGridViewModelBase
 {
-    public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
+    
+    public readonly ObservableCollection<AlbumItemModel> AllAlbumItems = [];
 
-    public ObservableCollection<AlbumItemModel> AlbumItems { get; set; } = [];
+    [ObservableProperty]
+    public partial ObservableCollection<AlbumItemModel> AlbumItems { get; set; } = [];
 
+    [ObservableProperty]
+    public partial AlbumItemModel SelectedAlbumItem { get; set; } = null!;
+    
     public AlbumClassPageViewModel()
     {
         MessageBus
             .ReceiveMessage<OperateCompletedMessage>(this)
-            .WithHandler(LoadCompletedMessageHandler)
+            .WithHandler((_, _) => InitializeAlbumItems())
             .AsWeakReference()
             .Subscribe();
     }
 
-    private void LoadCompletedMessageHandler(OperateCompletedMessage message, object sender)
-    {
-        InitializeAlbumItems();
-    }
-    
     private void InitializeAlbumItems()
     {
-        // 检查音乐库是否已初始化
-        if (MusicPlayerViewModel.MusicItems.Count == 0)
-        {
-            AlbumItems.Clear();
-            return;
-        }
-
-        // 清理现有专辑列表
-        AlbumItems.Clear();
-
         // 按专辑名和歌手分组，专辑名与歌手相同视为一个专辑项
         var albumGroups = MusicPlayerViewModel
             .MusicItems.Where(music =>
@@ -59,8 +52,15 @@ public partial class AlbumClassPageViewModel : ViewModelBase
                 .Select(t => new AlbumItemModel(t.group.Key.Album, t.group.Key.Artists, t.firstMusic.CoverPath))
         )
         {
-            AlbumItems.Add(albumItem);
+            AllAlbumItems.Add(albumItem);
         }
+
+        if (AllAlbumItems.Count <= 0)
+            return;
+
+        AlbumItems = AllAlbumItems;
+        SelectedAlbumItem = AllAlbumItems[0];
+        MusicItems = new ObservableCollection<MusicItemModel>(SearchMusicItems(SelectedAlbumItem));
     }
 
     [RelayCommand]
@@ -68,20 +68,10 @@ public partial class AlbumClassPageViewModel : ViewModelBase
     {
         try
         {
-            // 找到该专辑对应的所有音乐项
-            var albumMusicItems = MusicPlayerViewModel
-                .MusicItems.Where(music => music.Album == albumItem.Title && music.Artists == albumItem.Artist)
-                .ToList();
-
-            if (albumMusicItems.Count == 0)
-            {
-                // 可以在这里添加通知，提示用户没有找到该专辑的音乐
+            var albumMusicItems = SearchMusicItems(albumItem);
+            if (albumMusicItems.Count < 0)
                 return;
-            }
-
-            // 创建专辑音乐列表并播放
-            var albumMusicCollection = new ObservableCollection<MusicItemModel>(albumMusicItems);
-            await MusicPlayerViewModel.TogglePlaylist(albumMusicCollection);
+            await MusicPlayerViewModel.TogglePlaylist(new ObservableCollection<MusicItemModel>(albumMusicItems));
         }
         catch (Exception ex)
         {
@@ -91,5 +81,34 @@ public partial class AlbumClassPageViewModel : ViewModelBase
                 NotificationType.Error
             );
         }
+    }
+
+    private static List<MusicItemModel> SearchMusicItems(AlbumItemModel albumItem)
+    {
+        // 找到该专辑对应的所有音乐项
+        var albumMusicItems = MusicPlayerViewModel
+            .MusicItems.Where(music => music.Album == albumItem.Title && music.Artists == albumItem.Artist)
+            .ToList();
+
+        return albumMusicItems;
+    }
+    
+    protected override void OnSearchTextChanged(string? value)
+    {
+        var source = string.IsNullOrEmpty(value) ? AllAlbumItems : AllAlbumItems.Where(MatchesSearchCriteria);
+
+        AlbumItems = new ObservableCollection<AlbumItemModel>(source);
+        return;
+
+        bool MatchesSearchCriteria(AlbumItemModel item) =>
+            item.Title.Contains(value, StringComparison.OrdinalIgnoreCase)
+            || item.Artist.Contains(value, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [RelayCommand]
+    private void ToggleItem(AlbumItemModel model)
+    {
+        SelectedAlbumItem = model;
+        MusicItems = new ObservableCollection<MusicItemModel>(SearchMusicItems(model));
     }
 }

@@ -154,6 +154,7 @@ public partial class MusicListModel : ObservableObject
         var latestPlayedMusicList = await DataBaseService.LoadSpecifyFieldsAsync(
             DataBaseService.Table.LISTINFO,
             [nameof(LatestPlayedMusic)],
+            // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
             dict => dict.TryGetValue(nameof(LatestPlayedMusic), out object? value) ? value?.ToString() ?? null : null,
             ..1,
             $"{nameof(Name)} = '{Name.Replace("'", "''")}'"
@@ -225,15 +226,6 @@ public partial class MusicListModel : ObservableObject
             search: $"{nameof(Name)} = '{playlistName.Replace("'", "''")}'"
         );
 
-        if (filePaths?.Count > 0)
-        {
-            return filePaths.FirstOrDefault();
-        }
-
-        NotificationService.ShowLight(
-            new Notification("错误", $"获取歌单《{playlistName}》第一首音乐失败！"),
-            NotificationType.Error
-        );
-        return null;
+        return filePaths?.FirstOrDefault();
     }
 }

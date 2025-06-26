@@ -63,8 +63,8 @@
             <control:RunningText
                 Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Title}"
                 Direction="RightToLeft"
-                FontFamily="{StaticResource Cjtw85}"
                 FontWeight="Bold"
+                Padding="0"
                 Speed="30" />
 
             <!--<TextBlock
@@ -80,7 +80,6 @@
                         Text="{Binding MusicPlayerViewModel.CurrentMusicItem.Artists}"
                         Direction="RightToLeft"
                         FontSize="12"
-                        FontFamily="{StaticResource Cjtw85}"
                         Foreground="{DynamicResource TextBlockTertiaryForeground}"
                         Speed="30" />
 
@@ -104,12 +103,11 @@
                             <control:RunningText
                                 Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric.Translation}"
                                 Direction="RightToLeft"
-                                FontFamily="{StaticResource Cjtw85}"
                                 FontSize="12" PlaceholderText="♪ ♪ ♪"
                                 Foreground="{DynamicResource TextBlockTertiaryForeground}"
                                 Speed="30" />
 
-                        </control:SwitchControl.TrueContent>>
+                        </control:SwitchControl.TrueContent>
 
                         <control:SwitchControl.FalseContent>
 
@@ -117,7 +115,6 @@
                                 Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric.Primary}"
                                 Direction="RightToLeft"
                                 FontSize="12"
-                                FontFamily="{StaticResource Cjtw85}"
                                 PlaceholderText="♪ ♪ ♪"
                                 Foreground="{DynamicResource TextBlockTertiaryForeground}"
                                 Speed="30" />
@@ -434,7 +431,7 @@
                             Margin="0,0,2,0"
                             Width="14" />
                         <Border
-                            Background="{StaticResource SemiRed4Color}"
+                            Background="{DynamicResource SemiRed4}"
                             CornerRadius="10"
                             IsVisible="{Binding MusicPlayerViewModel.IsMuted}"
                             Margin="0"
@@ -478,10 +475,10 @@
 
                                     <Button.Styles>
                                         <Style Selector="Button.Silent">
-                                            <Setter Property="Background" Value="{StaticResource SemiRed5Color}" />
+                                            <Setter Property="Background" Value="{DynamicResource SemiRed5}" />
                                             <Setter Property="Foreground" Value="White" />
                                             <Style Selector="^:pointerover /template/ ContentPresenter">
-                                                <Setter Property="Background" Value="{StaticResource SemiRed4Color}" />
+                                                <Setter Property="Background" Value="{DynamicResource SemiRed4}" />
                                             </Style>
                                         </Style>
                                     </Button.Styles>

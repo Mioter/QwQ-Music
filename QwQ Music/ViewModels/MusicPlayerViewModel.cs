@@ -193,7 +193,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
             var messageTask = MessageBus
                 .CreateMessage(new OperateCompletedMessage(nameof(MusicItems)))
                 .FromSender(this)
-                .AddReceivers(typeof(PlayConfigPageViewModel),typeof(AlbumClassPageViewModel))
+                .AddReceivers(typeof(PlayConfigPageViewModel), typeof(AlbumClassPageViewModel))
                 .SetAsOneTime()
                 .PublishAsync();
 

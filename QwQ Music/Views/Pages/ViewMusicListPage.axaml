@@ -229,7 +229,7 @@
                                             Header="移出歌单">
                                             <MenuItem.Icon>
                                                 <PathIcon Data="{StaticResource SemiIconForward}" Margin="2"
-                                                          Foreground="{StaticResource SemiRed4Color}"
+                                                          Foreground="{DynamicResource SemiRed4}"
                                                           RenderTransform="rotate(180deg)" />
                                             </MenuItem.Icon>
                                         </MenuItem>
@@ -260,7 +260,7 @@
                                             Header="删除音乐">
                                             <MenuItem.Icon>
                                                 <PathIcon Data="{StaticResource SemiIconDelete}" Margin="1"
-                                                          Foreground="{StaticResource SemiRed4Color}" />
+                                                          Foreground="{DynamicResource SemiRed4}" />
                                             </MenuItem.Icon>
                                         </MenuItem>
 

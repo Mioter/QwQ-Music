@@ -1,139 +1,178 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="pages:MusicListsPageViewModel"
              x:Class="QwQ_Music.Views.Pages.MusicListsPage">
 
-    <ScrollViewer Margin="0,0,10,10">
-        
-        <ItemsRepeater ItemsSource="{Binding PlayListItems}" >
+    <ScrollViewer Margin="0,0,10,0">
 
-            <ItemsRepeater.Styles>
+        <Panel>
 
-                <Style Selector="Button">
-                    <Setter Property="Margin" Value="10" />
-                    <Setter Property="Padding" Value="10" />
-                    <Setter Property="CornerRadius" Value="12" />
-                    <Setter Property="Background" Value="Transparent" />
-                    <Setter Property="Command"
-                            Value="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).OpenMusicListsCommand}" />
-                    <Setter Property="CommandParameter" Value="{Binding }" />
-                    <Setter Property="ContextMenu">
-                        <Setter.Value>
-                            <ContextMenu>
+            <ItemsControl Background="Transparent" ItemsSource="{Binding PlayListItems}" Padding="10,20,10,10">
 
-                                <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).TogglePlaylistCommand}"
-                                    CommandParameter="{Binding}"
-                                    Header="播放">
-                                    <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource SemiIconPlay}" Margin="4" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
+                <ItemsControl.Styles>
+                    <Style Selector="ItemsControl > ContentPresenter">
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu>
 
-                                <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).EditMusicListCommand}"
-                                    CommandParameter="{Binding}"
-                                    Header="编辑">
-                                    <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource SemiIconEdit}"
-                                                  Margin="2" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).TogglePlaylistCommand}"
+                                        CommandParameter="{Binding}"
+                                        Header="播放">
+                                        <MenuItem.Icon>
+                                            <PathIcon Data="{StaticResource SemiIconPlay}" Margin="4" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
 
-                                <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).DeleteMusicListModelCommand}"
-                                    CommandParameter="{Binding}"
-                                    Header="删除">
-                                    <MenuItem.Icon>
-                                        <PathIcon Foreground="{DynamicResource SemiRed4Color}"
-                                                  Data="{StaticResource SemiIconDelete}"
-                                                  Margin="2" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).EditMusicListCommand}"
+                                        CommandParameter="{Binding}"
+                                        Header="编辑">
+                                        <MenuItem.Icon>
+                                            <PathIcon Data="{StaticResource SemiIconEdit}"
+                                                      Margin="2" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
 
-                            </ContextMenu>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
+                                    <MenuItem
+                                        Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).DeleteMusicListModelCommand}"
+                                        CommandParameter="{Binding}"
+                                        Header="删除">
+                                        <MenuItem.Icon>
+                                            <PathIcon Foreground="{DynamicResource EmphasizePink3}"
+                                                      Data="{StaticResource SemiIconDelete}"
+                                                      Margin="2" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
 
-            </ItemsRepeater.Styles>
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
 
-            <ItemsRepeater.Layout>
-                <WrapLayout />
-            </ItemsRepeater.Layout>
+                    <Style Selector="Button">
+                        <Setter Property="Padding" Value="10" />
+                        <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
+                        <Setter Property="CornerRadius" Value="12" />
+                        <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
 
-            <ItemsRepeater.ItemTemplate>
+                        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                            <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
+                        </Style>
 
-                <DataTemplate>
+                        <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                            <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
+                        </Style>
+                    </Style>
 
-                    <Button>
+                    <Style Selector="Button:pointerover">
+                        <Setter Property="RenderTransform" Value="translateY(-10px)" />
+                    </Style>
 
-                        <DockPanel
-                            Height="60"
-                            Width="160"
-                            HorizontalSpacing="10"
-                            VerticalSpacing="5">
+                    <Style Selector="Button:pressed">
+                        <Setter Property="RenderTransform" Value="translateY(0px)" />
+                    </Style>
 
-                            <Border DockPanel.Dock="Left"
-                                    BoxShadow="0 0 10 0 LightGray"
-                                    CornerRadius="12"
-                                    VerticalAlignment="Top">
+                </ItemsControl.Styles>
 
-                                <!--<Border.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="10"
-                                        Color="DarkGray"
-                                        OffsetX="0"
-                                        OffsetY="0"
-                                        Opacity="0.5" />
-                                </Border.Effect>-->
+                <ItemsControl.ItemsPanel>
 
-                                <Border CornerRadius="12"
-                                        ClipToBounds="True">
-                                    <Image
-                                        Source="{Binding CoverImage}" />
+                    <ItemsPanelTemplate>
+                        <WrapPanel LineSpacing="20" ItemSpacing="20" />
+                    </ItemsPanelTemplate>
+
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+
+                    <DataTemplate>
+
+                        <Button
+                            Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).OpenMusicListsCommand}"
+                            CommandParameter="{Binding }">
+
+                            <Button.Transitions>
+                                <Transitions>
+                                    <TransformOperationsTransition Duration="0:0:0.2" Property="RenderTransform" />
+                                </Transitions>
+                            </Button.Transitions>
+
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="15"
+                                    Color="LightGray"
+                                    OffsetX="0"
+                                    OffsetY="3" />
+                            </Button.Effect>
+
+                            <DockPanel
+                                Height="60"
+                                Width="160"
+                                HorizontalSpacing="10"
+                                VerticalSpacing="5">
+
+                                <Border DockPanel.Dock="Left"
+                                        CornerRadius="12"
+                                        VerticalAlignment="Top">
+
+                                    <Border CornerRadius="12"
+                                            ClipToBounds="True">
+                                        <Image
+                                            Source="{Binding CoverImage}" />
+                                    </Border>
+
                                 </Border>
 
-                            </Border>
+                                <StackPanel DockPanel.Dock="Top" Spacing="2">
 
-                            <TextBlock DockPanel.Dock="Top"
-                                       TextWrapping="Wrap"
-                                       Foreground="{DynamicResource TextBlockDefaultForeground}"
-                                       Text="{Binding Name}"
-                                       FontWeight="Bold" />
+                                    <TextBlock
+                                        TextWrapping="Wrap"
+                                        Text="{Binding Name}"
+                                        FontWeight="Bold" />
 
-                            <TextBlock DockPanel.Dock="Bottom"
-                                       Text="{Binding Description}"
-                                       MaxLines="2"
-                                       FontSize="12"
-                                       TextTrimming="CharacterEllipsis"
-                                       TextWrapping="Wrap"
-                                       Classes="Tertiary" />
+                                    <Separator Margin="0" />
 
-                        </DockPanel>
+                                </StackPanel>
 
-                    </Button>
+                                <TextBlock DockPanel.Dock="Bottom"
+                                           Text="{Binding Description}"
+                                           MaxLines="2"
+                                           FontSize="12"
+                                           TextTrimming="CharacterEllipsis"
+                                           TextWrapping="Wrap"
+                                           Classes="Tertiary" />
 
-                </DataTemplate>
+                            </DockPanel>
 
-            </ItemsRepeater.ItemTemplate>
+                        </Button>
 
-            <ItemsRepeater.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="新建歌单"
-                              Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).CreateMusicListCommand}">
-                        <MenuItem.Icon>
-                            <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </ContextMenu>
-            </ItemsRepeater.ContextMenu>
+                    </DataTemplate>
 
-        </ItemsRepeater>
+                </ItemsControl.ItemTemplate>
+
+                <ItemsControl.ContextMenu>
+
+                    <ContextMenu>
+                        <MenuItem Header="新建歌单"
+                                  Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).CreateMusicListCommand}">
+                            <MenuItem.Icon>
+                                <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+
+                </ItemsControl.ContextMenu>
+
+            </ItemsControl>
+
+            <Button CornerRadius="8" VerticalAlignment="Top" HorizontalAlignment="Left"
+                    Theme="{StaticResource OutlineButton}"
+                    Margin="20"
+                    Command="{Binding CreateMusicListCommand}"
+                    IsVisible="{Binding !PlayListItems.Count}" Content="新建歌单" />
+
+        </Panel>
 
     </ScrollViewer>
 

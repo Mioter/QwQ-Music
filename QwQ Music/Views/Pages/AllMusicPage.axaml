@@ -196,7 +196,7 @@
                                     Header="删除音乐">
                                     <MenuItem.Icon>
                                         <PathIcon Data="{StaticResource SemiIconDelete}" Margin="1"
-                                                  Foreground="{StaticResource SemiRed4Color}" />
+                                                  Foreground="{DynamicResource SemiRed4}" />
                                     </MenuItem.Icon>
                                 </MenuItem>
 

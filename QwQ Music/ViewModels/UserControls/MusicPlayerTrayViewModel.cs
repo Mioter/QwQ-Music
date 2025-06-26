@@ -12,8 +12,8 @@ namespace QwQ_Music.ViewModels.UserControls;
 
 public partial class MusicPlayerTrayViewModel : ViewModelBase
 {
-    public RolledLyricConfig RolledLyric { get;  } = ConfigManager.LyricConfig.RolledLyric;
-    
+    public RolledLyricConfig RolledLyric { get; } = ConfigManager.LyricConfig.RolledLyric;
+
     public double AlbumCoverCurrentAngle { get; set; }
 
     public double AlbumCoverRecordAngle { get; set; }

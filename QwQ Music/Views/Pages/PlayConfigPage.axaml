@@ -152,22 +152,22 @@
 
                     <StackPanel Spacing="0">
 
+                        <!--
                         <StackPanel.Resources>
 
-                            <!--  ReSharper disable once Xaml.RedundantResource  -->
+                            ~1~  ReSharper disable once Xaml.RedundantResource  @1@
                             <x:Double x:Key="BannerTitleFontSize">14</x:Double>
 
                         </StackPanel.Resources>
 
-                        <!--
-                    <u:Banner
-                        Classes="Bordered"
-                        Content="回放增益是一种用于标准化音频播放音量的技术，旨在解决不同音频文件之间音量差异的问题。QWQ Music 通过分析音频文件的内容，计算出一个标准化的响度值，并将该值存储在数据库中，而不会对音频本身进行更改。"
-                        CornerRadius="8"
-                        FontSize="12"
-                        Header="什么是回放增益"
-                        HorizontalContentAlignment="Stretch" />
-                        -->
+                        <u:Banner
+                            Classes="Bordered"
+                            Content="回放增益是一种用于标准化音频播放音量的技术，旨在解决不同音频文件之间音量差异的问题。QWQ Music 通过分析音频文件的内容，计算出一个标准化的响度值，并将该值存储在数据库中，而不会对音频本身进行更改。"
+                            CornerRadius="8"
+                            FontSize="12"
+                            Header="什么是回放增益"
+                            HorizontalContentAlignment="Stretch" />
+                            -->
 
                         <StackPanel
                             HorizontalAlignment="Left"
@@ -215,7 +215,7 @@
                                     <u:IconButton.Icon>
                                         <PathIcon
                                             Data="{StaticResource SemiIconDelete}"
-                                            Foreground="{DynamicResource SemiRed4Color}"
+                                            Foreground="{DynamicResource SemiRed4}"
                                             Height="12" />
                                     </u:IconButton.Icon>
                                 </u:IconButton>

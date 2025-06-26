@@ -12,10 +12,10 @@ using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.ViewModelBases;
 
-public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel> musicItems) : ViewModelBase
+public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel>? musicItems = null) : ViewModelBase
 {
     [ObservableProperty]
-    public partial ObservableCollection<MusicItemModel> MusicItems { get; set; } = musicItems;
+    public partial ObservableCollection<MusicItemModel> MusicItems { get; set; } = musicItems ?? [];
 
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 

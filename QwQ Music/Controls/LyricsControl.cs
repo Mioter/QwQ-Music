@@ -356,7 +356,8 @@ public class LyricsControl : TemplatedControl
     {
         if (
             e is not { OldValue: Rect oldBounds, NewValue: Rect newBounds }
-            || !(Math.Abs(oldBounds.Height - newBounds.Height) > 0.1)
+            || Math.Abs(oldBounds.Height - newBounds.Height) <= 0.1
+                && Math.Abs(oldBounds.Width - newBounds.Width) <= 0.1
         )
             return;
 

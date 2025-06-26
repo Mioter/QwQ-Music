@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.Models;
+﻿using QwQ_Music.Models;
 using QwQ_Music.ViewModels.ViewModelBases;
 using DesktopLyricConfig = QwQ_Music.Models.ConfigModels.DesktopLyricConfig;
 
