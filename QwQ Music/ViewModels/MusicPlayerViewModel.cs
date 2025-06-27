@@ -24,7 +24,6 @@ using QwQ_Music.Views.UserControls;
 using QwQ.Avalonia.Utilities.MessageBus;
 using Ursa.Controls;
 using Log = QwQ_Music.Services.LoggerService;
-using Notification = Ursa.Controls.Notification;
 using PlayerConfig = QwQ_Music.Models.ConfigModels.PlayerConfig;
 
 namespace QwQ_Music.ViewModels;
@@ -179,10 +178,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
             if (MusicItems.Count == 0)
             {
                 NotificationService.ShowLight(
-                    new Notification(
-                        "呜呜",
-                        "真的...一首歌都没有了（ \n Tips : 可以点击右上角加号从文件中添加音乐哦！"
-                    ),
+                    "呜呜",
+                    "真的...一首歌都没有了（ \n Tips : 可以点击右上角加号从文件中添加音乐哦！",
                     NotificationType.Information,
                     showClose: true
                 );
@@ -245,14 +242,16 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             await ToggleMusicAsync(musicItem);
             NotificationService.ShowLight(
-                new Notification("不嘻嘻", "上次播放的音乐不在播放列表中，已经切换为当前播放列表第一首~"),
+                "不嘻嘻",
+                "上次播放的音乐不在播放列表中，已经切换为当前播放列表第一首~",
                 NotificationType.Information
             );
             return;
         }
 
         NotificationService.ShowLight(
-            new Notification("温馨提示", "当前播放列表没有任何音乐，可以播放任意一首歌，将自动填入播放列表~"),
+            "温馨提示",
+            "当前播放列表没有任何音乐，可以播放任意一首歌，将自动填入播放列表~",
             NotificationType.Information
         );
     }
@@ -359,7 +358,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         if (MusicItems.Count == 0)
         {
             NotificationService.ShowLight(
-                new Notification("提示", "音乐库啥也没有，需要我为你播放一首空空如也吗？"),
+                "提示",
+                "音乐库啥也没有，需要我为你播放一首空空如也吗？",
                 NotificationType.Information
             );
             return;
@@ -370,10 +370,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
             var musicItem = MusicItems.FirstOrDefault();
             if (musicItem == null)
             {
-                NotificationService.ShowLight(
-                    new Notification("错误", "没有找到可播放的音乐项！"),
-                    NotificationType.Error
-                );
+                NotificationService.ShowLight("错误", "没有找到可播放的音乐项！", NotificationType.Error);
                 return;
             }
 
@@ -533,7 +530,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         if (string.IsNullOrEmpty(musicItem.FilePath) || !File.Exists(musicItem.FilePath))
         {
             NotificationService.ShowLight(
-                new Notification("坏欸", $"无法打开《{musicItem.Title}》文件位置：文件不存在"),
+                "坏欸",
+                $"无法打开《{musicItem.Title}》文件位置：文件不存在",
                 NotificationType.Error
             );
             return;
@@ -547,7 +545,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             Log.Error($"打开文件位置失败: {e.Message}");
             NotificationService.ShowLight(
-                new Notification("坏欸", $"打开《{musicItem.Title}》文件位置时报错：{e.Message}"),
+                "坏欸",
+                $"打开《{musicItem.Title}》文件位置时报错：{e.Message}",
                 NotificationType.Error
             );
         }
@@ -631,19 +630,13 @@ public partial class MusicPlayerViewModel : ViewModelBase
         if (successItems.Count > 0)
         {
             string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
-            NotificationService.ShowLight(
-                new Notification("好欸", $"{successTitles}已经从音乐列表中移除了！"),
-                NotificationType.Success
-            );
+            NotificationService.ShowLight("好欸", $"{successTitles}已经从音乐列表中移除了！", NotificationType.Success);
         }
 
         if (failedItems.Count > 0)
         {
             string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
-            NotificationService.ShowLight(
-                new Notification("坏欸", $"删除{failedTitles}失败了！"),
-                NotificationType.Error
-            );
+            NotificationService.ShowLight("坏欸", $"删除{failedTitles}失败了！", NotificationType.Error);
         }
 
         return true;
@@ -676,7 +669,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         if (!File.Exists(musicItem.FilePath))
         {
             NotificationService.ShowLight(
-                new Notification("错误", $"当前音乐不存在，请切换音乐！\n无法找到音乐文件:  {musicItem.FilePath}"),
+                "错误",
+                $"当前音乐不存在，请切换音乐！\n无法找到音乐文件:  {musicItem.FilePath}",
                 NotificationType.Error
             );
             return false;
@@ -686,10 +680,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             await MusicDataPersistence.SaveMusicItemsAsync([musicItem]).ConfigureAwait(false);
             NotificationService.ShowLight(
-                new Notification(
-                    "注意",
-                    $"很奇怪，这个《{musicItem.Title}》不在音乐库中，不过没关系，现在在了，欸嘿~QvQ"
-                ),
+                "注意",
+                $"很奇怪，这个《{musicItem.Title}》不在音乐库中，不过没关系，现在在了，欸嘿~QvQ",
                 NotificationType.Warning
             );
         }
@@ -698,7 +690,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             PlayList.MusicItems = new ObservableCollection<MusicItemModel>(MusicItems);
             NotificationService.ShowLight(
-                new Notification("提示", $"当前音乐列表为空，以自动填充为全部音乐！共 {MusicItems.Count} 首~"),
+                "提示",
+                $"当前音乐列表为空，以自动填充为全部音乐！共 {MusicItems.Count} 首~",
                 NotificationType.Information
             );
         }
@@ -709,7 +702,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
         PlayList.MusicItems.Add(musicItem);
 
         NotificationService.ShowLight(
-            new Notification("提示", $"当前音乐《{musicItem.Title}》不在播放列表中，以自动添加到播放列表末尾~"),
+            "提示",
+            $"当前音乐《{musicItem.Title}》不在播放列表中，以自动添加到播放列表末尾~",
             NotificationType.Information
         );
 
@@ -816,7 +810,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             musicItem.Current = TimeSpan.Zero;
         }
-        
+
         try
         {
             var lyrics = await musicItem.Lyrics;
@@ -834,7 +828,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
             {
                 await Task.Run(() => InitializeAudioTrackAsync(musicItem)).ConfigureAwait(false);
             }
-            
+
             _audioPlay.Stop();
             CurrentPlayPosition = 0;
             CurrentMusicItem = musicItem;
@@ -848,9 +842,10 @@ public partial class MusicPlayerViewModel : ViewModelBase
         catch (Exception ex)
         {
             await Log.ErrorAsync($"初始化新音轨失败: {ex.Message}").ConfigureAwait(false);
-            
+
             NotificationService.ShowLight(
-                new Notification("播放失败", $"初始化新音轨失败: {ex.Message}\n可能的原因: 当前{musicItem.EncodingFormat}格式不支持解码"),
+                "播放失败",
+                $"初始化新音轨失败: {ex.Message}\n可能的原因: 当前{musicItem.EncodingFormat}格式不支持解码",
                 NotificationType.Error
             );
         }
@@ -909,7 +904,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
             await Log.ErrorAsync($"初始化NCM音轨失败: {musicItem.FilePath}\n{e.Message}");
 
             NotificationService.ShowLight(
-                new Notification("播放失败", $"初始化NCM音轨失败: {musicItem.FilePath}"),
+                "播放失败",
+                $"初始化NCM音轨失败: {musicItem.FilePath}",
                 NotificationType.Error
             );
         }
@@ -980,10 +976,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
             () =>
             {
                 NotificationService.ShowLight(
-                    new Notification(
-                        "你知道吗？",
-                        $"当前播放列表有: {PlayList.MusicItems.Count} 首音乐！\n现在正在播放第 {PlayList.MusicItems.IndexOf(CurrentMusicItem) + 1} 首"
-                    ),
+                    "你知道吗？",
+                    $"当前播放列表有: {PlayList.MusicItems.Count} 首音乐！\n现在正在播放第 {PlayList.MusicItems.IndexOf(CurrentMusicItem) + 1} 首",
                     NotificationType.Information
                 );
             }
@@ -994,10 +988,8 @@ public partial class MusicPlayerViewModel : ViewModelBase
             () =>
             {
                 NotificationService.ShowLight(
-                    new Notification(
-                        "你知道吗？",
-                        $"{(IsPlaying ? "正在播放" : "已暂停")}的音乐叫做: {CurrentMusicItem.Title} 哦！\n你的音量是: {Volume}% "
-                    ),
+                    "你知道吗？",
+                    $"{(IsPlaying ? "正在播放" : "已暂停")}的音乐叫做: {CurrentMusicItem.Title} 哦！\n你的音量是: {Volume}% ",
                     NotificationType.Information
                 );
             }

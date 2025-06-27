@@ -2,14 +2,13 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Controls;
-using Avalonia.Controls.Notifications;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Styling;
-using Avalonia.Threading;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
+using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Utilities;
 using QwQ_Music.ViewModels.Pages;
@@ -18,15 +17,18 @@ using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ_Music.Views.Pages;
 using QwQ.Avalonia.Utilities.MessageBus;
 using static QwQ_Music.Models.LanguageModel;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels;
 
 public partial class MainWindowViewModel : NavigationViewModel
 {
-    public MainWindowViewModel()
+    private static readonly Lazy<MainWindowViewModel> _instance = new(() => new MainWindowViewModel());
+    public static MainWindowViewModel Instance => _instance.Value;
+
+    private MainWindowViewModel()
         : base("窗口")
     {
+        CurrentPage = Pages[0];
         NavigateService.CurrentViewChanged += CurrentViewChanged;
 
         // 注册热键功能
@@ -47,40 +49,9 @@ public partial class MainWindowViewModel : NavigationViewModel
                     ViewBackwardCommand.Execute(null);
             }
         );
-
-        MessageBus
-            .ReceiveMessage<ViewChangeMessage>(this)
-            .WithHandler(ViewListChangeMessageHandle)
-            .AsWeakReference()
-            .Subscribe();
-
-        MessageBus
-            .ReceiveMessage<ExitReminderMessage>(this)
-            .WithHandler(ExitReminderMessageHandler)
-            .AsWeakReference()
-            .Subscribe();
-
-        MessageBus
-            .ReceiveMessage<ThemeColorChangeMessage>(this)
-            .WithHandler(ThemeColorChangeMessageHandler)
-            .SubscribeAsWeakReference();
     }
 
-    private void ThemeColorChangeMessageHandler(ThemeColorChangeMessage message, object sender)
-    {
-        if (IsMusicCoverPageVisible)
-        {
-            Dispatcher.UIThread.Post(() =>
-            {
-                ResourceDictionaryManager.Set(
-                    "CaptionButtonForeground",
-                    message.Theme == ThemeVariant.Light ? Brushes.DimGray : Brushes.GhostWhite
-                );
-            });
-        }
-    }
-
-    private void ExitReminderMessageHandler(ExitReminderMessage message, object sender)
+    public void Shutdown()
     {
         NavigateService.CurrentViewChanged -= CurrentViewChanged;
     }
@@ -91,7 +62,7 @@ public partial class MainWindowViewModel : NavigationViewModel
         CanGoForward = NavigateService.CanGoForward;
     }
 
-    public static ObservableCollection<IconItem> IconItems { get; set; } =
+    public ObservableCollection<IconItem> IconItems { get; set; } =
         [
             new(MusicName, new GeometryIconSource(IconService.GetIcon("SemiIconSong")), "", true),
             new(ClassificationName, new GeometryIconSource(IconService.GetIcon("SemiIconDisc")), "", true),
@@ -99,7 +70,7 @@ public partial class MainWindowViewModel : NavigationViewModel
             new(SettingsName, new GeometryIconSource(IconService.GetIcon("SemiIconSetting")), "", true),
         ];
 
-    public static void UpdateIconItems(string id, string name, IconSource coverImage)
+    public void UpdateIconItems(string id, string name, IconSource coverImage)
     {
         var item = IconItems.FirstOrDefault(i => i.Id == id);
         if (item == null)
@@ -109,49 +80,33 @@ public partial class MainWindowViewModel : NavigationViewModel
         item.Source = coverImage;
     }
 
-    private async void ViewListChangeMessageHandle(ViewChangeMessage message, object sender)
+    public void RemoveTabPage(string tabId)
     {
-        try
+        int index = NavigateService.GetChildViewIndex(NavViewName, tabId);
+        if (index <= Pages.Count && index > 0)
         {
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                if (message.IsRemove)
-                {
-                    int index = NavigateService.GetChildViewIndex(NavViewName, message.Id);
-                    if (index <= Pages.Count && index > 0)
-                    {
-                        Pages.RemoveAt(index);
-                    }
-
-                    NavigateService.RemoveChildView(NavViewName, message.Id);
-                    var i = IconItems.FirstOrDefault(x => x.Id == message.Id);
-                    if (i == null)
-                        return;
-
-                    IconItems.Remove(i);
-                }
-                else if (message.View != null)
-                {
-                    if (IconItems.FirstOrDefault(x => x.Id == message.Id) == null)
-                    {
-                        IconItems.Add(
-                            new IconItem(message.ViewTitle, new BitmapIconSource(message.ViewIcon), message.Id)
-                        );
-
-                        Pages.Add(message.View);
-                        NavigateService.AddChildView(NavViewName, message.Id);
-                    }
-                    NavigationIndex = NavigateService.GetChildViewIndex(NavViewName, message.Id);
-                }
-            });
+            Pages.RemoveAt(index);
         }
-        catch (Exception e)
+
+        NavigateService.RemoveChildView(NavViewName, tabId);
+        var i = IconItems.FirstOrDefault(x => x.Id == tabId);
+        if (i == null)
+            return;
+
+        IconItems.Remove(i);
+    }
+
+    public void AddTabPage(string tabId, string title, Bitmap icon, UserControl view)
+    {
+        if (IconItems.FirstOrDefault(x => x.Id == tabId) == null)
         {
-            NotificationService.ShowLight(
-                new Notification("坏欸", $"查看歌单《{message.ViewTitle}》失败了！QwQ遇到了错误 : \n {e.Message} "),
-                NotificationType.Error
-            );
+            IconItems.Add(new IconItem(title, new BitmapIconSource(icon), tabId));
+
+            Pages.Add(view);
+            NavigateService.AddChildView(NavViewName, tabId);
         }
+
+        NavigationIndex = NavigateService.GetChildViewIndex(NavViewName, tabId);
     }
 
     [RelayCommand]
@@ -167,7 +122,7 @@ public partial class MainWindowViewModel : NavigationViewModel
     public static string OtherName => Lang[nameof(OtherName)];
     public static string SettingsName => Lang[nameof(SettingsName)];
 
-    public static ObservableCollection<Control> Pages { get; } =
+    public ObservableCollection<Control> Pages { get; } =
         [
             new AllMusicPage { DataContext = new AllMusicPageViewModel() },
             new ClassificationPage { DataContext = new ClassificationPageViewModel() },
@@ -176,7 +131,7 @@ public partial class MainWindowViewModel : NavigationViewModel
         ];
 
     [ObservableProperty]
-    public partial Control CurrentPage { get; set; } = Pages[0];
+    public partial Control CurrentPage { get; set; }
 
     public int WindowWidth
     {
@@ -209,7 +164,7 @@ public partial class MainWindowViewModel : NavigationViewModel
     public partial bool IsMusicPlayerTrayVisible { get; set; } = true;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsBackgroundLayerVisible), nameof(MusicPlayListWidth))]
+    [NotifyPropertyChangedFor(nameof(MusicPlayListWidth))]
     public partial bool IsMusicPlayListVisible { get; set; }
 
     public bool IsMusicCoverPageVisible
@@ -222,12 +177,29 @@ public partial class MainWindowViewModel : NavigationViewModel
 
             OnPropertyChanged(nameof(MusicCoverPageHeight));
 
-            ResourceDictionaryManager.Set(
-                "CaptionButtonForeground",
-                (field ? MusicCoverPageViewModel.ThemeVariant : App.MainWindow.ActualThemeVariant) == ThemeVariant.Light
-                    ? Brushes.DimGray
-                    : Brushes.GhostWhite
-            );
+            object brush;
+            if (field)
+            {
+                brush = MusicCoverPageViewModel.ThemeVariant == "Light" ? Brushes.DimGray : Brushes.GhostWhite;
+            }
+            else
+            {
+                if (ConfigManager.InterfaceConfig.ThemeConfig.LightDarkMode == "Default")
+                {
+                    var color = ResourceDictionaryManager.Get<Color>("SemiGrey0Color");
+
+                    brush = IsBrightColor(color) ? Brushes.DimGray : Brushes.GhostWhite;
+                }
+                else
+                {
+                    brush =
+                        ConfigManager.InterfaceConfig.ThemeConfig.LightDarkMode == "Light"
+                            ? Brushes.DimGray
+                            : Brushes.GhostWhite;
+                }
+            }
+
+            ResourceDictionaryManager.Set("CaptionButtonForeground", brush);
 
             MessageBus
                 .CreateMessage(new IsPageVisibleChangeMessage(field, typeof(MusicCoverPage)))
@@ -260,8 +232,6 @@ public partial class MainWindowViewModel : NavigationViewModel
     public partial double MusicCoverPageYaxisOffset { get; set; }
 
     public double NavigationWidth => IsNavigationExpand ? 150 : 75;
-
-    public static bool IsBackgroundLayerVisible => false;
 
     [RelayCommand]
     private void ShowMusicPlaylist()
@@ -331,6 +301,13 @@ public partial class MainWindowViewModel : NavigationViewModel
     private void ViewBackward()
     {
         NavigateService.GoBack();
+    }
+
+    public static bool IsBrightColor(Color color)
+    {
+        // 亮度归一化到0~1
+        double luminance = (0.299 * color.R + 0.587 * color.G + 0.114 * color.B) / 255.0;
+        return luminance > 0.5;
     }
 }
 

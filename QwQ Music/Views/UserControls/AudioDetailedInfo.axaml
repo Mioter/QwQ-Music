@@ -9,18 +9,20 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:userControls="clr-namespace:QwQ_Music.ViewModels.UserControls">
 
-    <ItemsRepeater
+    <ItemsControl Margin="10"
         ItemsSource="{Binding MusicInfoKeyValuePairs}">
 
-        <ItemsRepeater.Layout>
-            <WrapLayout />
-        </ItemsRepeater.Layout>
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <WrapPanel ItemSpacing="10" LineSpacing="10" />
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
 
-        <ItemsRepeater.ItemTemplate>
+        <ItemsControl.ItemTemplate>
             <DataTemplate>
                 <SelectableTextBlock
                     MinWidth="260"
-                    Margin="10"
+                    Margin="5"
                     SelectedText="{Binding $parent[UserControl].((userControls:AudioDetailedInfoViewModel)DataContext).SelectedText}"
                     TextWrapping="Wrap"
                     VerticalAlignment="Center">
@@ -38,8 +40,8 @@
                     </SelectableTextBlock.ContextMenu>
                 </SelectableTextBlock>
             </DataTemplate>
-        </ItemsRepeater.ItemTemplate>
+        </ItemsControl.ItemTemplate>
 
-    </ItemsRepeater>
+    </ItemsControl>
 
 </UserControl>

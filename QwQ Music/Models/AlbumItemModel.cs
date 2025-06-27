@@ -5,11 +5,20 @@ using QwQ_Music.Services;
 
 namespace QwQ_Music.Models;
 
-public class AlbumItemModel(string title, string artist, string? coverPath) : ObservableObject
+public partial class AlbumItemModel(string name, string artist, string? coverPath = null) : ObservableObject
 {
-    public string Title { get; set; } = title;
+    public string Name { get; } = name;
 
-    public string Artist { get; set; } = artist;
+    public string Artist { get; } = artist;
+
+    [ObservableProperty]
+    public partial string? Description { get; set; }
+
+    [ObservableProperty]
+    public partial string? PublishTime { get; set; }
+
+    [ObservableProperty]
+    public partial string? Company { get; set; }
 
     // 添加一个标志表示图片是否正在加载
     private CoverStatus? _coverStatus;

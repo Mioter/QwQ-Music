@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.Notifications;
+using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
@@ -18,14 +19,14 @@ using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ_Music.Views.Pages;
 using QwQ_Music.Views.UserControls;
-using QwQ.Avalonia.Utilities.MessageBus;
 using Ursa.Controls;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.Pages;
 
 public partial class MusicListsPageViewModel : ViewModelBase
 {
+    public static IBrush RandomColor => ColorGenerator.GeneratePastelColor();
+
     public static MusicPlayerViewModel MusicPlayerViewModel { get; set; } = null!;
 
     public ObservableCollection<MusicListModel> PlayListItems { get; set; } = [];
@@ -51,18 +52,12 @@ public partial class MusicListsPageViewModel : ViewModelBase
             await musicList.LoadAsync(MusicPlayerViewModel.MusicItems);
         }
 
-        await MessageBus
-            .CreateMessage(
-                new ViewChangeMessage(
-                    musicList.Id,
-                    musicList.Name,
-                    musicList.CoverImage,
-                    new ViewMusicListPage { DataContext = new ViewMusicListPageViewModel(musicList) }
-                )
-            )
-            .AddReceivers<MainWindowViewModel>()
-            .PublishAsync()
-            .ConfigureAwait(false);
+        MainWindowViewModel.Instance.AddTabPage(
+            musicList.Id,
+            musicList.Name,
+            musicList.CoverImage,
+            new ViewMusicListPage { DataContext = new ViewMusicListPageViewModel(musicList) }
+        );
     }
 
     [RelayCommand]
@@ -99,19 +94,13 @@ public partial class MusicListsPageViewModel : ViewModelBase
 
         if (result == DataBaseService.OperationResult.Success)
         {
-            NotificationService.ShowLight(
-                new Notification("成功", $"歌单《{model.Name}》创建成功！"),
-                NotificationType.Success
-            );
+            NotificationService.ShowLight("成功", $"歌单《{model.Name}》创建成功！", NotificationType.Success);
             return;
         }
 
         await LoggerService.ErrorAsync($"添加《{model.Name}》歌单失败");
         PlayListItems.Remove(model);
-        NotificationService.ShowLight(
-            new Notification("错误", $"创建歌单《{model.Name}》失败！"),
-            NotificationType.Error
-        );
+        NotificationService.ShowLight("错误", $"创建歌单《{model.Name}》失败！", NotificationType.Error);
     }
 
     [RelayCommand]
@@ -160,7 +149,8 @@ public partial class MusicListsPageViewModel : ViewModelBase
         {
             await LoggerService.ErrorAsync($"创建歌单《{model.Name}》失败: {ex.Message}");
             NotificationService.ShowLight(
-                new Notification("错误", $"创建歌单《{model.Name}》失败！\n{ex.Message}"),
+                "错误",
+                $"创建歌单《{model.Name}》失败！\n{ex.Message}",
                 NotificationType.Error
             );
             return null;
@@ -190,7 +180,8 @@ public partial class MusicListsPageViewModel : ViewModelBase
         {
             string existingTitles = string.Join("、", existingItems.Select(item => $"《{item.Title}》"));
             NotificationService.ShowLight(
-                new Notification("提示", $"歌曲{existingTitles}已存在于歌单 {listName} 中！"),
+                "提示",
+                $"歌曲{existingTitles}已存在于歌单 {listName} 中！",
                 NotificationType.Information
             );
         }
@@ -234,7 +225,8 @@ public partial class MusicListsPageViewModel : ViewModelBase
         {
             string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
             NotificationService.ShowLight(
-                new Notification("成功", $"已将歌曲{successTitles}添加到歌单：{listName}！"),
+                "成功",
+                $"已将歌曲{successTitles}添加到歌单：{listName}！",
                 NotificationType.Success
             );
         }
@@ -242,10 +234,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
         if (failedItems.Count > 0)
         {
             string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
-            NotificationService.ShowLight(
-                new Notification("错误", $"添加歌曲{failedTitles}到歌单失败！"),
-                NotificationType.Error
-            );
+            NotificationService.ShowLight("错误", $"添加歌曲{failedTitles}到歌单失败！", NotificationType.Error);
         }
     }
 
@@ -303,7 +292,8 @@ public partial class MusicListsPageViewModel : ViewModelBase
         {
             string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
             NotificationService.ShowLight(
-                new Notification("成功", $"已将歌曲{successTitles}从歌单 {listName} 中移除！"),
+                "成功",
+                $"已将歌曲{successTitles}从歌单 {listName} 中移除！",
                 NotificationType.Success
             );
         }
@@ -311,10 +301,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
         if (failedItems.Count > 0)
         {
             string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
-            NotificationService.ShowLight(
-                new Notification("错误", $"从歌单移除歌曲{failedTitles}失败！"),
-                NotificationType.Error
-            );
+            NotificationService.ShowLight("错误", $"从歌单移除歌曲{failedTitles}失败！", NotificationType.Error);
         }
     }
 
@@ -420,16 +407,13 @@ public partial class MusicListsPageViewModel : ViewModelBase
             // 更新数据库
             if (await EditMusicListModelInDataBase(name, musicListItem))
             {
-                MainWindowViewModel.UpdateIconItems(
+                MainWindowViewModel.Instance.UpdateIconItems(
                     musicListItem.Id,
                     musicListItem.Name,
                     new BitmapIconSource(musicListItem.CoverImage)
                 );
 
-                NotificationService.ShowLight(
-                    new Notification("成功", $"编辑歌单《{name}》成功！"),
-                    NotificationType.Success
-                );
+                NotificationService.ShowLight("成功", $"编辑歌单《{name}》成功！", NotificationType.Success);
             }
             else
             {
@@ -444,7 +428,8 @@ public partial class MusicListsPageViewModel : ViewModelBase
             musicListItem.Description = description;
             musicListItem.CoverPath = coverPath;
             NotificationService.ShowLight(
-                new Notification("错误", $"编辑歌单《{model.Name}》失败！\n{ex.Message}"),
+                "错误",
+                $"编辑歌单《{model.Name}》失败！\n{ex.Message}",
                 NotificationType.Error
             );
         }
@@ -489,21 +474,16 @@ public partial class MusicListsPageViewModel : ViewModelBase
                 model.Name
             );
 
-            await MessageBus
-                .CreateMessage(new ViewChangeMessage(model.Id, model.Name, model.CoverImage, null, true))
-                .AddReceivers<MainWindowViewModel>()
-                .PublishAsync();
+            MainWindowViewModel.Instance.RemoveTabPage(model.Id);
 
-            NotificationService.ShowLight(
-                new Notification("成功", $"歌单《{model.Name}》删除成功！"),
-                NotificationType.Success
-            );
+            NotificationService.ShowLight("成功", $"歌单《{model.Name}》删除成功！", NotificationType.Success);
         }
         catch (Exception ex)
         {
             await LoggerService.ErrorAsync($"删除歌单失败: {ex.Message}");
             NotificationService.ShowLight(
-                new Notification("错误", $"删除歌单《{model.Name}》失败！\n{ex.Message}"),
+                "错误",
+                $"删除歌单《{model.Name}》失败！\n{ex.Message}",
                 NotificationType.Error
             );
             throw;
@@ -550,10 +530,7 @@ public partial class MusicListsPageViewModel : ViewModelBase
         if (playlistInfos is null)
         {
             await LoggerService.ErrorAsync("加载歌单列表失败: 结果为 null");
-            NotificationService.ShowLight(
-                new Notification("错误", "加载歌单列表失败！结果为 null"),
-                NotificationType.Error
-            );
+            NotificationService.ShowLight("错误", "加载歌单列表失败！结果为 null", NotificationType.Error);
 
             return;
         }

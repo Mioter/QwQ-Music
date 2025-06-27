@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Shader;
+using QwQ_Music.Utilities;
 using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ_Music.Views.Pages;
@@ -73,7 +73,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
     [ObservableProperty]
     public partial List<Color> ColorsList { get; set; } = _defaultColors;
 
-    public static ThemeVariant ThemeVariant { get; set; } = ThemeVariant.Dark;
+    public static string ThemeVariant { get; set; } = "Dark";
 
     private const int COLOR_COUNT = 4;
 
@@ -89,10 +89,18 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
             UpdateThemeVariantFromColors();
 
+            if (MainWindowViewModel.Instance.IsMusicCoverPageVisible)
+            {
+                ResourceDictionaryManager.Set(
+                    "CaptionButtonForeground",
+                    ThemeVariant == "Light" ? Brushes.DimGray : Brushes.GhostWhite
+                );
+            }
+
             await MessageBus
                 .CreateMessage(new ThemeColorChangeMessage(ThemeVariant, typeof(MusicCoverPage)))
                 .FromSender(this)
-                .AddReceivers(typeof(MusicPlayListViewModel), typeof(MainWindowViewModel))
+                .AddReceivers(typeof(MusicPlayListViewModel))
                 .PublishAsync();
         }
         catch (Exception ex)
@@ -172,7 +180,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
     {
         if (ColorsList.Count == 0)
         {
-            ThemeVariant = ThemeVariant.Default;
+            ThemeVariant = "Default";
             return;
         }
 
@@ -181,7 +189,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         double avgLuminance = totalLuminance / ColorsList.Count;
 
         // 根据平均亮度设置主题（反色）
-        ThemeVariant = avgLuminance > 0.5 ? ThemeVariant.Light : ThemeVariant.Dark;
+        ThemeVariant = avgLuminance > 0.5 ? "Light" : "Dark";
 
         OnPropertyChanged(nameof(ThemeVariant));
     }
@@ -211,7 +219,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
     ];
 
     [RelayCommand]
-    private void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs e)
+    private static void OnVolumeBarPointerWheelChanged(PointerWheelEventArgs e)
     {
         // 阻止事件冒泡到父级元素
         e.Handled = true;

@@ -12,7 +12,7 @@
 
             <Panel Height="{Binding PanelHeight}" Margin="0">
 
-                <Image Source="{Binding BackgroundImage}" />
+                <Image Stretch="UniformToFill" Source="{Binding BackgroundImage}" />
 
                 <Panel Background="{DynamicResource SemiColorBackground0}" Opacity="0.3" />
 
@@ -27,26 +27,7 @@
                         Icon="{StaticResource SemiIconGithubLogo}" />
 
                 </StackPanel>
-
-                <!--
-                <Panel.Styles>
-                    <Style Selector="TextBlock.BigText">
-                        <Setter Property="Foreground" Value="{DynamicResource SemiBlue1}" />
-                        <Setter Property="VerticalAlignment" Value="Center" />
-                        <Setter Property="Margin" Value="20,0" />
-                        <Setter Property="FontSize" Value="50" />
-                        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
-                        <Setter Property="FontWeight" Value="Bold" />
-                    </Style>
-                </Panel.Styles>
-      
                 
-                <TextBlock Text="程序开发" Classes="BigText" />
-
-                <TextBlock Text="U I 设计" Classes="BigText"
-                           HorizontalAlignment="Right" />
-                           -->
-
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" Margin="10">
 
                     <Border
@@ -125,7 +106,7 @@
 
             <Border Margin="0,5,0,0" CornerRadius="8" Background="{DynamicResource SemiBlue1}"
                     BorderThickness="1" BorderBrush="{DynamicResource SemiBlue4}">
-                <TextBlock TextAlignment="Center" Text="感谢以下开源项目，为本项目直接提供或参考了部分功能！" FontWeight="Bold"
+                <TextBlock TextAlignment="Center" Text="感谢以下开源项目和Nuget包，为本项目直接提供功能或参考了实现！" FontWeight="Bold"
                            Margin="20,5" />
             </Border>
 

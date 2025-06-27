@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
@@ -39,13 +38,13 @@ public partial class MusicPlayListViewModel : ViewModelBase
             return;
 
         _isCoverPageVisible = message.IsVisible;
-        ThemeVariant = _isCoverPageVisible ? MusicCoverPageViewModel.ThemeVariant : ThemeVariant.Default;
+        ThemeVariant = _isCoverPageVisible ? MusicCoverPageViewModel.ThemeVariant : "Default";
     }
 
     private bool _isCoverPageVisible;
 
     [ObservableProperty]
-    public partial ThemeVariant ThemeVariant { set; get; } = ThemeVariant.Default;
+    public partial string ThemeVariant { set; get; } = "Default";
 
     [ObservableProperty]
     public partial MusicItemModel? SelectedItem { get; set; }

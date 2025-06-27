@@ -48,10 +48,10 @@
                             FillMode="Forward"
                             IterationCount="Infinite">
                             <KeyFrame Cue="0%">
-                                <Setter Property="helper:LinearGradientBrushHelper.RotateAngle" Value="0" />
+                                <Setter Property="helper:BorderLinearGradientBrushHelper.BorderBrushRotateAngle" Value="0" />
                             </KeyFrame>
                             <KeyFrame Cue="100%">
-                                <Setter Property="helper:LinearGradientBrushHelper.RotateAngle" Value="360" />
+                                <Setter Property="helper:BorderLinearGradientBrushHelper.BorderBrushRotateAngle" Value="360" />
                             </KeyFrame>
                         </Animation>
                     </Style.Animations>

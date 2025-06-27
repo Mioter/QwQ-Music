@@ -1,5 +1,5 @@
 <Application
-    RequestedThemeVariant="{Binding ThemeVariant}"
+    RequestedThemeVariant="{Binding ThemeConfig.LightDarkMode}"
     x:Class="QwQ_Music.App"
     x:CompileBindings="True"
     xmlns="https://github.com/avaloniaui"

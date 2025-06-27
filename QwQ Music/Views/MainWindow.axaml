@@ -250,6 +250,10 @@
                                             <Style Selector="StackPanel > TextBlock">
                                                 <Setter Property="VerticalAlignment" Value="Center" />
                                             </Style>
+                                            
+                                            <Style Selector="TextBlock.Transparent">
+                                                <Setter Property="Opacity" Value="0"/>
+                                            </Style>
 
                                         </StackPanel.Styles>
 
@@ -270,7 +274,17 @@
 
                                         </ContentControl>
 
-                                        <TextBlock Text="{Binding Title}" />
+                                        <TextBlock Text="{Binding Title}"
+                                                   Classes.Transparent="{Binding !$parent[Window].((viewModels:MainWindowViewModel)DataContext).IsNavigationExpand}">
+                                            <TextBlock.Transitions>
+                                                <Transitions>
+                                                    <DoubleTransition
+                                                        Duration="0:0:0.5"
+                                                        Easing="CircularEaseOut"
+                                                        Property="Opacity" />
+                                                </Transitions>
+                                            </TextBlock.Transitions>
+                                        </TextBlock>
 
                                     </StackPanel>
                                 </Panel>
@@ -331,15 +345,6 @@
             </Interaction.Behaviors>
 
         </Grid>
-
-        <Button
-            Grid.Row="0"
-            Grid.RowSpan="2"
-            IsVisible="{Binding IsBackgroundLayerVisible}"
-            Classes="None"
-            Command="{Binding GlobalButtonClickCommand}"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch" />
 
         <Panel
             Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"

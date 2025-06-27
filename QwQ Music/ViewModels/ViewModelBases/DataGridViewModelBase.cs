@@ -8,7 +8,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.ViewModelBases;
 
@@ -36,7 +35,7 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel>?
     [ObservableProperty]
     public partial MusicItemModel? SelectedItem { get; set; }
 
-    public IList<MusicItemModel>? SelectedItems { get; set; }
+    public List<MusicItemModel>? SelectedItems { get; set; }
 
     [RelayCommand]
     private void SelectedItemChanged(IList items)
@@ -61,11 +60,11 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel>?
     }
 
     [RelayCommand]
-    private async Task AddToMusicList(string musicListName)
+    private async Task AddToMusicList(string? musicListName)
     {
-        if (SelectedItems is { Count: > 0 })
+        if (SelectedItems is { Count: > 0 } && musicListName != null)
         {
-            await MusicPlayerViewModel.MusicListsViewModel.AddToMusicList(SelectedItems.ToList(), musicListName);
+            await MusicPlayerViewModel.MusicListsViewModel.AddToMusicList(SelectedItems, musicListName);
         }
     }
 
@@ -74,7 +73,7 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel>?
     {
         if (SelectedItems is { Count: > 0 })
         {
-            await MusicPlayerViewModel.MusicListsViewModel.RemoveToMusicList(SelectedItems.ToList(), musicListName);
+            await MusicPlayerViewModel.MusicListsViewModel.RemoveToMusicList(SelectedItems, musicListName);
         }
     }
 
@@ -83,7 +82,7 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel>?
     {
         if (items is not { Count: > 0 })
         {
-            NotificationService.ShowLight(new Notification("提示", "请先选择音乐项哦~"), NotificationType.Success);
+            NotificationService.ShowLight("提示", "请先选择音乐项哦~", NotificationType.Success);
             return;
         }
 

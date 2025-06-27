@@ -2,13 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
              xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+             xmlns:u="https://irihi.tech/ursa"
              x:DataType="pages:AlbumClassPageViewModel"
              x:Class="QwQ_Music.Views.Pages.AlbumClassPage">
 
     <Grid Margin="10" RowSpacing="10" RowDefinitions="Auto,*">
 
         <Panel>
-            
+
             <TextBox
                 CornerRadius="15"
                 HorizontalAlignment="Left"
@@ -16,350 +17,78 @@
                 Watermark="搜索专辑"
                 Width="200" />
 
-            <StackPanel Spacing="10" HorizontalAlignment="Right" Orientation="Horizontal" Margin="10,0">
+            <StackPanel Spacing="8" HorizontalAlignment="Right" Orientation="Horizontal">
+
+                <StackPanel.Styles>
+
+                    <Style Selector=":is(Button)">
+                        <Setter Property="Height" Value="32" />
+                        <Setter Property="Width" Value="32" />
+                    </Style>
+
+                    <Style Selector="u|IconButton">
+                        <Setter Property="CornerRadius" Value="8" />
+                        <Setter Property="Background" Value="Transparent" />
+                    </Style>
+
+                </StackPanel.Styles>
 
                 <StackPanel Orientation="Horizontal" Spacing="10">
 
-                    <Rectangle Height="20" Fill="{DynamicResource SemiBlue4Color}" Width="4" VerticalAlignment="Center" />
+                    <Rectangle Height="15" Fill="{DynamicResource SemiBlue4Color}" Width="4" VerticalAlignment="Center" />
 
                     <control:RunningText
                         Width="200"
-                        Speed="30"
+                        Speed="50"
                         FontSize="16"
                         FontWeight="Bold"
                         VerticalAlignment="Center"
-                        Text="{Binding SelectedAlbumItem.Title}" />
+                        Text="{Binding AllAlbumsPanelViewModel.SelectedAlbumItem.Name,FallbackValue='请选择专辑'}" />
                 </StackPanel>
+
+                <u:IconButton
+                    Classes="Icon"
+                    ToolTip.Tip="返回全部专辑页面"
+                    IsEnabled="{Binding NavigationIndex}"
+                    Command="{Binding BackAllAlbumCommand}"
+                    Icon="{StaticResource SemiIconReply}" />
 
                 <Button
                     Classes="Icon"
                     CornerRadius="8"
-                    Command="{Binding PlayAlbumMusicCommand}"
-                    CommandParameter="{Binding SelectedAlbumItem}"
-                    Height="32" Width="32"
+                    ToolTip.Tip="播放本专辑"
+                    Command="{Binding AllAlbumsPanelViewModel.PlayAlbumMusicCommand}"
+                    CommandParameter="{Binding AllAlbumsPanelViewModel.SelectedAlbumItem}"
                     Padding="2">
                     <PathIcon Data="{StaticResource PlayIconData}" Margin="0" />
                 </Button>
 
             </StackPanel>
-            
+
         </Panel>
-        
-        <Separator Grid.Row="1" VerticalAlignment="Top"/>
-        
-        <Grid Grid.Row="1">
 
-            <!--
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition MinWidth="120" Width="230" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition MinWidth="350" />
-            </Grid.ColumnDefinitions>
-            -->
+        <Border Grid.Row="1"
+                CornerRadius="12" ClipToBounds="True">
 
-            <ScrollViewer Margin="0,10,0,0">
+            <ScrollViewer>
 
-                <ItemsControl Background="Transparent" ItemsSource="{Binding AlbumItems}">
-
-                    <ItemsControl.Styles>
-
-                        <Style Selector="Button">
-                            <Setter Property="Padding" Value="10" />
-                            <Setter Property="CornerRadius" Value="12" />
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="Command"
-                                    Value="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).ToggleItemCommand}" />
-                            <Setter Property="CommandParameter" Value="{Binding }" />
-                            <Setter Property="ContextMenu">
-                                <Setter.Value>
-                                    <ContextMenu>
-                                        <MenuItem
-                                            Command="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).PlayAlbumMusicCommand}"
-                                            CommandParameter="{Binding}"
-                                            Header="播放">
-                                            <MenuItem.Icon>
-                                                <PathIcon Data="{StaticResource SemiIconPlay}" Margin="4" />
-                                            </MenuItem.Icon>
-                                        </MenuItem>
-
-                                    </ContextMenu>
-                                </Setter.Value>
-                            </Setter>
-
-                        </Style>
-
-                    </ItemsControl.Styles>
-
-                    <!--<ItemsRepeater.Layout>
-                        <WrapLayout />
-                    </ItemsRepeater.Layout>-->
-                    
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel ItemSpacing="10" LineSpacing="10"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-
-                    <ItemsControl.ItemTemplate>
-
-                        <DataTemplate>
-
-                            <Button>
-
-                                <StackPanel
-                                    Width="80"
-                                    Spacing="5">
-
-                                    <Border
-                                        Margin="5"
-                                        HorizontalAlignment="Center"
-                                        CornerRadius="12"
-                                        Background="{DynamicResource SemiColorBackground3}"
-                                        BoxShadow="0 0 10 0 LightGray"
-                                        VerticalAlignment="Center">
-
-                                        <Border CornerRadius="10"
-                                                Margin="5"
-
-                                                ClipToBounds="True">
-                                            <Image
-                                                Source="{Binding CoverImage}" />
-                                        </Border>
-
-                                    </Border>
-
-                                    <!--<control:RunningText
-                                        Direction="RightToLeft"
-                                        TextAlignment="Center"
-                                        Foreground="{DynamicResource TextBlockDefaultForeground}"
-                                        Text="{Binding Title}"
-                                        FontWeight="Bold"
-                                        Speed="60">
-                                        <Interaction.Behaviors>
-                                            <DataTriggerBehavior Binding="{Binding $parent[Button].IsPointerOver}"
-                                                                 Value="True">
-                                                <ChangeAvaloniaPropertyAction
-                                                    TargetProperty="{x:Static control:RunningText.BehaviorProperty}"
-                                                    Value="Auto" />
-                                            </DataTriggerBehavior>
-                                            <DataTriggerBehavior Binding="{Binding $parent[Button].IsPointerOver}"
-                                                                 Value="False">
-                                                <ChangeAvaloniaPropertyAction
-                                                    TargetProperty="{x:Static control:RunningText.BehaviorProperty}"
-                                                    Value="Pause" />
-                                            </DataTriggerBehavior>
-                                        </Interaction.Behaviors>
-                                    </control:RunningText>
-
-                                    <control:RunningText
-                                        TextAlignment="Center"
-                                        Text="{Binding Artist}"
-                                        FontSize="12" Direction="RightToLeft"
-                                        Foreground="{DynamicResource TextBlockTertiaryForeground}"
-                                        Speed="60">
-                                        <Interaction.Behaviors>
-                                            <DataTriggerBehavior Binding="{Binding $parent[Button].IsPointerOver}"
-                                                                 Value="True">
-                                                <ChangeAvaloniaPropertyAction
-                                                    TargetProperty="{x:Static control:RunningText.BehaviorProperty}"
-                                                    Value="Auto" />
-                                            </DataTriggerBehavior>
-                                            <DataTriggerBehavior Binding="{Binding $parent[Button].IsPointerOver}"
-                                                                 Value="False">
-                                                <ChangeAvaloniaPropertyAction
-                                                    TargetProperty="{x:Static control:RunningText.BehaviorProperty}"
-                                                    Value="Pause" />
-                                            </DataTriggerBehavior>
-                                        </Interaction.Behaviors>
-                                    </control:RunningText>-->
-
-                                </StackPanel>
-
-                            </Button>
-
-                        </DataTemplate>
-
-                    </ItemsControl.ItemTemplate>
-
-                </ItemsControl>
+                <TransitioningContentControl Content="{Binding CurrentControl}">
+                    <TransitioningContentControl.PageTransition>
+                        <CompositePageTransition>
+                            <CrossFade Duration="0:0:0.5" />
+                            <PageSlide
+                                Duration="0:0:0.3"
+                                Orientation="Vertical"
+                                SlideInEasing="QuadraticEaseIn"
+                                SlideOutEasing="QuadraticEaseOut" />
+                        </CompositePageTransition>
+                    </TransitioningContentControl.PageTransition>
+                </TransitioningContentControl>
 
             </ScrollViewer>
 
-            <!--
-            <GridSplitter Background="Transparent" Grid.Column="1" ResizeDirection="Auto" />
-            
-            <ListBox
-                Grid.Column="2"
-                Margin="0,5,0,0"
-                ItemsSource="{Binding MusicItems}"
-                SelectedItem="{Binding SelectedItem}"
-                SelectedItems="{Binding SelectedItems}"
-                AutoScrollToSelectedItem="True"
-                u:ScrollTo.Direction="Top">
-
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Panel>
-                            <StackPanel Orientation="Horizontal">
-
-                                <userControls:MusicAlbumButton
-                                    Command="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
-                                    CommandParameter="{Binding}"
-                                    CornerRadius="8"
-                                    CurrentMusicItem="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
-                                    ExternalMouseTouch="{Binding $parent[ListBoxItem].IsPointerOver}"
-                                    IsPlaying="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
-                                    <Button.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="10"
-                                            Color="DarkGray"
-                                            OffsetX="0"
-                                            OffsetY="0"
-                                            Opacity="0.5" />
-                                    </Button.Effect>
-                                </userControls:MusicAlbumButton>
-
-                                <StackPanel Spacing="5" VerticalAlignment="Center">
-                                    <TextBlock FontWeight="Bold" Text="{Binding Title}" />
-                                    <TextBlock
-                                        Classes="Tertiary"
-                                        FontSize="12"
-                                        Text="{Binding Artists}" />
-                                </StackPanel>
-
-                            </StackPanel>
-                        </Panel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-
-                <ListBox.Styles>
-
-                    <Style Selector="ListBoxItem">
-                        <Setter Property="Padding" Value="0" />
-                        <Setter Property="Margin" Value="3" />
-                        <Setter Property="CornerRadius" Value="10" />
-                        <Setter Property="ContextMenu">
-
-                            <Setter.Value>
-                                <ContextMenu>
-
-                                    <MenuItem
-                                        Command="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
-                                        CommandParameter="{Binding}"
-                                        Header="立即播放">
-                                        <MenuItem.Icon>
-                                            <PathIcon Data="{StaticResource SemiIconPlay}" Margin="2" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-
-
-                                    <MenuItem
-                                        Header="添加到">
-                                        <MenuItem.Icon>
-                                            <PathIcon
-                                                Data="{StaticResource SemiIconCopyAdd}"
-                                                Margin="1.5" />
-                                        </MenuItem.Icon>
-
-                                        <MenuItem
-                                            Header="已有歌单"
-                                            IsVisible="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems.Count}"
-                                            ItemsSource="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems}">
-
-                                            <MenuItem.ItemContainerTheme>
-                                                <ControlTheme TargetType="MenuItem" x:DataType="models:MusicListModel"
-                                                              BasedOn="{StaticResource BigIconMenuItem}">
-                                                    <Setter Property="Header" Value="{Binding Name}" />
-                                                    <Setter Property="Command"
-                                                            Value="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).AddToMusicListCommand}" />
-                                                    <Setter Property="CommandParameter" Value="{Binding Name}" />
-                                                    <Setter Property="Icon">
-                                                        <Template>
-                                                            <Border CornerRadius="6">
-
-                                                                <Border.Effect>
-                                                                    <DropShadowEffect
-                                                                        BlurRadius="10"
-                                                                        Color="LightGray"
-                                                                        OffsetX="0"
-                                                                        OffsetY="0"
-                                                                        Opacity="0.5" />
-                                                                </Border.Effect>
-
-                                                                <Border CornerRadius="6" ClipToBounds="True">
-                                                                    <Image
-                                                                        Height="30" Width="30"
-                                                                        Source="{Binding CoverImage}" />
-                                                                </Border>
-                                                            </Border>
-                                                        </Template>
-                                                    </Setter>
-                                                </ControlTheme>
-                                            </MenuItem.ItemContainerTheme>
-
-                                        </MenuItem>
-
-                                        <Separator
-                                            Margin="0,5"
-                                            IsVisible="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems.Count}" />
-
-                                        <MenuItem Header="下一首"
-                                                  Command="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
-                                                  CommandParameter="{Binding $parent[DataGrid].SelectedItems}">
-                                            <MenuItem.Icon>
-                                                <PathIcon Data="{StaticResource SemiIconTriangleDown}" Margin="2" />
-                                            </MenuItem.Icon>
-                                        </MenuItem>
-
-                                        <MenuItem Header="新建歌单"
-                                                  Command="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.CreateAndAddToMusicListCommand}"
-                                                  CommandParameter="{Binding $parent[DataGrid].SelectedItems}">
-                                            <MenuItem.Icon>
-                                                <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
-                                            </MenuItem.Icon>
-                                        </MenuItem>
-
-                                    </MenuItem>
-
-                                    ~1~  在文件中打开  @1@
-                                    <MenuItem
-                                        Command="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
-                                        CommandParameter="{Binding}"
-                                        Header="在文件中打开">
-                                        <MenuItem.Icon>
-                                            <PathIcon Data="{StaticResource SemiIconFolder}" Margin="2" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-
-                                    <MenuItem
-                                        Command="{Binding $parent[UserControl].((pages:AlbumClassPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
-                                        CommandParameter="{Binding}"
-                                        Header="详细信息">
-                                        <MenuItem.Icon>
-                                            <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-
-                                </ContextMenu>
-                            </Setter.Value>
-                        </Setter>
-
-                    </Style>
-
-                </ListBox.Styles>
-                
-                <Interaction.Behaviors>
-
-                    <DoubleTappedTrigger>
-                        <InvokeCommandAction Command="{Binding ToggleMusicCommand}" />
-                    </DoubleTappedTrigger>
-
-                </Interaction.Behaviors>
-
-            </ListBox>
-            -->
-
-        </Grid>
+        </Border>
 
     </Grid>
+
 </UserControl>

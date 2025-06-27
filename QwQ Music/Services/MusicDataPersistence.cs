@@ -8,7 +8,6 @@ using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.ViewModels;
 using QwQ_Music.ViewModels.Pages;
 using QwQ.Avalonia.Utilities.MessageBus;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.Services;
 
@@ -94,19 +93,13 @@ public static class MusicDataPersistence
         if (successItems.Count > 0 && isEnableSuccessPrompt)
         {
             string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
-            NotificationService.ShowLight(
-                new Notification("好欸", $"保存{successTitles}成功了！"),
-                NotificationType.Success
-            );
+            NotificationService.ShowLight("好欸", $"保存{successTitles}成功了！", NotificationType.Success);
         }
 
         if (failedItems.Count > 0 && isEnableFailedPrompt)
         {
             string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
-            NotificationService.ShowLight(
-                new Notification("坏欸", $"保存{failedTitles}失败了！"),
-                NotificationType.Error
-            );
+            NotificationService.ShowLight("坏欸", $"保存{failedTitles}失败了！", NotificationType.Error);
         }
     }
 
@@ -127,10 +120,7 @@ public static class MusicDataPersistence
 
         if (existingPaths == null)
         {
-            NotificationService.ShowLight(
-                new Notification("错误", "获取播放列表播放路径失败！"),
-                NotificationType.Error
-            );
+            NotificationService.ShowLight("错误", "获取播放列表播放路径失败！", NotificationType.Error);
             return;
         }
 

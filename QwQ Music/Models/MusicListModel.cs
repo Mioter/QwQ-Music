@@ -8,7 +8,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.ViewModels;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.Models;
 
@@ -197,10 +196,7 @@ public partial class MusicListModel : ObservableObject
         if (filePaths?.Count >= 0)
             return filePaths;
 
-        NotificationService.ShowLight(
-            new Notification("错误", $"获取歌单《{Name}》中的音乐文件路径失败！"),
-            NotificationType.Error
-        );
+        NotificationService.ShowLight("错误", $"获取歌单《{Name}》中的音乐文件路径失败！", NotificationType.Error);
         IsError = true;
         return [];
     }

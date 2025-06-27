@@ -9,7 +9,6 @@ using QwQ_Music.ViewModels;
 using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.Views.UserControls;
 using Ursa.Controls;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.Views;
 
@@ -25,7 +24,7 @@ public partial class MainWindow : Window
         Width = 1200;
         Height = 800;
 
-        DataContext = new MainWindowViewModel();
+        DataContext = MainWindowViewModel.Instance;
     }
 
     public void ShowMainWindow()
@@ -56,7 +55,8 @@ public partial class MainWindow : Window
                     if (_isOpenClosingDialog)
                     {
                         NotificationService.ShowLight(
-                            new Notification("注意", "请不要再点啦，先选择关闭行为吧！"),
+                            "注意",
+                            "请不要再点啦，先选择关闭行为吧！",
                             NotificationType.Information,
                             showClose: true
                         );

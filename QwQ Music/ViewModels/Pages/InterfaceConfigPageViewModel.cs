@@ -1,9 +1,11 @@
 using System.Threading.Tasks;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Helper;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Services;
+using QwQ_Music.Utilities;
 using QwQ_Music.ViewModels.ViewModelBases;
 
 namespace QwQ_Music.ViewModels.Pages;
@@ -13,6 +15,35 @@ public partial class InterfaceConfigPageViewModel() : NavigationViewModel("ç•Œé
     public MusicPlayerViewModel MusicPlayerViewModel { get; set; } = MusicPlayerViewModel.Instance;
 
     public InterfaceConfig InterfaceConfig { get; set; } = ConfigManager.InterfaceConfig;
+
+    public string LightDarkMode
+    {
+        get => InterfaceConfig.ThemeConfig.LightDarkMode;
+        set
+        {
+            InterfaceConfig.ThemeConfig.LightDarkMode = value;
+
+            if (MainWindowViewModel.Instance.IsMusicCoverPageVisible)
+                return;
+
+            object brush;
+            if (ConfigManager.InterfaceConfig.ThemeConfig.LightDarkMode == "Default")
+            {
+                var color = ResourceDictionaryManager.Get<Color>("SemiGrey0Color");
+
+                brush = MainWindowViewModel.IsBrightColor(color) ? Brushes.DimGray : Brushes.GhostWhite;
+            }
+            else
+            {
+                brush =
+                    ConfigManager.InterfaceConfig.ThemeConfig.LightDarkMode == "Light"
+                        ? Brushes.DimGray
+                        : Brushes.GhostWhite;
+            }
+
+            ResourceDictionaryManager.Set("CaptionButtonForeground", brush);
+        }
+    }
 
     [RelayCommand]
     private async Task ClearCoverColor()
@@ -30,4 +61,6 @@ public partial class InterfaceConfigPageViewModel() : NavigationViewModel("ç•Œé
 
     public static ColorExtractionAlgorithm[] ColorExtractionAlgorithms =>
         EnumHelper<ColorExtractionAlgorithm>.ToArray();
+
+    public static string[] LightDarkModes => ["Light", "Dark", "Default"];
 }

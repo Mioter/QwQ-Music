@@ -3,25 +3,23 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
-using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
 using QwQ_Music.Models;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Services;
 using QwQ_Music.Services.Audio;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.Utilities;
 using QwQ_Music.Views;
 using QwQ.Avalonia.Utilities.MessageBus;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels;
 
 public partial class ApplicationViewModel : ObservableObject
 {
-    [ObservableProperty]
-    public partial ThemeVariant ThemeVariant { set; get; } = ThemeVariant.Default;
+    public ThemeConfig ThemeConfig { get; set; } = ConfigManager.InterfaceConfig.ThemeConfig;
 
     [RelayCommand]
     private static void ShowMainWindow()
@@ -38,7 +36,7 @@ public partial class ApplicationViewModel : ObservableObject
             mainWindow.Topmost = true;
             mainWindow.Topmost = false;
 
-            NotificationService.ShowLight(new Notification("看我", "窗口已经在显示了~"), NotificationType.Information);
+            NotificationService.ShowLight("看我", "窗口已经在显示了~", NotificationType.Information);
         }
         else
         {
@@ -82,6 +80,7 @@ public partial class ApplicationViewModel : ObservableObject
             AudioEngineManager.Dispose();
             MessageBus.Dispose();
 
+            MainWindowViewModel.Instance.Shutdown();
             await DataBaseService.DisposeAsync();
             await LoggerService.InfoAsync(
                 "\n"

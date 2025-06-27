@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             xmlns:helper="clr-namespace:QwQ_Music.Helper"
              x:DataType="pages:MusicListsPageViewModel"
              x:Class="QwQ_Music.Views.Pages.MusicListsPage">
 
@@ -12,6 +13,13 @@
 
                 <ItemsControl.Styles>
                     <Style Selector="ItemsControl > ContentPresenter">
+                        
+                        <Setter Property="Transitions">
+                            <Transitions>
+                                <TransformOperationsTransition Duration="0:0:0.2" Property="RenderTransform" />
+                            </Transitions>
+                        </Setter>
+
                         <Setter Property="ContextMenu">
                             <Setter.Value>
                                 <ContextMenu>
@@ -50,30 +58,11 @@
                             </Setter.Value>
                         </Setter>
                     </Style>
-
-                    <Style Selector="Button">
-                        <Setter Property="Padding" Value="10" />
-                        <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
-                        <Setter Property="CornerRadius" Value="12" />
-                        <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
-
-                        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                            <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
-                        </Style>
-
-                        <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
-                            <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
-                        </Style>
-                    </Style>
-
-                    <Style Selector="Button:pointerover">
+                    
+                    <Style Selector="ItemsControl > ContentPresenter:pointerover">
                         <Setter Property="RenderTransform" Value="translateY(-10px)" />
                     </Style>
-
-                    <Style Selector="Button:pressed">
-                        <Setter Property="RenderTransform" Value="translateY(0px)" />
-                    </Style>
-
+                    
                 </ItemsControl.Styles>
 
                 <ItemsControl.ItemsPanel>
@@ -88,65 +77,138 @@
 
                     <DataTemplate>
 
-                        <Button
-                            Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).OpenMusicListsCommand}"
-                            CommandParameter="{Binding }">
+                        <Panel>
 
-                            <Button.Transitions>
-                                <Transitions>
-                                    <TransformOperationsTransition Duration="0:0:0.2" Property="RenderTransform" />
-                                </Transitions>
-                            </Button.Transitions>
+                            <Border CornerRadius="12" Classes.Pointerover="{Binding $parent[Panel].IsPointerOver}"
+                                    Classes.NoPointerover="{Binding !$parent[Panel].IsPointerOver}">
+                                <Border.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="0.98"/>
+                                        <TranslateTransform Y="5" />
+                                    </TransformGroup>
+                                </Border.RenderTransform>
+                                <Border.Transitions>
+                                    <Transitions>
+                                        <BrushTransition Property="Background" Duration="0:0:0.25"/>
+                                    </Transitions>
+                                </Border.Transitions>
+                                <Border.Effect>
+                                    <BlurEffect Radius="20" />
+                                </Border.Effect>
+                                <Border.Styles>
+                                    <Style Selector="Border.NoPointerover">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </Style>
+                                    <Style Selector="Border.Pointerover">
+                                        <Setter Property="Background">
+                                            <LinearGradientBrush>
+                                                <GradientStop Offset="0" Color="#886094EA" />
+                                                <GradientStop Offset="1" Color="#88F02FC2" />
+                                            </LinearGradientBrush>
+                                        </Setter>
+                                        <Style.Animations>
+                                            <Animation
+                                                Duration="0:0:3"
+                                                FillMode="Forward"
+                                                IterationCount="Infinite">
+                                                <KeyFrame Cue="0%">
+                                                    <Setter Property="helper:BorderLinearGradientBrushHelper.BackgroundRotateAngle"
+                                                            Value="0" />
+                                                </KeyFrame>
+                                                <KeyFrame Cue="100%">
+                                                    <Setter Property="helper:BorderLinearGradientBrushHelper.BackgroundRotateAngle"
+                                                            Value="360" />
+                                                </KeyFrame>
+                                            </Animation>
+                                        </Style.Animations>
+                                    </Style>
+                                </Border.Styles>
+                            </Border>
 
-                            <Button.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="15"
-                                    Color="LightGray"
-                                    OffsetX="0"
-                                    OffsetY="3" />
-                            </Button.Effect>
+                            <Button
+                                Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).OpenMusicListsCommand}"
+                                CommandParameter="{Binding }" Padding="10"
+                                Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                CornerRadius="12" Background="{DynamicResource SemiColorBackground3}">
 
-                            <DockPanel
-                                Height="60"
-                                Width="160"
-                                HorizontalSpacing="10"
-                                VerticalSpacing="5">
+                                <!--
+                                <Button.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="15"
+                                        Color="LightGray"
+                                        OffsetX="0"
+                                        OffsetY="3" />
+                                </Button.Effect>
+                                -->
+                                
+                                <Button.Styles>
+                                    <Style Selector="Button">
+        
+                                        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                            <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
+                                        </Style>
 
-                                <Border DockPanel.Dock="Left"
-                                        CornerRadius="12"
-                                        VerticalAlignment="Top">
+                                        <!--<Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                                <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
+                                            </Style>-->
+                                    </Style>
+                                </Button.Styles>
 
-                                    <Border CornerRadius="12"
-                                            ClipToBounds="True">
-                                        <Image
-                                            Source="{Binding CoverImage}" />
+                                <DockPanel
+                                    Height="60"
+                                    Width="160"
+                                    HorizontalSpacing="10">
+
+                                    <Border DockPanel.Dock="Left"
+                                            CornerRadius="12"
+                                            VerticalAlignment="Top">
+
+                                        <Border CornerRadius="12"
+                                                ClipToBounds="True">
+                                            <Image
+                                                Source="{Binding CoverImage}" />
+                                        </Border>
+
                                     </Border>
 
-                                </Border>
+                                    <StackPanel DockPanel.Dock="Top" Spacing="3">
 
-                                <StackPanel DockPanel.Dock="Top" Spacing="2">
+                                        <TextBlock
+                                            TextWrapping="Wrap"
+                                            Text="{Binding Name}"
+                                            FontWeight="Bold" />
 
-                                    <TextBlock
-                                        TextWrapping="Wrap"
-                                        Text="{Binding Name}"
-                                        FontWeight="Bold" />
+                                        <Separator Margin="0" />
 
-                                    <Separator Margin="0" />
+                                        <TextBlock DockPanel.Dock="Bottom"
+                                                   Text="{Binding Description}"
+                                                   MaxLines="2"
+                                                   FontSize="12"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   TextWrapping="Wrap"
+                                                   Classes="Tertiary" />
 
-                                </StackPanel>
+                                    </StackPanel>
 
-                                <TextBlock DockPanel.Dock="Bottom"
-                                           Text="{Binding Description}"
-                                           MaxLines="2"
-                                           FontSize="12"
-                                           TextTrimming="CharacterEllipsis"
-                                           TextWrapping="Wrap"
-                                           Classes="Tertiary" />
+                                </DockPanel>
 
-                            </DockPanel>
+                            </Button>
 
-                        </Button>
+                            <PathIcon Data="{StaticResource Tag}" 
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Top" 
+                                      Foreground="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).RandomColor}"
+                                      Height="15" >
+                                <PathIcon.RenderTransform>
+                                    <TransformGroup>
+                                        <RotateTransform Angle="135" />
+                                        <TranslateTransform X="-3" Y="-3" />
+                                    </TransformGroup>
+                                </PathIcon.RenderTransform>
+                            </PathIcon>
 
+                        </Panel>
+                        
                     </DataTemplate>
 
                 </ItemsControl.ItemTemplate>

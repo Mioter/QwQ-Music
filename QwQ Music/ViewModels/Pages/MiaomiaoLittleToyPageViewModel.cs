@@ -6,7 +6,6 @@ using QwQ_Music.Amusing;
 using QwQ_Music.Services;
 using QwQ_Music.Utilities;
 using QwQ_Music.ViewModels.ViewModelBases;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.Pages;
 
@@ -34,6 +33,6 @@ public partial class MiaomiaoLittleToyPageViewModel : ViewModelBase
     private static void ExecuteMemoryCleaner()
     {
         string info = MemoryCleaner.CleanAndGetInfo();
-        NotificationService.ShowLight(new Notification("提示", info), NotificationType.Information);
+        NotificationService.ShowLight("提示", info, NotificationType.Information);
     }
 }

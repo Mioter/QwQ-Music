@@ -6,7 +6,7 @@ namespace QwQ_Music.Views.Pages;
 
 public partial class AboutPage : UserControl
 {
-    private readonly AboutPageViewModel _aboutPageViewModel = new AboutPageViewModel();
+    private readonly AboutPageViewModel _aboutPageViewModel = new();
 
     public AboutPage()
     {
