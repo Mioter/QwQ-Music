@@ -9,8 +9,8 @@
              xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
              x:DataType="pages:OtherPageViewModel"
              x:Class="QwQ_Music.Views.Pages.OtherPage">
-    
-        <Grid RowDefinitions="Auto,*">
+
+    <Grid RowDefinitions="Auto,*">
 
         <u:SelectionList
             HorizontalAlignment="Left"
@@ -23,7 +23,8 @@
                     <Setter Property="RenderTransformOrigin" Value="50%,100%" />
                     <Setter Property="Transitions">
                         <Transitions>
-                            <TransformOperationsTransition Duration="0:0:0.2" Easing="QuadraticEaseIn" Property="RenderTransform" />
+                            <TransformOperationsTransition Duration="0:0:0.2" Easing="QuadraticEaseIn"
+                                                           Property="RenderTransform" />
                         </Transitions>
                     </Setter>
 
@@ -59,6 +60,7 @@
 
             <TextBlock Text="统计" />
             <TextBlock Text="玩的" />
+            <TextBlock Text="关于" />
 
         </u:SelectionList>
 
@@ -74,11 +76,11 @@
                 </CompositePageTransition>
             </control:IndexControl.PageTransition>
 
-            <pages1:StatisticsPage/>
+            <pages1:StatisticsPage />
             <pages1:MiaomiaoLittleToyPage />
-
+            <pages1:AboutPage />
         </control:IndexControl>
 
     </Grid>
-    
+
 </UserControl>

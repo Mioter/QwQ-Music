@@ -155,9 +155,7 @@ public partial class LyricConfigPageViewModel : ViewModelBase
     private void HideLyricWindow()
     {
         _desktopLyricsWindow?.Close();
-        _desktopLyricsWindowViewModel?.Unsubscribe();
         _desktopLyricsWindow = null;
-        _desktopLyricsWindowViewModel = null;
     }
 
     [RelayCommand]
@@ -165,7 +163,7 @@ public partial class LyricConfigPageViewModel : ViewModelBase
     {
         if (_desktopLyricsWindow == null || _desktopLyricsWindow.Screens.Primary == null)
         {
-            NotificationService.ShowLight(new Notification("错误", "无法获取屏幕宽高~"), NotificationType.Error);
+            NotificationService.ShowLight("错误", "无法获取屏幕宽高~", NotificationType.Error);
             return;
         }
 

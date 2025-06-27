@@ -1,0 +1,94 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+             xmlns:u="https://irihi.tech/ursa"
+             x:DataType="pages:AlbumClassPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.AlbumClassPage">
+
+    <Grid Margin="10" RowSpacing="10" RowDefinitions="Auto,*">
+
+        <Panel>
+
+            <TextBox
+                CornerRadius="15"
+                HorizontalAlignment="Left"
+                Text="{Binding SearchText, Mode=TwoWay}"
+                Watermark="搜索专辑"
+                Width="200" />
+
+            <StackPanel Spacing="8" HorizontalAlignment="Right" Orientation="Horizontal">
+
+                <StackPanel.Styles>
+
+                    <Style Selector=":is(Button)">
+                        <Setter Property="Height" Value="32" />
+                        <Setter Property="Width" Value="32" />
+                    </Style>
+
+                    <Style Selector="u|IconButton">
+                        <Setter Property="CornerRadius" Value="8" />
+                        <Setter Property="Background" Value="Transparent" />
+                    </Style>
+
+                </StackPanel.Styles>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+
+                    <Rectangle Height="15" Fill="{DynamicResource SemiBlue4Color}" Width="4" VerticalAlignment="Center" />
+
+                    <control:RunningText
+                        Width="200"
+                        Speed="50"
+                        FontSize="16"
+                        FontWeight="Bold"
+                        VerticalAlignment="Center"
+                        Text="{Binding AllAlbumsPanelViewModel.SelectedAlbumItem.Name,FallbackValue='请选择专辑'}" />
+                </StackPanel>
+
+                <u:IconButton
+                    Classes="Icon"
+                    ToolTip.Tip="返回全部专辑页面"
+                    IsEnabled="{Binding NavigationIndex}"
+                    Command="{Binding BackAllAlbumCommand}"
+                    Icon="{StaticResource SemiIconReply}" />
+
+                <Button
+                    Classes="Icon"
+                    CornerRadius="8"
+                    ToolTip.Tip="播放本专辑"
+                    Command="{Binding AllAlbumsPanelViewModel.PlayAlbumMusicCommand}"
+                    CommandParameter="{Binding AllAlbumsPanelViewModel.SelectedAlbumItem}"
+                    Padding="2">
+                    <PathIcon Data="{StaticResource PlayIconData}" Margin="0" />
+                </Button>
+
+            </StackPanel>
+
+        </Panel>
+
+        <Border Grid.Row="1"
+                CornerRadius="12" ClipToBounds="True">
+
+            <ScrollViewer>
+
+                <TransitioningContentControl Content="{Binding CurrentControl}">
+                    <TransitioningContentControl.PageTransition>
+                        <CompositePageTransition>
+                            <CrossFade Duration="0:0:0.5" />
+                            <PageSlide
+                                Duration="0:0:0.3"
+                                Orientation="Vertical"
+                                SlideInEasing="QuadraticEaseIn"
+                                SlideOutEasing="QuadraticEaseOut" />
+                        </CompositePageTransition>
+                    </TransitioningContentControl.PageTransition>
+                </TransitioningContentControl>
+
+            </ScrollViewer>
+
+        </Border>
+
+    </Grid>
+
+</UserControl>

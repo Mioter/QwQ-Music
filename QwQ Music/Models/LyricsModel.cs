@@ -21,7 +21,10 @@ public partial class LyricsModel : ObservableObject
     public partial int LyricsIndex { get; set; }
 
     [ObservableProperty]
-    public partial LyricLine CurrentLyric { get; set; }
+    public partial LyricLine CurrentLyric { get; private set; }
+
+    [ObservableProperty]
+    public partial LyricLine NextLyricLine { get; private set; }
 
     [ObservableProperty]
     public partial LyricsData LyricsData { get; private set; } = new();
@@ -40,11 +43,13 @@ public partial class LyricsModel : ObservableObject
             _timePoints.AddRange(lyricsData.Lyrics.Select(l => l.TimePoint).OrderBy(t => t));
             CurrentLyric = lyricsData.Lyrics[0];
             LyricsIndex = 0;
+            NextLyricLine = lyricsData.Lyrics.Count > 1 ? lyricsData.Lyrics[1] : new LyricLine(0, null!);
         }
         else
         {
             CurrentLyric = new LyricLine(0, "暂无歌词");
             LyricsIndex = -1;
+            NextLyricLine = new LyricLine(0, null!);
         }
     }
 
@@ -115,6 +120,8 @@ public partial class LyricsModel : ObservableObject
 
         LyricsIndex = newIndex;
         CurrentLyric = LyricsData.Lyrics[LyricsIndex];
+        NextLyricLine =
+            LyricsIndex + 1 < LyricsData.Lyrics.Count ? LyricsData.Lyrics[LyricsIndex + 1] : new LyricLine(0, null!);
 
         // 触发歌词变更事件，同时传递当前歌词和下一句歌词
         LyricLineChanged?.Invoke(this, CurrentLyric, GetNextLyric(timePoints));
@@ -127,8 +134,14 @@ public partial class LyricsModel : ObservableObject
     /// <returns>当前歌词索引，如果没有匹配的歌词则返回-1</returns>
     public int CalculateIndex(double currentTime)
     {
-        if (_timePoints.Count == 0)
-            return -1;
+        switch (_timePoints.Count)
+        {
+            case 0:
+                return -1;
+            // 如果只有一行歌词，则始终显示它
+            case 1:
+                return 0;
+        }
 
         // 如果当前时间小于第一个时间点，返回-1
         if (currentTime < _timePoints[0])

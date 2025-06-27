@@ -12,7 +12,7 @@
 
     <ScrollViewer Margin="10">
         <StackPanel Spacing="20"  Margin="0,0,10,0">
-            
+
             <Expander Header="封面" IsExpanded="{Binding InterfaceConfig.IsOpenCoverConfig}">
 
                 <StackPanel Spacing="10">
@@ -51,6 +51,23 @@
                 </StackPanel>
 
             </Expander>
+
+            <Expander Header="主题" IsExpanded="{Binding InterfaceConfig.IsOpenThemeConfig}">
+
+                <StackPanel Spacing="10">
+                    
+                    <Panel>
+                        <TextBlock Text="亮暗模式 " VerticalAlignment="Center" />
+                        <ComboBox
+                            HorizontalAlignment="Right"
+                            ItemsSource="{Binding LightDarkModes}"
+                            SelectedItem="{Binding LightDarkMode}" />
+                    </Panel>
+                    
+                </StackPanel>
+
+            </Expander>
+
         </StackPanel>
     </ScrollViewer>
 </UserControl>

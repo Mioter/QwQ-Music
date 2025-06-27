@@ -2,6 +2,8 @@ using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
+using QwQ_Music.Models;
+using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Services;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ.Avalonia.Utilities.MessageBus;
@@ -10,6 +12,8 @@ namespace QwQ_Music.ViewModels.UserControls;
 
 public partial class MusicPlayerTrayViewModel : ViewModelBase
 {
+    public RolledLyricConfig RolledLyric { get; } = ConfigManager.LyricConfig.RolledLyric;
+
     public double AlbumCoverCurrentAngle { get; set; }
 
     public double AlbumCoverRecordAngle { get; set; }

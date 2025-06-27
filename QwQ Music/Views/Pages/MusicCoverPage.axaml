@@ -235,6 +235,17 @@
                             Classes="Icon"
                             ToolTip.Placement="Top"
                             ToolTip.VerticalOffset="-10">
+                            
+                            <Button.Resources>
+                        
+                                <!-- ReSharper disable once Xaml.RedundantResource -->
+                                <x:Double x:Key="FlyoutMinWidth">30</x:Double>
+                                <!-- ReSharper disable once Xaml.RedundantResource -->
+                                <Thickness x:Key="FlyoutPadding">0</Thickness>
+                                <!-- ReSharper disable once Xaml.RedundantResource -->
+                                <x:Double x:Key="FlyoutMinHeight">30</x:Double>
+                        
+                            </Button.Resources>
 
                             <Button.Styles>
                                 <Style Selector="PathIcon.Half">
@@ -296,11 +307,11 @@
                                             <Button.Styles>
                                                 <Style Selector="Button.Silent">
                                                     <Setter Property="Background"
-                                                            Value="{StaticResource SemiRed5Color}" />
+                                                            Value="{DynamicResource SemiRed5}" />
                                                     <Setter Property="Foreground" Value="White" />
                                                     <Style Selector="^:pointerover /template/ ContentPresenter">
                                                         <Setter Property="Background"
-                                                                Value="{StaticResource SemiRed4Color}" />
+                                                                Value="{DynamicResource SemiRed4}" />
                                                     </Style>
                                                 </Style>
                                             </Button.Styles>

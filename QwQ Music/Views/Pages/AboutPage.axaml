@@ -1,0 +1,187 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             xmlns:u="https://irihi.tech/ursa"
+             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+             x:DataType="pages:AboutPageViewModel"
+             x:Class="QwQ_Music.Views.Pages.AboutPage">
+
+    <ScrollViewer Margin="10">
+
+        <StackPanel Spacing="10" Margin="0,0,10,0">
+
+            <Panel Height="{Binding PanelHeight}" Margin="0">
+
+                <Image Stretch="UniformToFill" Source="{Binding BackgroundImage}" />
+
+                <Panel Background="{DynamicResource SemiColorBackground0}" Opacity="0.3" />
+
+                <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft" VerticalAlignment="Top">
+
+                    <u:IconButton
+                        Theme="{StaticResource BorderlessIconButton}"
+                        Command="{Binding OpenContributorFromGayhubCommand}"
+                        CommandParameter="Mioter/QwQ-Music"
+                        CornerRadius="8"
+                        ToolTip.Tip="访问本项目Github仓库"
+                        Icon="{StaticResource SemiIconGithubLogo}" />
+
+                </StackPanel>
+                
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" Margin="10">
+
+                    <Border
+                        Height="70" Width="70"
+                        CornerRadius="40"
+                        BoxShadow="0 0 10 0 LightGray">
+
+                        <Button Classes="None" Command="{Binding OpenContributorFromGayhubCommand}"
+                                CommandParameter="{Binding MainContributor.Name}">
+
+                            <Border CornerRadius="40"
+                                    Margin="5"
+                                    ClipToBounds="True">
+
+                                <Image
+                                    Source="{Binding MainContributor.Hp}" />
+                            </Border>
+                        </Button>
+                    </Border>
+
+                    <control:TextPath FontSize="16"
+                                      Stroke="White"
+                                      StrokeThickness="5"
+                                      LetterSpacing="2"
+                                      Foreground="{DynamicResource SemiIndigo3}"
+                                      Text="{Binding MainContributor.Name}" FontWeight="Bold"
+                                      HorizontalAlignment="Center" />
+
+                </StackPanel>
+
+            </Panel>
+
+            <Border CornerRadius="8" Background="{DynamicResource SemiGreen1}"
+                    BorderThickness="1" BorderBrush="{DynamicResource SemiGreen4}">
+                <TextBlock TextAlignment="Center" Text="感谢以下开发者、组织对本项目的支持与贡献！" FontWeight="Bold"
+                           Margin="20,5" />
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding Contributors}" Padding="10,0">
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel ItemSpacing="30" LineSpacing="20" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="pages:ContributorItem">
+                        <StackPanel>
+                            <Border
+                                Margin="5"
+                                Height="50" Width="50"
+                                Background="{DynamicResource SemiColorBackground3}"
+                                CornerRadius="40"
+                                ToolTip.Tip="{Binding Speak}"
+                                BoxShadow="0 0 10 0 LightGray">
+                                <Button Classes="None"
+                                        Command="{Binding $parent[UserControl].((pages:AboutPageViewModel)DataContext).OpenContributorFromGayhubCommand}"
+                                        CommandParameter="{Binding Name}">
+                                    <Border CornerRadius="40"
+                                            Margin="3"
+                                            ClipToBounds="True">
+                                        <Image
+                                            Source="{Binding Hp}" />
+                                    </Border>
+                                </Button>
+                            </Border>
+                            <TextBlock Text="{Binding Name}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+
+            </ItemsControl>
+
+            <Border Margin="0,5,0,0" CornerRadius="8" Background="{DynamicResource SemiBlue1}"
+                    BorderThickness="1" BorderBrush="{DynamicResource SemiBlue4}">
+                <TextBlock TextAlignment="Center" Text="感谢以下开源项目和Nuget包，为本项目直接提供功能或参考了实现！" FontWeight="Bold"
+                           Margin="20,5" />
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding ThankItems}" Padding="10,0">
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel ItemSpacing="30" LineSpacing="20" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="pages:ThankItem">
+                        <Button Classes="None"
+                                MinWidth="150"
+                                Background="Transparent"
+                                Margin="5"
+                                Command="{Binding $parent[UserControl].((pages:AboutPageViewModel)DataContext).OpenContributorFromGayhubCommand}"
+                                CommandParameter="{Binding RepoUrl}">
+                            <DockPanel HorizontalSpacing="10" VerticalSpacing="5">
+                                <Rectangle
+                                    Fill="{Binding $parent[UserControl].((pages:AboutPageViewModel)DataContext).RandomColor}"
+                                    Margin="0,4"
+                                    Width="4" />
+                                <TextBlock DockPanel.Dock="Top" Text="{Binding Name}" />
+                                <control:RunningText
+                                    Speed="40"
+                                    Foreground="{DynamicResource TextBlockTertiaryForeground}"
+                                    Text="{Binding Description}" FontWeight="Normal" />
+                            </DockPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+
+            <Border Margin="0,5,0,0" CornerRadius="8" Background="{DynamicResource SemiAmber1}"
+                    BorderThickness="1" BorderBrush="{DynamicResource SemiAmber4}">
+                <TextBlock TextAlignment="Center" Text="特别鸣谢！" FontWeight="Bold"
+                           Margin="20,5" />
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding SpecialThanks}" Padding="10,0">
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel ItemSpacing="30" LineSpacing="20" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="pages:SpecialThank">
+                        <Button Classes="None"
+                                MinWidth="150"
+                                Background="Transparent"
+                                Margin="5"
+                                Command="{Binding $parent[UserControl].((pages:AboutPageViewModel)DataContext).OpenUriCommand}"
+                                CommandParameter="{Binding Uri}">
+                            <DockPanel HorizontalSpacing="10" VerticalSpacing="5">
+                                <Image
+                                    Source="{Binding Hp}"
+                                    Width="40" Height="40" />
+                                <TextBlock DockPanel.Dock="Top" Text="{Binding Name}" />
+                                <control:RunningText
+                                    Speed="40"
+                                    Foreground="{DynamicResource TextBlockTertiaryForeground}"
+                                    Text="{Binding Description}" FontWeight="Normal" />
+                            </DockPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+
+        </StackPanel>
+
+    </ScrollViewer>
+</UserControl>

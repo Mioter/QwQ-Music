@@ -11,7 +11,6 @@ using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ_Music.Views.UserControls;
 using Ursa.Controls;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.Pages;
 
@@ -148,7 +147,8 @@ public partial class HotkeyConfigPageViewModel : ViewModelBase
         (bool isValid, var errors) = HotkeyService.ValidateConfiguration();
 
         NotificationService.ShowLight(
-            new Notification("热键验证", $"热键配置验证结果: {(isValid ? "有效" : "无效")}"),
+            "热键验证",
+            $"热键配置验证结果: {(isValid ? "有效" : "无效")}",
             isValid ? NotificationType.Success : NotificationType.Warning
         );
 

@@ -120,7 +120,7 @@ public class PixelPointJsonConverter : JsonConverter<PixelPoint>
 
 public class LyricConfig : ObservableObject
 {
-    public RolledLyricConfig RolledLyri { get; set; } = new();
+    public RolledLyricConfig RolledLyric { get; set; } = new();
 
     public DesktopLyricConfig DesktopLyric { get; set; } = new();
 

@@ -230,7 +230,7 @@
 
                                         <Button.Content>
                                             <PathIcon Data="{StaticResource SemiIconClear}"
-                                                      Foreground="{StaticResource SemiRed4Color}" />
+                                                      Foreground="{DynamicResource SemiRed4}" />
                                         </Button.Content>
 
                                         <Button.IsVisible>
@@ -249,6 +249,10 @@
 
                                             <Style Selector="StackPanel > TextBlock">
                                                 <Setter Property="VerticalAlignment" Value="Center" />
+                                            </Style>
+                                            
+                                            <Style Selector="TextBlock.Transparent">
+                                                <Setter Property="Opacity" Value="0"/>
                                             </Style>
 
                                         </StackPanel.Styles>
@@ -270,7 +274,17 @@
 
                                         </ContentControl>
 
-                                        <TextBlock Text="{Binding Title}" />
+                                        <TextBlock Text="{Binding Title}"
+                                                   Classes.Transparent="{Binding !$parent[Window].((viewModels:MainWindowViewModel)DataContext).IsNavigationExpand}">
+                                            <TextBlock.Transitions>
+                                                <Transitions>
+                                                    <DoubleTransition
+                                                        Duration="0:0:0.5"
+                                                        Easing="CircularEaseOut"
+                                                        Property="Opacity" />
+                                                </Transitions>
+                                            </TextBlock.Transitions>
+                                        </TextBlock>
 
                                     </StackPanel>
                                 </Panel>
@@ -331,15 +345,6 @@
             </Interaction.Behaviors>
 
         </Grid>
-
-        <Button
-            Grid.Row="0"
-            Grid.RowSpan="2"
-            IsVisible="{Binding IsBackgroundLayerVisible}"
-            Classes="None"
-            Command="{Binding GlobalButtonClickCommand}"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch" />
 
         <Panel
             Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"
@@ -402,9 +407,22 @@
                         Property="Width" />
                 </Transitions>
             </Panel.Transitions>
+            
+            <Border BoxShadow="0 0 10 0 LightGray" Margin="20"
+                    CornerRadius="25">
+                <Panel>
+                    <Border
+                        Opacity="0.8"
+                        Background="{DynamicResource SemiColorBackground3}"
+                        Width="{Binding #MusicPlayerTray.Bounds.Width}"
+                        Height="{Binding #MusicPlayerTray.Bounds.Height}"
+                        CornerRadius="25">
+                    </Border>
 
-            <userControls:MusicPlayerTray Name="MusicPlayerTray" />
+                    <userControls:MusicPlayerTray Name="MusicPlayerTray" />
 
+                </Panel>
+            </Border>
         </Panel>
 
         <Panel

@@ -195,7 +195,7 @@ public class AudioPlay : IAudioPlay
 
         _soundPlayer.Seek((float)positionInSeconds);
     }
-    
+
     public void InitializeAudio(Stream audioStream, double replayGain)
     {
         try
@@ -352,4 +352,3 @@ public class AudioPlay : IAudioPlay
         GC.SuppressFinalize(this);
     }
 }
-

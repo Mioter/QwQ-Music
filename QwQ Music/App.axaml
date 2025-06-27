@@ -1,5 +1,5 @@
 <Application
-    RequestedThemeVariant="{Binding ThemeVariant}"
+    RequestedThemeVariant="{Binding ThemeConfig.LightDarkMode}"
     x:Class="QwQ_Music.App"
     x:CompileBindings="True"
     xmlns="https://github.com/avaloniaui"
@@ -9,7 +9,8 @@
     xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:u="https://irihi.tech/ursa"
-    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels">
+    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control">
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Styles>
@@ -19,6 +20,7 @@
         <semi:ColorPickerSemiTheme />
         <u-Semi:SemiTheme Locale="zh-CN" />
         
+        <StyleInclude Source="avares://QwQ.Avalonia.Control/Themes/_indexes.axaml" />
         <StyleInclude Source="Assets/Animations/_indexes.axaml" />
         <StyleInclude Source="Assets/Styles/_indexes.axaml" />
 
@@ -37,11 +39,17 @@
         <Style Selector="u|MessageBoxControl /template/ Button">
             <Setter Property="CornerRadius" Value="5"/>
         </Style>
+                     
+        <Style Selector="control|RunningText">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Space" Value="20"/>
+            <Setter Property="FontFamily" Value="{DynamicResource Cjtw85}"/>
+        </Style>
         
         <Style Selector=":is(u|NumericUpDown)">
             <Setter Property="CornerRadius" Value="8"/>
         </Style>
-        
+   
         <Style Selector=":is(ContentControl)">
             <Setter Property="FontFamily" Value="{DynamicResource Cjtw85}"/>
         </Style>
@@ -54,7 +62,6 @@
                 <ResourceInclude Source="Assets/Themes/_indexes.axaml" />
                 <ResourceInclude Source="Assets/Icons/_indexes.axaml" />
                 <ResourceInclude Source="Assets/Variables/_indexes.axaml"/>
-                <ResourceInclude Source="avares://QwQ.Avalonia.Control/Theme/_indexes.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
 
@@ -66,11 +73,9 @@
         <converters:ValueComparisonConverter x:Key="ValueComparisonConverter"/>
         
         <FontFamily x:Key="Cjtw85">resm:QwQ_Music.Assets.Fonts.CJTW85.ttf#公众号-犬神志</FontFamily>
+        <FontFamily x:Key="DefaultFontFamily">fonts:Inter#Inter,$Default</FontFamily>
         
         <CornerRadius x:Key="FlyoutCornerRadius">8</CornerRadius>
-        <x:Double x:Key="FlyoutMinWidth">30</x:Double>
-        <Thickness x:Key="FlyoutPadding">0</Thickness>
-        <x:Double x:Key="FlyoutMinHeight">30</x:Double>
 
         <CornerRadius x:Key="ButtonCornerRadius">5</CornerRadius>
         <CornerRadius x:Key="ComboBoxSelectorCornerRadius">8</CornerRadius>

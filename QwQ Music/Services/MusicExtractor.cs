@@ -95,9 +95,9 @@ public static class MusicExtractor
     {
         var track = new Track(filePath);
         return new MusicTagExtensions(
-            track.Genre ?? string.Empty,
+            track.Genre,
             track.Year,
-            track.Copyright ?? string.Empty,
+            track.Copyright,
             track.DiscNumber.HasValue ? (uint)track.DiscNumber.Value : 0,
             track.TrackNumber.HasValue ? (uint)track.TrackNumber.Value : 0,
             (int)track.SampleRate,
@@ -105,16 +105,16 @@ public static class MusicExtractor
             track.Bitrate,
             track.BitDepth,
             // 添加更多基本信息
-            track.OriginalAlbum ?? string.Empty,
-            track.OriginalArtist ?? string.Empty,
-            track.AlbumArtist ?? string.Empty,
-            track.Publisher ?? string.Empty,
-            track.Description ?? string.Empty,
-            track.Language ?? string.Empty,
+            track.OriginalAlbum,
+            track.OriginalArtist,
+            track.AlbumArtist,
+            track.Publisher,
+            track.Description,
+            track.Language,
             // 添加技术信息
             track.IsVBR,
             track.AudioFormat.DataFormat.Name,
-            track.Encoder ?? string.Empty
+            track.Encoder
         );
     }
 
@@ -132,16 +132,16 @@ public static class MusicExtractor
             track.OriginalReleaseDate,
             track.PublishingDate,
             // 专业信息
-            track.ISRC ?? string.Empty,
-            track.CatalogNumber ?? string.Empty,
-            track.ProductId ?? string.Empty,
+            track.ISRC,
+            track.CatalogNumber,
+            track.ProductId,
             // 其他信息
             track.BPM,
             track.Popularity,
-            track.SeriesTitle ?? string.Empty,
-            track.SeriesPart ?? string.Empty,
-            track.LongDescription ?? string.Empty,
-            track.Group ?? string.Empty,
+            track.SeriesTitle,
+            track.SeriesPart,
+            track.LongDescription,
+            track.Group,
             // 技术信息
             track.TechnicalInformation.AudioDataOffset,
             track.TechnicalInformation.AudioDataSize
@@ -169,7 +169,7 @@ public static class MusicExtractor
         var (metadata, error) = Path.GetExtension(filePath).ToUpperInvariant() switch
         {
             ".NCM" => await ExtractNcmMetadataAsync(filePath),
-            _ => await ExtractTrackMetadataAsync(filePath)
+            _ => await ExtractTrackMetadataAsync(filePath),
         };
 
         if (error != null)
@@ -191,12 +191,9 @@ public static class MusicExtractor
 
         if (metadata.CoverImageData != null)
         {
-            (coverFileName, metadata.Artists, metadata.Album) = PrepareCoverInfo(metadata.Artists, metadata.Album, filePath);
+            coverFileName = PrepareCoverInfo(metadata.Artists, metadata.Album, filePath);
             coverImage = new Bitmap(new MemoryStream(metadata.CoverImageData));
-            await FileOperation.SaveImageAsync(
-                coverImage,
-                Path.Combine(MainConfig.MusicCoverSavePath, coverFileName)
-            );
+            await FileOperation.SaveImageAsync(coverImage, Path.Combine(MainConfig.MusicCoverSavePath, coverFileName));
         }
 
         return new MusicItemModel(
@@ -225,7 +222,7 @@ public static class MusicExtractor
         public TimeSpan Duration { get; set; }
         public byte[]? CoverImageData { get; set; }
     }
-    
+
     private static Task<(MusicMetadata?, Exception?)> ExtractNcmMetadataAsync(string filePath)
     {
         return Task.Run(() =>
@@ -241,12 +238,14 @@ public static class MusicExtractor
                 var metadata = crypt.Metadata;
                 var musicMetadata = new MusicMetadata
                 {
-                    Title = string.IsNullOrWhiteSpace(metadata.Name) ? Path.GetFileNameWithoutExtension(filePath) : metadata.Name,
+                    Title = string.IsNullOrWhiteSpace(metadata.Name)
+                        ? Path.GetFileNameWithoutExtension(filePath)
+                        : metadata.Name,
                     Artists = metadata.Artist,
                     Album = metadata.Album,
                     Duration = TimeSpan.FromMilliseconds(metadata.Duration),
                     EncodingFormat = metadata.Format,
-                    CoverImageData = crypt.ImageData
+                    CoverImageData = crypt.ImageData,
                 };
                 return ((MusicMetadata?)musicMetadata, (Exception?)null);
             }
@@ -266,14 +265,16 @@ public static class MusicExtractor
                 var track = new Track(filePath);
                 var musicMetadata = new MusicMetadata
                 {
-                    Title = string.IsNullOrWhiteSpace(track.Title) ? Path.GetFileNameWithoutExtension(filePath) : track.Title,
+                    Title = string.IsNullOrWhiteSpace(track.Title)
+                        ? Path.GetFileNameWithoutExtension(filePath)
+                        : track.Title,
                     Artists = track.Artist,
                     Album = track.Album,
                     Composer = track.Composer,
                     Comment = track.Comment,
                     Duration = TimeSpan.FromMilliseconds(track.DurationMs),
                     EncodingFormat = track.AudioFormat.ShortName,
-                    CoverImageData = track.EmbeddedPictures.Count > 0 ? track.EmbeddedPictures[0].PictureData : null
+                    CoverImageData = track.EmbeddedPictures.Count > 0 ? track.EmbeddedPictures[0].PictureData : null,
                 };
                 return ((MusicMetadata?)musicMetadata, (Exception?)null);
             }
@@ -283,8 +284,8 @@ public static class MusicExtractor
             }
         });
     }
-    
-    private static (string coverFileName, string artists, string album) PrepareCoverInfo(string artists, string album, string filePath)
+
+    private static string PrepareCoverInfo(string artists, string album, string filePath)
     {
         bool isArtistsEmpty = string.IsNullOrWhiteSpace(artists);
         bool isAlbumEmpty = string.IsNullOrWhiteSpace(album);
@@ -293,15 +294,13 @@ public static class MusicExtractor
         if (isArtistsEmpty && isAlbumEmpty)
         {
             string fileName = Path.GetFileNameWithoutExtension(filePath);
-            return ($"{fileName}#{timeStamp}.png", artists, album);
+            return $"{fileName}#{timeStamp}.png";
         }
 
         string finalArtists = isArtistsEmpty ? $"未知歌手#{timeStamp}" : artists;
         string finalAlbum = isAlbumEmpty ? $"未知专辑#{timeStamp}" : album;
-        
-        string coverFileName = GetCoverFileName(finalArtists, finalAlbum);
-        
-        return (coverFileName, finalArtists, finalAlbum);
+
+        return GetCoverFileName(finalArtists, finalAlbum);
     }
 
     /// <summary>

@@ -61,9 +61,9 @@
             </u:SelectionList.Styles>
 
             <TextBlock Text="歌单" />
-            <!--<TextBlock Text="专辑" />
-            <TextBlock Text="歌手" />
-            <TextBlock Text="风格" />-->
+            <TextBlock Text="专辑" />
+            <!--<TextBlock Text="歌手" />-->
+            <!--<TextBlock Text="风格" />-->
 
         </u:SelectionList>
 
@@ -80,6 +80,7 @@
             </control:IndexControl.PageTransition>
 
             <pages1:MusicListsPage />
+            <pages1:AlbumClassPage />
 
         </control:IndexControl>
 

@@ -1,7 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Amusing;
+using QwQ_Music.Services;
+using QwQ_Music.Utilities;
 using QwQ_Music.ViewModels.ViewModelBases;
 
 namespace QwQ_Music.ViewModels.Pages;
@@ -24,5 +27,12 @@ public partial class MiaomiaoLittleToyPageViewModel : ViewModelBase
     private static async Task IceButtonClick()
     {
         await MidiSpring.Spring();
+    }
+
+    [RelayCommand]
+    private static void ExecuteMemoryCleaner()
+    {
+        string info = MemoryCleaner.CleanAndGetInfo();
+        NotificationService.ShowLight("提示", info, NotificationType.Information);
     }
 }

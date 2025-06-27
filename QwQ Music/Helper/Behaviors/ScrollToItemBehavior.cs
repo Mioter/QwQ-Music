@@ -236,7 +236,6 @@ public class ScrollToItemBehavior
         );
 
         // 创建一个TaskCompletionSource来跟踪动画完成
-        var tcs = new TaskCompletionSource<bool>();
 
         // 运行动画
         await animation.RunAsync(scrollViewer, cancellationToken);

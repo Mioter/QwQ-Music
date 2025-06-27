@@ -8,7 +8,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Services;
 using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.ViewModels;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.Models;
 
@@ -154,6 +153,7 @@ public partial class MusicListModel : ObservableObject
         var latestPlayedMusicList = await DataBaseService.LoadSpecifyFieldsAsync(
             DataBaseService.Table.LISTINFO,
             [nameof(LatestPlayedMusic)],
+            // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
             dict => dict.TryGetValue(nameof(LatestPlayedMusic), out object? value) ? value?.ToString() ?? null : null,
             ..1,
             $"{nameof(Name)} = '{Name.Replace("'", "''")}'"
@@ -196,10 +196,7 @@ public partial class MusicListModel : ObservableObject
         if (filePaths?.Count >= 0)
             return filePaths;
 
-        NotificationService.ShowLight(
-            new Notification("错误", $"获取歌单《{Name}》中的音乐文件路径失败！"),
-            NotificationType.Error
-        );
+        NotificationService.ShowLight("错误", $"获取歌单《{Name}》中的音乐文件路径失败！", NotificationType.Error);
         IsError = true;
         return [];
     }
@@ -225,15 +222,6 @@ public partial class MusicListModel : ObservableObject
             search: $"{nameof(Name)} = '{playlistName.Replace("'", "''")}'"
         );
 
-        if (filePaths?.Count > 0)
-        {
-            return filePaths.FirstOrDefault();
-        }
-
-        NotificationService.ShowLight(
-            new Notification("错误", $"获取歌单《{playlistName}》第一首音乐失败！"),
-            NotificationType.Error
-        );
-        return null;
+        return filePaths?.FirstOrDefault();
     }
 }

@@ -41,18 +41,6 @@ public partial class DesktopLyricsWindow : Window
         base.OnPointerPressed(e);
     }
 
-    protected override void OnPointerEntered(PointerEventArgs e)
-    {
-        LyricBorder.Classes.Add("RunLyricBorder");
-        base.OnPointerEntered(e);
-    }
-
-    protected override void OnPointerExited(PointerEventArgs e)
-    {
-        LyricBorder.Classes.Remove("RunLyricBorder");
-        base.OnPointerExited(e);
-    }
-
     private void OnClosed(object? sender, EventArgs e)
     {
         Closed -= OnClosed;

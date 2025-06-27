@@ -11,7 +11,6 @@ using QwQ_Music.Services.ConfigIO;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ_Music.Views.UserControls;
 using Ursa.Controls;
-using Notification = Ursa.Controls.Notification;
 
 namespace QwQ_Music.ViewModels.UserControls;
 
@@ -106,10 +105,7 @@ public partial class CreateMusicListViewModel(OverlayDialogOptions options, stri
         }
         catch (Exception ex)
         {
-            NotificationService.ShowLight(
-                new Notification("坏欸", $"打开文件失败了！" + $"{ex.Message}"),
-                NotificationType.Error
-            );
+            NotificationService.ShowLight("坏欸", $"打开文件失败了！" + $"{ex.Message}", NotificationType.Error);
 
             return null;
         }

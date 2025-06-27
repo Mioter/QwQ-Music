@@ -22,7 +22,7 @@
     </Window.Resources>
 
     <Panel>
-        <Border Name="LyricBorder"
+        <Border Classes.RunLyricBorder="{Binding $parent[Window].IsPointerOver}"
                 Background="{Binding LyricConfig.LyricBackground,Converter={StaticResource ToBrushConverter}}"
                 CornerRadius="{Binding LyricConfig.WindowCornerRadius}"
                 BorderThickness="2">
@@ -48,10 +48,10 @@
                             FillMode="Forward"
                             IterationCount="Infinite">
                             <KeyFrame Cue="0%">
-                                <Setter Property="helper:LinearGradientBrushHelper.RotateAngle" Value="0" />
+                                <Setter Property="helper:BorderLinearGradientBrushHelper.BorderBrushRotateAngle" Value="0" />
                             </KeyFrame>
                             <KeyFrame Cue="100%">
-                                <Setter Property="helper:LinearGradientBrushHelper.RotateAngle" Value="360" />
+                                <Setter Property="helper:BorderLinearGradientBrushHelper.BorderBrushRotateAngle" Value="360" />
                             </KeyFrame>
                         </Animation>
                     </Style.Animations>
@@ -99,7 +99,7 @@
                     LetterSpacing="{Binding LyricConfig.LyricMainLetterSpacing}"
                     Stroke="{Binding LyricConfig.LyricMainBorderColor,Converter={StaticResource ToBrushConverter}}"
                     FontSize="{Binding LyricConfig.LyricMainFontSize}"
-                    Text="{Binding CurrentMainLyric}">
+                    Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric.Primary}">
 
                     <control:TextPath.Foreground>
                         <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
@@ -116,12 +116,11 @@
                     LetterSpacing="{Binding LyricConfig.LyricMainLetterSpacing}"
                     Stroke="{Binding LyricConfig.LyricMainBorderColor,Converter={StaticResource ToBrushConverter}}"
                     FontSize="{Binding LyricConfig.LyricMainFontSize}"
-                    Placeholder=" . . . "
-                    Text="{Binding CurrentMainTranslateLyric}">
+                    Text="{Binding MusicPlayerViewModel.LyricsModel.CurrentLyric.Translation}">
 
                     <control:TextPath.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
-                            <Binding Path="CurrentMainTranslateLyric" Converter="{x:Static ObjectConverters.IsNotNull}" />
+                            <Binding Path="MusicPlayerViewModel.LyricsModel.CurrentLyric.Translation" Converter="{x:Static ObjectConverters.IsNotNull}" />
                             <Binding Path="LyricConfig.LyricIsDualLang" />
                         </MultiBinding>
                     </control:TextPath.IsVisible>
@@ -145,7 +144,7 @@
                     LetterSpacing="{Binding LyricConfig.LyricAltLetterSpacing}"
                     Stroke="{Binding LyricConfig.LyricAltBorderColor,Converter={StaticResource ToBrushConverter}}"
                     FontSize="{Binding LyricConfig.LyricAltFontSize}"
-                    Text="{Binding CurrentAltLyric}">
+                    Text="{Binding MusicPlayerViewModel.LyricsModel.NextLyricLine.Primary}">
 
                     <control:TextPath.Foreground>
                         <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
@@ -162,12 +161,11 @@
                     LetterSpacing="{Binding LyricConfig.LyricAltLetterSpacing}"
                     Stroke="{Binding LyricConfig.LyricAltBorderColor,Converter={StaticResource ToBrushConverter}}"
                     FontSize="{Binding LyricConfig.LyricAltFontSize}"
-                    Placeholder=" . . . "
-                    Text="{Binding CurrentAltTranslateLyric}">
+                    Text="{Binding MusicPlayerViewModel.LyricsModel.NextLyricLine.Translation}">
 
                     <control:TextPath.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
-                            <Binding Path="CurrentAltTranslateLyric" Converter="{x:Static ObjectConverters.IsNotNull}" />
+                            <Binding Path="MusicPlayerViewModel.LyricsModel.NextLyricLine.Translation" Converter="{x:Static ObjectConverters.IsNotNull}" />
                             <Binding Path="LyricConfig.LyricIsDualLang" />
                         </MultiBinding>
                     </control:TextPath.IsVisible>
