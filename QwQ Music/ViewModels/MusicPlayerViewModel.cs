@@ -539,7 +539,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
         try
         {
-            PathEnsurer.OpenInFileManager(musicItem.FilePath);
+            FileOperation.OpenInFileManager(musicItem.FilePath);
         }
         catch (Exception e)
         {

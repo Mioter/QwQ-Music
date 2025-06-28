@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
@@ -123,4 +125,55 @@ public static class FileOperation
 
         return allFilePaths;
     }
+<<<<<<< HEAD
+=======
+
+    /// <summary>
+    /// 在系统默认文件管理器中打开指定文件或目录
+    /// </summary>
+    /// <param name="path">文件或目录路径</param>
+    public static void OpenInFileManager(string path)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // Windows: 使用 explorer.exe
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{path}\"",
+                    UseShellExecute = true,
+                }
+            );
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            // macOS: 使用 open 命令
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "open",
+                    Arguments = $"-R \"{path}\"",
+                    UseShellExecute = true,
+                }
+            );
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            // Linux: 尝试使用 xdg-open
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "xdg-open",
+                    Arguments = $"\"{Path.GetDirectoryName(path)}\"",
+                    UseShellExecute = true,
+                }
+            );
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("当前操作系统不支持此操作");
+        }
+    }
+>>>>>>> 2938200 (refactor: 重构代码以优化性能和可维护性)
 }
