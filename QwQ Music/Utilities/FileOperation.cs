@@ -75,7 +75,7 @@ public static class FileOperation
                 {
                     return item.Path.IsAbsoluteUri ? item.Path.LocalPath : null;
                 }
-                catch (Exception ex) when (ex is InvalidOperationException || ex is UriFormatException)
+                catch (Exception ex) when (ex is InvalidOperationException or UriFormatException)
                 {
                     Console.WriteLine($"无法解析路径: {item.Path} (错误: {ex.Message})");
                     return null;
@@ -122,26 +122,5 @@ public static class FileOperation
         }
 
         return allFilePaths;
-    }
-
-    /// <summary>
-    /// 格式化文件大小为人类可读的形式。
-    /// </summary>
-    /// <param name="bytes">文件大小（字节）。</param>
-    /// <returns>格式化后的文件大小。</returns>
-    public static string FormatFileSize(long bytes)
-    {
-        const int scale = 1024;
-        string[] orders = ["GiB", "MiB", "KiB", "Bytes"];
-        double len = bytes;
-        int order = orders.Length - 1;
-
-        while (len >= scale && order > 0)
-        {
-            order--;
-            len /= scale;
-        }
-
-        return $"{len:0.0}{orders[order]}";
     }
 }

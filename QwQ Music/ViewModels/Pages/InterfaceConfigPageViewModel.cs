@@ -6,6 +6,7 @@ using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Services;
 using QwQ_Music.Utilities;
+using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
 
 namespace QwQ_Music.ViewModels.Pages;
@@ -42,6 +43,8 @@ public partial class InterfaceConfigPageViewModel() : NavigationViewModel("ÁïåÈù
             }
 
             ResourceDictionaryManager.Set("CaptionButtonForeground", brush);
+
+            MusicPlayListViewModel.Instance.ThemeVariant = ConfigManager.InterfaceConfig.ThemeConfig.LightDarkMode;
         }
     }
 

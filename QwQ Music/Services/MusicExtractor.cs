@@ -184,7 +184,7 @@ public static class MusicExtractor
         }
 
         var fileInfo = new FileInfo(filePath);
-        string fileSize = FileOperation.FormatFileSize(fileInfo.Length);
+        string fileSize = StringProcessor.FormatFileSize(fileInfo.Length);
 
         string? coverFileName = null;
         Bitmap? coverImage = null;

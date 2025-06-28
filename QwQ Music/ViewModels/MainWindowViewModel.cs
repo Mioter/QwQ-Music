@@ -15,7 +15,6 @@ using QwQ_Music.ViewModels.Pages;
 using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
 using QwQ_Music.Views.Pages;
-using QwQ.Avalonia.Utilities.MessageBus;
 using static QwQ_Music.Models.LanguageModel;
 
 namespace QwQ_Music.ViewModels;
@@ -29,7 +28,6 @@ public partial class MainWindowViewModel : NavigationViewModel
         : base("窗口")
     {
         CurrentPage = Pages[0];
-        NavigateService.CurrentViewChanged += CurrentViewChanged;
 
         // 注册热键功能
         HotkeyService.RegisterFunctionAction(
@@ -49,17 +47,6 @@ public partial class MainWindowViewModel : NavigationViewModel
                     ViewBackwardCommand.Execute(null);
             }
         );
-    }
-
-    public void Shutdown()
-    {
-        NavigateService.CurrentViewChanged -= CurrentViewChanged;
-    }
-
-    private void CurrentViewChanged(string obj)
-    {
-        CanGoBack = NavigateService.CanGoBack;
-        CanGoForward = NavigateService.CanGoForward;
     }
 
     public ObservableCollection<IconItem> IconItems { get; set; } =
@@ -181,6 +168,7 @@ public partial class MainWindowViewModel : NavigationViewModel
             if (field)
             {
                 brush = MusicCoverPageViewModel.ThemeVariant == "Light" ? Brushes.DimGray : Brushes.GhostWhite;
+                MusicPlayListViewModel.Instance.ThemeVariant = MusicCoverPageViewModel.ThemeVariant;
             }
             else
             {
@@ -197,15 +185,11 @@ public partial class MainWindowViewModel : NavigationViewModel
                             ? Brushes.DimGray
                             : Brushes.GhostWhite;
                 }
+
+                MusicPlayListViewModel.Instance.ThemeVariant = ConfigManager.InterfaceConfig.ThemeConfig.LightDarkMode;
             }
 
             ResourceDictionaryManager.Set("CaptionButtonForeground", brush);
-
-            MessageBus
-                .CreateMessage(new IsPageVisibleChangeMessage(field, typeof(MusicCoverPage)))
-                .FromSender(this)
-                .AddReceivers(typeof(MusicPlayListViewModel))
-                .Publish();
         }
     }
 
@@ -289,18 +273,24 @@ public partial class MainWindowViewModel : NavigationViewModel
         if (index >= Pages.Count || index < 0)
             return;
         CurrentPage = Pages[index];
+        CanGoBack = NavigateService.CanGoBack;
+        CanGoForward = NavigateService.CanGoForward;
     }
 
     [RelayCommand(CanExecute = nameof(CanGoForward))]
     private void ViewForward()
     {
         NavigateService.GoForward();
+        CanGoBack = NavigateService.CanGoBack;
+        CanGoForward = NavigateService.CanGoForward;
     }
 
     [RelayCommand(CanExecute = nameof(CanGoBack))]
     private void ViewBackward()
     {
         NavigateService.GoBack();
+        CanGoBack = NavigateService.CanGoBack;
+        CanGoForward = NavigateService.CanGoForward;
     }
 
     public static bool IsBrightColor(Color color)
@@ -322,5 +312,5 @@ public partial class IconItem(string title, IconSource source, string id = "", b
 
     public bool AlwaysHide => alwaysHide;
 
-    public string Id = id;
+    public readonly string Id = id;
 }

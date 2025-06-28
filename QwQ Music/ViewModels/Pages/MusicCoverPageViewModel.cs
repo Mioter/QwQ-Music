@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
@@ -15,7 +16,6 @@ using QwQ_Music.Services.Shader;
 using QwQ_Music.Utilities;
 using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
-using QwQ_Music.Views.Pages;
 using QwQ.Avalonia.Utilities.MessageBus;
 using CoverConfig = QwQ_Music.Models.ConfigModels.CoverConfig;
 using RolledLyricConfig = QwQ_Music.Models.ConfigModels.RolledLyricConfig;
@@ -89,19 +89,18 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
             UpdateThemeVariantFromColors();
 
-            if (MainWindowViewModel.Instance.IsMusicCoverPageVisible)
+            if (!MainWindowViewModel.Instance.IsMusicCoverPageVisible)
+                return;
+
+            Dispatcher.UIThread.Post(() =>
             {
                 ResourceDictionaryManager.Set(
                     "CaptionButtonForeground",
                     ThemeVariant == "Light" ? Brushes.DimGray : Brushes.GhostWhite
                 );
-            }
+            });
 
-            await MessageBus
-                .CreateMessage(new ThemeColorChangeMessage(ThemeVariant, typeof(MusicCoverPage)))
-                .FromSender(this)
-                .AddReceivers(typeof(MusicPlayListViewModel))
-                .PublishAsync();
+            MusicPlayListViewModel.Instance.ThemeVariant = ThemeVariant;
         }
         catch (Exception ex)
         {

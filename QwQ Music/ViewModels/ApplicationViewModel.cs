@@ -80,7 +80,6 @@ public partial class ApplicationViewModel : ObservableObject
             AudioEngineManager.Dispose();
             MessageBus.Dispose();
 
-            MainWindowViewModel.Instance.Shutdown();
             await DataBaseService.DisposeAsync();
             await LoggerService.InfoAsync(
                 "\n"

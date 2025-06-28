@@ -399,7 +399,7 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
                 int toCopy = Math.Min(spaceToFill, _resampleBufferValidSamples);
                 if (toCopy > 0)
                 {
-                    SafeCopyTo(_resampleBuffer.AsSpan(0, toCopy), remainingOutputBuffer.Slice(0, toCopy));
+                    SafeCopyTo(_resampleBuffer.AsSpan(0, toCopy), remainingOutputBuffer[..toCopy]);
                     int remainingInResampleAfterCopy = _resampleBufferValidSamples - toCopy;
                     if (remainingInResampleAfterCopy > 0)
                     {
@@ -415,7 +415,7 @@ public abstract class SoundPlayerBase : SoundComponent, ISoundPlayer
                     _resampleBufferValidSamples = remainingInResampleAfterCopy;
                     if (toCopy < spaceToFill)
                     {
-                        remainingOutputBuffer.Slice(toCopy).Clear();
+                        remainingOutputBuffer[toCopy..].Clear();
                     }
                 }
                 else
