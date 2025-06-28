@@ -125,8 +125,6 @@ public static class FileOperation
 
         return allFilePaths;
     }
-<<<<<<< HEAD
-=======
 
     /// <summary>
     /// 在系统默认文件管理器中打开指定文件或目录
@@ -175,5 +173,4 @@ public static class FileOperation
             throw new PlatformNotSupportedException("当前操作系统不支持此操作");
         }
     }
->>>>>>> 2938200 (refactor: 重构代码以优化性能和可维护性)
 }
