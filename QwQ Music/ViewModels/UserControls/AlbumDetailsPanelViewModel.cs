@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.ViewModels.ViewModelBases;
+using StringCleaner = QwQ_Music.Utilities.StringUtilities.StringCleaner;
 
 namespace QwQ_Music.ViewModels.UserControls;
 
@@ -54,7 +55,7 @@ public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
 
     private async Task UpdateCoverImage(MusicItemModel musicItem)
     {
-        string? currentCoverPath = musicItem.CoverPath;
+        string? currentCoverPath = musicItem.CoverFileName;
         bool shouldRetry;
 
         do
@@ -78,7 +79,7 @@ public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
             if (newCoverPath != null)
             {
                 currentCoverPath = newCoverPath;
-                musicItem.CoverPath = Path.GetFileName(currentCoverPath); // 更新模型中的路径
+                musicItem.CoverFileName = Path.GetFileName(currentCoverPath); // 更新模型中的路径
                 shouldRetry = true; // 重试加载新路径的封面
             }
             else
@@ -105,7 +106,7 @@ public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
             using var crawler = new NetEaseAlbumCrawler();
             var albumDetail = await crawler.GetAlbumDetailByNameAsync(album.Name, album.Artist);
 
-            AlbumItemModel.Description = albumDetail.Description;
+            AlbumItemModel.Description = StringCleaner.ToPlainText(albumDetail.Description);
             AlbumItemModel.PublishTime = albumDetail.PublishTime;
             AlbumItemModel.Company = albumDetail.Company;
         }

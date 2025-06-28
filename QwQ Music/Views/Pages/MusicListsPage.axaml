@@ -81,31 +81,39 @@
 
                             <Border CornerRadius="12" Classes.Pointerover="{Binding $parent[Panel].IsPointerOver}"
                                     Classes.NoPointerover="{Binding !$parent[Panel].IsPointerOver}">
+                                
                                 <Border.RenderTransform>
                                     <TransformGroup>
                                         <ScaleTransform ScaleX="0.98"/>
                                         <TranslateTransform Y="5" />
                                     </TransformGroup>
                                 </Border.RenderTransform>
+                                
                                 <Border.Transitions>
                                     <Transitions>
                                         <BrushTransition Property="Background" Duration="0:0:0.25"/>
                                     </Transitions>
                                 </Border.Transitions>
+                                
                                 <Border.Effect>
                                     <BlurEffect Radius="20" />
                                 </Border.Effect>
+                                
                                 <Border.Styles>
+                                    
                                     <Style Selector="Border.NoPointerover">
                                         <Setter Property="Background" Value="LightGray" />
                                     </Style>
+                                    
                                     <Style Selector="Border.Pointerover">
+                                        
                                         <Setter Property="Background">
                                             <LinearGradientBrush>
                                                 <GradientStop Offset="0" Color="#886094EA" />
                                                 <GradientStop Offset="1" Color="#88F02FC2" />
                                             </LinearGradientBrush>
                                         </Setter>
+                                        
                                         <Style.Animations>
                                             <Animation
                                                 Duration="0:0:3"
@@ -122,6 +130,7 @@
                                             </Animation>
                                         </Style.Animations>
                                     </Style>
+                                    
                                 </Border.Styles>
                             </Border>
 
@@ -174,7 +183,7 @@
                                     <StackPanel DockPanel.Dock="Top" Spacing="3">
 
                                         <TextBlock
-                                            TextWrapping="Wrap"
+                                            TextTrimming="CharacterEllipsis"
                                             Text="{Binding Name}"
                                             FontWeight="Bold" />
 

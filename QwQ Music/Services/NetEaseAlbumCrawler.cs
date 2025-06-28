@@ -101,7 +101,7 @@ public class NetEaseAlbumCrawler : IDisposable
         {
             return new AlbumDetail { Description = "操作已取消" };
         }
-        catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
             return new AlbumDetail { Description = $"网络请求失败: {ex.Message}" };
         }

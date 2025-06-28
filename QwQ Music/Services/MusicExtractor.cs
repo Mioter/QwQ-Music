@@ -10,6 +10,7 @@ using NcmdumpCSharp.Core;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Utilities;
+using QwQ_Music.Utilities.StringUtilities;
 using File = System.IO.File;
 
 namespace QwQ_Music.Services;
@@ -184,7 +185,7 @@ public static class MusicExtractor
         }
 
         var fileInfo = new FileInfo(filePath);
-        string fileSize = StringProcessor.FormatFileSize(fileInfo.Length);
+        string fileSize = StringFormatter.FormatFileSize(fileInfo.Length);
 
         string? coverFileName = null;
         Bitmap? coverImage = null;

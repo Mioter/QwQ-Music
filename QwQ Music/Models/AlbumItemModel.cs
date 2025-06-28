@@ -5,7 +5,7 @@ using QwQ_Music.Services;
 
 namespace QwQ_Music.Models;
 
-public partial class AlbumItemModel(string name, string artist, string? coverPath = null) : ObservableObject
+public partial class AlbumItemModel(string name, string artist, string? coverFileName = null) : ObservableObject
 {
     public string Name { get; } = name;
 
@@ -28,7 +28,7 @@ public partial class AlbumItemModel(string name, string artist, string? coverPat
         get
         {
             // 如果封面路径不存在，返回默认封面
-            if (string.IsNullOrEmpty(coverPath) || _coverStatus == CoverStatus.NotExist)
+            if (string.IsNullOrEmpty(coverFileName) || _coverStatus == CoverStatus.NotExist)
                 return MusicExtractor.DefaultCover;
 
             // 如果正在加载中，返回默认封面
@@ -36,7 +36,7 @@ public partial class AlbumItemModel(string name, string artist, string? coverPat
                 return MusicExtractor.DefaultCover;
 
             // 尝试从缓存获取图片
-            if (MusicExtractor.ImageCache.TryGetValue(coverPath, out var image))
+            if (MusicExtractor.ImageCache.TryGetValue(coverFileName, out var image))
             {
                 _coverStatus = CoverStatus.Loaded;
                 return image!;
@@ -48,11 +48,11 @@ public partial class AlbumItemModel(string name, string artist, string? coverPat
             // 启动异步加载任务
             Task.Run(async () =>
             {
-                var bitmap = await MusicExtractor.LoadCompressedBitmap(coverPath);
+                var bitmap = await MusicExtractor.LoadCompressedBitmap(coverFileName);
 
                 if (bitmap != null)
                 {
-                    MusicExtractor.ImageCache[coverPath] = bitmap;
+                    MusicExtractor.ImageCache[coverFileName] = bitmap;
                     _coverStatus = CoverStatus.Loaded;
                 }
                 else
@@ -68,10 +68,10 @@ public partial class AlbumItemModel(string name, string artist, string? coverPat
         }
         set
         {
-            if (coverPath == null)
+            if (coverFileName == null)
                 return;
 
-            MusicExtractor.ImageCache[coverPath] = value;
+            MusicExtractor.ImageCache[coverFileName] = value;
             _coverStatus = CoverStatus.Loaded;
 
             OnPropertyChanged();

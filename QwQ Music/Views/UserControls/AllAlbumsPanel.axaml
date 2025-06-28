@@ -6,89 +6,92 @@
              xmlns:pages2="clr-namespace:QwQ_Music.Views.UserControls"
              x:DataType="userControls:AllAlbumsPanelViewModel"
              x:Class="QwQ_Music.Views.UserControls.AllAlbumsPanel">
+    
+    <ScrollViewer>
+        
+        <ItemsControl Padding="30,25" ItemsSource="{Binding AlbumItems}" Background="{DynamicResource SemiColorFill0}">
 
-    <ItemsControl Padding="30,25" ItemsSource="{Binding AlbumItems}" Background="{DynamicResource SemiColorFill0}">
+            <ItemsControl.Styles>
 
-        <ItemsControl.Styles>
+                <Style Selector="ItemsControl > ContentPresenter">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
 
-            <Style Selector="ItemsControl > ContentPresenter">
-                <Setter Property="Padding" Value="0" />
-                <Setter Property="ContextMenu">
-                    <Setter.Value>
-                        <ContextMenu>
-                            
-                            <MenuItem
-                                Command="{Binding $parent[UserControl].((userControls:AllAlbumsPanelViewModel)DataContext).PlayAlbumMusicCommand}"
-                                CommandParameter="{Binding}"
-                                Header="播放">
-                                <MenuItem.Icon>
-                                    <PathIcon Data="{StaticResource SemiIconPlay}" Margin="4" />
-                                </MenuItem.Icon>
-                            </MenuItem>
+                                <MenuItem
+                                    Command="{Binding $parent[UserControl].((userControls:AllAlbumsPanelViewModel)DataContext).PlayAlbumMusicCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="播放">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconPlay}" Margin="4" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
 
-                        </ContextMenu>
-                    </Setter.Value>
-                </Setter>
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
 
-            </Style>
+                </Style>
 
-        </ItemsControl.Styles>
+            </ItemsControl.Styles>
 
-        <!--<ItemsRepeater.Layout>
+            <!--<ItemsRepeater.Layout>
                         <WrapLayout />
                     </ItemsRepeater.Layout>-->
 
-        <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-                <WrapPanel ItemSpacing="35" LineSpacing="35" />
-            </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel ItemSpacing="35" LineSpacing="35" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
 
-        <ItemsControl.ItemTemplate>
+            <ItemsControl.ItemTemplate>
 
-            <DataTemplate>
+                <DataTemplate>
 
-                <StackPanel
-                    Width="80"
-                    Spacing="10">
+                    <StackPanel
+                        Width="80"
+                        Spacing="10">
 
-                    <Button CornerRadius="12"
-                            Padding="0"
-                            Margin="5"
-                            ToolTip.Placement="Bottom"
-                            Foreground="{DynamicResource TextBlockDefaultForeground}"
-                            Background="{DynamicResource SemiColorBackground3}"
-                            Command="{Binding $parent[pages1:AlbumClassPage].((pages:AlbumClassPageViewModel)DataContext).ToggleItemCommand}"
-                            CommandParameter="{Binding }">
-                        
-                        <Classes.Current>
-                            <MultiBinding Converter="{StaticResource InstanceEqualityMultiConverter}">
-                                <Binding/>
-                                <Binding Path="$parent[pages2:AllAlbumsPanel].((userControls:AllAlbumsPanelViewModel)DataContext).SelectedAlbumItem"/>
-                            </MultiBinding>
-                        </Classes.Current>
+                        <Button CornerRadius="12"
+                                Padding="0"
+                                Margin="5"
+                                ToolTip.Placement="Bottom"
+                                Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                Background="{DynamicResource SemiColorBackground3}"
+                                Command="{Binding $parent[pages1:AlbumClassPage].((pages:AlbumClassPageViewModel)DataContext).ToggleItemCommand}"
+                                CommandParameter="{Binding }">
 
-                        <ToolTip.Tip>
+                            <Classes.Current>
+                                <MultiBinding Converter="{StaticResource InstanceEqualityMultiConverter}">
+                                    <Binding />
+                                    <Binding
+                                        Path="$parent[pages2:AllAlbumsPanel].((userControls:AllAlbumsPanelViewModel)DataContext).SelectedAlbumItem" />
+                                </MultiBinding>
+                            </Classes.Current>
 
-                            <StackPanel Spacing="5">
-                                <TextBlock Text="{Binding Name}"
-                                           HorizontalAlignment="Center"
-                                           FontWeight="Bold" />
-                                <TextBlock Text="{Binding Artist}" 
-                                           HorizontalAlignment="Center"/>
-                            </StackPanel>
+                            <ToolTip.Tip>
 
-                        </ToolTip.Tip>
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="{Binding Name}"
+                                               HorizontalAlignment="Center"
+                                               FontWeight="Bold" />
+                                    <TextBlock Text="{Binding Artist}"
+                                               HorizontalAlignment="Center" />
+                                </StackPanel>
 
-                        <Button.Transitions>
-                            <Transitions>
-                                <TransformOperationsTransition Duration="0:0:0.3"
-                                                               Property="RenderTransform" />
-                            </Transitions>
-                        </Button.Transitions>
+                            </ToolTip.Tip>
 
-                        <!-- 阴影会导致性能大幅降低 -->
-                        <!--<Button.Effect>
+                            <Button.Transitions>
+                                <Transitions>
+                                    <TransformOperationsTransition Duration="0:0:0.3"
+                                                                   Property="RenderTransform" />
+                                </Transitions>
+                            </Button.Transitions>
+
+                            <!-- 阴影会导致性能大幅降低 -->
+                            <!--<Button.Effect>
                             <DropShadowEffect
                                 BlurRadius="15"
                                 Color="LightGray"
@@ -96,49 +99,49 @@
                                 OffsetY="3" />
                         </Button.Effect>-->
 
-                        <Button.Styles>
-                            <Style Selector="Button">
+                            <Button.Styles>
+                                <Style Selector="Button">
 
-                                <Style
-                                    Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                                    <Setter Property="Background"
-                                            Value="{DynamicResource SemiColorBackground3}" />
+                                    <Style
+                                        Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                        <Setter Property="Background"
+                                                Value="{DynamicResource SemiColorBackground3}" />
+                                    </Style>
+
+                                    <Style
+                                        Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                        <Setter Property="Background"
+                                                Value="{DynamicResource SemiColorBackground3}" />
+                                    </Style>
                                 </Style>
 
-                                <Style
-                                    Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
-                                    <Setter Property="Background"
-                                            Value="{DynamicResource SemiColorBackground3}" />
+                                <Style Selector="Button:pointerover">
+                                    <Setter Property="RenderTransform" Value="translateY(-10px)" />
                                 </Style>
-                            </Style>
 
-                            <Style Selector="Button:pointerover">
-                                <Setter Property="RenderTransform" Value="translateY(-10px)" />
-                            </Style>
+                                <Style Selector="Button:pressed">
+                                    <Setter Property="RenderTransform" Value="translateY(0px)" />
+                                </Style>
 
-                            <Style Selector="Button:pressed">
-                                <Setter Property="RenderTransform" Value="translateY(0px)" />
-                            </Style>
+                                <Style Selector="Button.Current">
+                                    <Setter Property="Effect">
+                                        <DropShadowEffect OffsetX="0" OffsetY="0" Color="#88F02FC2" BlurRadius="10" />
+                                    </Setter>
+                                </Style>
 
-                            <Style Selector="Button.Current">
-                                <Setter Property="Effect">
-                                    <DropShadowEffect OffsetX="0" OffsetY="0" Color="#88F02FC2" BlurRadius="10" />
-                                </Setter>
-                            </Style>
+                            </Button.Styles>
 
-                        </Button.Styles>
+                            <Border CornerRadius="10"
+                                    Margin="5"
+                                    ClipToBounds="True">
+                                <Image
+                                    Source="{Binding CoverImage}" />
+                            </Border>
 
-                        <Border CornerRadius="10"
-                                Margin="5"
-                                ClipToBounds="True">
-                            <Image
-                                Source="{Binding CoverImage}" />
-                        </Border>
+                        </Button>
 
-                    </Button>
-
-                    <!-- 此控件会导致性能大幅降低，暂不使用 -->
-                    <!--<control:RunningText
+                        <!-- 此控件会导致性能大幅降低，暂不使用 -->
+                        <!--<control:RunningText
                         Direction="RightToLeft"
                         TextAlignment="Center"
                         Foreground="{DynamicResource TextBlockDefaultForeground}"
@@ -183,12 +186,14 @@
                         </Interaction.Behaviors>
                     </control:RunningText>-->
 
-                </StackPanel>
-                
-            </DataTemplate>
+                    </StackPanel>
 
-        </ItemsControl.ItemTemplate>
+                </DataTemplate>
 
-    </ItemsControl>
+            </ItemsControl.ItemTemplate>
 
+        </ItemsControl>
+        
+    </ScrollViewer>
+    
 </UserControl>

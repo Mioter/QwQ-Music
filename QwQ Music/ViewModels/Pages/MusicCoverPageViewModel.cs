@@ -112,7 +112,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
     private async Task UpdateCoverImage(MusicItemModel musicItem)
     {
-        string? currentCoverPath = musicItem.CoverPath;
+        string? currentCoverPath = musicItem.CoverFileName;
         bool shouldRetry;
 
         do
@@ -136,7 +136,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
             if (newCoverPath != null)
             {
                 currentCoverPath = newCoverPath;
-                musicItem.CoverPath = Path.GetFileName(currentCoverPath); // 更新模型中的路径
+                musicItem.CoverFileName = Path.GetFileName(currentCoverPath); // 更新模型中的路径
                 shouldRetry = true; // 重试加载新路径的封面
             }
             else
@@ -149,7 +149,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
     private async Task UpdateColorsList(MusicItemModel musicItem)
     {
         // 如果没有封面路径，直接使用默认颜色
-        if (string.IsNullOrWhiteSpace(musicItem.CoverPath))
+        if (string.IsNullOrWhiteSpace(musicItem.CoverFileName))
         {
             ColorsList = _defaultColors;
             return;
@@ -163,7 +163,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         }
 
         // 提取新的颜色
-        var colorsList = await GetColorPalette(musicItem.CoverPath, COLOR_COUNT);
+        var colorsList = await GetColorPalette(musicItem.CoverFileName, COLOR_COUNT);
 
         // 缓存提取的颜色
         if (colorsList != null)

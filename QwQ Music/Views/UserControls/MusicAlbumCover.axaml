@@ -7,7 +7,6 @@
                  mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                  x:Class="QwQ_Music.Views.UserControls.MusicAlbumCover">
     
-    
     <userControls:MusicAlbumCover.Template>
         <ControlTemplate>
                 <Border
