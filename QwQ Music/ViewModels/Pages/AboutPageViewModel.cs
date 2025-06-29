@@ -1,10 +1,11 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using QwQ_Music.Helper;
+using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.Utilities;
 using QwQ_Music.ViewModels.ViewModelBases;
@@ -15,31 +16,41 @@ public partial class AboutPageViewModel : ViewModelBase
 {
     public static IBrush RandomColor => ColorGenerator.GeneratePastelColor();
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BackgroundImage))]
-    public partial double PageWidth { get; set; }
+    private CoverStatus? _coverStatus;
 
-    public static int PanelHeight => 120;
-
-    [field: AllowNull]
-    [field: MaybeNull]
     public Bitmap BackgroundImage
     {
         get
         {
-            if (field != null)
-            {
-                return field;
-            }
-
-            if (PageWidth <= 0)
+            // 如果正在加载中，返回默认封面
+            if (_coverStatus is CoverStatus.Loading or CoverStatus.NotExist)
                 return MusicExtractor.DefaultCover;
+
+            // 尝试从缓存获取图片
+            if (MusicExtractor.ImageCache.TryGetValue("关于:背景", out var image))
+            {
+                _coverStatus = CoverStatus.Loaded;
+                return image!;
+            }
 
             Task.Run(async () =>
             {
-                field = await ImageHelper.LoadFromWeb(new Uri("https://www.loliapi.com/acg/"));
+                // 压缩图片到3MB以内
+                const long maxSizeInBytes = 3 * 1024 * 1024; // 3MB
+                var bitmap = await ImageHelper.LoadFromWebAndCompress(
+                    new Uri("https://www.loliapi.com/acg/"),
+                    maxSizeInBytes
+                );
 
-                OnPropertyChanged();
+                if (bitmap != null)
+                {
+                    MusicExtractor.ImageCache["关于:背景"] = bitmap;
+                    OnPropertyChanged();
+                }
+                else
+                {
+                    _coverStatus = CoverStatus.NotExist;
+                }
             });
 
             return MusicExtractor.DefaultCover;
@@ -59,7 +70,6 @@ public partial class AboutPageViewModel : ViewModelBase
             new("Z440.ALT", "音乐元数据读取与写入", "https://github.com/Zeugma440/atldotnet"),
             new("managed-midi", "MIDI音频处理支持", "atsushieno/managed-midi"),
             new("SkiaSharp", "着色器渲染支持", "https://github.com/mono/SkiaSharp"),
-            new("AngleSharp", "提供HTML、CSS解析，与DOM构建功能", "https://github.com/AngleSharp/AngleSharp"),
             new("Community Toolkit", "为MVVM开发模式提供基础框架", "https://github.com/CommunityToolkit/dotnet"),
             new("XAML Behaviors", "为XAML开发提供行为扩展", "https://github.com/wieslawsoltes/Xaml.Behaviors"),
         ];
@@ -130,21 +140,40 @@ public class ContributorItem(string name, string speak = "TA没有什么想说�
 {
     public string Name { get; set; } = name;
 
-    [field: AllowNull]
-    [field: MaybeNull]
+    private CoverStatus? _coverStatus;
+
     public Bitmap Hp
     {
         get
         {
-            if (field != null)
+            if (_coverStatus is CoverStatus.Loading or CoverStatus.NotExist)
+                return MusicExtractor.DefaultCover;
+
+            // 尝试从缓存获取图片
+            if (MusicExtractor.ImageCache.TryGetValue($"贡献者:{Name}", out var image))
             {
-                return field;
+                _coverStatus = CoverStatus.Loaded;
+                return image!;
             }
 
             Task.Run(async () =>
             {
-                field = await ImageHelper.LoadFromWeb(new Uri($"https://github.com/{Name}.png"));
-                OnPropertyChanged();
+                // 压缩图片到1MB以内（头像通常较小）
+                const long maxSizeInBytes = 1 * 1024 * 1024; // 1MB
+                var bitmap = await ImageHelper.LoadFromWebAndCompress(
+                    new Uri($"https://github.com/{Name}.png"),
+                    maxSizeInBytes
+                );
+
+                if (bitmap != null)
+                {
+                    MusicExtractor.ImageCache[$"贡献者:{Name}"] = bitmap;
+                    OnPropertyChanged();
+                }
+                else
+                {
+                    _coverStatus = CoverStatus.NotExist;
+                }
             });
 
             return MusicExtractor.DefaultCover;
@@ -160,21 +189,37 @@ public class SpecialThank(string name, string hpUri, string uri, string descript
 
     public string Description { get; set; } = description;
 
-    [field: AllowNull]
-    [field: MaybeNull]
-    public Bitmap Hp
+    private CoverStatus? _coverStatus;
+
+    public Bitmap Logo
     {
         get
         {
-            if (field != null)
+            if (_coverStatus is CoverStatus.Loading or CoverStatus.NotExist)
+                return MusicExtractor.DefaultCover;
+
+            // 尝试从缓存获取图片
+            if (MusicExtractor.ImageCache.TryGetValue($"鸣谢:{Name}", out var image))
             {
-                return field;
+                _coverStatus = CoverStatus.Loaded;
+                return image!;
             }
 
             Task.Run(async () =>
             {
-                field = await ImageHelper.LoadFromWeb(new Uri($"{hpUri}"));
-                OnPropertyChanged();
+                // 压缩图片到2MB以内
+                const long maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+                var bitmap = await ImageHelper.LoadFromWebAndCompress(new Uri($"{hpUri}"), maxSizeInBytes);
+
+                if (bitmap != null)
+                {
+                    MusicExtractor.ImageCache[$"鸣谢:{Name}"] = bitmap;
+                    OnPropertyChanged();
+                }
+                else
+                {
+                    _coverStatus = CoverStatus.NotExist;
+                }
             });
 
             return MusicExtractor.DefaultCover;

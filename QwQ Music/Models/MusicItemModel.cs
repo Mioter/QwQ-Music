@@ -118,9 +118,9 @@ public class MusicItemModel : ObservableObject
         get;
         set
         {
-            if (!SetPropertyWithModified(ref field, value)) 
+            if (!SetPropertyWithModified(ref field, value))
                 return;
-            
+
             _coverStatus = null;
             OnPropertyChanged(nameof(CoverImage));
         }

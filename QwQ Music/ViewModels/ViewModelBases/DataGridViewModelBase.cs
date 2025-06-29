@@ -18,6 +18,8 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel>?
 
     public static MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
 
+    public static MusicListsViewModel MusicListsViewModel { get; } = MusicListsViewModel.Instance;
+
     public string? SearchText
     {
         get;
@@ -64,7 +66,7 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel>?
     {
         if (SelectedItems is { Count: > 0 } && musicListName != null)
         {
-            await MusicPlayerViewModel.MusicListsViewModel.AddToMusicList(SelectedItems, musicListName);
+            await MusicListsViewModel.AddToMusicList(SelectedItems, musicListName);
         }
     }
 
@@ -73,7 +75,7 @@ public partial class DataGridViewModelBase(ObservableCollection<MusicItemModel>?
     {
         if (SelectedItems is { Count: > 0 })
         {
-            await MusicPlayerViewModel.MusicListsViewModel.RemoveToMusicList(SelectedItems, musicListName);
+            await MusicListsViewModel.RemoveToMusicList(SelectedItems, musicListName);
         }
     }
 

@@ -90,29 +90,29 @@ public static partial class StringCleaner
         return new string(
             input
                 .Where(c =>
-                        c != '\u200B'
-                     && // 零宽空格
-                        c != '\u200C'
-                     && // 零宽非连接符
-                        c != '\u200D'
-                     && // 零宽连接符
-                        c != '\u2060'
-                     && // 词连接符
-                        c != '\uFEFF'
-                     && // 字节顺序标记
-                        c != '\u200E'
-                     && // 从左到右标记
-                        c != '\u200F'
-                     && // 从右到左标记
-                        c != '\u202A'
-                     && // 从左到右嵌入
-                        c != '\u202B'
-                     && // 从右到左嵌入
-                        c != '\u202C'
-                     && // 弹出方向格式
-                        c != '\u202D'
-                     && // 从左到右覆盖
-                        c != '\u202E' // 从右到左覆盖
+                    c != '\u200B'
+                    && // 零宽空格
+                    c != '\u200C'
+                    && // 零宽非连接符
+                    c != '\u200D'
+                    && // 零宽连接符
+                    c != '\u2060'
+                    && // 词连接符
+                    c != '\uFEFF'
+                    && // 字节顺序标记
+                    c != '\u200E'
+                    && // 从左到右标记
+                    c != '\u200F'
+                    && // 从右到左标记
+                    c != '\u202A'
+                    && // 从左到右嵌入
+                    c != '\u202B'
+                    && // 从右到左嵌入
+                    c != '\u202C'
+                    && // 弹出方向格式
+                    c != '\u202D'
+                    && // 从左到右覆盖
+                    c != '\u202E' // 从右到左覆盖
                 )
                 .ToArray()
         );
@@ -230,8 +230,13 @@ public static partial class StringCleaner
     /// <param name="removeZeroWidth">是否去除零宽字符</param>
     /// <param name="normalizeWhitespace">是否标准化空白字符</param>
     /// <returns>综合清理后的字符串</returns>
-    public static string CleanComprehensive(string input, bool removeHtml = true, bool removeMarkdown = true, 
-        bool removeZeroWidth = true, bool normalizeWhitespace = true)
+    public static string CleanComprehensive(
+        string input,
+        bool removeHtml = true,
+        bool removeMarkdown = true,
+        bool removeZeroWidth = true,
+        bool normalizeWhitespace = true
+    )
     {
         if (string.IsNullOrEmpty(input))
             return input;

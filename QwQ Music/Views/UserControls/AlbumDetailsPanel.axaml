@@ -196,8 +196,8 @@
 
                                     <MenuItem
                                         Header="已有歌单"
-                                        IsVisible="{Binding $parent[UserControl].((userControls:AlbumDetailsPanelViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems.Count}"
-                                        ItemsSource="{Binding $parent[UserControl].((userControls:AlbumDetailsPanelViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems}">
+                                        IsVisible="{Binding $parent[UserControl].((userControls:AlbumDetailsPanelViewModel)DataContext).MusicListsViewModel.PlayListItems.Count}"
+                                        ItemsSource="{Binding $parent[UserControl].((userControls:AlbumDetailsPanelViewModel)DataContext).MusicListsViewModel.PlayListItems}">
 
                                         <MenuItem.ItemContainerTheme>
                                             <ControlTheme TargetType="MenuItem" x:DataType="models:MusicListModel"
@@ -234,7 +234,7 @@
 
                                     <Separator
                                         Margin="0,5"
-                                        IsVisible="{Binding $parent[UserControl].((userControls:AlbumDetailsPanelViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.PlayListItems.Count}" />
+                                        IsVisible="{Binding $parent[UserControl].((userControls:AlbumDetailsPanelViewModel)DataContext).MusicListsViewModel.PlayListItems.Count}" />
 
                                     <MenuItem Header="下一首"
                                               Command="{Binding $parent[UserControl].((userControls:AlbumDetailsPanelViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
@@ -245,7 +245,7 @@
                                     </MenuItem>
 
                                     <MenuItem Header="新建歌单"
-                                              Command="{Binding $parent[UserControl].((userControls:AlbumDetailsPanelViewModel)DataContext).MusicPlayerViewModel.MusicListsViewModel.CreateAndAddToMusicListCommand}"
+                                              Command="{Binding $parent[UserControl].((userControls:AlbumDetailsPanelViewModel)DataContext).MusicListsViewModel.CreateAndAddToMusicListCommand}"
                                               CommandParameter="{Binding $parent[ListBox].SelectedItems}">
                                         <MenuItem.Icon>
                                             <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />

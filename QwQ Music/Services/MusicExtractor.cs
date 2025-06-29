@@ -28,12 +28,15 @@ public static class MusicExtractor
     {
         var lyricsData = new LyricsData();
         var track = new Track(filePath);
-        var lyricsInfo = track.Lyrics;
-        var syncLyrics = lyricsInfo.SynchronizedLyrics;
-        if (syncLyrics is { Count: > 0 })
+        var lyricsList = track.Lyrics;
+
+        // 查找同步歌词
+        var syncLyricsInfo = lyricsList.FirstOrDefault(l => l.SynchronizedLyrics.Count > 0);
+        if (syncLyricsInfo != null)
         {
+            var syncLyrics = syncLyricsInfo.SynchronizedLyrics;
             // 按时间点分组
-            var grouped = syncLyrics.GroupBy(p => p.TimestampMs).OrderBy(g => g.Key);
+            var grouped = syncLyrics.GroupBy(p => p.TimestampStart).OrderBy(g => g.Key);
 
             var lyricLines = new List<LyricLine>();
             foreach (var group in grouped)
@@ -63,9 +66,14 @@ public static class MusicExtractor
             return lyricsData;
         }
 
-        string? lyric = lyricsInfo.UnsynchronizedLyrics;
-        if (!string.IsNullOrEmpty(lyric))
-            return await Task.Run(() => LyricsService.ParseLrcFile(lyric)) ?? lyricsData;
+        // 查找非同步歌词
+        var unsyncLyricsInfo = lyricsList.FirstOrDefault(l => !string.IsNullOrEmpty(l.UnsynchronizedLyrics));
+        if (unsyncLyricsInfo != null)
+        {
+            string? lyric = unsyncLyricsInfo.UnsynchronizedLyrics;
+            if (!string.IsNullOrEmpty(lyric))
+                return await Task.Run(() => LyricsService.ParseLrcFile(lyric)) ?? lyricsData;
+        }
 
         // 获取目录路径
         string? directoryPath = Path.GetDirectoryName(filePath);
@@ -83,8 +91,8 @@ public static class MusicExtractor
         if (!Path.Exists(lyricPath))
             return lyricsData;
 
-        lyric = await File.ReadAllTextAsync(lyricPath);
-        return await Task.Run(() => LyricsService.ParseLrcFile(lyric)) ?? lyricsData;
+        string lyricText = await File.ReadAllTextAsync(lyricPath);
+        return await Task.Run(() => LyricsService.ParseLrcFile(lyricText)) ?? lyricsData;
     }
 
     /// <summary>
@@ -167,11 +175,18 @@ public static class MusicExtractor
     /// <returns>包含音乐信息的模型。</returns>
     public static async Task<MusicItemModel?> ExtractMusicInfoAsync(string filePath)
     {
-        var (metadata, error) = Path.GetExtension(filePath).ToUpperInvariant() switch
+        MusicMetadata? metadata;
+        Exception? error;
+        string extension = Path.GetExtension(filePath).ToUpper();
+
+        if (extension == AudioFileValidator.AudioFormatsExtendToNameMap[AudioFileValidator.ExtendAudioFormats.Ncm])
         {
-            ".NCM" => await ExtractNcmMetadataAsync(filePath),
-            _ => await ExtractTrackMetadataAsync(filePath),
-        };
+            (metadata, error) = await ExtractNcmMetadataAsync(filePath);
+        }
+        else
+        {
+            (metadata, error) = await ExtractTrackMetadataAsync(filePath);
+        }
 
         if (error != null)
         {

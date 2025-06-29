@@ -25,7 +25,7 @@ public static class StringFormatter
             len /= 1024;
         }
 
-        return string.Format("{{0:F" + decimalPlaces + "}} {1}", len, sizes[order]);
+        return $"{len.ToString($"F{decimalPlaces}")} {sizes[order]}";
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ public static class StringFormatter
     {
         if (total == 0)
             return "0%";
-        double percentage = (value / total) * 100;
-        return string.Format("{{0:F" + decimalPlaces + "}}%", percentage);
+        double percentage = value / total * 100;
+        return $"{percentage.ToString($"F{decimalPlaces}")}%";
     }
 }

@@ -10,6 +10,7 @@ using System.Timers;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NcmdumpCSharp.Core;
 using QwQ_Music.Definitions;
 using QwQ_Music.Definitions.Enums;
 using QwQ_Music.Models;
@@ -48,7 +49,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
         _lyricsTimer.Elapsed += OnLyricsTimerElapsed;
         _lyricsTimer.AutoReset = false;
 
-        MusicListsPageViewModel.MusicPlayerViewModel = this;
         // 注册热键功能
         RegisterHotkeyFunctions();
     }
@@ -80,8 +80,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
     public partial ObservableCollection<MusicItemModel> MusicItems { get; set; } = [];
 
     public static PlayerConfig PlayerConfig { get; } = ConfigManager.PlayerConfig;
-
-    public MusicListsPageViewModel MusicListsViewModel { get; } = new();
 
     public LyricsModel LyricsModel { get; } = new();
 
@@ -196,7 +194,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
             var playlistTask = InitializePlaylistAsync();
 
-            await Task.WhenAll(messageTask, playlistTask, MusicListsViewModel.InitializeAsync(MusicItems))
+            await Task.WhenAll(messageTask, playlistTask, MusicListsViewModel.Instance.InitializeAsync())
                 .ConfigureAwait(false);
         }
         catch (Exception e)
@@ -552,42 +550,6 @@ public partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
-    /// <summary>
-    /// 从数据库中批量删除音乐项
-    /// </summary>
-    /// <param name="items">要删除的音乐项集合</param>
-    /// <returns>删除成功的音乐项列表</returns>
-    private static async Task<List<MusicItemModel>> DeleteMusicItemsFromDataBaseAsync(IEnumerable<MusicItemModel> items)
-    {
-        var successItems = new List<MusicItemModel>();
-        var itemsList = items.ToList();
-
-        var deleteTasks = itemsList.Select(async item =>
-        {
-            bool isSuccess =
-                await DataBaseService.DeleteDataAsync(
-                    DataBaseService.Table.MUSICS,
-                    nameof(MusicItemModel.FilePath),
-                    item.FilePath
-                ) != DataBaseService.OperationResult.Failure
-                || await DataBaseService.DeleteDataAsync(
-                    DataBaseService.Table.MUSICLISTS,
-                    nameof(MusicItemModel.FilePath),
-                    item.FilePath
-                ) != DataBaseService.OperationResult.Failure;
-
-            if (isSuccess)
-            {
-                successItems.Add(item);
-            }
-        });
-
-        // 在后台线程中并行处理所有删除操作
-        await Task.WhenAll(deleteTasks);
-
-        return successItems;
-    }
-
     public async Task<bool> DeleteMusicItemsAsync(List<MusicItemModel> musicItems)
     {
         if (musicItems.Count == 0)
@@ -606,7 +568,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
             return false;
 
         // 批量删除音乐项
-        var successItems = await DeleteMusicItemsFromDataBaseAsync(musicItems);
+        var successItems = await MusicDataService.DeleteMusicItemsFromDataBaseAsync(musicItems);
         var successSet = new HashSet<MusicItemModel>(successItems);
         var failedItems = musicItems.Where(item => !successSet.Contains(item)).ToList();
 
@@ -615,22 +577,14 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             MusicItems.Remove(item);
             PlayList.MusicItems.Remove(item);
-
-            // 从所有已加载的歌单中移除该音乐
-            foreach (var playlist in MusicListsViewModel.PlayListItems)
-            {
-                if (playlist.IsInitialized)
-                {
-                    playlist.MusicItems.Remove(item);
-                }
-            }
+            MusicListsViewModel.Instance.SynchronizeMusicDeletion(item);
         }
 
         // 显示删除结果通知
         if (successItems.Count > 0)
         {
             string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
-            NotificationService.ShowLight("好欸", $"{successTitles}已经从音乐列表中移除了！", NotificationType.Success);
+            NotificationService.ShowLight("好欸", $"{successTitles}已经从音乐库中移除了！", NotificationType.Success);
         }
 
         if (failedItems.Count > 0)
@@ -678,7 +632,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
 
         if (!MusicItems.Contains(musicItem))
         {
-            await MusicDataPersistence.SaveMusicItemsAsync([musicItem]).ConfigureAwait(false);
+            await MusicDataService.SaveMusicItemsAsync([musicItem]).ConfigureAwait(false);
             NotificationService.ShowLight(
                 "注意",
                 $"很奇怪，这个《{musicItem.Title}》不在音乐库中，不过没关系，现在在了，欸嘿~QvQ",
@@ -803,7 +757,7 @@ public partial class MusicPlayerViewModel : ViewModelBase
         // 保存上一首歌曲的修改
         if (CurrentMusicItem is { IsInitialized: true, IsModified: true, IsError: false })
         {
-            await MusicDataPersistence.SaveMusicItemsAsync([CurrentMusicItem], false).ConfigureAwait(false);
+            await MusicDataService.SaveMusicItemsAsync([CurrentMusicItem], false).ConfigureAwait(false);
         }
 
         if (restart || IsNearEnd(musicItem))
@@ -815,18 +769,16 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             var lyrics = await musicItem.Lyrics;
 
-            if (
-                AudioFileValidator.SupportedAudioFormatsExtend.Contains(
-                    Path.GetExtension(musicItem.FilePath).ToUpper(),
-                    StringComparer.OrdinalIgnoreCase
-                )
-            )
+            // 根据文件类型初始化音频
+            string extension = Path.GetExtension(musicItem.FilePath).ToUpper();
+
+            if (extension == AudioFileValidator.AudioFormatsExtendToNameMap[AudioFileValidator.ExtendAudioFormats.Ncm])
             {
                 await InitializeNcmAudioTrackAsync(musicItem).ConfigureAwait(false);
             }
             else
             {
-                await Task.Run(() => InitializeAudioTrackAsync(musicItem)).ConfigureAwait(false);
+                await InitializeAudioTrackAsync(musicItem).ConfigureAwait(false);
             }
 
             _audioPlay.Stop();
@@ -851,20 +803,13 @@ public partial class MusicPlayerViewModel : ViewModelBase
         }
     }
 
-    private void InitializeAudioTrackAsync(MusicItemModel musicItem)
+    /// <summary>
+    /// 预处理音频项，包括采样率调整和增益值计算
+    /// </summary>
+    /// <param name="musicItem">音乐项</param>
+    /// <returns>预处理结果</returns>
+    private static void PreprocessAudioItemAsync(MusicItemModel musicItem)
     {
-        // 如果采样率匹配且增益值已设置，直接初始化音频并返回
-        if (
-            musicItem.Gain > 0f
-            && !PlayerConfig.IsAutoSetSampleRate
-            && AudioEngineManager.AudioEngine != null
-            && PlayerConfig.SampleRate == AudioEngineManager.AudioEngine.SampleRate
-        )
-        {
-            _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
-            return;
-        }
-
         // 获取音频扩展信息
         var ex = MusicExtractor.ExtractExtensionsInfo(musicItem.FilePath);
 
@@ -875,27 +820,43 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             AudioEngineManager.Create(targetSampleRate);
         }
-
         // 处理增益值
         if (musicItem.Gain <= 0f)
         {
             musicItem.Gain = AudioHelper.CalcGainOfMusicItem(musicItem.FilePath, ex.SamplingRate, ex.Channels);
         }
+    }
 
-        // 初始化音频
-        _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
+    private async Task InitializeAudioTrackAsync(MusicItemModel musicItem)
+    {
+        await Task.Run(() =>
+        {
+            // 如果采样率匹配或增益值未设置，直接进行预处理
+            if (
+                !(musicItem.Gain > 0f)
+                || PlayerConfig.IsAutoSetSampleRate
+                || AudioEngineManager.AudioEngine == null
+                || PlayerConfig.SampleRate != AudioEngineManager.AudioEngine.SampleRate
+            )
+            {
+                PreprocessAudioItemAsync(musicItem);
+            }
+
+            // 初始化音频
+            _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain);
+        });
     }
 
     private async Task InitializeNcmAudioTrackAsync(MusicItemModel musicItem)
     {
         try
         {
-            using var crypt = new NcmdumpCSharp.Core.NeteaseCrypt(musicItem.FilePath);
+            using var crypt = new NeteaseCrypt(musicItem.FilePath);
             var (audioStream, _) = await crypt.DumpToStreamAsync();
             if (audioStream != null)
             {
                 // 对于NCM，我们暂时不处理ReplayGain
-                _audioPlay.InitializeAudio(audioStream, 0);
+                await Task.Run(() => _audioPlay.InitializeAudio(audioStream, 0));
             }
         }
         catch (Exception e)
@@ -919,10 +880,10 @@ public partial class MusicPlayerViewModel : ViewModelBase
         {
             if (CurrentMusicItem is { IsInitialized: true, IsModified: true, IsError: false })
             {
-                await MusicDataPersistence.SaveMusicItemsAsync([CurrentMusicItem]).ConfigureAwait(false);
+                await MusicDataService.SaveMusicItemsAsync([CurrentMusicItem]).ConfigureAwait(false);
             }
 
-            await MusicDataPersistence.SaveMusicListAsync(PlayList).ConfigureAwait(false); // 保存播放列表
+            await MusicDataService.SaveMusicListAsync(PlayList).ConfigureAwait(false); // 保存播放列表
         }
         catch (Exception e)
         {

@@ -30,12 +30,10 @@ public partial class MusicListModel : ObservableObject
         {
             CoverImage = coverImage;
         }
-        _coverCacheKey = $"歌单-{Name}";
+        Key = $"歌单:{Name}";
     }
 
-    public readonly string Id = $"歌单-{UniqueIdGenerator.GetNextId()}";
-
-    private string _coverCacheKey;
+    public string Key { get; private set; }
 
     public string Name
     {
@@ -44,7 +42,7 @@ public partial class MusicListModel : ObservableObject
         {
             if (SetProperty(ref field, value))
             {
-                _coverCacheKey = $"歌单-{value}";
+                Key = $"歌单:{value}";
             }
         }
     }
@@ -69,7 +67,7 @@ public partial class MusicListModel : ObservableObject
                 return MusicExtractor.DefaultCover;
 
             // 尝试从缓存获取图片
-            if (MusicExtractor.ImageCache.TryGetValue(_coverCacheKey, out var image))
+            if (MusicExtractor.ImageCache.TryGetValue(Key, out var image))
             {
                 _coverStatus = CoverStatus.Loaded;
                 return image!;
@@ -99,7 +97,7 @@ public partial class MusicListModel : ObservableObject
 
                 if (bitmap != null)
                 {
-                    MusicExtractor.ImageCache[_coverCacheKey] = bitmap;
+                    MusicExtractor.ImageCache[Key] = bitmap;
                     _coverStatus = CoverStatus.Loaded;
                 }
                 else
@@ -112,7 +110,7 @@ public partial class MusicListModel : ObservableObject
 
                     if (firstMusicCoverImage != null && firstMusicCoverImage != MusicExtractor.DefaultCover)
                     {
-                        MusicExtractor.ImageCache[_coverCacheKey] = firstMusicCoverImage;
+                        MusicExtractor.ImageCache[Key] = firstMusicCoverImage;
                         _coverStatus = CoverStatus.Loaded;
                     }
                     else
@@ -129,7 +127,7 @@ public partial class MusicListModel : ObservableObject
         }
         set
         {
-            MusicExtractor.ImageCache[_coverCacheKey] = value;
+            MusicExtractor.ImageCache[Key] = value;
             _coverStatus = CoverStatus.Loaded;
 
             OnPropertyChanged();

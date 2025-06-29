@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
@@ -310,7 +311,7 @@ public static class JsonConfigService
     /// </summary>
     public static string GetServiceStatus()
     {
-        var status = new System.Text.StringBuilder();
+        var status = new StringBuilder();
         status.AppendLine($"保存路径: {SavePath}");
         status.AppendLine($"文件扩展名: {FileExtension}");
         status.AppendLine($"备份扩展名: {BackupExtension}");

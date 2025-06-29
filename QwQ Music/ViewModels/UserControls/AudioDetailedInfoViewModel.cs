@@ -37,7 +37,7 @@ public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem, MusicT
 
         if (musicItem.Gain > -1.0)
         {
-            MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("增益", $"{musicItem.Gain:F2} dB"));
+            MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("回放增益", $"{musicItem.Gain:F2} dB"));
         }
 
         // 从MusicTagExtensions加载扩展信息

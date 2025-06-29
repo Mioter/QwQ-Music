@@ -6,7 +6,7 @@ namespace QwQ_Music.Utilities.StringUtilities;
 /// <summary>
 /// 字符串乱序工具类
 /// </summary>
-public static partial class StringShuffler
+public static class StringShuffler
 {
     private static readonly Random _random = new();
     private static readonly char[] _separator = [' ', '\t', '\n', '\r'];

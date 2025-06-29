@@ -10,7 +10,7 @@
 
         <StackPanel Spacing="10" Margin="0,0,10,0">
 
-            <Panel Height="{Binding PanelHeight}" Margin="0">
+            <Panel Height="120" Margin="0">
 
                 <Image Stretch="UniformToFill" Source="{Binding BackgroundImage}" />
 
@@ -27,12 +27,13 @@
                         Icon="{StaticResource SemiIconGithubLogo}" />
 
                 </StackPanel>
-                
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" Margin="10">
+
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
 
                     <Border
-                        Height="70" Width="70"
                         CornerRadius="40"
+                        Height="70" 
+                        Width="70"
                         BoxShadow="0 0 10 0 LightGray">
 
                         <Button Classes="None" Command="{Binding OpenContributorFromGayhubCommand}"
@@ -167,7 +168,7 @@
                                 CommandParameter="{Binding Uri}">
                             <DockPanel HorizontalSpacing="10" VerticalSpacing="5">
                                 <Image
-                                    Source="{Binding Hp}"
+                                    Source="{Binding Logo}"
                                     Width="40" Height="40" />
                                 <TextBlock DockPanel.Dock="Top" Text="{Binding Name}" />
                                 <control:RunningText
