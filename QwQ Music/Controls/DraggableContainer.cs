@@ -335,8 +335,13 @@ public class DraggableContainer : TemplatedControl
         double dy = controlPosition.Y - CenterPoint.Y;
 
         // 计算距离（保持原有逻辑）
+        if (_innerCanvas == null)
+        {
+            return (0, 0);
+        }
+        
         double maxDistance =
-            Math.Sqrt(Math.Pow(_innerCanvas!.Bounds.Width, 2) + Math.Pow(_innerCanvas.Bounds.Height, 2)) / 2;
+            Math.Sqrt(Math.Pow(_innerCanvas.Bounds.Width, 2) + Math.Pow(_innerCanvas.Bounds.Height, 2)) / 2;
         double distance = Math.Sqrt(dx * dx + dy * dy) / maxDistance * 100;
 
         // 关键修正：增加 90 度偏移补偿

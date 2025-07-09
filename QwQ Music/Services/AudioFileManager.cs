@@ -94,6 +94,6 @@ public static class AudioFileManager
         });
 
         // 使用批量保存方法保存所有音乐项
-        await MusicDataPersistence.SaveMusicItemsAsync(musicItems);
+        await MusicDataService.SaveMusicItemsAsync(musicItems);
     }
 }

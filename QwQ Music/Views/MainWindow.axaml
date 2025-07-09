@@ -126,8 +126,6 @@
         <Grid ColumnDefinitions="Auto,*" Grid.Row="1">
 
             <Grid
-                Classes.Expand="{Binding IsNavigationExpand}"
-                Classes.Retract="{Binding !IsNavigationExpand}"
                 HorizontalAlignment="Left"
                 RowDefinitions="Auto,*"
                 Width="{Binding NavigationWidth}">
@@ -147,12 +145,45 @@
                     HorizontalAlignment="Right"
                     IsChecked="{Binding IsNavigationExpand}"
                     CornerRadius="30"
-                    Height="{Binding $self.Bounds.Width}"
-                    Margin="20,0">
+                    Height="35"
+                    Width="35"
+                    Margin="10,0"
+                    BorderThickness="0">
 
-                    <ToggleButton.Content>
-                        <PathIcon Data="{StaticResource SemiIconChevronRight}" Height="10" Width="10" />
-                    </ToggleButton.Content>
+                    <ToggleButton.Styles>
+
+                        <Style Selector="ToggleButton">
+                            <Setter Property="Background" Value="Transparent" />
+
+                            <Style Selector="^:checked /template/ ContentPresenter">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultPrimaryForeground}" />
+                                <Setter Property="RenderTransform" Value="rotate(180deg)" />
+                            </Style>
+
+                            <Style Selector="^:checked:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background"
+                                        Value="{DynamicResource ButtonDefaultPointeroverBackground}" />
+                            </Style>
+
+                            <Style Selector="^:checked:pressed  /template/ ContentPresenter">
+                                <Setter Property="Background"
+                                        Value="{DynamicResource ButtonDefaultPressedBackground}" />
+                            </Style>
+
+                        </Style>
+
+                        <Style Selector="ToggleButton /template/ ContentPresenter">
+                            <Setter Property="Transitions">
+                                <Transitions>
+                                    <TransformOperationsTransition Duration="0:0:0.2" Property="RenderTransform" />
+                                </Transitions>
+                            </Setter>
+
+                        </Style>
+                    </ToggleButton.Styles>
+
+                    <PathIcon Data="{StaticResource SemiIconChevronRight}" Height="10" Width="10" />
 
                 </ToggleButton>
 
@@ -208,7 +239,21 @@
 
                         <u:SelectionList.ItemTemplate>
                             <DataTemplate>
-                                <Panel>
+
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+
+                                    <Grid.Styles>
+
+                                        <Style Selector="Grid > TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                        </Style>
+
+                                        <Style Selector="TextBlock.Transparent">
+                                            <Setter Property="Opacity" Value="0" />
+                                        </Style>
+
+                                    </Grid.Styles>
+
                                     <Button
                                         CornerRadius="10"
                                         Height="10"
@@ -243,51 +288,39 @@
 
                                     </Button>
 
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <ContentControl Grid.Column="0" Content="{Binding Source}">
 
-                                        <StackPanel.Styles>
+                                        <ContentControl.DataTemplates>
 
-                                            <Style Selector="StackPanel > TextBlock">
-                                                <Setter Property="VerticalAlignment" Value="Center" />
-                                            </Style>
-                                            
-                                            <Style Selector="TextBlock.Transparent">
-                                                <Setter Property="Opacity" Value="0"/>
-                                            </Style>
+                                            <DataTemplate DataType="definitions:GeometryIconSource">
+                                                <PathIcon Data="{Binding Geometry}" />
+                                            </DataTemplate>
+                                            <DataTemplate DataType="definitions:BitmapIconSource">
+                                                <Border ClipToBounds="True" CornerRadius="3">
+                                                    <Image Source="{Binding Bitmap}" />
+                                                </Border>
+                                            </DataTemplate>
 
-                                        </StackPanel.Styles>
+                                        </ContentControl.DataTemplates>
 
-                                        <ContentControl Content="{Binding Source}">
+                                    </ContentControl>
 
-                                            <ContentControl.DataTemplates>
+                                    <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                               ToolTip.Tip="{Binding Title}"
+                                               TextTrimming="CharacterEllipsis"
+                                               Classes.Transparent="{Binding !$parent[Window].((viewModels:MainWindowViewModel)DataContext).IsNavigationExpand}">
+                                        <TextBlock.Transitions>
+                                            <Transitions>
+                                                <DoubleTransition
+                                                    Duration="0:0:0.5"
+                                                    Easing="CircularEaseOut"
+                                                    Property="Opacity" />
+                                            </Transitions>
+                                        </TextBlock.Transitions>
+                                    </TextBlock>
 
-                                                <DataTemplate DataType="definitions:GeometryIconSource">
-                                                    <PathIcon Data="{Binding Geometry}" />
-                                                </DataTemplate>
-                                                <DataTemplate DataType="definitions:BitmapIconSource">
-                                                    <Border ClipToBounds="True" CornerRadius="3">
-                                                        <Image Source="{Binding Bitmap}" />
-                                                    </Border>
-                                                </DataTemplate>
+                                </Grid>
 
-                                            </ContentControl.DataTemplates>
-
-                                        </ContentControl>
-
-                                        <TextBlock Text="{Binding Title}"
-                                                   Classes.Transparent="{Binding !$parent[Window].((viewModels:MainWindowViewModel)DataContext).IsNavigationExpand}">
-                                            <TextBlock.Transitions>
-                                                <Transitions>
-                                                    <DoubleTransition
-                                                        Duration="0:0:0.5"
-                                                        Easing="CircularEaseOut"
-                                                        Property="Opacity" />
-                                                </Transitions>
-                                            </TextBlock.Transitions>
-                                        </TextBlock>
-
-                                    </StackPanel>
-                                </Panel>
                             </DataTemplate>
                         </u:SelectionList.ItemTemplate>
 

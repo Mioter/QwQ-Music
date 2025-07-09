@@ -80,7 +80,7 @@ public sealed class Mixer : SoundComponent, IDisposable
     /// <param name="component">The sound component to remove.</param>
     public SoundComponent RemoveComponent(SoundComponent component)
     {
-        if (_isDisposed || component == null!)
+        if (_isDisposed)
             return this;
 
         lock (_modificationLock)

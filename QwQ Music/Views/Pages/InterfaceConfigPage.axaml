@@ -11,11 +11,19 @@
     xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages">
 
     <ScrollViewer Margin="10">
-        <StackPanel Spacing="20"  Margin="0,0,10,0">
+        <StackPanel Spacing="20" Margin="0,0,10,0">
 
             <Expander Header="封面" IsExpanded="{Binding InterfaceConfig.IsOpenCoverConfig}">
 
                 <StackPanel Spacing="10">
+
+                    <CheckBox
+                        IsChecked="{Binding InterfaceConfig.CoverConfig.AllowNonSquareCover}">
+                        <StackPanel Orientation="Horizontal" Spacing="10" >
+                            <TextBlock Text="允许异形封面" />
+                            <TextBlock FontSize="13" VerticalAlignment="Center" Classes="Secondary" Text="在重新加载时生效" />
+                        </StackPanel>
+                    </CheckBox>
 
                     <Panel>
                         <TextBlock Text="颜色缓存 : " VerticalAlignment="Center" />
@@ -55,7 +63,7 @@
             <Expander Header="主题" IsExpanded="{Binding InterfaceConfig.IsOpenThemeConfig}">
 
                 <StackPanel Spacing="10">
-                    
+
                     <Panel>
                         <TextBlock Text="亮暗模式 " VerticalAlignment="Center" />
                         <ComboBox
@@ -63,7 +71,7 @@
                             ItemsSource="{Binding LightDarkModes}"
                             SelectedItem="{Binding LightDarkMode}" />
                     </Panel>
-                    
+
                 </StackPanel>
 
             </Expander>

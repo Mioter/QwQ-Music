@@ -43,13 +43,13 @@ public partial class LyricsModel : ObservableObject
             _timePoints.AddRange(lyricsData.Lyrics.Select(l => l.TimePoint).OrderBy(t => t));
             CurrentLyric = lyricsData.Lyrics[0];
             LyricsIndex = 0;
-            NextLyricLine = lyricsData.Lyrics.Count > 1 ? lyricsData.Lyrics[1] : new LyricLine(0, null!);
+            NextLyricLine = lyricsData.Lyrics.Count > 1 ? lyricsData.Lyrics[1] : new LyricLine(0, "");
         }
         else
         {
             CurrentLyric = new LyricLine(0, "暂无歌词");
             LyricsIndex = -1;
-            NextLyricLine = new LyricLine(0, null!);
+            NextLyricLine = new LyricLine(0, "");
         }
     }
 
@@ -121,7 +121,7 @@ public partial class LyricsModel : ObservableObject
         LyricsIndex = newIndex;
         CurrentLyric = LyricsData.Lyrics[LyricsIndex];
         NextLyricLine =
-            LyricsIndex + 1 < LyricsData.Lyrics.Count ? LyricsData.Lyrics[LyricsIndex + 1] : new LyricLine(0, null!);
+            LyricsIndex + 1 < LyricsData.Lyrics.Count ? LyricsData.Lyrics[LyricsIndex + 1] : new LyricLine(0, "");
 
         // 触发歌词变更事件，同时传递当前歌词和下一句歌词
         LyricLineChanged?.Invoke(this, CurrentLyric, GetNextLyric(timePoints));

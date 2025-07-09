@@ -3,45 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
-using AngleSharp;
-using AngleSharp.Dom;
-using AngleSharp.Io;
+using System.Web;
 
 namespace QwQ_Music.Services;
 
 /// <summary>
-/// 网易云音乐专辑爬虫服务
-/// 提供专辑搜索、简介、发行时间、发行公司等信息获取功能
-/// 使用 AngleSharp 提供更优雅的 HTML 解析体验
+/// 网易云音乐专辑爬虫服务 - 简化版本
+/// 直接使用网易云音乐 API 获取专辑信息
 /// </summary>
 public class NetEaseAlbumCrawler : IDisposable
 {
-    private readonly IBrowsingContext _browsingContext;
     private readonly NetEaseAlbumCrawlerOptions _options;
     private bool _disposed;
 
-    // 常量
-    private const string SEARCH_URL_TEMPLATE =
-        "https://music.163.com/api/search/get/web?csrf_token=&s={0}&type=10&limit=5&offset=0";
-    private const string ALBUM_URL_TEMPLATE = "https://music.163.com/album?id={0}";
+    // API 端点
+    private const string SEARCH_API_URL =
+        "https://music.163.com/api/search/get/web?csrf_token=&s={0}&type=10&limit=10&offset=0";
+    private const string ALBUM_DETAIL_API_URL = "https://music.163.com/api/v1/album/{0}";
 
-    // 使用 CSS 选择器替代 XPath，更简洁高效
-    private static readonly string[] _descSelectors =
-    [
-        "#album-desc-dot p",
-        ".album-desc p",
-        ".desc p",
-        "div[class*='album-desc'] p",
-        "div[class*='desc'] p",
-    ];
-
-    private const string PUBLISH_TIME_LABEL = "发行时间";
-    private const string COMPANY_LABEL = "发行公司";
-    private const string INTR_SELECTOR = "p.intr";
-
-    // 缓存JsonSerializerOptions，避免每次new
-    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+    // 使用源生成的 JsonSerializerContext，支持 AOT 编译
+    private static readonly AlbumSearchResultJsonContext _jsonContext = new();
+    private static readonly AlbumDetailResultJsonContext _detailJsonContext = new();
 
     /// <summary>
     /// 构造函数
@@ -49,107 +34,108 @@ public class NetEaseAlbumCrawler : IDisposable
     public NetEaseAlbumCrawler(NetEaseAlbumCrawlerOptions? options = null)
     {
         _options = options ?? new NetEaseAlbumCrawlerOptions();
-
-        // 配置 AngleSharp 浏览器上下文，利用其强大的配置能力
-        var config = Configuration
-            .Default.WithDefaultLoader(
-                new LoaderOptions
-                {
-                    IsResourceLoadingEnabled = false, // 禁用资源加载以提高性能
-                }
-            )
-            .WithDefaultCookies();
-
-        _browsingContext = BrowsingContext.New(config);
     }
 
     /// <summary>
     /// 通过专辑名称获取专辑ID（可选艺人名）
     /// </summary>
-    public async Task<string?> GetAlbumIdByNameAsync(string albumName, string? artistName = null)
+    public async Task<string?> GetAlbumIdByNameAsync(
+        string albumName,
+        string? artistName = null,
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(albumName);
-        try
+        ThrowIfDisposed();
+
+        // 如果有艺术家名，优先尝试组合搜索
+        if (!string.IsNullOrWhiteSpace(artistName))
         {
-            string url = BuildSearchUrl(albumName);
-            string json = await SendRequestAsync(url);
-            return ParseSearchResults(json, albumName, artistName);
+            string? combinedSearchResult = await SearchAlbumAsync(
+                $"{albumName}-{artistName}",
+                albumName,
+                artistName,
+                cancellationToken
+            );
+            if (!string.IsNullOrEmpty(combinedSearchResult))
+                return combinedSearchResult;
         }
-        catch (Exception ex)
-        {
-            throw new NetEaseAlbumCrawlerException($"获取专辑ID失败: {ex.Message}", ex);
-        }
+
+        // 组合搜索失败或没有艺术家名，使用专辑名单独搜索
+        return await SearchAlbumAsync(albumName, albumName, artistName, cancellationToken);
     }
 
     /// <summary>
-    /// 通过专辑ID获取专辑详情（简介、发行时间、发行公司）
+    /// 通过专辑ID获取专辑详情
     /// </summary>
-    public async Task<AlbumDetail> GetAlbumDetailAsync(string albumId)
+    public async Task<AlbumDetail> GetAlbumDetailAsync(string albumId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(albumId);
-        try
-        {
-            string url = BuildAlbumUrl(albumId);
+        ThrowIfDisposed();
 
-            // 使用 AngleSharp 的内置 HTTP 客户端，自动处理编码、重定向等
-            var document = await _browsingContext.OpenAsync(url);
-
-            // 验证文档是否成功加载
-            if (document == null)
-            {
-                throw new NetEaseAlbumCrawlerException("无法加载专辑页面");
-            }
-
-            return ParseAlbumDetail(document);
-        }
-        catch (Exception ex)
-        {
-            throw new NetEaseAlbumCrawlerException($"获取专辑详情失败: {ex.Message}", ex);
-        }
+        string url = string.Format(ALBUM_DETAIL_API_URL, albumId);
+        string json = await SendRequestAsync(url, cancellationToken);
+        return ParseAlbumDetailFromApi(json);
     }
 
     /// <summary>
-    /// 通过专辑名称直接获取专辑详情（简介、发行时间、发行公司）
+    /// 通过专辑名称直接获取专辑详情
     /// </summary>
-    public async Task<AlbumDetail> GetAlbumDetailByNameAsync(string albumName, string? artistName = null)
+    public async Task<AlbumDetail> GetAlbumDetailByNameAsync(
+        string albumName,
+        string? artistName = null,
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(albumName);
-        string? albumId = await GetAlbumIdByNameAsync(albumName, artistName);
-        if (albumId == null)
+        ThrowIfDisposed();
+
+        try
         {
-            return new AlbumDetail { Description = _options.NotFoundMessage };
+            string? albumId = await GetAlbumIdByNameAsync(albumName, artistName, cancellationToken);
+            return albumId == null
+                ? new AlbumDetail { Description = _options.NotFoundMessage }
+                : await GetAlbumDetailAsync(albumId, cancellationToken);
         }
-        return await GetAlbumDetailAsync(albumId);
+        catch (OperationCanceledException)
+        {
+            return new AlbumDetail { Description = "操作已取消" };
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            return new AlbumDetail { Description = $"网络请求失败: {ex.Message}" };
+        }
     }
-
-    /// <summary>
-    /// 构建搜索URL
-    /// </summary>
-    private static string BuildSearchUrl(string searchKeyword) =>
-        string.Format(SEARCH_URL_TEMPLATE, System.Web.HttpUtility.UrlEncode(searchKeyword));
-
-    /// <summary>
-    /// 构建专辑页面URL
-    /// </summary>
-    private static string BuildAlbumUrl(string albumId) => string.Format(ALBUM_URL_TEMPLATE, albumId);
 
     /// <summary>
     /// 发送HTTP请求并返回响应内容
     /// </summary>
-    private async Task<string> SendRequestAsync(string url)
+    private async Task<string> SendRequestAsync(string url, CancellationToken cancellationToken = default)
     {
         using var httpClient = new HttpClient();
         httpClient.Timeout = TimeSpan.FromSeconds(_options.RequestTimeoutSeconds);
         httpClient.DefaultRequestHeaders.Add("User-Agent", _options.UserAgent);
-        httpClient.DefaultRequestHeaders.Add(
-            "Accept",
-            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-        );
+        httpClient.DefaultRequestHeaders.Add("Accept", "application/json, text/plain, */*");
         httpClient.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
+        httpClient.DefaultRequestHeaders.Add("Referer", "https://music.163.com/");
+        httpClient.DefaultRequestHeaders.Add("Origin", "https://music.163.com");
 
-        var response = await httpClient.GetAsync(url);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
+        return await httpClient.GetStringAsync(url, cancellationToken);
+    }
+
+    /// <summary>
+    /// 搜索专辑
+    /// </summary>
+    private async Task<string?> SearchAlbumAsync(
+        string searchTerm,
+        string albumName,
+        string? artistName,
+        CancellationToken cancellationToken
+    )
+    {
+        string url = string.Format(SEARCH_API_URL, HttpUtility.UrlEncode(searchTerm));
+        string json = await SendRequestAsync(url, cancellationToken);
+        return ParseSearchResults(json, albumName, artistName);
     }
 
     /// <summary>
@@ -157,126 +143,118 @@ public class NetEaseAlbumCrawler : IDisposable
     /// </summary>
     private static string? ParseSearchResults(string json, string albumName, string? artistName)
     {
-        var searchResult = JsonSerializer.Deserialize<AlbumSearchResult>(json, _jsonOptions);
-        var albums = searchResult?.Result?.Albums;
-        if (albums == null || albums.Count == 0)
-            return null;
-
-        if (artistName == null)
-            return albums[0].IdStr;
-
-        // 使用 LINQ 简化查找逻辑，利用 AngleSharp 的强类型特性
-        var matchedAlbum = albums.FirstOrDefault(album =>
-            !string.IsNullOrEmpty(album.Name)
-            && album.Artist != null
-            && !string.IsNullOrEmpty(album.Artist.Name)
-            && IsAlbumMatch(album.Name, albumName)
-            && IsArtistMatch(album.Artist.Name, artistName)
-        );
-
-        return matchedAlbum?.IdStr ?? albums[0].IdStr;
-    }
-
-    /// <summary>
-    /// 解析专辑详情（简介、发行时间、发行公司）
-    /// 利用 AngleSharp 的强大选择器功能
-    /// </summary>
-    private static AlbumDetail ParseAlbumDetail(IDocument document)
-    {
-        var detail = new AlbumDetail
+        try
         {
-            Description = FindDescription(document) ?? "未找到专辑简介", // 使用 AngleSharp 的 CSS 选择器查找简介
-        };
+            var searchResult = JsonSerializer.Deserialize(json, _jsonContext.AlbumSearchResult);
 
-        // 解析发行时间和公司信息
-        ParsePublishInfo(document, detail);
+            if (searchResult?.Result?.Albums == null || searchResult.Result.Albums.Count == 0)
+                return null;
 
-        return detail;
-    }
+            var albums = searchResult.Result.Albums;
 
-    /// <summary>
-    /// 查找专辑简介
-    /// 利用 AngleSharp 的 CSS 选择器优势
-    /// </summary>
-    private static string? FindDescription(IDocument document)
-    {
-        // 使用多个选择器尝试查找简介，AngleSharp 的 CSS 选择器更简洁高效
-        return _descSelectors
-            .Select(document.QuerySelector)
-            .OfType<IElement>()
-            .Select(element => element.TextContent.Trim())
-            .FirstOrDefault();
-    }
+            // 如果没有艺术家名，返回第一个结果
+            if (string.IsNullOrWhiteSpace(artistName))
+                return albums[0].IdStr;
 
-    /// <summary>
-    /// 解析发行信息（时间和公司）
-    /// 利用 AngleSharp 的 DOM 操作优势
-    /// </summary>
-    private static void ParsePublishInfo(IDocument document, AlbumDetail detail)
-    {
-        // 使用 AngleSharp 的 QuerySelectorAll 获取所有匹配元素
-        var intrElements = document.QuerySelectorAll(INTR_SELECTOR);
-
-        foreach (var element in intrElements)
+            // 有艺术家名时，按优先级查找匹配结果
+            return FindBestMatch(albums, albumName, artistName)?.IdStr ?? albums[0].IdStr;
+        }
+        catch (JsonException ex)
         {
-            // 使用 AngleSharp 的 QuerySelector 查找子元素
-            var boldElement = element.QuerySelector("b");
-            if (boldElement == null)
-                continue;
-
-            string label = boldElement.TextContent.Trim();
-            if (string.IsNullOrWhiteSpace(label))
-                continue;
-
-            // 获取完整文本并移除标签部分
-            string fullText = element.TextContent.Trim();
-            string value = fullText.Replace(label, "").Trim();
-
-            // 使用 switch 表达式简化逻辑，AngleSharp 的强类型 API 使代码更安全
-            _ = label switch
-            {
-                _ when label.Contains(PUBLISH_TIME_LABEL) => detail.PublishTime = value,
-                _ when label.Contains(COMPANY_LABEL) => detail.Company = value,
-                _ => string.Empty,
-            };
+            throw new NetEaseAlbumCrawlerException($"解析搜索结果失败: {ex.Message}", ex);
         }
     }
 
     /// <summary>
-    /// 专辑名模糊匹配
+    /// 查找最佳匹配的专辑
     /// </summary>
-    private static bool IsAlbumMatch(string foundAlbum, string searchAlbum)
+    private static AlbumItem? FindBestMatch(List<AlbumItem> albums, string albumName, string artistName)
     {
-        if (string.IsNullOrWhiteSpace(foundAlbum) || string.IsNullOrWhiteSpace(searchAlbum))
-            return false;
+        // 1. 优先查找完全匹配的结果
+        var exactMatch = albums.FirstOrDefault(album =>
+            IsValidAlbum(album) && IsExactMatch(album.Name, albumName) && IsExactMatch(album.Artist.Name, artistName)
+        );
 
-        string normalizedFound = NormalizeString(foundAlbum);
-        string normalizedSearch = NormalizeString(searchAlbum);
+        if (exactMatch != null)
+            return exactMatch;
+
+        // 2. 查找模糊匹配的结果
+        var fuzzyMatch = albums.FirstOrDefault(album =>
+            IsValidAlbum(album) && IsFuzzyMatch(album.Name, albumName) && IsFuzzyMatch(album.Artist.Name, artistName)
+        );
+
+        return fuzzyMatch;
+    }
+
+    /// <summary>
+    /// 验证专辑数据是否有效
+    /// </summary>
+    private static bool IsValidAlbum(AlbumItem album) =>
+        !string.IsNullOrEmpty(album.Name) && !string.IsNullOrEmpty(album.Artist.Name);
+
+    /// <summary>
+    /// 精确匹配
+    /// </summary>
+    private static bool IsExactMatch(string found, string search) =>
+        string.Equals(NormalizeString(found), NormalizeString(search), StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 模糊匹配
+    /// </summary>
+    private static bool IsFuzzyMatch(string found, string search)
+    {
+        string normalizedFound = NormalizeString(found);
+        string normalizedSearch = NormalizeString(search);
 
         return normalizedFound.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase)
             || normalizedSearch.Contains(normalizedFound, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
-    /// 艺术家名模糊匹配
+    /// 从 API 响应解析专辑详情
     /// </summary>
-    private static bool IsArtistMatch(string foundArtist, string searchArtist)
+    private static AlbumDetail ParseAlbumDetailFromApi(string json)
     {
-        if (string.IsNullOrWhiteSpace(foundArtist) || string.IsNullOrWhiteSpace(searchArtist))
-            return false;
+        try
+        {
+            var detailResult = JsonSerializer.Deserialize(json, _detailJsonContext.AlbumDetailResult);
 
-        string normalizedFound = NormalizeString(foundArtist);
-        string normalizedSearch = NormalizeString(searchArtist);
+            if (detailResult?.Album == null)
+            {
+                return new AlbumDetail { Description = "未找到专辑信息" };
+            }
 
-        return normalizedFound.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase)
-            || normalizedSearch.Contains(normalizedFound, StringComparison.OrdinalIgnoreCase);
+            var album = detailResult.Album;
+
+            return new AlbumDetail
+            {
+                Description = !string.IsNullOrWhiteSpace(album.Description) ? album.Description : "暂无专辑简介",
+                PublishTime = FormatPublishTime(album.PublishTime),
+                Company = !string.IsNullOrWhiteSpace(album.Company) ? album.Company : string.Empty,
+            };
+        }
+        catch (JsonException ex)
+        {
+            throw new NetEaseAlbumCrawlerException($"解析专辑详情失败: {ex.Message}", ex);
+        }
     }
+
+    /// <summary>
+    /// 格式化发布时间
+    /// </summary>
+    private static string FormatPublishTime(long publishTime) =>
+        publishTime > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(publishTime).ToString("yyyy-MM-dd") : string.Empty;
 
     /// <summary>
     /// 字符串归一化
     /// </summary>
     private static string NormalizeString(string input) =>
         input.Replace(" ", "").Replace("-", "").Replace("_", "").Replace(".", "");
+
+    /// <summary>
+    /// 检查是否已释放
+    /// </summary>
+    private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(_disposed, this);
 
     /// <summary>
     /// 释放资源
@@ -292,9 +270,10 @@ public class NetEaseAlbumCrawler : IDisposable
         if (_disposed || !disposing)
             return;
 
-        _browsingContext.Dispose();
         _disposed = true;
     }
+
+    ~NetEaseAlbumCrawler() => Dispose(false);
 }
 
 /// <summary>
@@ -331,26 +310,115 @@ public class NetEaseAlbumCrawlerException : Exception
         : base(message, innerException) { }
 }
 
+/// <summary>
+/// 专辑搜索结果
+/// </summary>
+[JsonSerializable(typeof(AlbumSearchResult))]
+public partial class AlbumSearchResultJsonContext : JsonSerializerContext;
+
+/// <summary>
+/// 专辑详情 API 相关的 JSON 模型
+/// </summary>
+[JsonSerializable(typeof(AlbumDetailResult))]
+public partial class AlbumDetailResultJsonContext : JsonSerializerContext;
+
 public class AlbumSearchResult
 {
+    [JsonPropertyName("result")]
     public ResultData? Result { get; set; }
+
+    [JsonPropertyName("code")]
+    public int Code { get; set; }
 }
 
 public class ResultData
 {
+    [JsonPropertyName("albums")]
     public List<AlbumItem>? Albums { get; set; }
+
+    [JsonPropertyName("albumCount")]
+    public int AlbumCount { get; set; }
 }
 
 public class AlbumItem
 {
+    [JsonPropertyName("idStr")]
     public string? IdStr { get; set; }
-    public string? Name { get; set; }
-    public ArtistItem? Artist { get; set; }
+
+    [JsonPropertyName("name")]
+    public required string Name { get; set; }
+
+    [JsonPropertyName("artist")]
+    public required ArtistItem Artist { get; set; }
+
+    [JsonPropertyName("artists")]
+    public List<ArtistItem>? Artists { get; set; }
+
+    [JsonPropertyName("type")]
+    public string? Type { get; set; }
+
+    [JsonPropertyName("company")]
+    public string? Company { get; set; }
+
+    [JsonPropertyName("publishTime")]
+    public long PublishTime { get; set; }
+
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+
+    [JsonPropertyName("picUrl")]
+    public string? PicUrl { get; set; }
 }
 
 public class ArtistItem
 {
+    [JsonPropertyName("name")]
+    public required string Name { get; set; }
+
+    [JsonPropertyName("id")]
+    public long Id { get; set; }
+
+    [JsonPropertyName("picUrl")]
+    public string? PicUrl { get; set; }
+
+    [JsonPropertyName("alias")]
+    public List<string>? Alias { get; set; }
+}
+
+public class AlbumDetailResult
+{
+    [JsonPropertyName("album")]
+    public AlbumDetailItem? Album { get; set; }
+
+    [JsonPropertyName("code")]
+    public int Code { get; set; }
+}
+
+public class AlbumDetailItem
+{
+    [JsonPropertyName("id")]
+    public long Id { get; set; }
+
+    [JsonPropertyName("name")]
     public string? Name { get; set; }
+
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+
+    [JsonPropertyName("company")]
+    public string? Company { get; set; }
+
+    [JsonPropertyName("publishTime")]
+    public long PublishTime { get; set; }
+
+    [JsonPropertyName("picUrl")]
+    public string? PicUrl { get; set; }
+
+    [JsonPropertyName("artist")]
+    public ArtistItem? Artist { get; set; }
+
+    [JsonPropertyName("artists")]
+    public List<ArtistItem>? Artists { get; set; }
 }
 
 public class AlbumDetail

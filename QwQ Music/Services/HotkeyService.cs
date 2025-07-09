@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Avalonia.Input;
 using QwQ_Music.Models;
@@ -257,7 +258,7 @@ public static class HotkeyService
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"热键执行异常 [{kvp.Key}]: {ex.Message}");
+                Debug.WriteLine($"热键执行异常 [{kvp.Key}]: {ex.Message}");
             }
         }
         return false;

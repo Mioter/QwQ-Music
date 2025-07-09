@@ -15,7 +15,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls.ColorPicker"
     xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
-    xmlns:helper="clr-namespace:QwQ_Music.Helper">
+    xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors">
 
     <Window.Resources>
         <converters:ToBrushConverter x:Key="ToBrushConverter" />
@@ -48,10 +48,10 @@
                             FillMode="Forward"
                             IterationCount="Infinite">
                             <KeyFrame Cue="0%">
-                                <Setter Property="helper:BorderLinearGradientBrushHelper.BorderBrushRotateAngle" Value="0" />
+                                <Setter Property="behaviors:BorderLinearGradientBrushBehavior.BorderBrushRotateAngle" Value="0" />
                             </KeyFrame>
                             <KeyFrame Cue="100%">
-                                <Setter Property="helper:BorderLinearGradientBrushHelper.BorderBrushRotateAngle" Value="360" />
+                                <Setter Property="behaviors:BorderLinearGradientBrushBehavior.BorderBrushRotateAngle" Value="360" />
                             </KeyFrame>
                         </Animation>
                     </Style.Animations>

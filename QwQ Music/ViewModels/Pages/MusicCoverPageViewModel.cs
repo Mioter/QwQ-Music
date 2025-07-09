@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Definitions;
@@ -15,7 +16,6 @@ using QwQ_Music.Services.Shader;
 using QwQ_Music.Utilities;
 using QwQ_Music.ViewModels.UserControls;
 using QwQ_Music.ViewModels.ViewModelBases;
-using QwQ_Music.Views.Pages;
 using QwQ.Avalonia.Utilities.MessageBus;
 using CoverConfig = QwQ_Music.Models.ConfigModels.CoverConfig;
 using RolledLyricConfig = QwQ_Music.Models.ConfigModels.RolledLyricConfig;
@@ -89,19 +89,18 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
             UpdateThemeVariantFromColors();
 
-            if (MainWindowViewModel.Instance.IsMusicCoverPageVisible)
+            if (!MainWindowViewModel.Instance.IsMusicCoverPageVisible)
+                return;
+
+            Dispatcher.UIThread.Post(() =>
             {
                 ResourceDictionaryManager.Set(
                     "CaptionButtonForeground",
                     ThemeVariant == "Light" ? Brushes.DimGray : Brushes.GhostWhite
                 );
-            }
+            });
 
-            await MessageBus
-                .CreateMessage(new ThemeColorChangeMessage(ThemeVariant, typeof(MusicCoverPage)))
-                .FromSender(this)
-                .AddReceivers(typeof(MusicPlayListViewModel))
-                .PublishAsync();
+            MusicPlayListViewModel.Instance.ThemeVariant = ThemeVariant;
         }
         catch (Exception ex)
         {
@@ -113,18 +112,25 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
     private async Task UpdateCoverImage(MusicItemModel musicItem)
     {
-        string? currentCoverPath = musicItem.CoverPath;
+        string? coverFileName = musicItem.CoverFileName;
         bool shouldRetry;
 
         do
         {
             shouldRetry = false;
 
-            if (currentCoverPath != null)
+            if (coverFileName != null)
             {
-                var bitmap = await MusicExtractor.LoadOriginalBitmap(currentCoverPath).ConfigureAwait(false);
+                var bitmap = await MusicExtractor.LoadOriginalBitmap(coverFileName).ConfigureAwait(false);
+
                 if (bitmap != null)
                 {
+                    if (!ConfigManager.InterfaceConfig.CoverConfig.AllowNonSquareCover)
+                    {
+                        CoverImage = Dispatcher.UIThread.Invoke(() => BitmapCropper.Crop(bitmap, 1.0));
+                        return;
+                    }
+                    
                     CoverImage = bitmap;
                     return;
                 }
@@ -136,8 +142,8 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
                 .ConfigureAwait(false);
             if (newCoverPath != null)
             {
-                currentCoverPath = newCoverPath;
-                musicItem.CoverPath = Path.GetFileName(currentCoverPath); // 更新模型中的路径
+                coverFileName = newCoverPath;
+                musicItem.CoverFileName = Path.GetFileName(coverFileName); // 更新模型中的路径
                 shouldRetry = true; // 重试加载新路径的封面
             }
             else
@@ -150,7 +156,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
     private async Task UpdateColorsList(MusicItemModel musicItem)
     {
         // 如果没有封面路径，直接使用默认颜色
-        if (string.IsNullOrWhiteSpace(musicItem.CoverPath))
+        if (string.IsNullOrWhiteSpace(musicItem.CoverFileName))
         {
             ColorsList = _defaultColors;
             return;
@@ -164,7 +170,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         }
 
         // 提取新的颜色
-        var colorsList = await GetColorPalette(musicItem.CoverPath, COLOR_COUNT);
+        var colorsList = await GetColorPalette(musicItem.CoverFileName, COLOR_COUNT);
 
         // 缓存提取的颜色
         if (colorsList != null)

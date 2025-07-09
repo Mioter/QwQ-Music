@@ -22,17 +22,12 @@ public class ValueComparisonConverter : IValueConverter
 
             // 分割表达式为多个比较部分
             string[] parts = expression.Split([' '], StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 3)
-                return false;
-
-            // 处理单个比较表达式
-            if (parts.Length == 3)
+            return parts.Length switch
             {
-                return EvaluateSingleComparison(parts, currentValue);
-            }
-
-            // 处理范围比较表达式
-            return EvaluateRangeComparison(parts, currentValue);
+                < 3 => false,
+                3 => EvaluateSingleComparison(parts, currentValue), // 处理单个比较表达式
+                _ => EvaluateRangeComparison(parts, currentValue), // 处理范围比较表达式
+            };
         }
         catch
         {

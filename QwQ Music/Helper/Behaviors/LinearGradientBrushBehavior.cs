@@ -4,21 +4,21 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 
-namespace QwQ_Music.Helper;
+namespace QwQ_Music.Helper.Behaviors;
 
 /// <summary>
-/// Border 线性渐变画刷助手，分别支持 BorderBrush 和 Background
+/// Border 线性渐变画刷行为，分别支持 BorderBrush 和 Background
 /// </summary>
-public class BorderLinearGradientBrushHelper
+public class BorderLinearGradientBrushBehavior
 {
     public static readonly AttachedProperty<double> BorderBrushRotateAngleProperty = AvaloniaProperty.RegisterAttached<
-        BorderLinearGradientBrushHelper,
+        BorderLinearGradientBrushBehavior,
         Border,
         double
     >("BorderBrushRotateAngle", coerce: OnBorderBrushRotateAngleChanged);
 
     public static readonly AttachedProperty<double> BackgroundRotateAngleProperty = AvaloniaProperty.RegisterAttached<
-        BorderLinearGradientBrushHelper,
+        BorderLinearGradientBrushBehavior,
         Border,
         double
     >("BackgroundRotateAngle", coerce: OnBackgroundRotateAngleChanged);
@@ -27,7 +27,7 @@ public class BorderLinearGradientBrushHelper
     {
         if (obj is Border { BorderBrush: LinearGradientBrush brush } border)
         {
-            LinearGradientBrushHelperCore.SetGradientRotation(border, brush, degrees);
+            LinearGradientBrushBehaviorCore.SetGradientRotation(border, brush, degrees);
         }
         return degrees;
     }
@@ -36,7 +36,7 @@ public class BorderLinearGradientBrushHelper
     {
         if (obj is Border { Background: LinearGradientBrush brush } border)
         {
-            LinearGradientBrushHelperCore.SetGradientRotation(border, brush, degrees);
+            LinearGradientBrushBehaviorCore.SetGradientRotation(border, brush, degrees);
         }
         return degrees;
     }
@@ -63,18 +63,18 @@ public class BorderLinearGradientBrushHelper
 }
 
 /// <summary>
-/// TemplatedControl 线性渐变画刷助手，分别支持 Background 和 Foreground
+/// TemplatedControl 线性渐变画刷行为，分别支持 Background 和 Foreground
 /// </summary>
-public class TemplatedControlLinearGradientBrushHelper
+public class TemplatedControlLinearGradientBrushBehavior
 {
     public static readonly AttachedProperty<double> BackgroundRotateAngleProperty = AvaloniaProperty.RegisterAttached<
-        TemplatedControlLinearGradientBrushHelper,
+        TemplatedControlLinearGradientBrushBehavior,
         TemplatedControl,
         double
     >("BackgroundRotateAngle", coerce: OnBackgroundRotateAngleChanged);
 
     public static readonly AttachedProperty<double> ForegroundRotateAngleProperty = AvaloniaProperty.RegisterAttached<
-        TemplatedControlLinearGradientBrushHelper,
+        TemplatedControlLinearGradientBrushBehavior,
         TemplatedControl,
         double
     >("ForegroundRotateAngle", coerce: OnForegroundRotateAngleChanged);
@@ -83,7 +83,7 @@ public class TemplatedControlLinearGradientBrushHelper
     {
         if (obj is TemplatedControl { Background: LinearGradientBrush brush } control)
         {
-            LinearGradientBrushHelperCore.SetGradientRotation(control, brush, degrees);
+            LinearGradientBrushBehaviorCore.SetGradientRotation(control, brush, degrees);
         }
         return degrees;
     }
@@ -92,7 +92,7 @@ public class TemplatedControlLinearGradientBrushHelper
     {
         if (obj is TemplatedControl { Foreground: LinearGradientBrush brush } control)
         {
-            LinearGradientBrushHelperCore.SetGradientRotation(control, brush, degrees);
+            LinearGradientBrushBehaviorCore.SetGradientRotation(control, brush, degrees);
         }
         return degrees;
     }
@@ -118,7 +118,7 @@ public class TemplatedControlLinearGradientBrushHelper
     }
 }
 
-internal static class LinearGradientBrushHelperCore
+internal static class LinearGradientBrushBehaviorCore
 {
     public static void SetGradientRotation(Visual visual, LinearGradientBrush brush, double degrees)
     {

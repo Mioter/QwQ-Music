@@ -113,7 +113,7 @@ public sealed class SurroundPlayer : SoundPlayerBase
     /// </summary>
     public VbapParameters VbapParameters { get; set; } = new();
 
-    private SurroundConfiguration _currentConfiguration = null!;
+    private SurroundConfiguration _currentConfiguration;
 
     /// <summary>
     /// Custom surround sound configuration.

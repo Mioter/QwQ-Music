@@ -34,7 +34,7 @@ public partial class AllAlbumsPanelViewModel(MusicPlayerViewModel musicPlayerVie
         foreach (
             var albumItem in albumGroups
                 .Select(group => new { group, firstMusic = group.First() })
-                .Select(t => new AlbumItemModel(t.group.Key.Album, t.group.Key.Artists, t.firstMusic.CoverPath))
+                .Select(t => new AlbumItemModel(t.group.Key.Album, t.group.Key.Artists, t.firstMusic.CoverFileName))
         )
         {
             AllAlbumItems.Add(albumItem);

@@ -4,8 +4,10 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Services;
+using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Models;
 
@@ -31,7 +33,7 @@ public class MusicItemModel : ObservableObject
         Artists = string.IsNullOrWhiteSpace(artists) ? "未知歌手" : artists;
         Composer = string.IsNullOrWhiteSpace(composer) ? "未知作曲" : composer;
         Album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
-        CoverPath = coverFileName;
+        CoverFileName = coverFileName;
         FilePath = filePath;
         FileSize = fileSize;
         Duration = duration;
@@ -113,16 +115,16 @@ public class MusicItemModel : ObservableObject
         set => SetPropertyWithModified(ref field, value);
     }
 
-    public string? CoverPath
+    public string? CoverFileName
     {
         get;
         set
         {
-            if (SetPropertyWithModified(ref field, value))
-            {
-                _coverStatus = null;
-                OnPropertyChanged(nameof(CoverImage));
-            }
+            if (!SetPropertyWithModified(ref field, value))
+                return;
+
+            _coverStatus = null;
+            OnPropertyChanged(nameof(CoverImage));
         }
     } // 初始值来自构造函数
 
@@ -146,7 +148,7 @@ public class MusicItemModel : ObservableObject
         get
         {
             // 如果封面路径不存在，返回默认封面
-            if (string.IsNullOrEmpty(CoverPath) || _coverStatus == CoverStatus.NotExist)
+            if (string.IsNullOrEmpty(CoverFileName) || _coverStatus == CoverStatus.NotExist)
                 return MusicExtractor.DefaultCover;
 
             // 如果正在加载中，返回默认封面
@@ -154,10 +156,10 @@ public class MusicItemModel : ObservableObject
                 return MusicExtractor.DefaultCover;
 
             // 尝试从缓存获取图片
-            if (MusicExtractor.ImageCache.TryGetValue(CoverPath, out var image))
+            if (MusicExtractor.ImageCache.TryGetValue(CoverFileName, out var image))
             {
                 _coverStatus = CoverStatus.Loaded;
-                return image!;
+                return image ?? MusicExtractor.DefaultCover;
             }
 
             // 缓存未命中，标记为正在加载
@@ -166,11 +168,11 @@ public class MusicItemModel : ObservableObject
             // 启动异步加载任务
             Task.Run(async () =>
             {
-                var bitmap = await MusicExtractor.LoadCompressedBitmap(CoverPath);
+                var bitmap = await MusicExtractor.LoadCompressedBitmap(CoverFileName);
 
                 if (bitmap != null)
                 {
-                    MusicExtractor.ImageCache[CoverPath] = bitmap;
+                    MusicExtractor.ImageCache[CoverFileName] = Dispatcher.UIThread.Invoke(() => BitmapCropper.Crop(bitmap, 1.0));
                     _coverStatus = CoverStatus.Loaded;
                 }
                 else
@@ -178,7 +180,7 @@ public class MusicItemModel : ObservableObject
                     string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(FilePath);
 
                     if (newCoverPath != null)
-                        CoverPath = newCoverPath;
+                        CoverFileName = newCoverPath;
                     else
                         _coverStatus = CoverStatus.NotExist;
                 }
@@ -191,10 +193,10 @@ public class MusicItemModel : ObservableObject
         }
         set
         {
-            if (CoverPath == null)
+            if (CoverFileName == null)
                 return;
 
-            MusicExtractor.ImageCache[CoverPath] = value;
+            MusicExtractor.ImageCache[CoverFileName] = value;
             _coverStatus = CoverStatus.Loaded;
 
             OnPropertyChanged();
@@ -251,7 +253,7 @@ public class MusicItemModel : ObservableObject
         SafeExtract(data, nameof(Artists), val => result.Artists = val?.ToString() ?? "未知歌手");
         SafeExtract(data, nameof(Album), val => result.Album = val?.ToString() ?? "未知专辑");
         SafeExtract(data, nameof(Composer), val => result.Composer = val?.ToString() ?? "未知作曲");
-        SafeExtract(data, nameof(CoverPath), val => result.CoverPath = val?.ToString()); // CoverPath 现在是文件名或null
+        SafeExtract(data, nameof(CoverFileName), val => result.CoverFileName = val?.ToString()); // CoverFileName 现在是文件名或null
         SafeExtract(
             data,
             nameof(Current),
@@ -310,7 +312,7 @@ public class MusicItemModel : ObservableObject
             [nameof(Artists)] = Artists,
             [nameof(Album)] = Album,
             [nameof(Composer)] = Composer,
-            [nameof(CoverPath)] = CoverPath, // 保存文件名或null
+            [nameof(CoverFileName)] = CoverFileName, // 保存文件名或null
             [nameof(Current)] = Current.ToString(),
             [nameof(Duration)] = Duration.ToString(),
             [nameof(FilePath)] = FilePath,

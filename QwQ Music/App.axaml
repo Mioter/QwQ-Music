@@ -21,7 +21,7 @@
         <u-Semi:SemiTheme Locale="zh-CN" />
         
         <StyleInclude Source="avares://QwQ.Avalonia.Control/Themes/_indexes.axaml" />
-        <StyleInclude Source="Assets/Animations/_indexes.axaml" />
+
         <StyleInclude Source="Assets/Styles/_indexes.axaml" />
 
         <Style Selector="CheckBox">

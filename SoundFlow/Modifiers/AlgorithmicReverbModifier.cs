@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using SoundFlow.Abstracts;
 
 namespace SoundFlow.Modifiers;
@@ -382,7 +383,8 @@ public sealed class AlgorithmicReverbModifier : SoundModifier
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float Process(float input)
         {
-            float output = _buffer![_bufferIndex];
+            Debug.Assert(_buffer != null, nameof(_buffer) + " != null");
+            float output = _buffer[_bufferIndex];
             _lastOut = output * _damp2 + _lastOut * _damp1;
             _buffer[_bufferIndex] = input + _lastOut * Feedback;
             _bufferIndex = (_bufferIndex + 1) % _buffer.Length;

@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SoundFlow.Abstracts;
 using SoundFlow.Enums;
@@ -270,7 +271,8 @@ public class RawDataProvider : ISoundDataProvider
         try
         {
             var byteBuffer = rentedBuffer.AsSpan(0, bytesToRead);
-            int bytesActuallyRead = _pcmStream!.Read(byteBuffer);
+            Debug.Assert(_pcmStream != null, nameof(_pcmStream) + " != null");
+            int bytesActuallyRead = _pcmStream.Read(byteBuffer);
 
             if (bytesActuallyRead == 0)
                 return 0;

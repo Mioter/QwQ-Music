@@ -34,7 +34,7 @@ public class ColorJsonConverter : JsonConverter<Color>
                 throw new JsonException();
             }
 
-            string propertyName = reader.GetString()!;
+            string? propertyName = reader.GetString();
             reader.Read();
 
             switch (propertyName)
@@ -92,7 +92,7 @@ public class PixelPointJsonConverter : JsonConverter<PixelPoint>
                 throw new JsonException();
             }
 
-            string propertyName = reader.GetString()!;
+            string? propertyName = reader.GetString();
             reader.Read();
 
             switch (propertyName)

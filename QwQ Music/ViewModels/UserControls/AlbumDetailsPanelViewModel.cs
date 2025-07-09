@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -9,12 +10,18 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Models;
 using QwQ_Music.Services;
 using QwQ_Music.ViewModels.ViewModelBases;
+using StringCleaner = QwQ_Music.Utilities.StringUtilities.StringCleaner;
 
 namespace QwQ_Music.ViewModels.UserControls;
 
 public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
 {
-    private readonly NetEaseAlbumCrawler _netEaseAlbumCrawler = new();
+    [ObservableProperty]
+    public partial AlbumItemModel AlbumItemModel { get; private set; } =
+        new("Error", "#警告！你已进入未知空域，请立即离开此处（");
+
+    [ObservableProperty]
+    public partial Bitmap CoverImage { get; set; } = MusicExtractor.DefaultCover;
 
     public AlbumDetailsPanelViewModel UpdateAlbumItemModel(AlbumItemModel albumItemModel)
     {
@@ -40,20 +47,15 @@ public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
         }
 
         AlbumItemModel.Description = "专辑信息等待获取中...";
+
         _ = GetAlbumDetailByNameAsync(albumItemModel).ConfigureAwait(false);
 
         return this;
     }
 
-    [ObservableProperty]
-    public partial AlbumItemModel AlbumItemModel { get; private set; } = new("Error", "警告！请立即离开此处并重新进入");
-
-    [ObservableProperty]
-    public partial Bitmap CoverImage { get; set; } = MusicExtractor.DefaultCover;
-
     private async Task UpdateCoverImage(MusicItemModel musicItem)
     {
-        string? currentCoverPath = musicItem.CoverPath;
+        string? currentCoverPath = musicItem.CoverFileName;
         bool shouldRetry;
 
         do
@@ -77,7 +79,7 @@ public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
             if (newCoverPath != null)
             {
                 currentCoverPath = newCoverPath;
-                musicItem.CoverPath = Path.GetFileName(currentCoverPath); // 更新模型中的路径
+                musicItem.CoverFileName = Path.GetFileName(currentCoverPath); // 更新模型中的路径
                 shouldRetry = true; // 重试加载新路径的封面
             }
             else
@@ -99,17 +101,22 @@ public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
 
     private async Task GetAlbumDetailByNameAsync(AlbumItemModel album)
     {
-        string? albumId = await _netEaseAlbumCrawler.GetAlbumIdByNameAsync(album.Name, album.Artist);
-
-        if (albumId == null)
+        try
         {
-            AlbumItemModel.Description = "未找到专辑";
-            return;
-        }
+            using var crawler = new NetEaseAlbumCrawler();
+            var albumDetail = await crawler.GetAlbumDetailByNameAsync(album.Name, album.Artist);
 
-        var albumDetail = await _netEaseAlbumCrawler.GetAlbumDetailAsync(albumId);
-        AlbumItemModel.Description = albumDetail.Description;
-        AlbumItemModel.PublishTime = albumDetail.PublishTime;
-        AlbumItemModel.Company = albumDetail.Company;
+            AlbumItemModel.Description = StringCleaner.ToPlainText(albumDetail.Description);
+            AlbumItemModel.PublishTime = albumDetail.PublishTime;
+            AlbumItemModel.Company = albumDetail.Company;
+        }
+        catch (NetEaseAlbumCrawlerException ex)
+        {
+            await LoggerService.ErrorAsync($"爬虫异常: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            await LoggerService.ErrorAsync($"其他异常: {ex.Message}");
+        }
     }
 }

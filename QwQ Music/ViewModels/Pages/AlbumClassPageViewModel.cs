@@ -40,10 +40,20 @@ public partial class AlbumClassPageViewModel : NavigationViewModel
         get;
         set
         {
-            if (SetProperty(ref field, value))
-            {
-                OnSearchTextChanged(field);
-            }
+            if (!SetProperty(ref field, value))
+                return;
+
+            BackAllAlbum();
+            var source = string.IsNullOrEmpty(value)
+                ? AllAlbumsPanelViewModel.AllAlbumItems
+                : AllAlbumsPanelViewModel.AllAlbumItems.Where(MatchesSearchCriteria);
+
+            AllAlbumsPanelViewModel.AlbumItems = new ObservableCollection<AlbumItemModel>(source);
+            return;
+
+            bool MatchesSearchCriteria(AlbumItemModel item) =>
+                item.Name.Contains(value, StringComparison.OrdinalIgnoreCase)
+                || item.Artist.Contains(value, StringComparison.OrdinalIgnoreCase);
         }
     }
 
@@ -70,20 +80,5 @@ public partial class AlbumClassPageViewModel : NavigationViewModel
     protected override void OnNavigateTo(int index)
     {
         CurrentControl = _userControls[index];
-    }
-
-    private void OnSearchTextChanged(string? value)
-    {
-        BackAllAlbum();
-        var source = string.IsNullOrEmpty(value)
-            ? AllAlbumsPanelViewModel.AllAlbumItems
-            : AllAlbumsPanelViewModel.AllAlbumItems.Where(MatchesSearchCriteria);
-
-        AllAlbumsPanelViewModel.AlbumItems = new ObservableCollection<AlbumItemModel>(source);
-        return;
-
-        bool MatchesSearchCriteria(AlbumItemModel item) =>
-            item.Name.Contains(value, StringComparison.OrdinalIgnoreCase)
-            || item.Artist.Contains(value, StringComparison.OrdinalIgnoreCase);
     }
 }

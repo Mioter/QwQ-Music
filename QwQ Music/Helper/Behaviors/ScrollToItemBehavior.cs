@@ -24,7 +24,7 @@ public class ScrollToItemBehavior
         ScrollToItemBehavior,
         Control,
         object
-    >("ScrollToItem", null!, false, BindingMode.TwoWay);
+    >("ScrollToItem", new object(), false, BindingMode.TwoWay);
 
     // 滚动动画持续时间
     public static readonly AttachedProperty<TimeSpan> ScrollDurationProperty = AvaloniaProperty.RegisterAttached<

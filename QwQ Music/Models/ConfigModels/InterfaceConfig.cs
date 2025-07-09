@@ -16,6 +16,8 @@ public class InterfaceConfig
 
 public partial class CoverConfig : ObservableObject
 {
+    public bool AllowNonSquareCover {get; set;}
+    
     public bool IgnoreWhite { get; set; } = true;
 
     public bool ToLab { get; set; } = true;

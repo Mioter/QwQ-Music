@@ -11,7 +11,7 @@ using QwQ.Avalonia.Utilities.MessageBus;
 
 namespace QwQ_Music.Services;
 
-public static class MusicDataPersistence
+public static class MusicDataService
 {
     /// <summary>
     /// 批量保存音乐项到数据库
@@ -172,5 +172,41 @@ public static class MusicDataPersistence
         }
 
         await Task.WhenAll(allTasks).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 从数据库中批量删除音乐项
+    /// </summary>
+    /// <param name="items">要删除的音乐项集合</param>
+    /// <returns>删除成功的音乐项列表</returns>
+    public static async Task<List<MusicItemModel>> DeleteMusicItemsFromDataBaseAsync(IEnumerable<MusicItemModel> items)
+    {
+        var successItems = new List<MusicItemModel>();
+        var itemsList = items.ToList();
+
+        var deleteTasks = itemsList.Select(async item =>
+        {
+            bool isSuccess =
+                await DataBaseService.DeleteDataAsync(
+                    DataBaseService.Table.MUSICS,
+                    nameof(MusicItemModel.FilePath),
+                    item.FilePath
+                ) != DataBaseService.OperationResult.Failure
+                || await DataBaseService.DeleteDataAsync(
+                    DataBaseService.Table.MUSICLISTS,
+                    nameof(MusicItemModel.FilePath),
+                    item.FilePath
+                ) != DataBaseService.OperationResult.Failure;
+
+            if (isSuccess)
+            {
+                successItems.Add(item);
+            }
+        });
+
+        // 在后台线程中并行处理所有删除操作
+        await Task.WhenAll(deleteTasks);
+
+        return successItems;
     }
 }

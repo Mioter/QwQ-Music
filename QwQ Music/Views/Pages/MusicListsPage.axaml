@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
-             xmlns:helper="clr-namespace:QwQ_Music.Helper"
+             xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
              x:DataType="pages:MusicListsPageViewModel"
              x:Class="QwQ_Music.Views.Pages.MusicListsPage">
 
@@ -9,7 +9,7 @@
 
         <Panel>
 
-            <ItemsControl Background="Transparent" ItemsSource="{Binding PlayListItems}" Padding="10,20,10,10">
+            <ItemsControl Background="Transparent" ItemsSource="{Binding MusicListsViewModel.PlayListItems}" Padding="10,20,10,10">
 
                 <ItemsControl.Styles>
                     <Style Selector="ItemsControl > ContentPresenter">
@@ -34,7 +34,7 @@
                                     </MenuItem>
 
                                     <MenuItem
-                                        Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).EditMusicListCommand}"
+                                        Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).MusicListsViewModel.EditMusicListCommand}"
                                         CommandParameter="{Binding}"
                                         Header="编辑">
                                         <MenuItem.Icon>
@@ -44,7 +44,7 @@
                                     </MenuItem>
 
                                     <MenuItem
-                                        Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).DeleteMusicListModelCommand}"
+                                        Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).MusicListsViewModel.DeleteMusicListModelCommand}"
                                         CommandParameter="{Binding}"
                                         Header="删除">
                                         <MenuItem.Icon>
@@ -81,47 +81,56 @@
 
                             <Border CornerRadius="12" Classes.Pointerover="{Binding $parent[Panel].IsPointerOver}"
                                     Classes.NoPointerover="{Binding !$parent[Panel].IsPointerOver}">
+                                
                                 <Border.RenderTransform>
                                     <TransformGroup>
                                         <ScaleTransform ScaleX="0.98"/>
                                         <TranslateTransform Y="5" />
                                     </TransformGroup>
                                 </Border.RenderTransform>
+                                
                                 <Border.Transitions>
                                     <Transitions>
                                         <BrushTransition Property="Background" Duration="0:0:0.25"/>
                                     </Transitions>
                                 </Border.Transitions>
+                                
                                 <Border.Effect>
                                     <BlurEffect Radius="20" />
                                 </Border.Effect>
+                                
                                 <Border.Styles>
+                                    
                                     <Style Selector="Border.NoPointerover">
                                         <Setter Property="Background" Value="LightGray" />
                                     </Style>
+                                    
                                     <Style Selector="Border.Pointerover">
+                                        
                                         <Setter Property="Background">
                                             <LinearGradientBrush>
                                                 <GradientStop Offset="0" Color="#886094EA" />
                                                 <GradientStop Offset="1" Color="#88F02FC2" />
                                             </LinearGradientBrush>
                                         </Setter>
+                                        
                                         <Style.Animations>
                                             <Animation
                                                 Duration="0:0:3"
                                                 FillMode="Forward"
                                                 IterationCount="Infinite">
                                                 <KeyFrame Cue="0%">
-                                                    <Setter Property="helper:BorderLinearGradientBrushHelper.BackgroundRotateAngle"
+                                                    <Setter Property="behaviors:BorderLinearGradientBrushBehavior.BackgroundRotateAngle"
                                                             Value="0" />
                                                 </KeyFrame>
                                                 <KeyFrame Cue="100%">
-                                                    <Setter Property="helper:BorderLinearGradientBrushHelper.BackgroundRotateAngle"
+                                                    <Setter Property="behaviors:BorderLinearGradientBrushBehavior.BackgroundRotateAngle"
                                                             Value="360" />
                                                 </KeyFrame>
                                             </Animation>
                                         </Style.Animations>
                                     </Style>
+                                    
                                 </Border.Styles>
                             </Border>
 
@@ -174,7 +183,7 @@
                                     <StackPanel DockPanel.Dock="Top" Spacing="3">
 
                                         <TextBlock
-                                            TextWrapping="Wrap"
+                                            TextTrimming="CharacterEllipsis"
                                             Text="{Binding Name}"
                                             FontWeight="Bold" />
 
@@ -217,7 +226,7 @@
 
                     <ContextMenu>
                         <MenuItem Header="新建歌单"
-                                  Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).CreateMusicListCommand}">
+                                  Command="{Binding $parent[UserControl].((pages:MusicListsPageViewModel)DataContext).MusicListsViewModel.CreateMusicListCommand}">
                             <MenuItem.Icon>
                                 <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
                             </MenuItem.Icon>
@@ -231,8 +240,8 @@
             <Button CornerRadius="8" VerticalAlignment="Top" HorizontalAlignment="Left"
                     Theme="{StaticResource OutlineButton}"
                     Margin="20"
-                    Command="{Binding CreateMusicListCommand}"
-                    IsVisible="{Binding !PlayListItems.Count}" Content="新建歌单" />
+                    Command="{Binding MusicListsViewModel.CreateMusicListCommand}"
+                    IsVisible="{Binding !MusicListsViewModel.PlayListItems.Count}" Content="新建歌单" />
 
         </Panel>
 

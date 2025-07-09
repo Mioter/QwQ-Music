@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
@@ -68,21 +70,22 @@ public static class FileOperation
     /// </summary>
     public static List<string> ConvertStorageItemsToPathStrings(IEnumerable<IStorageItem> items)
     {
-        return items
+         return items
             .Select(item =>
             {
                 try
                 {
                     return item.Path.IsAbsoluteUri ? item.Path.LocalPath : null;
                 }
-                catch (Exception ex) when (ex is InvalidOperationException || ex is UriFormatException)
+                catch (Exception ex) when (ex is InvalidOperationException or UriFormatException)
                 {
                     Console.WriteLine($"无法解析路径: {item.Path} (错误: {ex.Message})");
                     return null;
                 }
             })
-            .Where(path => !string.IsNullOrEmpty(path))
-            .ToList()!;
+            .OfType<string>()
+            .ToList();
+         
     }
 
     /// <summary>
@@ -125,23 +128,50 @@ public static class FileOperation
     }
 
     /// <summary>
-    /// 格式化文件大小为人类可读的形式。
+    /// 在系统默认文件管理器中打开指定文件或目录
     /// </summary>
-    /// <param name="bytes">文件大小（字节）。</param>
-    /// <returns>格式化后的文件大小。</returns>
-    public static string FormatFileSize(long bytes)
+    /// <param name="path">文件或目录路径</param>
+    public static void OpenInFileManager(string path)
     {
-        const int scale = 1024;
-        string[] orders = ["GiB", "MiB", "KiB", "Bytes"];
-        double len = bytes;
-        int order = orders.Length - 1;
-
-        while (len >= scale && order > 0)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            order--;
-            len /= scale;
+            // Windows: 使用 explorer.exe
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{path}\"",
+                    UseShellExecute = true,
+                }
+            );
         }
-
-        return $"{len:0.0}{orders[order]}";
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            // macOS: 使用 open 命令
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "open",
+                    Arguments = $"-R \"{path}\"",
+                    UseShellExecute = true,
+                }
+            );
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            // Linux: 尝试使用 xdg-open
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "xdg-open",
+                    Arguments = $"\"{Path.GetDirectoryName(path)}\"",
+                    UseShellExecute = true,
+                }
+            );
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("当前操作系统不支持此操作");
+        }
     }
 }

@@ -70,22 +70,18 @@
         <Border Grid.Row="1"
                 CornerRadius="12" ClipToBounds="True">
 
-            <ScrollViewer>
-
-                <TransitioningContentControl Content="{Binding CurrentControl}">
-                    <TransitioningContentControl.PageTransition>
-                        <CompositePageTransition>
-                            <CrossFade Duration="0:0:0.5" />
-                            <PageSlide
-                                Duration="0:0:0.3"
-                                Orientation="Vertical"
-                                SlideInEasing="QuadraticEaseIn"
-                                SlideOutEasing="QuadraticEaseOut" />
-                        </CompositePageTransition>
-                    </TransitioningContentControl.PageTransition>
-                </TransitioningContentControl>
-
-            </ScrollViewer>
+            <TransitioningContentControl Content="{Binding CurrentControl}">
+                <TransitioningContentControl.PageTransition>
+                    <CompositePageTransition>
+                        <CrossFade Duration="0:0:0.5" />
+                        <PageSlide
+                            Duration="0:0:0.3"
+                            Orientation="Vertical"
+                            SlideInEasing="QuadraticEaseIn"
+                            SlideOutEasing="QuadraticEaseOut" />
+                    </CompositePageTransition>
+                </TransitioningContentControl.PageTransition>
+            </TransitioningContentControl>
 
         </Border>
 
