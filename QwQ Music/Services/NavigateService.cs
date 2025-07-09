@@ -376,7 +376,10 @@ public static class NavigateService
             return false;
 
         // 获取父视图的子视图列表
-        string[] children = _viewTree[parentViewName]!;
+        string[]? children = _viewTree[parentViewName];
+        if (children == null)
+            return false;
+        
         int index = GetChildViewIndex(parentViewName, childViewName);
 
         // 创建新的子视图数组（不包含要删除的子视图）

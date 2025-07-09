@@ -54,6 +54,9 @@ public partial class DesktopLyricsWindow : Window
 
     public void SetPenetrate(bool enabled = true)
     {
-        MousePenetrate.SetPenetrate(TryGetPlatformHandle()!.Handle, enabled);
+        if (TryGetPlatformHandle() is { } handle)
+        {
+            MousePenetrate.SetPenetrate(handle.Handle, enabled);
+        }
     }
 }

@@ -150,12 +150,12 @@ public sealed class NetworkDataProvider : ISoundDataProvider
 
             if (response is { IsSuccessStatusCode: true, Content.Headers.ContentType: not null })
             {
-                string contentType = response.Content.Headers.ContentType.MediaType!;
+                string? contentType = response.Content.Headers.ContentType.MediaType;
                 if (
-                    contentType.Equals("application/vnd.apple.mpegurl", StringComparison.OrdinalIgnoreCase)
-                    || contentType.Equals("application/x-mpegURL", StringComparison.OrdinalIgnoreCase)
-                    || contentType.Equals("audio/x-mpegURL", StringComparison.OrdinalIgnoreCase)
-                    || contentType.Equals("audio/mpegurl", StringComparison.OrdinalIgnoreCase)
+                    contentType != null && (contentType.Equals("application/vnd.apple.mpegurl", StringComparison.OrdinalIgnoreCase)
+                     || contentType.Equals("application/x-mpegURL", StringComparison.OrdinalIgnoreCase)
+                     || contentType.Equals("audio/x-mpegURL", StringComparison.OrdinalIgnoreCase)
+                     || contentType.Equals("audio/mpegurl", StringComparison.OrdinalIgnoreCase))
                 )
                     return true;
             }
@@ -327,7 +327,8 @@ public sealed class NetworkDataProvider : ISoundDataProvider
             {
                 while (!IsDisposed && !cancellationToken.IsCancellationRequested)
                 {
-                    int samplesRead = _decoder!.Decode(buffer);
+                    if (_decoder == null) continue;
+                    int samplesRead = _decoder.Decode(buffer);
 
                     if (samplesRead > 0)
                     {

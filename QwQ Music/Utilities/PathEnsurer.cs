@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 
 namespace QwQ_Music.Utilities;
@@ -25,7 +26,7 @@ public static class PathEnsurer
     /// <param name="filePath">要确保存在的文件路径。</param>
     public static string EnsureFileAndDirectoryExist(string filePath)
     {
-        EnsureDirectoryExists(Path.GetDirectoryName(filePath)!);
+        EnsureDirectoryExists(Path.GetDirectoryName(filePath) ?? throw new InvalidOperationException());
 
         if (!File.Exists(filePath))
         {

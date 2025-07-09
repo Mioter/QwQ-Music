@@ -18,12 +18,12 @@ public sealed class NoiseReductionModifier : SoundModifier
     private float _gain = 1.2f;
     private int _noiseFrames = 10;
 
-    private float[] _window = null!;
+    private float[] _window;
     private float _windowSumSq;
-    private Complex[][] _fftBuffers = null!;
-    private float[][] _noisePsd = null!;
-    private float[][] _inputBuffers = null!;
-    private float[][] _outputOverlapBuffers = null!;
+    private Complex[][] _fftBuffers;
+    private float[][] _noisePsd;
+    private float[][] _inputBuffers;
+    private float[][] _outputOverlapBuffers;
     private int _channels;
     private int _noiseFramesCollected;
     private bool _noiseEstimationDone;

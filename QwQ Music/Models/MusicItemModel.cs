@@ -4,8 +4,10 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using QwQ_Music.Services;
+using QwQ_Music.Utilities;
 
 namespace QwQ_Music.Models;
 
@@ -157,7 +159,7 @@ public class MusicItemModel : ObservableObject
             if (MusicExtractor.ImageCache.TryGetValue(CoverFileName, out var image))
             {
                 _coverStatus = CoverStatus.Loaded;
-                return image!;
+                return image ?? MusicExtractor.DefaultCover;
             }
 
             // 缓存未命中，标记为正在加载
@@ -170,7 +172,7 @@ public class MusicItemModel : ObservableObject
 
                 if (bitmap != null)
                 {
-                    MusicExtractor.ImageCache[CoverFileName] = bitmap;
+                    MusicExtractor.ImageCache[CoverFileName] = Dispatcher.UIThread.Invoke(() => BitmapCropper.Crop(bitmap, 1.0));
                     _coverStatus = CoverStatus.Loaded;
                 }
                 else

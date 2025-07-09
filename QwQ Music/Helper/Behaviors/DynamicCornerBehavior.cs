@@ -21,7 +21,10 @@ public class DynamicCornerBehavior
         if (args.Sender is not Control control)
             return;
 
-        if ((bool)args.NewValue!)
+        if (args.NewValue is not bool isEnabled) 
+            return;
+        
+        if(isEnabled)
         {
             control.SizeChanged += OnSizeChanged;
             ApplyCornerRadius(control);

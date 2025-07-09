@@ -70,7 +70,7 @@ public static class FileOperation
     /// </summary>
     public static List<string> ConvertStorageItemsToPathStrings(IEnumerable<IStorageItem> items)
     {
-        return items
+         return items
             .Select(item =>
             {
                 try
@@ -83,8 +83,9 @@ public static class FileOperation
                     return null;
                 }
             })
-            .Where(path => !string.IsNullOrEmpty(path))
-            .ToList()!;
+            .OfType<string>()
+            .ToList();
+         
     }
 
     /// <summary>

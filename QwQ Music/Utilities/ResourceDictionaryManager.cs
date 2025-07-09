@@ -17,7 +17,11 @@ public static class ResourceDictionaryManager
     /// <returns>如果找到并且类型正确, 则返回资源; 否则, 返回该类型的默认值。</returns>
     public static T? Get<T>(object key)
     {
-        if (Application.Current!.TryGetResource(key, out object? resource) && resource is T typedResource)
+        if (
+            Application.Current != null
+            && Application.Current.TryGetResource(key, out object? resource)
+            && resource is T typedResource
+        )
         {
             return typedResource;
         }
@@ -32,12 +36,7 @@ public static class ResourceDictionaryManager
     /// <returns>如果成功添加资源, 则返回 true; 否则返回 false。</returns>
     public static bool Add(object key, object resource)
     {
-        if (Application.Current!.Resources.ContainsKey(key))
-        {
-            return false;
-        }
-        Application.Current.Resources.Add(key, resource);
-        return true;
+        return Application.Current != null && Application.Current.Resources.TryAdd(key, resource);
     }
 
     /// <summary>
@@ -47,7 +46,10 @@ public static class ResourceDictionaryManager
     /// <param name="resource">新资源</param>
     public static void Set(object key, object resource)
     {
-        Application.Current!.Resources[key] = resource;
+        if (Application.Current == null)
+            return;
+
+        Application.Current.Resources[key] = resource;
     }
 
     /// <summary>
@@ -58,12 +60,12 @@ public static class ResourceDictionaryManager
     /// <returns>如果键成功重命名, 则返回 true; 否则返回 false。</returns>
     public static bool RenameKey(object oldKey, object newKey)
     {
-        if (oldKey.Equals(newKey))
+        if (oldKey.Equals(newKey) || Application.Current == null)
         {
             return false;
         }
 
-        if (Application.Current!.Resources.ContainsKey(newKey))
+        if (Application.Current.Resources.ContainsKey(newKey))
         {
             // 新键已存在, 无法重命名
             return false;
@@ -83,7 +85,7 @@ public static class ResourceDictionaryManager
     /// <returns>如果成功删除了资源, 则返回 true; 否则返回 false。</returns>
     public static bool Remove(object key)
     {
-        Application.Current?.Resources.Remove(key);
-        return true;
+        return Application.Current != null && Application.Current.Resources.Remove(key);
     }
 }
+

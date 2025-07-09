@@ -30,7 +30,7 @@ public partial class AboutPageViewModel : ViewModelBase
             if (MusicExtractor.ImageCache.TryGetValue("关于:背景", out var image))
             {
                 _coverStatus = CoverStatus.Loaded;
-                return image!;
+                return image ?? MusicExtractor.DefaultCover;
             }
 
             Task.Run(async () =>
@@ -68,7 +68,6 @@ public partial class AboutPageViewModel : ViewModelBase
             new("NcmdumpCSharp", "NCM解密支持", "Mioter/NcmdumpCSharp"),
             new("managed-midi", "MIDI音频处理支持", "atsushieno/managed-midi"),
             new("Z440.ALT", "音乐元数据读取与写入", "https://github.com/Zeugma440/atldotnet"),
-            new("managed-midi", "MIDI音频处理支持", "atsushieno/managed-midi"),
             new("SkiaSharp", "着色器渲染支持", "https://github.com/mono/SkiaSharp"),
             new("Community Toolkit", "为MVVM开发模式提供基础框架", "https://github.com/CommunityToolkit/dotnet"),
             new("XAML Behaviors", "为XAML开发提供行为扩展", "https://github.com/wieslawsoltes/Xaml.Behaviors"),
@@ -153,7 +152,7 @@ public class ContributorItem(string name, string speak = "TA没有什么想说�
             if (MusicExtractor.ImageCache.TryGetValue($"贡献者:{Name}", out var image))
             {
                 _coverStatus = CoverStatus.Loaded;
-                return image!;
+                return image ?? MusicExtractor.DefaultCover;;
             }
 
             Task.Run(async () =>
@@ -202,7 +201,7 @@ public class SpecialThank(string name, string hpUri, string uri, string descript
             if (MusicExtractor.ImageCache.TryGetValue($"鸣谢:{Name}", out var image))
             {
                 _coverStatus = CoverStatus.Loaded;
-                return image!;
+                return image ?? MusicExtractor.DefaultCover;;
             }
 
             Task.Run(async () =>

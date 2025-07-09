@@ -125,7 +125,7 @@ public sealed class AssetDataProvider : ISoundDataProvider
             return;
 
         // Dispose of _data
-        _data = null!;
+        _data = null;
         IsDisposed = true;
     }
 }

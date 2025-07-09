@@ -112,18 +112,25 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
 
     private async Task UpdateCoverImage(MusicItemModel musicItem)
     {
-        string? currentCoverPath = musicItem.CoverFileName;
+        string? coverFileName = musicItem.CoverFileName;
         bool shouldRetry;
 
         do
         {
             shouldRetry = false;
 
-            if (currentCoverPath != null)
+            if (coverFileName != null)
             {
-                var bitmap = await MusicExtractor.LoadOriginalBitmap(currentCoverPath).ConfigureAwait(false);
+                var bitmap = await MusicExtractor.LoadOriginalBitmap(coverFileName).ConfigureAwait(false);
+
                 if (bitmap != null)
                 {
+                    if (!ConfigManager.InterfaceConfig.CoverConfig.AllowNonSquareCover)
+                    {
+                        CoverImage = Dispatcher.UIThread.Invoke(() => BitmapCropper.Crop(bitmap, 1.0));
+                        return;
+                    }
+                    
                     CoverImage = bitmap;
                     return;
                 }
@@ -135,8 +142,8 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
                 .ConfigureAwait(false);
             if (newCoverPath != null)
             {
-                currentCoverPath = newCoverPath;
-                musicItem.CoverFileName = Path.GetFileName(currentCoverPath); // 更新模型中的路径
+                coverFileName = newCoverPath;
+                musicItem.CoverFileName = Path.GetFileName(coverFileName); // 更新模型中的路径
                 shouldRetry = true; // 重试加载新路径的封面
             }
             else

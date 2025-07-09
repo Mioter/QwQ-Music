@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ATL;
 using Avalonia;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using NcmdumpCSharp.Core;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;
@@ -305,7 +306,7 @@ public static class MusicExtractor
     {
         bool isArtistsEmpty = string.IsNullOrWhiteSpace(artists);
         bool isAlbumEmpty = string.IsNullOrWhiteSpace(album);
-        string timeStamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+        string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 
         if (isArtistsEmpty && isAlbumEmpty)
         {

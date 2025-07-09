@@ -172,7 +172,7 @@ public class NetEaseAlbumCrawler : IDisposable
     {
         // 1. 优先查找完全匹配的结果
         var exactMatch = albums.FirstOrDefault(album =>
-            IsValidAlbum(album) && IsExactMatch(album.Name!, albumName) && IsExactMatch(album.Artist!.Name!, artistName)
+            IsValidAlbum(album) && IsExactMatch(album.Name, albumName) && IsExactMatch(album.Artist.Name, artistName)
         );
 
         if (exactMatch != null)
@@ -180,7 +180,7 @@ public class NetEaseAlbumCrawler : IDisposable
 
         // 2. 查找模糊匹配的结果
         var fuzzyMatch = albums.FirstOrDefault(album =>
-            IsValidAlbum(album) && IsFuzzyMatch(album.Name!, albumName) && IsFuzzyMatch(album.Artist!.Name!, artistName)
+            IsValidAlbum(album) && IsFuzzyMatch(album.Name, albumName) && IsFuzzyMatch(album.Artist.Name, artistName)
         );
 
         return fuzzyMatch;
@@ -190,7 +190,7 @@ public class NetEaseAlbumCrawler : IDisposable
     /// 验证专辑数据是否有效
     /// </summary>
     private static bool IsValidAlbum(AlbumItem album) =>
-        !string.IsNullOrEmpty(album.Name) && album.Artist != null && !string.IsNullOrEmpty(album.Artist.Name);
+        !string.IsNullOrEmpty(album.Name) && !string.IsNullOrEmpty(album.Artist.Name);
 
     /// <summary>
     /// 精确匹配
@@ -314,13 +314,13 @@ public class NetEaseAlbumCrawlerException : Exception
 /// 专辑搜索结果
 /// </summary>
 [JsonSerializable(typeof(AlbumSearchResult))]
-public partial class AlbumSearchResultJsonContext : JsonSerializerContext { }
+public partial class AlbumSearchResultJsonContext : JsonSerializerContext;
 
 /// <summary>
 /// 专辑详情 API 相关的 JSON 模型
 /// </summary>
 [JsonSerializable(typeof(AlbumDetailResult))]
-public partial class AlbumDetailResultJsonContext : JsonSerializerContext { }
+public partial class AlbumDetailResultJsonContext : JsonSerializerContext;
 
 public class AlbumSearchResult
 {
@@ -346,10 +346,10 @@ public class AlbumItem
     public string? IdStr { get; set; }
 
     [JsonPropertyName("name")]
-    public string? Name { get; set; }
+    public required string Name { get; set; }
 
     [JsonPropertyName("artist")]
-    public ArtistItem? Artist { get; set; }
+    public required ArtistItem Artist { get; set; }
 
     [JsonPropertyName("artists")]
     public List<ArtistItem>? Artists { get; set; }
@@ -373,7 +373,7 @@ public class AlbumItem
 public class ArtistItem
 {
     [JsonPropertyName("name")]
-    public string? Name { get; set; }
+    public required string Name { get; set; }
 
     [JsonPropertyName("id")]
     public long Id { get; set; }

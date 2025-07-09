@@ -70,7 +70,7 @@ public partial class MusicListModel : ObservableObject
             if (MusicExtractor.ImageCache.TryGetValue(Key, out var image))
             {
                 _coverStatus = CoverStatus.Loaded;
-                return image!;
+                return image ?? MusicExtractor.DefaultCover;
             }
 
             // 如果封面路径不存在，尝试从 MusicItems 中获取

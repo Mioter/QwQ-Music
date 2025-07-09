@@ -6,7 +6,6 @@
         <ResourceInclude Source="Dialog.axaml"/>
         <ResourceInclude Source="DataGrid.axaml" />
         <ResourceInclude Source="ScrollTo.axaml" />
-        <ResourceInclude Source="ToggleButton.axaml" />
         <ResourceInclude Source="ContextMenu.axaml" />      
         <ResourceInclude Source="MenuItem.axaml" />
         <ResourceInclude Source="MessageBoxControl.axaml"/>

@@ -179,6 +179,7 @@ public partial class PlayConfigPageViewModel : ViewModelBase
                     CleanupTask();
                 }
             })
+            .SetCompleteCallback(_ => CleanupTask())
             .RunAsync();
     }
 

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using SoundFlow.Abstracts;
 
 namespace SoundFlow.Modifiers;
@@ -30,7 +31,7 @@ public sealed class FadeModifier : SoundModifier
     private int _targetSamples;
     private double _startGain;
     private double _endGain;
-    private Func<double, double> _curveFunc = null!;
+    private Func<double, double>? _curveFunc;
 
     // 配置参数
     private double _fadeInTimeMs = 1000;
@@ -202,6 +203,7 @@ public sealed class FadeModifier : SoundModifier
 
     private double CalculateGain(double progress)
     {
+        Debug.Assert(_curveFunc != null, nameof(_curveFunc) + " != null");
         double curveValue = _curveFunc(progress);
         return _startGain + (_endGain - _startGain) * curveValue;
     }

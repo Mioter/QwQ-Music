@@ -15,7 +15,7 @@ namespace QwQ_Music;
 
 public class App : Application
 {
-    public static TopLevel TopLevel { get; private set; } = null!;
+    public static TopLevel? TopLevel { get; private set; }
 
     public override void Initialize()
     {

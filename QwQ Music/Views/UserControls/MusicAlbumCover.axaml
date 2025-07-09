@@ -20,11 +20,9 @@
                         ClipToBounds="True"
                         Margin="5"
                         behaviors:DynamicCornerBehavior.IsEnabled="True">
-                        
-                        <!--  专辑封面 Image 控件  -->
-                        <Image Source="{TemplateBinding CoverImage}">
 
-                        </Image>
+                        <!--  专辑封面 Image 控件  -->
+                        <Image Source="{TemplateBinding CoverImage}"/>
                     </Border>
             
                 </Border>

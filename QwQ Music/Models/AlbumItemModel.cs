@@ -39,7 +39,7 @@ public partial class AlbumItemModel(string name, string artist, string? coverFil
             if (MusicExtractor.ImageCache.TryGetValue(coverFileName, out var image))
             {
                 _coverStatus = CoverStatus.Loaded;
-                return image!;
+                return image ??  MusicExtractor.DefaultCover;
             }
 
             // 缓存未命中，标记为正在加载

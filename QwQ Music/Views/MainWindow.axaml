@@ -145,12 +145,45 @@
                     HorizontalAlignment="Right"
                     IsChecked="{Binding IsNavigationExpand}"
                     CornerRadius="30"
-                    Height="{Binding $self.Bounds.Width}"
-                    Margin="20,0">
+                    Height="35"
+                    Width="35"
+                    Margin="10,0"
+                    BorderThickness="0">
 
-                    <ToggleButton.Content>
-                        <PathIcon Data="{StaticResource SemiIconChevronRight}" Height="10" Width="10" />
-                    </ToggleButton.Content>
+                    <ToggleButton.Styles>
+
+                        <Style Selector="ToggleButton">
+                            <Setter Property="Background" Value="Transparent" />
+
+                            <Style Selector="^:checked /template/ ContentPresenter">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultPrimaryForeground}" />
+                                <Setter Property="RenderTransform" Value="rotate(180deg)" />
+                            </Style>
+
+                            <Style Selector="^:checked:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background"
+                                        Value="{DynamicResource ButtonDefaultPointeroverBackground}" />
+                            </Style>
+
+                            <Style Selector="^:checked:pressed  /template/ ContentPresenter">
+                                <Setter Property="Background"
+                                        Value="{DynamicResource ButtonDefaultPressedBackground}" />
+                            </Style>
+
+                        </Style>
+
+                        <Style Selector="ToggleButton /template/ ContentPresenter">
+                            <Setter Property="Transitions">
+                                <Transitions>
+                                    <TransformOperationsTransition Duration="0:0:0.2" Property="RenderTransform" />
+                                </Transitions>
+                            </Setter>
+
+                        </Style>
+                    </ToggleButton.Styles>
+
+                    <PathIcon Data="{StaticResource SemiIconChevronRight}" Height="10" Width="10" />
 
                 </ToggleButton>
 
