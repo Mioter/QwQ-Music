@@ -52,8 +52,8 @@ public static class ImageCompression
     private static Bitmap? CompressBySizeAsync(Bitmap bitmap, long maxSizeInBytes)
     {
         var originalSize = bitmap.PixelSize;
-        var currentWidth = originalSize.Width;
-        var currentHeight = originalSize.Height;
+        int currentWidth = originalSize.Width;
+        int currentHeight = originalSize.Height;
 
         // 逐步缩小尺寸，每次缩小15%
         while (currentWidth > 200 && currentHeight > 200) // 设置最小尺寸限制
@@ -127,7 +127,7 @@ public static class ImageCompression
     /// <returns>可读格式的大小字符串</returns>
     public static string FormatFileSize(long bytes)
     {
-        string[] sizes = { "B", "KB", "MB", "GB" };
+        string[] sizes = ["B", "KB", "MB", "GB"];
         double len = bytes;
         int order = 0;
 

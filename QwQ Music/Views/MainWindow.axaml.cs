@@ -25,6 +25,8 @@ public partial class MainWindow : Window
         Height = 800;
 
         DataContext = MainWindowViewModel.Instance;
+
+        MusicCoverPage.TopPanel.PointerPressed += MusicCoverPageOnPointerPressed;
     }
 
     public void ShowMainWindow()
@@ -37,6 +39,8 @@ public partial class MainWindow : Window
     public void CloseMainWindow()
     {
         _isClosing = true;
+        
+        MusicCoverPage.TopPanel.PointerPressed -= MusicCoverPageOnPointerPressed;
         Close();
     }
 
@@ -76,6 +80,7 @@ public partial class MainWindow : Window
                     await ApplicationViewModel.ExitApplication();
                     break;
             }
+            
             base.OnClosing(e);
         }
         catch (Exception ex)

@@ -31,6 +31,9 @@ public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicPlayer
     [RelayCommand]
     private static async Task OpenFileAsync()
     {
+        if (App.TopLevel == null)
+            return ;
+        
         var items = await App.TopLevel.StorageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions { Title = "选择音乐文件", AllowMultiple = true }
         );

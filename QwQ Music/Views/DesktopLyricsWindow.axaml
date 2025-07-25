@@ -6,7 +6,7 @@
     SystemDecorations="None"
     Topmost="True"
     SizeToContent="Height"
-    Background="{x:Null}"
+    Background="{Binding LyricConfig.LyricBackground,Converter={StaticResource ToBrushConverter}}"
     WindowStartupLocation="Manual"
     x:Class="QwQ_Music.Views.DesktopLyricsWindow"
     x:DataType="viewModel:DesktopLyricsWindowViewModel"
@@ -23,7 +23,6 @@
 
     <Panel>
         <Border Classes.RunLyricBorder="{Binding $parent[Window].IsPointerOver}"
-                Background="{Binding LyricConfig.LyricBackground,Converter={StaticResource ToBrushConverter}}"
                 CornerRadius="{Binding LyricConfig.WindowCornerRadius}"
                 BorderThickness="2">
             

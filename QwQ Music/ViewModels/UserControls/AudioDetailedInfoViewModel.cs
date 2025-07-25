@@ -115,6 +115,9 @@ public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem, MusicT
     private async Task CopyText(MusicInfoKeyValuePair keyValuePair)
     {
         // 使用topLevel进行操作
+        if (App.TopLevel == null)
+            return ;
+        
         var clipboard = App.TopLevel.Clipboard;
         if (clipboard == null)
             return;

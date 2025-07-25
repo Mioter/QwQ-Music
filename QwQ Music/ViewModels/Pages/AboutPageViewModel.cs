@@ -123,6 +123,9 @@ public partial class AboutPageViewModel : ViewModelBase
     [RelayCommand]
     private static async Task OpenContributorFromGayhub(string name)
     {
+        if (App.TopLevel == null)
+            return ;
+        
         var launcher = App.TopLevel.Launcher;
         await launcher.LaunchUriAsync(new Uri($"https://github.com/{name}"));
     }
@@ -130,6 +133,9 @@ public partial class AboutPageViewModel : ViewModelBase
     [RelayCommand]
     private static async Task OpenUri(string uri)
     {
+        if (App.TopLevel == null)
+            return ;
+        
         var launcher = App.TopLevel.Launcher;
         await launcher.LaunchUriAsync(new Uri(uri));
     }

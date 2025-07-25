@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using ATL;
 using Avalonia;
 using Avalonia.Media.Imaging;
-using Avalonia.Threading;
 using NcmdumpCSharp.Core;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;

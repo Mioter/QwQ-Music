@@ -32,6 +32,56 @@ public static class MousePenetrate
     [DllImport("libX11")]
     private static extern int XCloseDisplay(IntPtr display);
 
+    // X11 结构体与API
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XWindowAttributes
+    {
+        public int x, y;
+        public int width, height;
+        public int border_width, depth;
+        public IntPtr visual, root;
+        public int class_, bit_gravity, win_gravity;
+        public int backing_store;
+        public uint backing_planes, backing_pixel;
+        public bool save_under;
+        public IntPtr colormap;
+        public bool map_installed, map_state;
+        public long all_event_masks, your_event_mask, do_not_propagate_mask;
+        public bool override_redirect;
+        public IntPtr screen;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XRectangle
+    {
+        public short x, y;
+        public ushort width, height;
+    }
+
+    [DllImport("libX11")]
+    private static extern int XGetWindowAttributes(IntPtr display, IntPtr window, out XWindowAttributes attributes);
+
+    // X11 Shape 扩展
+    [DllImport("libXext", EntryPoint = "XShapeCombineRectangles")]
+    private static extern void XShapeCombineRectangles(
+        IntPtr display,
+        IntPtr window,
+        int shape_kind,
+        int x_off,
+        int y_off,
+        [In] XRectangle[]? rectangles,
+        int n_rects,
+        int op,
+        int ordering
+    );
+
+    // macOS Objective-C 互操作
+    [DllImport("libobjc.A.dylib", EntryPoint = "sel_registerName")]
+    private static extern IntPtr sel_registerName(string selectorName);
+
+    [DllImport("libobjc.A.dylib", EntryPoint = "objc_msgSend")]
+    private static extern void objc_msgSend_bool(IntPtr receiver, IntPtr selector, bool value);
+
     /// <summary>
     /// 设置窗体具有鼠标穿透效果
     /// </summary>
@@ -97,16 +147,61 @@ public static class MousePenetrate
 
     private static void SetPenetrateLinux(IntPtr handle, bool flag)
     {
-        // TODO: 实现 Linux 平台的鼠标穿透
-        // 可以使用 X11 或 Wayland 的相应 API
-        LoggerService.Warning("Linux 平台的鼠标穿透功能尚未实现");
+        // 检查是否为 Wayland 环境
+        string? waylandDisplay = Environment.GetEnvironmentVariable("WAYLAND_DISPLAY");
+        if (!string.IsNullOrEmpty(waylandDisplay))
+        {
+            LoggerService.Warning("Wayland 平台暂不支持鼠标穿透。建议使用 X11 或 XWayland 运行。");
+            return;
+        }
+        IntPtr display = XOpenDisplay(IntPtr.Zero);
+        if (display == IntPtr.Zero)
+        {
+            LoggerService.Error("无法打开 X11 Display");
+            return;
+        }
+        try
+        {
+            if (flag)
+            {
+                // 穿透：输入区域设为空
+                XShapeCombineRectangles(display, handle, 0, 0, 0, null, 0, 0, 0);
+                LoggerService.Debug($"已为窗口 {handle} 启用 X11 鼠标穿透");
+            }
+            else
+            {
+                // 还原：输入区域设为窗口本身区域
+                if (XGetWindowAttributes(display, handle, out var attr) == 0)
+                {
+                    LoggerService.Error("获取窗口属性失败，无法还原输入区域");
+                }
+                else
+                {
+                    XRectangle[] rects =
+                    [
+                        new () { x = 0, y = 0, width = (ushort)attr.width, height = (ushort)attr.height },
+                    ];
+                    XShapeCombineRectangles(display, handle, 0, 0, 0, rects, 1, 0, 0);
+                    LoggerService.Debug($"已为窗口 {handle} 还原 X11 输入区域");
+                }
+            }
+        }
+        finally
+        {
+            int closeResult = XCloseDisplay(display);
+            if (closeResult != 0)
+            {
+                LoggerService.Warning("XCloseDisplay 关闭失败");
+            }
+        }
     }
 
     private static void SetPenetrateMacOs(IntPtr handle, bool flag)
     {
-        // TODO: 实现 macOS 平台的鼠标穿透
-        // 可以使用 Cocoa/NSWindow API
-        LoggerService.Warning("macOS 平台的鼠标穿透功能尚未实现");
+        // handle 应为 NSWindow* 指针
+        IntPtr sel = sel_registerName("setIgnoresMouseEvents:");
+        objc_msgSend_bool(handle, sel, flag);
+        LoggerService.Debug($"已为窗口 {handle} 设置 macOS 鼠标穿透: {flag}");
     }
 
     /// <summary>

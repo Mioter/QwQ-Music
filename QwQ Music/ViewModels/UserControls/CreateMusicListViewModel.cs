@@ -82,6 +82,9 @@ public partial class CreateMusicListViewModel(OverlayDialogOptions options, stri
 
     private static async Task<Bitmap?> OpenImageFile()
     {
+        if (App.TopLevel == null)
+            return null;
+        
         var files = await App.TopLevel.StorageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions
             {
@@ -89,7 +92,10 @@ public partial class CreateMusicListViewModel(OverlayDialogOptions options, stri
                 AllowMultiple = false,
                 FileTypeFilter =
                 [
-                    new FilePickerFileType("图片文件") { Patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp"] },
+                    new FilePickerFileType("图片文件")
+                    {
+                        Patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp"]
+                    },
                 ],
             }
         );

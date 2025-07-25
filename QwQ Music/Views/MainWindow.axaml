@@ -147,7 +147,7 @@
                     CornerRadius="30"
                     Height="35"
                     Width="35"
-                    Margin="10,0"
+                    Margin="20,0"
                     BorderThickness="0">
 
                     <ToggleButton.Styles>
@@ -636,7 +636,7 @@
                 </Style>
             </Panel.Styles>
 
-            <pages:MusicCoverPage PointerPressed="MusicCoverPageOnPointerPressed" />
+            <pages:MusicCoverPage Name="MusicCoverPage" />
 
         </Panel>
 

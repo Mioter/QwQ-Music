@@ -25,6 +25,9 @@ public partial class ImageCroppingViewModel(Bitmap sourceImage) : ObservableObje
     [RelayCommand]
     private async Task SaveImageButtonClick()
     {
+        if (App.TopLevel == null)
+            return;
+        
         var file = await App.TopLevel.StorageProvider.SaveFilePickerAsync(
             new FilePickerSaveOptions
             {
@@ -33,8 +36,14 @@ public partial class ImageCroppingViewModel(Bitmap sourceImage) : ObservableObje
                 DefaultExtension = "png",
                 FileTypeChoices =
                 [
-                    new FilePickerFileType("PNG图片") { Patterns = ["*.png"] },
-                    new FilePickerFileType("JPEG图片") { Patterns = ["*.jpg", "*.jpeg"] },
+                    new FilePickerFileType("PNG图片")
+                    {
+                        Patterns = ["*.png"],
+                    },
+                    new FilePickerFileType("JPEG图片")
+                    {
+                        Patterns = ["*.jpg", "*.jpeg"],
+                    },
                 ],
             }
         );
