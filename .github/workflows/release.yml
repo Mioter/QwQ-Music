@@ -1,0 +1,78 @@
+﻿name: Build and Release QwQ Music
+
+on: # 在创建release时触发，也可以手动触发
+  release:
+    types: [published]
+  workflow_dispatch:  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      # 使用矩阵进行多平台构建
+      matrix:
+        runtime: [win-x64, linux-x64, osx-arm64]  
+        include:
+          - runtime: win-x64
+            artifact_name: QwQ-Music-Windows-x64
+            archive_ext: zip
+          - runtime: linux-x64
+            artifact_name: QwQ-Music-Linux-x64
+            archive_ext: tar.gz
+          - runtime: osx-arm64  
+            artifact_name: QwQ-Music-macOS-ARM64  
+            archive_ext: tar.gz
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET 9.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache .NET packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Install dependencies
+        run: dotnet restore "QwQ Music.sln"
+
+      - name: Build solution
+        run: dotnet build "QwQ Music.sln" --configuration Release --no-restore
+        
+      - name: Test solution
+        run: dotnet test "QwQ Music.sln" --configuration Release --no-build --verbosity minimal
+        
+        
+      - name: Publish application for ${{ matrix.runtime }}
+        run: |
+          dotnet publish "QwQ Music/QwQ Music.csproj" \
+            --configuration Release \
+            --runtime ${{ matrix.runtime }} \
+            --self-contained true \
+            --output ./publish/${{ matrix.runtime }} \
+            --verbosity minimal
+
+      - name: Create archive
+        run: |
+          cd publish/${{ matrix.runtime }}
+          if [ "${{ matrix.archive_ext }}" = "zip" ]; then
+            zip -r ../../${{ matrix.artifact_name }}.zip .
+          else
+            tar -czf ../../${{ matrix.artifact_name }}.tar.gz .
+          fi
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'release'
+        with:
+          files: ${{ matrix.artifact_name }}.${{ matrix.archive_ext }}
+          token: ${{ secrets.GITHUB_TOKEN }}
