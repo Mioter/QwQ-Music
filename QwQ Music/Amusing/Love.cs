@@ -51,9 +51,12 @@ public class Love
         var points = new List<PixelPoint>();
 
         var mainWindow = GetMainWindow();
+
         if (mainWindow == null)
             return points;
+
         var screen = mainWindow.Screens.Primary;
+
         if (screen == null)
             return points;
 
@@ -112,6 +115,7 @@ public class Love
         var random = new Random();
         var points = GenerateHeartPoints().ToList();
         int lastIndex = points.Count - 1;
+
         if (lastIndex < 0)
             return;
 
@@ -136,6 +140,7 @@ public class Love
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 new LoveWindow(position, color, content, dx, dy, centerWindow).Show();
+
                 return Task.CompletedTask;
             });
         }

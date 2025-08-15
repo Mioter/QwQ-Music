@@ -1,12 +1,12 @@
 using System;
-using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using QwQ_Music.Common;
 using QwQ_Music.ViewModels;
 using QwQ_Music.Views;
 using Ursa.Controls;
@@ -15,11 +15,14 @@ namespace QwQ_Music;
 
 public class App : Application
 {
-    public static TopLevel? TopLevel { get; private set; }
+    public static Window? TopLevel { get; private set; }
+
+    public static Assembly CurrentAssembly { get; } = Assembly.GetExecutingAssembly();
 
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        AppResources.Default.Initialize();
         DataContext = new ApplicationViewModel();
     }
 
@@ -35,10 +38,16 @@ public class App : Application
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
-            DisableAvaloniaDataAnnotationValidation();
-            TopLevel = desktop.MainWindow = new MainWindow();
+            /*DisableAvaloniaDataAnnotationValidation();*/
+
+            desktop.MainWindow = TopLevel = new MainWindow
+            {
+                DataContext = new MainWindowViewModel(),
+            };
+
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
         }
+
         base.OnFrameworkInitializationCompleted();
     }
 
@@ -64,6 +73,7 @@ public class App : Application
     private static void UIThread_OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         e.Handled = true;
+
         MessageBox.ShowOverlayAsync(
             $"应用程序出现异常: {e.Exception.Message}",
             "异常",
@@ -82,6 +92,7 @@ public class App : Application
         );
     }
 
+    /*
     private static void DisableAvaloniaDataAnnotationValidation()
     {
         // Get an array of plugins to remove
@@ -95,4 +106,6 @@ public class App : Application
             BindingPlugins.DataValidators.Remove(plugin);
         }
     }
+    */
+    
 }

@@ -3,7 +3,7 @@ using QwQ_Music.ViewModels.Pages;
 
 namespace QwQ_Music.Views.Pages;
 
-public partial class SystemConfigPage : UserControl
+public partial class SystemConfigPage : Grid
 {
     public SystemConfigPage()
     {

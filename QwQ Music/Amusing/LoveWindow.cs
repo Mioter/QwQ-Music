@@ -11,9 +11,9 @@ namespace QwQ_Music.Amusing;
 public class LoveWindow : Window
 {
     private static readonly List<LoveWindow> _allWindows = [];
+    private readonly LoveWindow? _centerWindow;
     private readonly int _dx;
     private readonly int _dy;
-    private readonly LoveWindow? _centerWindow;
 
     public LoveWindow(
         PixelPoint position,
@@ -23,7 +23,7 @@ public class LoveWindow : Window
         int dy = 0,
         LoveWindow? centerWindow = null,
         bool isCenter = false
-    )
+        )
     {
         _allWindows.Add(this);
         Closed += OnWindowClosed;
@@ -68,7 +68,11 @@ public class LoveWindow : Window
             },
         };
 
-        var panel = new Panel { Background = Brushes.Transparent };
+        var panel = new Panel
+        {
+            Background = Brushes.Transparent,
+        };
+
         panel.Children.Add(textBlock);
         Content = panel;
 
@@ -87,6 +91,7 @@ public class LoveWindow : Window
     private static void OnCenterWindowClosed(object? sender, EventArgs e)
     {
         var windowsToClose = _allWindows.ToList();
+
         foreach (var window in windowsToClose.OrderByDescending(w => _allWindows.IndexOf(w)))
         {
             window.Close();
@@ -105,6 +110,7 @@ public class LoveWindow : Window
     {
         // 清理事件订阅
         Closed -= OnWindowClosed;
+
         if (_centerWindow == this)
         {
             Closed -= OnCenterWindowClosed;

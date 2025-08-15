@@ -1,0 +1,51 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:CompileBindings="True">
+
+    <CornerRadius x:Key="ToolTipCornerRadius">5</CornerRadius>
+    <Thickness x:Key="ToolTipMargin">5</Thickness>
+
+    <ControlTheme x:Key="{x:Type ToolTip}" TargetType="ToolTip">
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorText0}" />
+        <Setter Property="Background" Value="{DynamicResource SemiColorBackground2}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ToolTipBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource ToolTipBorderThickness}" />
+        <Setter Property="Padding" Value="{DynamicResource ToolTipPadding}" />
+        <Setter Property="Margin" Value="{DynamicResource ToolTipMargin}" />
+        <Setter Property="MaxWidth" Value="{DynamicResource ToolTipMaxWidth}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ToolTipCornerRadius}" />
+        <Setter Property="Opacity" Value="0" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.1" />
+            </Transitions>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate TargetType="ToolTip">
+                <Border
+                    Name="PART_LayoutRoot"
+                    Padding="{TemplateBinding Padding}"
+                    Margin="{TemplateBinding Margin}"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    Effect="{DynamicResource LightColorDropShadowEffect}"
+                    CornerRadius="{TemplateBinding CornerRadius}">
+
+                    <ContentPresenter
+                        Name="PART_ContentPresenter"
+                        MaxWidth="{TemplateBinding MaxWidth}"
+                        Content="{TemplateBinding Content}"
+                        ContentTemplate="{TemplateBinding ContentTemplate}"
+                        TextBlock.TextWrapping="Wrap" />
+
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:open">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

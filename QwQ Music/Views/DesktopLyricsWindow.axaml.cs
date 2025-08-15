@@ -1,16 +1,14 @@
 ﻿using System;
 using Avalonia.Controls;
 using Avalonia.Input;
-using QwQ_Music.Models;
-using QwQ_Music.Utilities;
+using QwQ_Music.Common.Manager;
+using QwQ_Music.Common.Utilities;
 using DesktopLyricConfig = QwQ_Music.Models.ConfigModels.DesktopLyricConfig;
 
 namespace QwQ_Music.Views;
 
 public partial class DesktopLyricsWindow : Window
 {
-    public static DesktopLyricConfig LyricConfig => ConfigManager.LyricConfig.DesktopLyric;
-
     public DesktopLyricsWindow()
     {
         if (!LyricConfig.LyricIsEnabled)
@@ -28,6 +26,8 @@ public partial class DesktopLyricsWindow : Window
 
         SetPenetrate(LyricConfig.LockLyricWindow);
     }
+
+    public static DesktopLyricConfig LyricConfig => ConfigManager.LyricConfig.DesktopLyric;
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {

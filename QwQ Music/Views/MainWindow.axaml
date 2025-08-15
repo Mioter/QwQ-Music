@@ -1,36 +1,29 @@
-<Window
-    ExtendClientAreaTitleBarHeightHint="40"
-    ExtendClientAreaToDecorationsHint="True"
-    Height="{Binding WindowHeight, Mode=OneWayToSource}"
-    MinHeight="400"
-    MinWidth="600"
-    Title="QwQ Music"
-    Icon="resm:QwQ_Music.Assets.AppIcon.ico"
-    Width="{Binding WindowWidth, Mode=OneWayToSource}"
-    x:Class="QwQ_Music.Views.MainWindow"
-    x:DataType="viewModels:MainWindowViewModel"
-    xmlns="https://github.com/avaloniaui"
-    xmlns:pages="clr-namespace:QwQ_Music.Views.Pages"
-    xmlns:u="https://irihi.tech/ursa"
-    xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
-    xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:viewModels1="clr-namespace:QwQ_Music.ViewModels.UserControls"
-    xmlns:definitions="clr-namespace:QwQ_Music.Definitions">
-
-    <!--
-        亚克力效果
-        Background="Transparent"
-        TransparencyLevelHint="AcrylicBlur"
-    -->
+<Window ExtendClientAreaTitleBarHeightHint="40"
+        ExtendClientAreaToDecorationsHint="True"
+        Height="{Binding DrawerStatusViewModel.WindowHeight, Mode=OneWayToSource}"
+        Width="{Binding DrawerStatusViewModel.WindowWidth, Mode=OneWayToSource}"
+        MinHeight="400"
+        MinWidth="600"
+        Title="QwQ Music"
+        Icon="resm:QwQ_Music.Assets.EmbeddedRes.app-icon.ico"
+        x:Class="QwQ_Music.Views.MainWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:QwQ_Music.Views"
+        x:DataType="viewModels:MainWindowViewModel"
+        xmlns:u="https://irihi.tech/ursa"
+        xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
+        xmlns:drawers="clr-namespace:QwQ_Music.Views.Drawers"
+        xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+        xmlns:viewModels11="clr-namespace:QwQ_Music.ViewModels.Drawers">
 
     <Window.Styles>
-        
+
         <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons">
             <Setter Property="MinHeight" Value="40" />
         </Style>
 
-        <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons /template/ StackPanel">
+        <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons:normal /template/ StackPanel">
             <Setter Property="Margin" Value="5" />
             <Setter Property="Spacing" Value="5" />
         </Style>
@@ -38,7 +31,7 @@
         <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons /template/ Button">
             <Setter Property="Height" Value="30" />
             <Setter Property="Width" Value="30" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="8" />
         </Style>
 
         <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons">
@@ -54,17 +47,16 @@
 
         <Style Selector="userControls|MusicAlbumCover.AlbumCoverRotate">
             <Style.Animations>
-                <Animation
-                    Duration="0:0:15"
-                    FillMode="Forward"
-                    IterationCount="Infinite">
+                <Animation Duration="0:0:15"
+                           FillMode="Forward"
+                           IterationCount="Infinite">
                     <KeyFrame Cue="0%">
                         <Setter Property="RotateTransform.Angle"
-                                Value="{Binding #MusicPlayerTray.((viewModels1:MusicPlayerTrayViewModel)DataContext).AlbumCoverRecordAngle}" />
+                                Value="{Binding #MusicPlayerTray.((viewModels11:MusicPlayerTrayViewModel)DataContext).AlbumCoverRecordAngle}" />
                     </KeyFrame>
                     <KeyFrame Cue="100%">
                         <Setter Property="RotateTransform.Angle"
-                                Value="{Binding #MusicPlayerTray.((viewModels1:MusicPlayerTrayViewModel)DataContext).AlbumCoverRecordAngle, Converter={StaticResource CalcConverter}, ConverterParameter='@VALUE + 360'}" />
+                                Value="{Binding #MusicPlayerTray.((viewModels11:MusicPlayerTrayViewModel)DataContext).AlbumCoverRecordAngle, Converter={StaticResource CalcConverter}, ConverterParameter='@VALUE + 360'}" />
                     </KeyFrame>
                 </Animation>
             </Style.Animations>
@@ -72,323 +64,26 @@
 
     </Window.Styles>
 
-    <Grid RowDefinitions="40,*">
+    <!--
+        亚克力效果
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+    -->
 
-        <StackPanel Orientation="Horizontal" Margin="20,0" Spacing="20">
-            <!-- 标题文本 -->
-            <TextBlock
-                FontWeight="Bold"
-                HorizontalAlignment="Left"
-                IsHitTestVisible="False"
-                Text="QwQ Music"
-                VerticalAlignment="Center">
+    <Grid DataContext="{Binding DrawerStatusViewModel}" RowDefinitions="40,*">
 
-                <TextBlock.Foreground>
-                    <LinearGradientBrush EndPoint="100%,100%" StartPoint="0%,0%">
-                        <GradientStop Color="#FFF02FC2" Offset="0" />
-                        <GradientStop Color="#FF6094EA" Offset="1" />
-                    </LinearGradientBrush>
-                </TextBlock.Foreground>
 
-                <TextBlock.Effect>
-                    <DropShadowEffect Color="Black" Opacity="0.1" />
-                </TextBlock.Effect>
+        <views:MainView Grid.Row="0" Grid.RowSpan="2" />
 
-            </TextBlock>
-
-            <StackPanel Orientation="Horizontal" Spacing="10">
-
-                <StackPanel.Styles>
-
-                    <Style Selector="Button">
-                        <Setter Property="Height" Value="25" />
-                        <Setter Property="Width" Value="25" />
-                        <Setter Property="Padding" Value="6" />
-                        <Setter Property="VerticalAlignment" Value="Center" />
-                        <Setter Property="CornerRadius" Value="15" />
-                    </Style>
-
-                </StackPanel.Styles>
-
-                <Button Classes="Icon" Command="{Binding ViewBackwardCommand}">
-                    <PathIcon Data="{StaticResource Forward}" />
-                </Button>
-
-                <Button Classes="Icon" Command="{Binding ViewForwardCommand}">
-                    <PathIcon RenderTransform="rotate(180deg)"
-                              Data="{StaticResource Forward}" />
-                </Button>
-
-            </StackPanel>
-
-        </StackPanel>
-
-        <Grid ColumnDefinitions="Auto,*" Grid.Row="1">
-
-            <Grid
-                HorizontalAlignment="Left"
-                RowDefinitions="Auto,*"
-                Width="{Binding NavigationWidth}">
-
-                <Grid.Transitions>
-                    <Transitions>
-                        <DoubleTransition
-                            Duration="0:0:0.5"
-                            Easing="CircularEaseOut"
-                            Property="Width" />
-                    </Transitions>
-                </Grid.Transitions>
-
-                <!-- 折叠/展开菜单栏按钮 -->
-                <ToggleButton
-                    Theme="{StaticResource RotateToggleButton}"
-                    HorizontalAlignment="Right"
-                    IsChecked="{Binding IsNavigationExpand}"
-                    CornerRadius="30"
-                    Height="35"
-                    Width="35"
-                    Margin="20,0"
-                    BorderThickness="0">
-
-                    <ToggleButton.Styles>
-
-                        <Style Selector="ToggleButton">
-                            <Setter Property="Background" Value="Transparent" />
-
-                            <Style Selector="^:checked /template/ ContentPresenter">
-                                <Setter Property="Background" Value="Transparent" />
-                                <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultPrimaryForeground}" />
-                                <Setter Property="RenderTransform" Value="rotate(180deg)" />
-                            </Style>
-
-                            <Style Selector="^:checked:pointerover /template/ ContentPresenter">
-                                <Setter Property="Background"
-                                        Value="{DynamicResource ButtonDefaultPointeroverBackground}" />
-                            </Style>
-
-                            <Style Selector="^:checked:pressed  /template/ ContentPresenter">
-                                <Setter Property="Background"
-                                        Value="{DynamicResource ButtonDefaultPressedBackground}" />
-                            </Style>
-
-                        </Style>
-
-                        <Style Selector="ToggleButton /template/ ContentPresenter">
-                            <Setter Property="Transitions">
-                                <Transitions>
-                                    <TransformOperationsTransition Duration="0:0:0.2" Property="RenderTransform" />
-                                </Transitions>
-                            </Setter>
-
-                        </Style>
-                    </ToggleButton.Styles>
-
-                    <PathIcon Data="{StaticResource SemiIconChevronRight}" Height="10" Width="10" />
-
-                </ToggleButton>
-
-                <ScrollViewer Grid.Row="1">
-                    
-                    <u:SelectionList
-                        ItemsSource="{Binding IconItems}"
-                        SelectedIndex="{Binding NavigationIndex}">
-
-                        <u:SelectionList.Indicator>
-                            <Border
-                                Background="{DynamicResource SemiBlue5}"
-                                BoxShadow="0 0 10 0 LightGray"
-                                Classes.Expanded="{Binding IsNavigationExpand}"
-                                CornerRadius="8">
-                                <Border.Transitions>
-                                    <Transitions>
-                                        <TransformOperationsTransition
-                                            Duration="0:0:0.3"
-                                            Easing="CircularEaseOut"
-                                            Property="RenderTransform" />
-                                    </Transitions>
-                                </Border.Transitions>
-                            </Border>
-                        </u:SelectionList.Indicator>
-
-                        <u:SelectionList.Styles>
-
-                            <Style Selector="Border.Expanded">
-                                <Setter Property="RenderTransform" Value="scale(1.1,1)" />
-                            </Style>
-
-                            <Style Selector="u|SelectionListItem">
-                                <Setter Property="Height" Value="35" />
-                                <Setter Property="Margin" Value="20,10" />
-                                <Setter Property="Padding" Value="10" />
-                                <Setter Property="FontWeight" Value="Bold" />
-                                <Setter Property="Transitions">
-                                    <Transitions>
-                                        <BrushTransition Duration="0:0:0.3" Property="Foreground" />
-                                        <TransformOperationsTransition Duration="0:0:0.3" Property="RenderTransform" />
-                                    </Transitions>
-                                </Setter>
-
-                                <Style Selector="^:selected">
-                                    <Setter Property="FontWeight" Value="Bold" />
-                                    <Setter Property="Foreground" Value="White" />
-                                    <Setter Property="RenderTransform" Value="scale(1.1)" />
-                                </Style>
-                            </Style>
-
-                        </u:SelectionList.Styles>
-
-                        <u:SelectionList.ItemTemplate>
-                            <DataTemplate>
-
-                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-
-                                    <Grid.Styles>
-
-                                        <Style Selector="Grid > TextBlock">
-                                            <Setter Property="VerticalAlignment" Value="Center" />
-                                        </Style>
-
-                                        <Style Selector="TextBlock.Transparent">
-                                            <Setter Property="Opacity" Value="0" />
-                                        </Style>
-
-                                    </Grid.Styles>
-
-                                    <Button
-                                        CornerRadius="10"
-                                        Height="10"
-                                        Width="10"
-                                        Margin="0"
-                                        Command="{Binding $parent[Window].((viewModels:MainWindowViewModel)DataContext).RemoveIconItemCommand}"
-                                        CommandParameter="{Binding}"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Top"
-                                        RenderTransform="translate(-10px,-10px)"
-                                        Padding="0"
-                                        Classes="Icon">
-
-                                        <Button.Transitions>
-                                            <Transitions>
-                                                <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
-                                            </Transitions>
-                                        </Button.Transitions>
-
-                                        <Button.Content>
-                                            <PathIcon Data="{StaticResource SemiIconClear}"
-                                                      Foreground="{DynamicResource SemiRed4}" />
-                                        </Button.Content>
-
-                                        <Button.IsVisible>
-                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                <Binding
-                                                    Path="!$parent[u:SelectionListItem].((viewModels:IconItem)DataContext).AlwaysHide" />
-                                                <Binding Path="$parent[u:SelectionListItem].IsPointerOver" />
-                                            </MultiBinding>
-                                        </Button.IsVisible>
-
-                                    </Button>
-
-                                    <ContentControl Grid.Column="0" Content="{Binding Source}">
-
-                                        <ContentControl.DataTemplates>
-
-                                            <DataTemplate DataType="definitions:GeometryIconSource">
-                                                <PathIcon Data="{Binding Geometry}" />
-                                            </DataTemplate>
-                                            <DataTemplate DataType="definitions:BitmapIconSource">
-                                                <Border ClipToBounds="True" CornerRadius="3">
-                                                    <Image Source="{Binding Bitmap}" />
-                                                </Border>
-                                            </DataTemplate>
-
-                                        </ContentControl.DataTemplates>
-
-                                    </ContentControl>
-
-                                    <TextBlock Grid.Column="1" Text="{Binding Title}"
-                                               ToolTip.Tip="{Binding Title}"
-                                               TextTrimming="CharacterEllipsis"
-                                               Classes.Transparent="{Binding !$parent[Window].((viewModels:MainWindowViewModel)DataContext).IsNavigationExpand}">
-                                        <TextBlock.Transitions>
-                                            <Transitions>
-                                                <DoubleTransition
-                                                    Duration="0:0:0.5"
-                                                    Easing="CircularEaseOut"
-                                                    Property="Opacity" />
-                                            </Transitions>
-                                        </TextBlock.Transitions>
-                                    </TextBlock>
-
-                                </Grid>
-
-                            </DataTemplate>
-                        </u:SelectionList.ItemTemplate>
-
-                    </u:SelectionList>
-                    
-                </ScrollViewer>
-                
-            </Grid>
-
-            <TransitioningContentControl Grid.Column="1"  Content="{Binding CurrentPage}">
-                <TransitioningContentControl.PageTransition>
-                    <CompositePageTransition>
-                        <CrossFade Duration="0:0:0.5" />
-                        <PageSlide
-                            Duration="0:0:0.3"
-                            Orientation="Vertical"
-                            SlideInEasing="QuadraticEaseIn"
-                            SlideOutEasing="QuadraticEaseOut" />
-                    </CompositePageTransition>
-                </TransitioningContentControl.PageTransition>
-
-                <!--
-                ~1~ 定义数据模板集合 @1@
-                <control:IndexControl.DataTemplates>
-                    <DataTemplate DataType="{x:Type pages1:AllMusicPageViewModel}">
-                        <pages:AllMusicPage />
-                    </DataTemplate>
-
-                    <DataTemplate DataType="{x:Type pages1:ClassificationPageViewModel}">
-                        <pages:ClassificationPage />
-                    </DataTemplate>
-  
-                    <DataTemplate DataType="{x:Type pages1:StatisticsPageViewModel}">
-                        <pages:StatisticsPage />
-                    </DataTemplate>
- 
-                    <DataTemplate DataType="{x:Type pages1:ConfigPageViewModel}">
-                        <pages:ConfigMainPage />
-                    </DataTemplate>
-                    
-                    <DataTemplate DataType="{x:Type pages1:ViewMusicListPageViewModel}">
-                        <pages:ViewMusicListPage />
-                    </DataTemplate>
-                </control:IndexControl.DataTemplates>
-                -->
-
-            </TransitioningContentControl>
-
-            <Interaction.Behaviors>
-
-                <PointerWheelChangedTrigger>
-                    <InvokeCommandAction Command="{Binding PointerWheelChangedCommand}" PassEventArgsToCommand="True" />
-                </PointerWheelChangedTrigger>
-
-            </Interaction.Behaviors>
-
-        </Grid>
-
-        <Panel
-            Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"
-            Classes.Visible="{Binding IsMusicPlayerTrayVisible}"
-            Grid.Row="1"
-            Height="130"
-            MaxWidth="800"
-            MinWidth="550"
-            Name="MusicPlayerTrayPanel"
-            VerticalAlignment="Bottom"
-            Width="{Binding MusicPlayerTrayWidth}">
+        <Panel Grid.Row="1"
+               Classes.Hide="{Binding !IsMusicPlayerTrayVisible}"
+               Classes.Visible="{Binding IsMusicPlayerTrayVisible}"
+               Height="130"
+               MaxWidth="800"
+               MinWidth="550"
+               Name="MusicPlayerTrayPanel"
+               VerticalAlignment="Bottom"
+               Width="{Binding MusicPlayerTrayWidth}">
             <Panel.RenderTransform>
                 <TranslateTransform Y="{Binding MusicPlayerTrayYaxisOffset, Mode=OneWayToSource}" />
             </Panel.RenderTransform>
@@ -396,10 +91,9 @@
             <Panel.Styles>
                 <Style Selector="Panel#MusicPlayerTrayPanel.Hide">
                     <Style.Animations>
-                        <Animation
-                            Duration="0:0:0.5"
-                            Easing="QuadraticEaseOut"
-                            FillMode="Forward">
+                        <Animation Duration="0:0:0.5"
+                                   Easing="QuadraticEaseOut"
+                                   FillMode="Forward">
                             <KeyFrame Cue="0%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
                             </KeyFrame>
@@ -413,10 +107,9 @@
 
                 <Style Selector="Panel#MusicPlayerTrayPanel.Visible">
                     <Style.Animations>
-                        <Animation
-                            Duration="0:0:0.5"
-                            Easing="QuadraticEaseIn"
-                            FillMode="Forward">
+                        <Animation Duration="0:0:0.5"
+                                   Easing="QuadraticEaseIn"
+                                   FillMode="Forward">
                             <KeyFrame Cue="0%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.Y" Value="{Binding MusicPlayerTrayYaxisOffset}" />
                             </KeyFrame>
@@ -430,53 +123,48 @@
 
             <Panel.Transitions>
                 <Transitions>
-                    <DoubleTransition
-                        Duration="0:0:0.5"
-                        Easing="CircularEaseOut"
-                        Property="Height" />
-                    <DoubleTransition
-                        Duration="0:0:0.5"
-                        Easing="CircularEaseOut"
-                        Property="Width" />
+                    <DoubleTransition Duration="0:0:0.5"
+                                      Easing="CircularEaseOut"
+                                      Property="Height" />
+                    <DoubleTransition Duration="0:0:0.5"
+                                      Easing="CircularEaseOut"
+                                      Property="Width" />
                 </Transitions>
             </Panel.Transitions>
-            
-            <Border BoxShadow="0 0 10 0 LightGray" Margin="20"
-                    CornerRadius="25">
-                <Panel>
-                    <Border
-                        Opacity="0.8"
-                        Background="{DynamicResource SemiColorBackground3}"
-                        Width="{Binding #MusicPlayerTray.Bounds.Width}"
-                        Height="{Binding #MusicPlayerTray.Bounds.Height}"
-                        CornerRadius="25">
-                    </Border>
 
-                    <userControls:MusicPlayerTray Name="MusicPlayerTray" />
+            <Border Margin="20"
+                    Effect="{DynamicResource LightColorDropShadowEffect}"
+                    CornerRadius="25">
+
+                <Panel>
+                    <Border Background="{DynamicResource SemiColorBackground2}"
+                            Width="{Binding #MusicPlayerTray.Bounds.Width}"
+                            Height="{Binding #MusicPlayerTray.Bounds.Height}"
+                            CornerRadius="25" />
+
+                    <drawers:MusicPlayerTray Name="MusicPlayerTray" />
 
                 </Panel>
             </Border>
         </Panel>
 
-        <Panel
-            Classes.Hide="{Binding IsMusicPlayerTrayVisible}"
-            Classes.Visible="{Binding !IsMusicPlayerTrayVisible}"
-            Grid.Row="1"
-            IsPointerOver="{Binding IsMusicAlbumCoverPanelPointerOver, Mode=OneWayToSource}"
-            VerticalAlignment="Bottom"
-            HorizontalAlignment="Left"
-            Name="MusicAlbumCoverPanel">
+        <Panel Grid.Row="1" Classes.Hide="{Binding IsMusicPlayerTrayVisible}"
+               Classes.Visible="{Binding !IsMusicPlayerTrayVisible}"
+               IsPointerOver="{Binding IsMusicAlbumCoverPanelPointerOver, Mode=OneWayToSource}"
+               VerticalAlignment="Bottom"
+               HorizontalAlignment="Left"
+               Name="MusicAlbumCoverPanel">
 
-            <Border
-                Height="80"
-                BoxShadow="0 0 10 0 LightGray"
-                Width="140"
-                Classes.FoldedUp="{Binding !IsMusicAlbumCoverTrayVisible}"
-                Classes.Unfolding="{Binding IsMusicAlbumCoverTrayVisible}"
-                Margin="10"
-                CornerRadius="25"
-                RenderTransformOrigin="20%,50%"
-                Background="{DynamicResource BorderCardBackground}">
+            <Border Height="80"
+                    Width="140"
+                    Classes.FoldedUp="{Binding !IsMusicAlbumCoverTrayVisible}"
+                    Classes.Unfolding="{Binding IsMusicAlbumCoverTrayVisible}"
+                    Margin="10"
+                    CornerRadius="25"
+                    RenderTransformOrigin="20%,50%"
+                    Effect="{DynamicResource LightColorDropShadowEffect}"
+                    Background="{DynamicResource BorderCardBackground}">
+
                 <Border.Transitions>
                     <Transitions>
                         <TransformOperationsTransition
@@ -485,40 +173,37 @@
                     </Transitions>
                 </Border.Transitions>
 
-                <DockPanel
-                    HorizontalAlignment="Right"
-                    Width="60"
-                    Margin="10">
+                <DockPanel HorizontalAlignment="Right"
+                           Width="60"
+                           Margin="10">
                     <userControls:MusicPlayButton />
                 </DockPanel>
             </Border>
 
-            <Button
-                Classes="None"
-                Width="80"
-                Classes.TrayFoldedUp="{Binding !IsMusicAlbumCoverTrayVisible}"
-                Classes.TrayUnfolding="{Binding IsMusicAlbumCoverTrayVisible}"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Left"
-                Height="80"
-                Command="{Binding ShowMusicPlayerPageCommand}">
+            <Button Classes="None"
+                    Width="80"
+                    Classes.TrayFoldedUp="{Binding !IsMusicAlbumCoverTrayVisible}"
+                    Classes.TrayUnfolding="{Binding IsMusicAlbumCoverTrayVisible}"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left"
+                    Height="80"
+                    Command="{Binding ShowMusicPlayerPageCommand}">
                 <Button.Transitions>
                     <Transitions>
                         <ThicknessTransition Property="Margin" Duration="0:0:0.3" />
                     </Transitions>
                 </Button.Transitions>
 
-                <userControls:MusicAlbumCover
-                    Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}"
-                    CoverImage="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverImage}"
-                    DataContext="{Binding #MusicPlayerTray.((viewModels1:MusicPlayerTrayViewModel)DataContext)}">
+                <userControls:MusicAlbumCover Classes.AlbumCoverRotate="{Binding MusicPlayerViewModel.IsPlaying}"
+                                              CoverImage="{Binding MusicPlayerViewModel.CurrentMusicItem.CoverImage}"
+                                              DataContext="{Binding #MusicPlayerTray.((viewModels11:MusicPlayerTrayViewModel)DataContext)}">
 
                     <userControls:MusicAlbumCover.RenderTransform>
                         <RotateTransform Angle="{Binding AlbumCoverCurrentAngle, Mode=OneWayToSource}" />
                     </userControls:MusicAlbumCover.RenderTransform>
 
                 </userControls:MusicAlbumCover>
-                
+
             </Button>
 
             <Panel.RenderTransform>
@@ -565,10 +250,9 @@
 
                 <Style Selector="Panel#MusicAlbumCoverPanel.Visible">
                     <Style.Animations>
-                        <Animation
-                            Duration="0:0:0.5"
-                            Easing="QuadraticEaseIn"
-                            FillMode="Forward">
+                        <Animation Duration="0:0:0.5"
+                                   Easing="QuadraticEaseIn"
+                                   FillMode="Forward">
                             <KeyFrame Cue="0%" KeySpline="0.62,0.63,0,1.13">
                                 <Setter Property="TranslateTransform.X"
                                         Value="{Binding MusicAlbumCoverPanelXaxisOffset}" />
@@ -593,16 +277,13 @@
 
         </Panel>
 
-        <Panel
-            Classes.Hide="{Binding !IsMusicCoverPageVisible}"
-            Classes.Visible="{Binding IsMusicCoverPageVisible}"
-            Grid.Row="0"
-            Grid.RowSpan="2"
-            Height="{Binding MusicCoverPageHeight}"
-            Margin="{Binding $parent[Window].OffScreenMargin}"
-            MinHeight="{Binding $parent[Window].MinHeight}"
-            Name="MusicCoverPagePanel"
-            VerticalAlignment="Bottom">
+        <Panel Grid.Row="0" Grid.RowSpan="2" Classes.Hide="{Binding !IsMusicPlayerPanelVisible}"
+               Classes.Visible="{Binding IsMusicPlayerPanelVisible}"
+               Height="{Binding MusicPlayerPanelHeight}"
+               Margin="{Binding $parent[Window].OffScreenMargin}"
+               MinHeight="{Binding $parent[Window].MinHeight}"
+               Name="MusicCoverPagePanel"
+               VerticalAlignment="Bottom">
             <Panel.RenderTransform>
                 <TranslateTransform Y="{Binding MusicCoverPageYaxisOffset, Mode=OneWayToSource}" />
             </Panel.RenderTransform>
@@ -636,21 +317,24 @@
                 </Style>
             </Panel.Styles>
 
-            <pages:MusicCoverPage Name="MusicCoverPage" />
+            <ThemeVariantScope RequestedThemeVariant="{Binding MusicPlayerPanelThemeVariant}">
+
+                <drawers:MusicPlayerPanel Name="MusicPlayerPanel" />
+
+            </ThemeVariantScope>
 
         </Panel>
 
-        <Panel
-            Classes.Hide="{Binding !IsMusicPlayListVisible}"
-            Classes.Normal="{Binding !IsMusicCoverPageVisible}"
-            Classes.Retract="{Binding IsMusicCoverPageVisible}"
-            Classes.Visible="{Binding IsMusicPlayListVisible}"
-            Grid.Row="1"
-            HorizontalAlignment="Right"
-            MaxWidth="400"
-            MinWidth="250"
-            Name="MusicPlayListPanel"
-            Width="{Binding MusicPlayListWidth}">
+        <Panel Grid.Row="1" Classes.Hide="{Binding !IsMusicPlayListVisible}"
+               Classes.Normal="{Binding !IsMusicPlayerPanelVisible}"
+               Classes.Retract="{Binding IsMusicPlayerPanelVisible}"
+               Classes.Visible="{Binding IsMusicPlayListVisible}"
+               HorizontalAlignment="Right"
+               MaxWidth="400"
+               MinWidth="250"
+               Name="MusicPlayListPanel"
+               Width="{Binding MusicPlayListWidth}">
+
             <Panel.RenderTransform>
                 <TranslateTransform X="{Binding MusicPlayListXaxisOffset, Mode=OneWayToSource}" />
             </Panel.RenderTransform>
@@ -658,12 +342,12 @@
             <Panel.Styles>
 
                 <Style Selector="Panel#MusicPlayListPanel.Normal">
-                    <Setter Property="Height" Value="{Binding MusicCoverPageHeight, Mode=OneWayToSource}" />
+                    <Setter Property="Height" Value="{Binding MusicPlayerPanelHeight, Mode=OneWayToSource}" />
                 </Style>
 
                 <Style Selector="Panel#MusicPlayListPanel.Retract">
                     <Setter Property="Height"
-                            Value="{Binding MusicCoverPageHeight, Converter={StaticResource CalcConverter}, ConverterParameter='@VALUE - 150'}" />
+                            Value="{Binding MusicPlayerPanelHeight, Converter={StaticResource CalcConverter}, ConverterParameter='@VALUE - 150'}" />
                     <Setter Property="VerticalAlignment" Value="Top" />
                 </Style>
 
@@ -703,20 +387,37 @@
 
             <Panel.Transitions>
                 <Transitions>
-                    <DoubleTransition
-                        Duration="0:0:0.5"
-                        Easing="CircularEaseOut"
-                        Property="Width" />
+                    <DoubleTransition Duration="0:0:0.5"
+                                      Easing="CircularEaseOut"
+                                      Property="Width" />
                 </Transitions>
             </Panel.Transitions>
 
-            <userControls:MusicPlayList />
+            <Border CornerRadius="10"
+                    Classes.NotTransparent="{Binding !IsMusicPlayerPanelVisible}"
+                    Margin="5,5,10,20">
+
+                <Border.Styles>
+
+                    <Style Selector="Border.NotTransparent">
+                        <Setter Property="Effect" Value="{DynamicResource LightColorDropShadowEffect}" />
+                        <Setter Property="Background" Value="{DynamicResource BorderCardBackground}" />
+                    </Style>
+
+                </Border.Styles>
+
+                <ThemeVariantScope RequestedThemeVariant="{Binding MusicPlayListThemeVariant}">
+
+                    <drawers:MusicPlayList />
+
+                </ThemeVariantScope>
+
+            </Border>
 
         </Panel>
 
         <u:OverlayDialogHost Grid.Row="0" Grid.RowSpan="2" />
 
     </Grid>
-
 
 </Window>

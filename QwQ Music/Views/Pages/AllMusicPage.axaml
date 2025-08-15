@@ -1,359 +1,342 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:pages1="clr-namespace:QwQ_Music.ViewModels.Pages"
-             xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
-             xmlns:u="https://irihi.tech/ursa"
-             xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
-             xmlns:models="clr-namespace:QwQ_Music.Models"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:DataType="pages1:AllMusicPageViewModel"
-             x:Class="QwQ_Music.Views.Pages.AllMusicPage">
-    
-    <Grid Margin="10,5" RowDefinitions="Auto,*">
+<Grid xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:pages1="clr-namespace:QwQ_Music.ViewModels.Pages"
+      xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+      xmlns:u="https://irihi.tech/ursa"
+      xmlns:models="clr-namespace:QwQ_Music.Models"
+      xmlns:behaviors="clr-namespace:QwQ_Music.UI.Behaviors"
+      mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+      x:DataType="pages1:AllMusicPageViewModel"
+      RowDefinitions="Auto,*" Margin="0,5"
+      x:Class="QwQ_Music.Views.Pages.AllMusicPage">
 
-        <Panel >
-
-            <StackPanel
-                HorizontalAlignment="Right"
+    <StackPanel HorizontalAlignment="Right"
                 Orientation="Horizontal"
                 Spacing="8">
 
-                <StackPanel.Styles>
+        <StackPanel.Styles>
 
-                    <Style Selector="u|IconButton">
-                        <Setter Property="CornerRadius" Value="8" />
-                        <Setter Property="Background" Value="Transparent" />
-                    </Style>
+            <Style Selector="u|IconButton">
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
 
-                    <Style Selector="PathIcon">
-                        <Setter Property="Margin" Value="5" />
-                    </Style>
+            <Style Selector="PathIcon">
+                <Setter Property="Margin" Value="5" />
+            </Style>
 
-                </StackPanel.Styles>
+        </StackPanel.Styles>
 
-                <TextBox
-                    CornerRadius="15"
-                    HorizontalAlignment="Left"
-                    Text="{Binding SearchText, Mode=TwoWay}"
-                    Watermark="搜索音乐"
-                    Width="200" />
+        <TextBox CornerRadius="15"
+                 HorizontalAlignment="Left"
+                 Text="{Binding SearchText, Mode=TwoWay}"
+                 Watermark="搜索音乐"
+                 Width="200" />
 
-                <u:IconButton ToolTip.Tip="从文件添加音乐" Command="{Binding OpenFileCommand}" Icon="{StaticResource SemiIconPlus}" />
+        <u:IconButton ToolTip.Tip="从文件添加音乐" Command="{Binding OpenFileCommand}"
+                      Icon="{StaticResource SemiIconPlus}" />
 
-                <u:IconButton
-                    Command="{Binding SelectedCurrentMusicItemCommand}"
-                    Icon="{StaticResource SemiIconAlignCenterVertical}"
-                    ToolTip.Tip="跳转当前音乐" />
+        <u:IconButton
+            Command="{Binding SelectedCurrentMusicItemCommand}"
+            Icon="{StaticResource SemiIconAlignCenterVertical}"
+            ToolTip.Tip="跳转当前音乐" />
 
-                <u:IconButton Icon="{StaticResource SemiIconMore}" ToolTip.Tip="更多">
+        <u:IconButton Icon="{StaticResource SemiIconMore}" ToolTip.Tip="更多">
 
-                    <Button.Flyout>
-                        <Flyout>
-                            <StackPanel Spacing="5">
-                                <CheckBox Content="备注" Name="MoreColumn1" />
-                                <CheckBox Content="大小" Name="MoreColumn2" />
-                                <CheckBox Content="附注" Name="MoreColumn3" />
-                            </StackPanel>
-                        </Flyout>
-                    </Button.Flyout>
+            <Button.Flyout>
+                <Flyout>
+                    <StackPanel Spacing="5">
+                        <CheckBox Content="备注" Name="MoreColumn1" />
+                        <CheckBox Content="大小" Name="MoreColumn2" />
+                        <CheckBox Content="附注" Name="MoreColumn3" />
+                    </StackPanel>
+                </Flyout>
+            </Button.Flyout>
 
-                </u:IconButton>
+        </u:IconButton>
 
-            </StackPanel>
-        </Panel>
+    </StackPanel>
 
-        <DataGrid
-            Background="Transparent"
-            CanUserReorderColumns="True"
-            CanUserResizeColumns="True"
-            CanUserSortColumns="True"
-            DragDrop.AllowDrop="True"
-            Grid.Row="1"
-            IsReadOnly="True"
-            Margin="0,5"
-            ItemsSource="{Binding MusicItems}"
-            SelectedItem="{Binding SelectedItem}"
-            behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}">
+    <DataGrid Background="Transparent"
+              CanUserReorderColumns="True"
+              CanUserResizeColumns="True"
+              CanUserSortColumns="True"
+              DragDrop.AllowDrop="True"
+              Grid.Row="1"
+              IsReadOnly="True"
+              Margin="0,5"
+              ItemsSource="{Binding MusicItems}"
+              SelectedItem="{Binding SelectedItem}"
+              behaviors:ScrollToItemBehavior.ScrollToItem="{Binding SelectedItem}">
 
-            <DataGrid.Styles>
+        <DataGrid.Styles>
 
-                <Style Selector="DataGridRow">
-                    <Setter Property="ContextMenu">
-                        <Setter.Value>
-                            <ContextMenu>
-                                
+            <Style Selector="DataGridRow">
+                <Setter Property="ContextMenu">
+                    <Setter.Value>
+                        <ContextMenu>
+
+                            <MenuItem
+                                Command="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlayThisMusicCommand}"
+                                CommandParameter="{Binding}"
+                                Header="立即播放">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconPlay}" Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                            <MenuItem
+                                Header="添加到">
+                                <MenuItem.Icon>
+                                    <PathIcon
+                                        Data="{StaticResource SemiIconCopyAdd}"
+                                        Margin="1.5" />
+                                </MenuItem.Icon>
+
                                 <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
-                                    CommandParameter="{Binding}"
-                                    Header="立即播放">
-                                    <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource SemiIconPlay}" Margin="2" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
+                                    Header="已有歌单"
+                                    IsVisible="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicListsManager.MusicLists.Count}"
+                                    ItemsSource="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicListsManager.MusicLists}">
 
-                                <MenuItem
-                                    Header="添加到">
-                                    <MenuItem.Icon>
-                                        <PathIcon
-                                            Data="{StaticResource SemiIconCopyAdd}"
-                                            Margin="1.5" />
-                                    </MenuItem.Icon>
+                                    <MenuItem.ItemContainerTheme>
+                                        <ControlTheme TargetType="MenuItem" x:DataType="models:MusicListModel"
+                                                      BasedOn="{StaticResource BigIconMenuItem}">
+                                            <Setter Property="Header" Value="{Binding Name}" />
+                                            <Setter Property="Command"
+                                                    Value="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).AddToMusicListCommand}" />
+                                            <Setter Property="CommandParameter" Value="{Binding}" />
+                                            <Setter Property="Icon">
+                                                <Template>
 
-                                    <MenuItem
-                                        Header="已有歌单"
-                                        IsVisible="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicListsViewModel.PlayListItems.Count}"
-                                        ItemsSource="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicListsViewModel.PlayListItems}">
+                                                    <Border CornerRadius="5" ClipToBounds="True">
+                                                        <Image
+                                                            Height="30" Width="30"
+                                                            Source="{Binding CoverImage}" />
+                                                    </Border>
 
-                                        <MenuItem.ItemContainerTheme>
-                                            <ControlTheme TargetType="MenuItem" x:DataType="models:MusicListModel"
-                                                          BasedOn="{StaticResource BigIconMenuItem}">
-                                                <Setter Property="Header" Value="{Binding Name}" />
-                                                <Setter Property="Command"
-                                                        Value="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).AddToMusicListCommand}" />
-                                                <Setter Property="CommandParameter" Value="{Binding Name}" />
-                                                <Setter Property="Icon">
-                                                    <Template>
-                                                        <Border CornerRadius="6">
-
-                                                            <Border.Effect>
-                                                                <DropShadowEffect
-                                                                    BlurRadius="10"
-                                                                    Color="LightGray"
-                                                                    OffsetX="0"
-                                                                    OffsetY="0"
-                                                                    Opacity="0.5" />
-                                                            </Border.Effect>
-
-                                                            <Border CornerRadius="6" ClipToBounds="True">
-                                                                <Image
-                                                                    Height="30" Width="30"
-                                                                    Source="{Binding CoverImage}" />
-                                                            </Border>
-                                                        </Border>
-                                                    </Template>
-                                                </Setter>
-                                            </ControlTheme>
-                                        </MenuItem.ItemContainerTheme>
-
-                                    </MenuItem>
-
-                                    <Separator
-                                        Margin="0,5"
-                                        IsVisible="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicListsViewModel.PlayListItems.Count}" />
-
-                                    <MenuItem Header="下一首"
-                                              Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.AddToCurrentPlaylistNextItemCommand}"
-                                              CommandParameter="{Binding $parent[DataGrid].SelectedItems}">
-                                        <MenuItem.Icon>
-                                            <PathIcon Data="{StaticResource SemiIconTriangleDown}" Margin="2" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-
-                                    <MenuItem Header="新建歌单"
-                                              Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicListsViewModel.CreateAndAddToMusicListCommand}"
-                                              CommandParameter="{Binding $parent[DataGrid].SelectedItems}">
-                                        <MenuItem.Icon>
-                                            <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
-                                        </MenuItem.Icon>
-                                    </MenuItem>
+                                                </Template>
+                                            </Setter>
+                                        </ControlTheme>
+                                    </MenuItem.ItemContainerTheme>
 
                                 </MenuItem>
 
-                                <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.SetZeroToCurrentPointerCommand}"
-                                    CommandParameter="{Binding}"
-                                    Header="清空播放时长">
+                                <Separator
+                                    Margin="0,5"
+                                    IsVisible="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicListsManager.MusicLists.Count}" />
+
+                                <MenuItem Header="下一首"
+                                          Command="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).AddToPlaylistNextCommand}"
+                                          CommandParameter="{Binding $parent[DataGrid].SelectedItems}">
                                     <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource ClearEmpty}" Margin="2" />
+                                        <PathIcon Data="{StaticResource SemiIconTriangleDown}" Margin="2" />
                                     </MenuItem.Icon>
                                 </MenuItem>
 
-                                <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ShowDialogCommand}"
-                                    CommandParameter="{Binding}"
-                                    Header="详细信息">
+                                <MenuItem Header="新建歌单"
+                                          Command="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicListsManager.CreatePlaylistWithMusicItemCommand}"
+                                          CommandParameter="{Binding $parent[DataGrid].SelectedItems}">
                                     <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
+                                        <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
                                     </MenuItem.Icon>
                                 </MenuItem>
 
-                                <!--  在文件中打开  -->
-                                <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.OpenInExplorerCommand}"
-                                    CommandParameter="{Binding}"
-                                    Header="在文件中打开">
-                                    <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource SemiIconFolder}" Margin="2" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
+                            </MenuItem>
 
-                                <!--  删除  -->
-                                <MenuItem
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).DeleteMusicItemsCommand}"
-                                    CommandParameter="{Binding $parent[DataGrid].SelectedItems}"
-                                    Header="删除音乐">
-                                    <MenuItem.Icon>
-                                        <PathIcon Data="{StaticResource SemiIconDelete}" Margin="1"
-                                                  Foreground="{DynamicResource SemiRed4}" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
+                            <MenuItem
+                                Command="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.ClearPlayDurationCommand}"
+                                CommandParameter="{Binding}"
+                                Header="清空播放时长">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource ClearEmpty}" Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
 
-                            </ContextMenu>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
+                            <MenuItem
+                                Command="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicItemManager.ShowDetailedInfoCommand}"
+                                CommandParameter="{Binding}"
+                                Header="详细信息">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
 
-                <!--
+                            <!--  在文件中打开  -->
+                            <MenuItem
+                                Command="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicItemManager.OpenInExplorerCommand}"
+                                CommandParameter="{Binding}"
+                                Header="在文件中打开">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconFolder}" Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                            <!--  删除  -->
+                            <MenuItem
+                                Command="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).DeleteMusicItemsCommand}"
+                                CommandParameter="{Binding $parent[DataGrid].SelectedItems}"
+                                Header="删除音乐">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconDelete}" Margin="1"
+                                              Foreground="{DynamicResource SemiRed4}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                        </ContextMenu>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!--
                 <Style Selector="DataGrid /template/ DataGridColumnHeader#PART_TopLeftCornerHeader /template/ Border">
                     <Setter Property="Opacity" Value="0" />
                 </Style>
                 -->
 
-                <Style Selector="DataGridColumnHeadersPresenter &gt; DataGridColumnHeader">
-                    <Setter Property="Theme" Value="{StaticResource NoDecorativeThread}" />
-                </Style>
+            <Style Selector="DataGridColumnHeadersPresenter > DataGridColumnHeader">
+                <Setter Property="Theme" Value="{StaticResource NoDecorativeThread}" />
+            </Style>
 
-                <!--
+            <!--
                 <Style Selector="DataGrid /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
                     <Setter Property="Opacity" Value="0" />
                 </Style>
                 -->
 
-                <!--<Style Selector="DataGridRowHeader /template/ Grid">
+            <!--<Style Selector="DataGridRowHeader /template/ Grid">
                     <Setter Property="Opacity" Value="0" />
                 </Style>-->
 
-                <Style Selector="DataGridRow:pointerover /template/ Border#BackgroundBorder">
-                    <Setter Property="CornerRadius" Value="10" />
-                </Style>
+            <Style Selector="DataGridRow:pointerover /template/ Border#BackgroundBorder">
+                <Setter Property="CornerRadius" Value="10" />
+            </Style>
 
-                <Style Selector="DataGridRow:selected /template/ Border#BackgroundBorder">
-                    <Setter Property="CornerRadius" Value="10" />
-                </Style>
+            <Style Selector="DataGridRow:selected /template/ Border#BackgroundBorder">
+                <Setter Property="CornerRadius" Value="10" />
+            </Style>
 
-                <Style Selector="DataGridCell:current /template/ Rectangle#CurrencyVisual">
-                    <Setter Property="Opacity" Value="0" />
-                </Style>
+            <Style Selector="DataGridCell:current /template/ Rectangle#CurrencyVisual">
+                <Setter Property="Opacity" Value="0" />
+            </Style>
 
-                <Style Selector="DataGridCell:focus /template/ Panel#FocusVisual">
-                    <Setter Property="Opacity" Value="0" />
-                </Style>
+            <Style Selector="DataGridCell:focus /template/ Panel#FocusVisual">
+                <Setter Property="Opacity" Value="0" />
+            </Style>
 
-            </DataGrid.Styles>
+        </DataGrid.Styles>
 
-            <DataGrid.Columns>
+        <DataGrid.Columns>
 
-                <DataGridTemplateColumn SortMemberPath="Title" Width="1*">
+            <DataGridTemplateColumn SortMemberPath="Title" Width="1*">
 
-                    <DataGridTemplateColumn.Header>
+                <DataGridTemplateColumn.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="歌曲" />
+                        <TextBlock
+                            Classes="Tertiary"
+                            FontSize="12"
+                            Text=" / 演唱者"
+                            VerticalAlignment="Bottom" />
+                    </StackPanel>
+                </DataGridTemplateColumn.Header>
+
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="歌曲" />
-                            <TextBlock
-                                Classes="Tertiary"
-                                FontSize="12"
-                                Text=" / 演唱者"
-                                VerticalAlignment="Bottom" />
-                        </StackPanel>
-                    </DataGridTemplateColumn.Header>
 
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
+                            <!--  ReSharper disable Xaml.PossibleNullReferenceException  -->
+                            <userControls:MusicAlbumButton
+                                Command="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlayThisMusicCommand}"
+                                CommandParameter="{Binding}"
+                                CornerRadius="8"
+                                CurrentMusicItem="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
+                                ExternalMouseTouch="{Binding $parent[DataGridRow].IsPointerOver}"
+                                IsPlaying="{Binding $parent[DataGrid].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
 
-                                <!--  ReSharper disable Xaml.PossibleNullReferenceException  -->
-                                <userControls:MusicAlbumButton
-                                    Command="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.PlaySpecifiedMusicCommand}"
-                                    CommandParameter="{Binding}"
-                                    CornerRadius="8"
-                                    CurrentMusicItem="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
-                                    ExternalMouseTouch="{Binding $parent[DataGridRow].IsPointerOver}"
-                                    IsPlaying="{Binding $parent[UserControl].((pages1:AllMusicPageViewModel)DataContext).MusicPlayerViewModel.IsPlaying}">
-                                    <!--  ReSharper restore Xaml.PossibleNullReferenceException  -->
-                                    <Button.Effect>
-                                        <DropShadowEffect
-                                            BlurRadius="10"
-                                            Color="DarkGray"
-                                            OffsetX="0"
-                                            OffsetY="0"
-                                            Opacity="0.5" />
-                                    </Button.Effect>
-                                </userControls:MusicAlbumButton>
+                                <!--<Button.Effect>
+                                    <DropShadowEffect
+                                        BlurRadius="10"
+                                        Color="DarkGray"
+                                        OffsetX="0"
+                                        OffsetY="0"
+                                        Opacity="0.5" />
+                                </Button.Effect>-->
 
-                                <StackPanel Spacing="5" VerticalAlignment="Center">
-                                    <TextBlock FontWeight="Bold" Text="{Binding Title}" />
-                                    <TextBlock
-                                        Classes="Tertiary"
-                                        FontSize="12"
-                                        Text="{Binding Artists}" />
-                                </StackPanel>
+                            </userControls:MusicAlbumButton>
 
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-
-                </DataGridTemplateColumn>
-
-                <DataGridTextColumn
-                    Binding="{Binding Album}"
-                    Header="专辑"
-                    Width="1*" />
-
-                <DataGridTextColumn Header="备注"
-                                    MinWidth="100"
-                                    MaxWidth="200"
-                                    IsVisible="{Binding ElementName=MoreColumn1,Path=IsChecked}"
-                                    Binding="{Binding Comment}" />
-
-                <DataGridTemplateColumn Header="时长" MinWidth="120">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Spacing="5" Margin="10,0" VerticalAlignment="Center">
-                                <TextBlock
-                                    Text="{Binding Duration, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}}" />
-
+                            <StackPanel Spacing="5" VerticalAlignment="Center">
+                                <TextBlock FontWeight="Bold" Text="{Binding Title}" />
                                 <TextBlock
                                     Classes="Tertiary"
                                     FontSize="12"
-                                    Text="{Binding Current, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}, StringFormat='已播放到 : {0}'}" />
+                                    Text="{Binding Artists}" />
                             </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
 
-                <DataGridTextColumn
-                    Binding="{Binding FileSize}"
-                    Header="大小"
-                    IsVisible="{Binding IsChecked, ElementName=MoreColumn2}"
-                    MinWidth="100" />
+                        </StackPanel>
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
 
-                <DataGridTextColumn
-                    Binding="{Binding Remarks}"
-                    Header="附注"
-                    MaxWidth="200"
-                    IsVisible="{Binding IsChecked, ElementName=MoreColumn3}"
-                    MinWidth="100" />
+            </DataGridTemplateColumn>
 
-            </DataGrid.Columns>
+            <DataGridTextColumn
+                Binding="{Binding Album}"
+                Header="专辑"
+                Width="1*" />
 
-            <Interaction.Behaviors>
+            <DataGridTextColumn Header="备注"
+                                MinWidth="100"
+                                MaxWidth="200"
+                                IsVisible="{Binding ElementName=MoreColumn1,Path=IsChecked}"
+                                Binding="{Binding Comment}" />
 
-                <DoubleTappedTrigger>
-                    <InvokeCommandAction Command="{Binding ToggleMusicCommand}" />
-                </DoubleTappedTrigger>
+            <DataGridTemplateColumn Header="时长" MinWidth="120">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <StackPanel Spacing="5" Margin="10,0" VerticalAlignment="Center">
+                            <TextBlock
+                                Text="{Binding Duration, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}}" />
 
-                <RoutedEventTriggerBehavior RoutedEvent="{x:Static DataGrid.SelectionChangedEvent}">
-                    <InvokeCommandAction
-                        Command="{Binding SelectedItemChangedCommand}"
-                        CommandParameter="{Binding $parent[DataGrid].SelectedItems}" />
-                </RoutedEventTriggerBehavior>
+                            <TextBlock
+                                Classes="Tertiary"
+                                FontSize="12"
+                                Text="{Binding Current, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}, StringFormat='已播放到 : {0}'}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
 
-            </Interaction.Behaviors>
+            <DataGridTextColumn
+                Binding="{Binding FileSize}"
+                Header="大小"
+                IsVisible="{Binding IsChecked, ElementName=MoreColumn2}"
+                MinWidth="100" />
 
-        </DataGrid>
+            <DataGridTextColumn
+                Binding="{Binding Remarks}"
+                Header="附注"
+                MaxWidth="200"
+                IsVisible="{Binding IsChecked, ElementName=MoreColumn3}"
+                MinWidth="100" />
 
-    </Grid>
+        </DataGrid.Columns>
+
+        <Interaction.Behaviors>
+
+            <DoubleTappedTrigger>
+                <InvokeCommandAction Command="{Binding ToggleMusicCommand}" />
+            </DoubleTappedTrigger>
+
+            <RoutedEventTriggerBehavior RoutedEvent="{x:Static DataGrid.SelectionChangedEvent}">
+                <InvokeCommandAction
+                    Command="{Binding SelectedItemChangedCommand}"
+                    CommandParameter="{Binding $parent[DataGrid].SelectedItems}" />
+            </RoutedEventTriggerBehavior>
+
+        </Interaction.Behaviors>
+
+    </DataGrid>
 
     <Interaction.Behaviors>
 
@@ -363,4 +346,4 @@
 
     </Interaction.Behaviors>
 
-</UserControl>
+</Grid>

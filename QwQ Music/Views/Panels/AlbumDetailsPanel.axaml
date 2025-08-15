@@ -1,0 +1,316 @@
+<Grid RowDefinitions="Auto,*" ColumnSpacing="10" Margin="0,10"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+      xmlns:userControls1="clr-namespace:QwQ_Music.Views.UserControls"
+      xmlns:models="clr-namespace:QwQ_Music.Models"
+      xmlns:u="https://irihi.tech/ursa"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:panels="clr-namespace:QwQ_Music.ViewModels.Panels"
+      d:DesignHeight="450"
+      d:DesignWidth="800"
+      mc:Ignorable="d"
+      x:DataType="panels:AlbumDetailsPanelViewModel"
+      x:Class="QwQ_Music.Views.Panels.AlbumDetailsPanel">
+
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="1*" MinWidth="200" />
+        <ColumnDefinition Width="3*" />
+    </Grid.ColumnDefinitions>
+
+    <StackPanel Grid.Row="0" Grid.Column="1"
+                Spacing="8" HorizontalAlignment="Right" Orientation="Horizontal">
+
+        <StackPanel.Styles>
+
+            <Style Selector=":is(Button)">
+                <Setter Property="Height" Value="32" />
+                <Setter Property="Width" Value="32" />
+            </Style>
+
+            <Style Selector="u|IconButton">
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+
+        </StackPanel.Styles>
+
+        <TextBox CornerRadius="15"
+                 HorizontalAlignment="Right"
+                 Text="{Binding SearchText, Mode=TwoWay}"
+                 Watermark="搜索音乐"
+                 Width="200" />
+
+        <u:IconButton
+            Classes="Icon"
+            ToolTip.Tip="返回全部专辑页面"
+            Command="{Binding BackAllAlbumCommand}"
+            Icon="{StaticResource SemiIconReply}" />
+
+        <Button
+            Classes="Icon"
+            CornerRadius="8"
+            ToolTip.Tip="播放本专辑"
+            Command="{Binding PlayAlbumMusicCommand}"
+            Padding="2">
+            <PathIcon Data="{StaticResource PlayIconData}" Margin="0" />
+        </Button>
+
+    </StackPanel>
+
+    <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" RowDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+
+        <StackPanel>
+
+            <Border CornerRadius="12" Margin="20,5" Effect="{DynamicResource LightColorDropShadowEffect}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border CornerRadius="12"
+                        ClipToBounds="True">
+                    <Image
+                        Source="{Binding CoverImage}" Stretch="UniformToFill" />
+                </Border>
+            </Border>
+
+            <control:RunningText
+                Direction="RightToLeft"
+                TextAlignment="Center"
+                FontSize="16"
+                Foreground="{DynamicResource TextBlockDefaultForeground}"
+                Text="{Binding AlbumItemModel.Name}"
+                FontWeight="Bold"
+                Speed="60" />
+
+            <control:RunningText
+                TextAlignment="Center"
+                Text="{Binding AlbumItemModel.Artist}"
+                Direction="RightToLeft"
+                FontSize="14"
+                Foreground="{DynamicResource TextBlockTertiaryForeground}"
+                Speed="60" />
+
+        </StackPanel>
+
+        <Separator Grid.Row="1" VerticalAlignment="Top" Margin="0,10" />
+
+        <ScrollViewer Grid.Row="2" Margin="0,10">
+
+            <SelectableTextBlock
+                TextWrapping="Wrap"
+                LetterSpacing="1"
+                LineSpacing="2"
+                FontSize="14"
+                Margin="10,0"
+                Text="{Binding AlbumItemModel.Description}" />
+
+        </ScrollViewer>
+
+        <Separator Grid.Row="3" VerticalAlignment="Bottom" Margin="0,10" />
+
+        <StackPanel Grid.Row="4" Spacing="10" Margin="10,0">
+
+            <TextBlock
+                TextWrapping="Wrap"
+                MaxLines="2"
+                Text="{Binding AlbumItemModel.PublishTime,StringFormat='发布时间 : {0}'}" />
+
+            <TextBlock
+                TextWrapping="Wrap"
+                MaxLines="2"
+                Text="{Binding AlbumItemModel.Company,StringFormat='发布公司 : {0}'}" />
+
+        </StackPanel>
+
+        <Grid Grid.Row="5" ColumnDefinitions="Auto,*" ColumnSpacing="5" Margin="20">
+
+            <PathIcon Height="14" Data="{StaticResource NetEaseCloud}" Foreground="#E60026"
+                      VerticalAlignment="Center" />
+
+            <TextBlock Grid.Column="1" Text="专辑信息由网易云音乐提供，仅供学习参考"
+                       TextWrapping="Wrap"
+                       MaxLines="2"
+                       VerticalAlignment="Center"
+                       Classes="Tertiary"
+                       FontSize="12" />
+
+        </Grid>
+
+    </Grid>
+
+    <GridSplitter Padding="0" Margin="1,0"
+                  BorderThickness="1,0,0,0"
+                  ShowsPreview="True"
+                  Grid.Row="0" Grid.Column="1"
+                  Grid.RowSpan="2" HorizontalAlignment="Left">
+
+        <GridSplitter.Styles>
+
+            <Style Selector="GridSplitter">
+                <Setter Property="Background" Value="Transparent" />
+
+                <Style Selector="^:pointerover">
+                    <Setter Property="Background" Value="{DynamicResource SemiColorFill0}" />
+                </Style>
+            </Style>
+
+        </GridSplitter.Styles>
+
+    </GridSplitter>
+
+    <ListBox
+        Grid.Row="1" Grid.Column="1"
+        Margin="0,5,0,0"
+        ItemsSource="{Binding MusicItems}"
+        SelectedItem="{Binding SelectedItem}"
+        AutoScrollToSelectedItem="True"
+        u:ScrollTo.Direction="Top">
+
+        <ListBox.ItemTemplate>
+            <DataTemplate>
+                <Panel>
+                    <StackPanel Orientation="Horizontal">
+
+                        <userControls1:MusicAlbumButton
+                            Command="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).MusicPlayerViewModel.PlayThisMusicCommand}"
+                            CommandParameter="{Binding}"
+                            CornerRadius="8"
+                            CurrentMusicItem="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).MusicPlayerViewModel.CurrentMusicItem}"
+                            ExternalMouseTouch="{Binding $parent[ListBoxItem].IsPointerOver}"
+                            IsPlaying="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).MusicPlayerViewModel.IsPlaying}" />
+
+                        <StackPanel Spacing="5" VerticalAlignment="Center">
+                            <TextBlock FontWeight="Bold" Text="{Binding Title}" />
+                            <TextBlock
+                                Classes="Tertiary"
+                                FontSize="12"
+                                Text="{Binding Artists}" />
+                        </StackPanel>
+
+                    </StackPanel>
+                </Panel>
+            </DataTemplate>
+        </ListBox.ItemTemplate>
+
+        <ListBox.Styles>
+
+            <Style Selector="ListBoxItem">
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="3" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="ContextMenu">
+
+                    <Setter.Value>
+                        <ContextMenu>
+
+                            <MenuItem
+                                Command="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).MusicPlayerViewModel.PlayThisMusicCommand}"
+                                CommandParameter="{Binding}"
+                                Header="立即播放">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconPlay}" Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+
+                            <MenuItem
+                                Header="添加到">
+                                <MenuItem.Icon>
+                                    <PathIcon
+                                        Data="{StaticResource SemiIconCopyAdd}"
+                                        Margin="1.5" />
+                                </MenuItem.Icon>
+
+                                <MenuItem
+                                    Header="已有歌单"
+                                    IsVisible="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).MusicListsManager.MusicLists.Count}"
+                                    ItemsSource="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).MusicListsManager.MusicLists}">
+
+                                    <MenuItem.ItemContainerTheme>
+                                        <ControlTheme TargetType="MenuItem" x:DataType="models:MusicListModel"
+                                                      BasedOn="{StaticResource BigIconMenuItem}">
+                                            <Setter Property="Header" Value="{Binding Name}" />
+                                            <Setter Property="Command"
+                                                    Value="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).AddToMusicListCommand}" />
+                                            <Setter Property="CommandParameter" Value="{Binding}" />
+                                            <Setter Property="Icon">
+                                                <Template>
+
+                                                    <Border CornerRadius="5" ClipToBounds="True">
+                                                        <Image
+                                                            Height="30" Width="30"
+                                                            Source="{Binding CoverImage}" />
+                                                    </Border>
+
+                                                </Template>
+                                            </Setter>
+                                        </ControlTheme>
+                                    </MenuItem.ItemContainerTheme>
+
+                                </MenuItem>
+
+                                <Separator
+                                    Margin="0,5"
+                                    IsVisible="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).MusicListsManager.MusicLists.Count}" />
+
+                                <MenuItem Header="下一首"
+                                          Command="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).AddToPlaylistNextCommand}"
+                                          CommandParameter="{Binding $parent[ListBox].SelectedItems}">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconTriangleDown}" Margin="2" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+
+                                <MenuItem Header="新建歌单"
+                                          Command="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).MusicListsManager.CreatePlaylistWithMusicItemCommand}"
+                                          CommandParameter="{Binding $parent[ListBox].SelectedItems}">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+
+                            </MenuItem>
+
+                            <!--  在文件中打开  -->
+                            <MenuItem
+                                Command="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).MusicItemManager.OpenInExplorerCommand}"
+                                CommandParameter="{Binding}"
+                                Header="在文件中打开">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconFolder}" Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                            <MenuItem
+                                Command="{Binding $parent[ListBox].((panels:AlbumDetailsPanelViewModel)DataContext).MusicItemManager.ShowDetailedInfoCommand}"
+                                CommandParameter="{Binding}"
+                                Header="详细信息">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                        </ContextMenu>
+                    </Setter.Value>
+                </Setter>
+
+            </Style>
+
+        </ListBox.Styles>
+
+        <Interaction.Behaviors>
+
+            <DoubleTappedTrigger>
+                <InvokeCommandAction Command="{Binding ToggleMusicCommand}" />
+            </DoubleTappedTrigger>
+
+            <RoutedEventTriggerBehavior RoutedEvent="{x:Static SelectingItemsControl.SelectionChangedEvent}">
+                <InvokeCommandAction
+                    Command="{Binding SelectedItemChangedCommand}"
+                    CommandParameter="{Binding $parent[ListBox].SelectedItems}" />
+            </RoutedEventTriggerBehavior>
+
+        </Interaction.Behaviors>
+
+    </ListBox>
+
+</Grid>

@@ -1,86 +1,78 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
-             xmlns:pages1="clr-namespace:QwQ_Music.Views.Pages"
-             xmlns:u="https://irihi.tech/ursa"
-             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
-             x:DataType="pages:OtherPageViewModel"
-             x:Class="QwQ_Music.Views.Pages.OtherPage">
+<Grid RowDefinitions="Auto,*"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+      xmlns:pages1="clr-namespace:QwQ_Music.Views.Pages"
+      xmlns:u="https://irihi.tech/ursa"
+      xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+      x:DataType="pages:OtherPageViewModel"
+      x:Class="QwQ_Music.Views.Pages.OtherPage">
 
-    <Grid RowDefinitions="Auto,*">
 
-        <u:SelectionList
-            HorizontalAlignment="Left"
-            Margin="10,0"
-            SelectedIndex="{Binding NavigationIndex}">
+    <u:SelectionList HorizontalAlignment="Left"
+                     SelectedIndex="{Binding NavigationIndex}">
 
-            <u:SelectionList.Styles>
+        <u:SelectionList.Styles>
 
-                <Style Selector="u|SelectionListItem">
-                    <Setter Property="RenderTransformOrigin" Value="50%,100%" />
-                    <Setter Property="Transitions">
-                        <Transitions>
-                            <TransformOperationsTransition Duration="0:0:0.2" Easing="QuadraticEaseIn"
-                                                           Property="RenderTransform" />
-                        </Transitions>
-                    </Setter>
+            <Style Selector="u|SelectionListItem">
+                <Setter Property="Padding" Value="10" />
+                <Setter Property="RenderTransformOrigin" Value="50%,100%" />
+                <Setter Property="Transitions">
+                    <Transitions>
+                        <TransformOperationsTransition Duration="0:0:0.2" Easing="QuadraticEaseIn"
+                                                       Property="RenderTransform" />
+                    </Transitions>
+                </Setter>
 
-                    <Style Selector="^:selected">
-                        <Setter Property="FontWeight" Value="Bold" />
-                        <Setter Property="RenderTransform" Value="scale(1.12)" />
-                    </Style>
+                <Style Selector="^:selected">
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="RenderTransform" Value="scale(1.2)" />
                 </Style>
+            </Style>
 
-            </u:SelectionList.Styles>
+        </u:SelectionList.Styles>
 
-            <u:SelectionList.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </u:SelectionList.ItemsPanel>
+        <u:SelectionList.ItemsPanel>
+            <ItemsPanelTemplate>
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+        </u:SelectionList.ItemsPanel>
 
-            <u:SelectionList.Indicator>
-                <Border
-                    Background="{DynamicResource SemiBlue5}"
-                    CornerRadius="2"
-                    Height="2"
-                    Margin="10,0"
-                    VerticalAlignment="Bottom" />
-            </u:SelectionList.Indicator>
+        <u:SelectionList.Indicator>
 
-            <u:SelectionList.Styles>
+            <Rectangle RadiusX="3" RadiusY="3" Height="5" Margin="10,5"
+                       Fill="{DynamicResource SemiBlue4Color}"
+                       VerticalAlignment="Bottom">
+                <Rectangle.Effect>
+                    <DropShadowEffect Color="{DynamicResource SemiBlue2Color}" />
+                </Rectangle.Effect>
+            </Rectangle>
 
-                <Style Selector="u|SelectionListItem">
-                    <Setter Property="Padding" Value="10,5" />
-                </Style>
-            </u:SelectionList.Styles>
+        </u:SelectionList.Indicator>
 
-            <TextBlock Text="统计" />
-            <TextBlock Text="玩的" />
-            <TextBlock Text="关于" />
 
-        </u:SelectionList>
+        <TextBlock Text="统计" />
+        <TextBlock Text="玩的" />
+        <TextBlock Text="关于" />
 
-        <control:IndexControl Grid.Row="1" Index="{Binding NavigationIndex}">
-            <control:IndexControl.PageTransition>
-                <CompositePageTransition>
-                    <CrossFade Duration="0:0:0.5" />
-                    <PageSlide
-                        Duration="0:0:0.3"
-                        Orientation="Horizontal"
-                        SlideInEasing="QuadraticEaseIn"
-                        SlideOutEasing="QuadraticEaseOut" />
-                </CompositePageTransition>
-            </control:IndexControl.PageTransition>
+    </u:SelectionList>
 
-            <pages1:StatisticsPage />
-            <pages1:MiaomiaoLittleToyPage />
-            <pages1:AboutPage />
-        </control:IndexControl>
+    <Carousel Grid.Row="1" SelectedIndex="{Binding NavigationIndex}">
+        <Carousel.PageTransition>
+            <CompositePageTransition>
+                <CrossFade Duration="0:0:0.5" />
+                <PageSlide Duration="0:0:0.3"
+                           Orientation="Horizontal"
+                           SlideInEasing="QuadraticEaseIn"
+                           SlideOutEasing="QuadraticEaseOut" />
+            </CompositePageTransition>
+        </Carousel.PageTransition>
 
-    </Grid>
+        <pages1:StatisticsPage />
+        <pages1:MiaomiaoLittleToyPage />
+        <pages1:AboutPage />
+    </Carousel>
 
-</UserControl>
+</Grid>

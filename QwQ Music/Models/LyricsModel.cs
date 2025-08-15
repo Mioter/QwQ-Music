@@ -13,24 +13,25 @@ public partial class LyricsModel : ObservableObject
 
     public delegate void LyricLineChangedEventHandler(object sender, LyricLine currentLyric, LyricLine? nextLyric);
 
-    public event LyricLineChangedEventHandler? LyricLineChanged;
-
     private readonly List<double> _timePoints = [];
 
-    [ObservableProperty]
-    public partial int LyricsIndex { get; set; }
+    [ObservableProperty] public partial int LyricsIndex { get; set; }
 
-    [ObservableProperty]
-    public partial LyricLine CurrentLyric { get; private set; }
+    [ObservableProperty] public partial LyricLine CurrentLyric { get; private set; }
 
-    [ObservableProperty]
-    public partial LyricLine NextLyricLine { get; private set; }
+    [ObservableProperty] public partial LyricLine NextLyricLine { get; private set; }
 
-    [ObservableProperty]
-    public partial LyricsData LyricsData { get; private set; } = new();
+    [ObservableProperty] public partial LyricsData LyricsData { get; private set; } = new();
 
     /// <summary>
-    /// 更新歌词数据
+    ///     获取歌词总数
+    /// </summary>
+    public int Count => _timePoints.Count;
+
+    public event LyricLineChangedEventHandler? LyricLineChanged;
+
+    /// <summary>
+    ///     更新歌词数据
     /// </summary>
     /// <param name="lyricsData">新的歌词数据</param>
     public void UpdateLyricsData(LyricsData lyricsData)
@@ -54,29 +55,29 @@ public partial class LyricsModel : ObservableObject
     }
 
     /// <summary>
-    /// 应用偏移量到时间点
+    ///     应用偏移量到时间点
     /// </summary>
     /// <param name="timePoint">原始时间点（秒）</param>
     /// <returns>应用偏移后的时间点（秒）</returns>
-    private static double ApplyOffset(double timePoint)
+    private double ApplyOffset(double timePoint)
     {
         // 将毫秒转换为秒并应用偏移
         return timePoint + LyricOffset / 1000.0;
     }
 
     /// <summary>
-    /// 移除偏移量从时间点
+    ///     移除偏移量从时间点
     /// </summary>
     /// <param name="timePoint">带偏移的时间点（秒）</param>
     /// <returns>移除偏移后的时间点（秒）</returns>
-    private static double RemoveOffset(double timePoint)
+    private double RemoveOffset(double timePoint)
     {
         // 将毫秒转换为秒并移除偏移
         return timePoint - LyricOffset / 1000.0;
     }
 
     /// <summary>
-    /// 获取当前歌词到下一句歌词的时间间隔
+    ///     获取当前歌词到下一句歌词的时间间隔
     /// </summary>
     /// <param name="currentTime">当前播放时间（秒）</param>
     /// <returns>到下一句歌词的时间间隔（秒），如果没有下一句则返回-1</returns>
@@ -85,6 +86,7 @@ public partial class LyricsModel : ObservableObject
         // 应用偏移量到当前时间
         double adjustedTime = ApplyOffset(currentTime);
         int currentIndex = CalculateIndex(adjustedTime);
+
         if (currentIndex < 0 || currentIndex >= _timePoints.Count - 1)
             return -1;
 
@@ -93,7 +95,7 @@ public partial class LyricsModel : ObservableObject
     }
 
     /// <summary>
-    /// 获取下一句歌词
+    ///     获取下一句歌词
     /// </summary>
     /// <param name="currentTime">当前播放时间（秒）</param>
     /// <returns>下一句歌词，如果没有下一句则返回null</returns>
@@ -102,6 +104,7 @@ public partial class LyricsModel : ObservableObject
         // 应用偏移量到当前时间
         double adjustedTime = ApplyOffset(currentTime);
         int currentIndex = CalculateIndex(adjustedTime);
+
         if (currentIndex < 0 || currentIndex >= _timePoints.Count - 1)
             return null;
 
@@ -120,6 +123,7 @@ public partial class LyricsModel : ObservableObject
 
         LyricsIndex = newIndex;
         CurrentLyric = LyricsData.Lyrics[LyricsIndex];
+
         NextLyricLine =
             LyricsIndex + 1 < LyricsData.Lyrics.Count ? LyricsData.Lyrics[LyricsIndex + 1] : new LyricLine(0, "");
 
@@ -128,7 +132,7 @@ public partial class LyricsModel : ObservableObject
     }
 
     /// <summary>
-    /// 根据当前播放时间计算当前歌词索引
+    ///     根据当前播放时间计算当前歌词索引
     /// </summary>
     /// <param name="currentTime">当前播放时间（秒）</param>
     /// <returns>当前歌词索引，如果没有匹配的歌词则返回-1</returns>
@@ -138,6 +142,7 @@ public partial class LyricsModel : ObservableObject
         {
             case 0:
                 return -1;
+
             // 如果只有一行歌词，则始终显示它
             case 1:
                 return 0;
@@ -179,7 +184,7 @@ public partial class LyricsModel : ObservableObject
     }
 
     /// <summary>
-    /// 获取指定索引对应的时间点
+    ///     获取指定索引对应的时间点
     /// </summary>
     /// <param name="index">歌词索引</param>
     /// <returns>时间点（秒），如果索引无效则返回0</returns>
@@ -192,24 +197,26 @@ public partial class LyricsModel : ObservableObject
     }
 
     /// <summary>
-    /// 获取时间点列表
+    ///     获取时间点列表
     /// </summary>
     /// <returns>时间点列表</returns>
-    public IReadOnlyList<double> GetTimePoints() => _timePoints;
-
-    /// <summary>
-    /// 获取歌词总数
-    /// </summary>
-    public int Count => _timePoints.Count;
+    public IReadOnlyList<double> GetTimePoints()
+    {
+        return _timePoints;
+    }
 }
 
 public class LyricsData
 {
     // 歌词元数据
     public string? Title { get; set; }
+
     public string? Artist { get; set; }
+
     public string? Album { get; set; }
+
     public string? Creator { get; set; }
+
     public double Offset { get; set; }
 
     public List<LyricLine> Lyrics { get; set; } = [new(0, "暂无歌词")];

@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.Definitions.Enums;
+using QwQ_Music.Models.Enums;
 
 namespace QwQ_Music.Models.ConfigModels;
 
@@ -17,10 +17,9 @@ public partial class PlayerConfig : ObservableObject
 
     public bool IsRealRandom { get; set; }
 
-    [ObservableProperty]
-    public partial bool IsAutoSetSampleRate { get; set; } = true;
+    [ObservableProperty] public partial bool IsAutoSetSampleRate { get; set; } = true;
 
-    public string LatestPlayListName { get; set; } = string.Empty;
+    public string? LastPlayedFilePath { get; set; }
 
     public static int[] AudioOutputSampleRateArray { get; } =
         [44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000];
@@ -28,7 +27,7 @@ public partial class PlayerConfig : ObservableObject
     public int SampleRate { get; set; } = AudioOutputSampleRateArray[1];
 
     /// <summary>
-    /// 播放模式
+    ///     播放模式
     /// </summary>
     [ObservableProperty]
     public partial PlayMode PlayMode { get; set; } = PlayMode.Sequential;

@@ -1,0 +1,295 @@
+<Grid RowDefinitions="Auto,*" Margin="0,10"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:behaviors="clr-namespace:QwQ_Music.UI.Behaviors"
+      xmlns:utilities="clr-namespace:QwQ_Music.Common.Utilities"
+      xmlns:panels="clr-namespace:QwQ_Music.ViewModels.Panels"
+      xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+      xmlns:panels1="clr-namespace:QwQ_Music.Views.Pages"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      x:DataType="panels:AllMusicListPanelViewModel"
+      x:Class="QwQ_Music.Views.Panels.AllMusicListPanel"
+      d:DesignHeight="450"
+      d:DesignWidth="800"
+      mc:Ignorable="d"
+      Name="MusicListsContainer">
+
+    <TextBox CornerRadius="15"
+             Margin="10,0"
+             HorizontalAlignment="Left"
+             Text="{Binding SearchText, Mode=TwoWay}"
+             Watermark="搜索歌单"
+             Width="200" />
+
+
+    <ScrollViewer Grid.Row="1">
+
+        <ItemsControl Background="Transparent" ItemsSource="{Binding MusicLists}"
+                      Padding="10,20">
+
+            <ItemsControl.Styles>
+
+                <Style Selector="ItemsControl > ContentPresenter">
+
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <TransformOperationsTransition Duration="0:0:0.2" Property="RenderTransform" />
+                        </Transitions>
+                    </Setter>
+
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+
+                                <MenuItem
+                                    Command="{Binding #MusicListsContainer.((panels:AllMusicListPanelViewModel)DataContext).TogglePlaylistCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="播放">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconPlay}" Margin="4" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+
+                                <!--
+                                <MenuItem
+                                    Command="{Binding #MusicListsContainer.((panels:AllMusicListPanelViewModel)DataContext).MusicListsViewModel.EditMusicListCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="编辑">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconEdit}"
+                                                  Margin="2" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                -->
+
+                                <MenuItem
+                                    Command="{Binding #MusicListsContainer.((panels:AllMusicListPanelViewModel)DataContext).MusicListsManager.DeleteMusicListCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="删除">
+                                    <MenuItem.Icon>
+                                        <PathIcon Foreground="{DynamicResource SemiRed5}"
+                                                  Data="{StaticResource SemiIconDelete}"
+                                                  Margin="2" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+                <Style Selector="ItemsControl > ContentPresenter:pointerover">
+                    <Setter Property="RenderTransform" Value="translateY(-10px)" />
+                </Style>
+
+            </ItemsControl.Styles>
+
+            <ItemsControl.ItemsPanel>
+
+                <ItemsPanelTemplate>
+                    <WrapPanel LineSpacing="20" ItemSpacing="20" />
+                </ItemsPanelTemplate>
+
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+
+                <DataTemplate>
+
+                    <Panel DragDrop.AllowDrop="True">
+
+                        <Border CornerRadius="12"
+                                Classes.Pointerover="{Binding $parent[Panel].IsPointerOver}"
+                                Classes.NoPointerover="{Binding !$parent[Panel].IsPointerOver}">
+
+                            <Border.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleX="0.98" />
+                                    <TranslateTransform Y="5" />
+                                </TransformGroup>
+                            </Border.RenderTransform>
+
+                            <Border.Transitions>
+                                <Transitions>
+                                    <BrushTransition Property="Background" Duration="0:0:0.25" />
+                                </Transitions>
+                            </Border.Transitions>
+
+                            <Border.Effect>
+                                <BlurEffect Radius="20" />
+                            </Border.Effect>
+
+                            <Border.Styles>
+
+                                <Style Selector="Border.NoPointerover">
+                                    <Setter Property="Background" Value="{DynamicResource SemiGrey2}" />
+                                </Style>
+
+                                <Style Selector="Border.Pointerover">
+
+                                    <Setter Property="Background">
+                                        <LinearGradientBrush>
+                                            <GradientStop Offset="0" Color="#886094EA" />
+                                            <GradientStop Offset="1" Color="#88F02FC2" />
+                                        </LinearGradientBrush>
+                                    </Setter>
+
+                                    <Style.Animations>
+                                        <Animation
+                                            Duration="0:0:3"
+                                            FillMode="Forward"
+                                            IterationCount="Infinite">
+                                            <KeyFrame Cue="0%">
+                                                <Setter
+                                                    Property="behaviors:BorderLinearGradientBrushBehavior.BackgroundRotateAngle"
+                                                    Value="0" />
+                                            </KeyFrame>
+                                            <KeyFrame Cue="100%">
+                                                <Setter
+                                                    Property="behaviors:BorderLinearGradientBrushBehavior.BackgroundRotateAngle"
+                                                    Value="360" />
+                                            </KeyFrame>
+                                        </Animation>
+                                    </Style.Animations>
+                                </Style>
+
+                            </Border.Styles>
+                        </Border>
+
+                        <Button
+                            Padding="10"
+                            BorderThickness="2"
+                            Command="{Binding $parent[panels1:MusicListClassPage].((pages:MusicListClassPageViewModel)DataContext).ToggleItemCommand}"
+                            CommandParameter="{Binding}"
+                            Foreground="{DynamicResource TextBlockDefaultForeground}"
+                            CornerRadius="12"
+                            Background="{DynamicResource SemiColorBackground2}">
+
+                            <Button.Styles>
+                                <Style Selector="Button">
+
+                                    <Style
+                                        Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                        <Setter Property="Background"
+                                                Value="{DynamicResource SemiColorBackground2}" />
+                                    </Style>
+
+                                    <Style
+                                        Selector="^:focus /template/ ContentPresenter#PART_ContentPresenter">
+                                        <Setter Property="Background"
+                                                Value="{DynamicResource SemiColorBackground2}" />
+                                    </Style>
+
+                                </Style>
+                            </Button.Styles>
+
+                            <DockPanel
+                                Height="60"
+                                Width="160"
+                                HorizontalSpacing="10">
+
+                                <Border DockPanel.Dock="Left"
+                                        CornerRadius="12"
+                                        VerticalAlignment="Top">
+
+                                    <Border CornerRadius="12"
+                                            ClipToBounds="True">
+                                        <Image
+                                            Source="{Binding CoverImage}" />
+                                    </Border>
+
+                                </Border>
+
+                                <StackPanel DockPanel.Dock="Top" Spacing="3">
+
+                                    <TextBlock
+                                        TextTrimming="CharacterEllipsis"
+                                        Text="{Binding Name}"
+                                        FontWeight="Bold" />
+
+                                    <Separator Margin="0" />
+
+                                    <TextBlock DockPanel.Dock="Bottom"
+                                               Text="{Binding Description}"
+                                               MaxLines="2"
+                                               FontSize="12"
+                                               TextTrimming="CharacterEllipsis"
+                                               TextWrapping="Wrap"
+                                               Classes="Tertiary" />
+
+                                </StackPanel>
+
+                            </DockPanel>
+
+                            <!--<Interaction.Behaviors>
+
+                                    <DragEnterEventTrigger>
+                                        <ChangeAvaloniaPropertyAction
+                                            TargetProperty="{x:Static TemplatedControl.BorderBrushProperty}"
+                                            Value="{DynamicResource SemiBlue5}" />
+                                    </DragEnterEventTrigger>
+
+                                    <DragLeaveEventTrigger>
+                                        <ChangeAvaloniaPropertyAction
+                                            TargetProperty="{x:Static TemplatedControl.BorderBrushProperty}"
+                                            Value="Transparent" />
+                                    </DragLeaveEventTrigger>
+
+                                    <DropEventTrigger>
+                                        <ChangeAvaloniaPropertyAction
+                                            TargetProperty="{x:Static TemplatedControl.BorderBrushProperty}"
+                                            Value="Transparent" />
+                                        <InvokeCommandAction
+                                            Command="{Binding }"
+                                            PassEventArgsToCommand="True"
+                                            InputConverter="{StaticResource ValueParameterTupleConverter}"
+                                            InputConverterParameter="{Binding}" />
+                                    </DropEventTrigger>
+                                </Interaction.Behaviors>-->
+
+                        </Button>
+
+                        <PathIcon Data="{StaticResource SemiIconBookmark}"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Top"
+                                  Foreground="{x:Static utilities:ColorGenerator.RandomColor}"
+                                  Height="15">
+                            <PathIcon.RenderTransform>
+                                <TransformGroup>
+                                    <RotateTransform Angle="135" />
+                                    <TranslateTransform X="-3" Y="-3" />
+                                </TransformGroup>
+                            </PathIcon.RenderTransform>
+                        </PathIcon>
+
+                    </Panel>
+
+                </DataTemplate>
+
+            </ItemsControl.ItemTemplate>
+
+            <ItemsControl.ContextMenu>
+
+                <ContextMenu>
+                    <MenuItem Header="新建歌单"
+                              Command="{Binding #MusicListsContainer.((panels:AllMusicListPanelViewModel)DataContext).MusicListsManager.CreateMusicListCommand}">
+                        <MenuItem.Icon>
+                            <PathIcon Data="{StaticResource SemiIconMusic}" Margin="2" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+
+            </ItemsControl.ContextMenu>
+
+        </ItemsControl>
+
+    </ScrollViewer>
+
+    <Button Grid.Row="1" CornerRadius="8" VerticalAlignment="Top" HorizontalAlignment="Left"
+            Theme="{StaticResource OutlineButton}"
+            Margin="10"
+            Command="{Binding MusicListsManager.CreateMusicListCommand}"
+            IsVisible="{Binding !MusicListsManager.MusicLists.Count}" Content="新建歌单" />
+
+</Grid>

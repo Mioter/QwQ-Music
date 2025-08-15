@@ -1,40 +1,84 @@
 ﻿using System;
 using Avalonia;
-using QwQ_Music.Services;
-using QwQ_Music.Services.Audio;
+using QwQ_Music.Common.Manager;
+using QwQ_Music.Common.Services;
+using QwQ_Music.Common.Utilities;
 using QwQ_Music.ViewModels;
+using QwQ.Avalonia.Utilities.MessageBus;
 
 namespace QwQ_Music;
 
 public static class Program
 {
-    // Initialization code. Don't use any Avalonia, third-party APIs or any
-    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-    // yet and stuff might break.
+    public static string VersionText => "0.9.1+build.2508016.1";
+
     [STAThread]
     public static void Main(string[] args)
     {
         try
         {
-            LoggerService.Info(
-                "\n"
-                    + "===========================================\n"
-                    + "应用程序已启动\n"
-                    + "===========================================\n"
+            LoggerService.Info("Starting up\n" +
+                $"""
+                 ===========================================
+
+                  ___ ___  ___   ___ ___ _  _ 
+                 | _ ) _ \/ _ \ / __| __| \| |
+                 | _ \   / (_) | (__| _|| .` |
+                 |___/_|_\\___/ \___|___|_|\_|
+                                              
+                        ▶  QwQ Music v{VersionText}  🔊
+                      "Where emotions meet melody"
+
+                 ===========================================
+                 """
             );
 
-            AudioEngineManager.Create();
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
         catch (Exception e)
         {
-            LoggerService.Error($"捕捉到未处理异常:\n {e.Message}\n {e.StackTrace}");
-            ApplicationViewModel.OnShutdown().Wait();
+            LoggerService.Error($"程序异常退出！\n捕捉到未处理异常:\n {e.Message}\n {e.StackTrace}");
+
             throw;
+        }
+        finally
+        {
+            ShutdownApplication();
         }
     }
 
-    // Avalonia configuration, don't remove; also used by visual designer.
+    private static void ShutdownApplication()
+    {
+        try
+        {
+            LoggerService.Info("开始执行应用程序关闭流程...");
+
+            Shutdown();
+        }
+        catch (Exception ex)
+        {
+            LoggerService.Error($"关闭App时发生错误: {ex.Message}");
+        }
+        finally
+        {
+            LoggerService.Shutdown();
+            LoggerService.Info("应用程序已完全关闭");
+        }
+    }
+
+    private static void Shutdown()
+    {
+        MusicPlayerViewModel.Default.Shutdown();
+
+        ConfigManager.SaveConfig();
+
+        MousePenetrate.ClearCache();
+        HotkeyService.ClearCache();
+        NavigateService.ClearCache();
+
+        MessageBus.Dispose();
+    }
+
     private static AppBuilder BuildAvaloniaApp()
     {
         return AppBuilder.Configure<App>().UsePlatformDetect().WithInterFont().LogToTrace();

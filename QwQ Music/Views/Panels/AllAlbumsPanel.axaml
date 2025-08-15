@@ -1,0 +1,432 @@
+<Grid RowDefinitions="Auto,*" Margin="0,10"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+      xmlns:pages1="clr-namespace:QwQ_Music.Views.Pages"
+      xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:models="clr-namespace:QwQ_Music.Models"
+      xmlns:panels="clr-namespace:QwQ_Music.ViewModels.Panels"
+      d:DesignHeight="450"
+      d:DesignWidth="800"
+      mc:Ignorable="d"
+      x:DataType="panels:AllAlbumsPanelViewModel"
+      x:Class="QwQ_Music.Views.Panels.AllAlbumsPanel"
+      Name="AllAlbumsContainer">
+
+    <Panel>
+
+        <TextBox CornerRadius="15"
+                 Margin="10,0"
+                 HorizontalAlignment="Left"
+                 Text="{Binding SearchText, Mode=TwoWay}"
+                 Watermark="搜索专辑"
+                 Width="200" />
+
+        <StackPanel Spacing="8" HorizontalAlignment="Right" Orientation="Horizontal">
+
+            <Border HorizontalAlignment="Left" Theme="{StaticResource RadioButtonGroupBorder}" CornerRadius="8">
+
+                <!-- 卡片样式选择 -->
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton Name="CardStyle1" IsChecked="{Binding StyleConfig.AlbumCard[0]}"
+                                 Theme="{DynamicResource ButtonRadioButton}">
+                        简约
+                    </RadioButton>
+                    <RadioButton Name="CardStyle2" IsChecked="{Binding StyleConfig.AlbumCard[1]}"
+                                 Theme="{DynamicResource ButtonRadioButton}">
+                        梦幻
+                    </RadioButton>
+                    <RadioButton Name="CardStyle3" IsChecked="{Binding StyleConfig.AlbumCard[2]}"
+                                 Theme="{DynamicResource ButtonRadioButton}">
+                        迷你
+                    </RadioButton>
+                </StackPanel>
+            </Border>
+
+            <Border BorderBrush="{DynamicResource BorderCardBorderBrush}" BorderThickness="1" CornerRadius="8">
+                <StackPanel Orientation="Horizontal" Margin="2">
+
+                    <Ellipse Width="10" Height="10" Fill="{DynamicResource SemiBlue4Color}" Margin="6,0,0,0" />
+
+                    <control:RunningText
+                        Width="180"
+                        Speed="50"
+                        FontWeight="Bold"
+                        VerticalAlignment="Center"
+                        Text="{Binding SelectedAlbumItem.Name,FallbackValue='请选择专辑'}" />
+
+                    <Button
+                        Classes="Icon"
+                        CornerRadius="8"
+                        Height="28" Width="28"
+                        ToolTip.Tip="播放本专辑"
+                        IsEnabled="{Binding SelectedAlbumItem,Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Command="{Binding PlayAlbumMusicCommand}"
+                        CommandParameter="{Binding SelectedAlbumItem}"
+                        Padding="2">
+                        <PathIcon Data="{StaticResource PlayIconData}" />
+                    </Button>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+    </Panel>
+
+    <ScrollViewer Grid.Row="1">
+
+        <ItemsControl ItemsSource="{Binding AlbumItems}" Padding="0,10">
+
+            <ItemsControl.Styles>
+
+                <Style Selector="ItemsControl > ContentPresenter">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+
+                                <MenuItem
+                                    Command="{Binding #AllAlbumsContainer.((panels:AllAlbumsPanelViewModel)DataContext).PlayAlbumMusicCommand}"
+                                    CommandParameter="{Binding}"
+                                    Header="播放">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource SemiIconPlay}" Margin="4" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+
+                </Style>
+
+            </ItemsControl.Styles>
+
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <Interaction.Behaviors>
+                <DataTrigger Binding="{Binding #CardStyle1.IsChecked}" Value="True">
+                    <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ItemsControl.ItemTemplateProperty}">
+                        <ChangeAvaloniaPropertyAction.Value>
+                            <DataTemplate x:DataType="models:AlbumItemModel">
+
+                                <Button CornerRadius="12"
+                                        Padding="20"
+                                        Margin="10"
+                                        FontWeight="Normal"
+                                        Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                        Background="{DynamicResource SemiColorBackground2}"
+                                        Command="{Binding $parent[pages1:AlbumClassPage].((pages:AlbumClassPageViewModel)DataContext).ToggleItemCommand}"
+                                        CommandParameter="{Binding }">
+
+                                    <Classes.Current>
+                                        <MultiBinding Converter="{StaticResource ObjectCompareMultiConverter}">
+                                            <Binding />
+                                            <Binding
+                                                Path="#AllAlbumsContainer.((panels:AllAlbumsPanelViewModel)DataContext).SelectedAlbumItem" />
+                                        </MultiBinding>
+                                    </Classes.Current>
+
+
+                                    <Button.Transitions>
+                                        <Transitions>
+                                            <EffectTransition Duration="0:0:0.3"
+                                                              Property="Effect" />
+                                        </Transitions>
+                                    </Button.Transitions>
+
+                                    <Button.Styles>
+                                        <Style Selector="Button">
+
+                                            <Style
+                                                Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                                <Setter Property="Background"
+                                                        Value="{DynamicResource SemiColorBackground2}" />
+                                            </Style>
+
+                                            <Style
+                                                Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                                <Setter Property="Background"
+                                                        Value="{DynamicResource SemiColorBackground2}" />
+                                            </Style>
+                                        </Style>
+
+                                        <Style Selector="Button:pointerover">
+                                            <Setter Property="Effect"
+                                                    Value="{DynamicResource LightColorDropShadowEffect}" />
+                                        </Style>
+
+                                        <Style Selector="Button.Current">
+                                            <Setter Property="Effect">
+                                                <DropShadowEffect OffsetX="0" OffsetY="0"
+                                                                  Color="{DynamicResource SemiPurple2Color}"
+                                                                  BlurRadius="10" />
+                                            </Setter>
+                                        </Style>
+
+                                    </Button.Styles>
+
+                                    <Grid Height="120" Width="240" RowDefinitions="3*,2*"
+                                          ColumnDefinitions="Auto,Auto,*"
+                                          RowSpacing="10" ColumnSpacing="10">
+                                        <Border Grid.Column="0" Grid.RowSpan="2" CornerRadius="8"
+                                                VerticalAlignment="Top"
+                                                Height="60" Width="60"
+                                                ClipToBounds="True">
+                                            <Image Source="{Binding CoverImage}" />
+                                        </Border>
+
+                                        <Rectangle Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
+                                                   Fill="{DynamicResource SemiColorFill2}" Width="1" />
+
+                                        <TextBlock Grid.Row="0" Grid.Column="2"
+                                                   Text="{Binding Name}"
+                                                   FontWeight="Bold" TextWrapping="Wrap" MaxLines="3" />
+                                        <TextBlock Grid.Row="1" Grid.Column="2"
+                                                   Text="{Binding Artist}"
+                                                   TextWrapping="Wrap"
+                                                   MaxLines="2" />
+                                    </Grid>
+                                </Button>
+
+                            </DataTemplate>
+                        </ChangeAvaloniaPropertyAction.Value>
+                    </ChangeAvaloniaPropertyAction>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding #CardStyle2.IsChecked}" Value="True">
+                    <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ItemsControl.ItemTemplateProperty}">
+                        <ChangeAvaloniaPropertyAction.Value>
+                            <DataTemplate x:DataType="models:AlbumItemModel">
+                                <Button CornerRadius="12"
+                                        Margin="10"
+                                        Padding="0"
+                                        FontWeight="Normal"
+                                        BorderThickness="0"
+                                        Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                        Background="{DynamicResource SemiColorBackground2}"
+                                        Command="{Binding $parent[pages1:AlbumClassPage].((pages:AlbumClassPageViewModel)DataContext).ToggleItemCommand}"
+                                        CommandParameter="{Binding }">
+
+                                    <Button.Transitions>
+                                        <Transitions>
+                                            <EffectTransition Duration="0:0:0.3"
+                                                              Property="Effect" />
+                                        </Transitions>
+                                    </Button.Transitions>
+
+                                    <Classes.Current>
+                                        <MultiBinding Converter="{StaticResource ObjectCompareMultiConverter}">
+                                            <Binding />
+                                            <Binding
+                                                Path="#AllAlbumsContainer.((panels:AllAlbumsPanelViewModel)DataContext).SelectedAlbumItem" />
+                                        </MultiBinding>
+                                    </Classes.Current>
+
+                                    <Button.Styles>
+                                        <Style Selector="Button">
+
+                                            <Style
+                                                Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                                <Setter Property="Background"
+                                                        Value="{DynamicResource SemiColorBackground2}" />
+                                            </Style>
+
+                                            <Style
+                                                Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                                <Setter Property="Background"
+                                                        Value="{DynamicResource SemiColorBackground2}" />
+                                            </Style>
+                                        </Style>
+
+                                        <Style Selector="Button:pointerover">
+                                            <Setter Property="Effect"
+                                                    Value="{DynamicResource LightColorDropShadowEffect}" />
+                                        </Style>
+
+                                        <Style Selector="Button.Current">
+                                            <Setter Property="Effect">
+                                                <DropShadowEffect OffsetX="0" OffsetY="0"
+                                                                  Color="{DynamicResource SemiPurple2Color}"
+                                                                  BlurRadius="10" />
+                                            </Setter>
+                                        </Style>
+
+                                    </Button.Styles>
+
+                                    <Border CornerRadius="12" ClipToBounds="True">
+
+                                        <Panel>
+
+                                            <Panel>
+                                                <Panel.Background>
+                                                    <ImageBrush Stretch="UniformToFill" Source="{Binding CoverImage}" />
+                                                </Panel.Background>
+
+                                                <Panel.Effect>
+                                                    <BlurEffect Radius="30" />
+                                                </Panel.Effect>
+
+                                            </Panel>
+
+                                            <Grid Height="120" Width="240" ColumnDefinitions="Auto,*">
+
+                                                <Border Grid.Column="0" Grid.Row="0" CornerRadius="8"
+                                                        VerticalAlignment="Top"
+                                                        Margin="10"
+                                                        Height="60" Width="60"
+                                                        ClipToBounds="True">
+
+                                                    <Image Source="{Binding CoverImage}" />
+                                                </Border>
+
+                                                <Grid Grid.Column="1" RowDefinitions="3*,2*">
+
+                                                    <Panel Grid.RowSpan="2"
+                                                           Background="{DynamicResource SemiColorBackground2}"
+                                                           Opacity="0.8" />
+
+                                                    <TextBlock Grid.Row="0"
+                                                               Margin="10,10,10,0"
+                                                               Text="{Binding Name}"
+                                                               FontWeight="Bold" TextWrapping="Wrap" MaxLines="3" />
+
+                                                    <TextBlock Grid.Row="1"
+                                                               Margin="10,0,10,10"
+                                                               Text="{Binding Artist}"
+                                                               TextWrapping="Wrap"
+                                                               MaxLines="2" />
+                                                </Grid>
+
+                                            </Grid>
+
+                                        </Panel>
+
+                                    </Border>
+
+
+                                </Button>
+                            </DataTemplate>
+                        </ChangeAvaloniaPropertyAction.Value>
+                    </ChangeAvaloniaPropertyAction>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding #CardStyle3.IsChecked}" Value="True">
+                    <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ItemsControl.ItemTemplateProperty}">
+                        <ChangeAvaloniaPropertyAction.Value>
+                            <DataTemplate x:DataType="models:AlbumItemModel">
+                                <Button CornerRadius="12"
+                                        Margin="10"
+                                        Padding="0"
+                                        FontWeight="Normal"
+                                        BorderThickness="0"
+                                        Foreground="{DynamicResource TextBlockDefaultForeground}"
+                                        Background="{DynamicResource SemiColorBackground2}"
+                                        Command="{Binding $parent[pages1:AlbumClassPage].((pages:AlbumClassPageViewModel)DataContext).ToggleItemCommand}"
+                                        CommandParameter="{Binding }">
+
+                                    <Button.Transitions>
+                                        <Transitions>
+                                            <EffectTransition Duration="0:0:0.3"
+                                                              Property="Effect" />
+                                        </Transitions>
+                                    </Button.Transitions>
+
+                                    <Classes.Current>
+                                        <MultiBinding Converter="{StaticResource ObjectCompareMultiConverter}">
+                                            <Binding />
+                                            <Binding
+                                                Path="#AllAlbumsContainer.((panels:AllAlbumsPanelViewModel)DataContext).SelectedAlbumItem" />
+                                        </MultiBinding>
+                                    </Classes.Current>
+
+                                    <Button.Styles>
+                                        <Style Selector="Button">
+
+                                            <Style
+                                                Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                                <Setter Property="Background"
+                                                        Value="{DynamicResource SemiColorBackground2}" />
+                                            </Style>
+
+                                            <Style
+                                                Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                                <Setter Property="Background"
+                                                        Value="{DynamicResource SemiColorBackground2}" />
+                                            </Style>
+                                        </Style>
+
+                                        <Style Selector="Button:pointerover">
+                                            <Setter Property="Effect"
+                                                    Value="{DynamicResource LightColorDropShadowEffect}" />
+                                        </Style>
+
+                                        <Style Selector="Button.Current">
+                                            <Setter Property="Effect">
+                                                <DropShadowEffect OffsetX="0" OffsetY="0"
+                                                                  Color="{DynamicResource SemiPurple2Color}"
+                                                                  BlurRadius="10" />
+                                            </Setter>
+                                        </Style>
+
+                                    </Button.Styles>
+
+                                    <Border CornerRadius="12" ClipToBounds="True">
+
+                                        <Panel>
+
+                                            <Panel>
+                                                <Panel.Background>
+                                                    <ImageBrush Stretch="UniformToFill" Source="{Binding CoverImage}" />
+                                                </Panel.Background>
+
+                                                <Panel.Effect>
+                                                    <BlurEffect Radius="10" />
+                                                </Panel.Effect>
+
+                                            </Panel>
+
+                                            <Grid Height="60" Width="240" ColumnDefinitions="60,*">
+
+                                                <Image Source="{Binding CoverImage}" />
+
+                                                <Grid Grid.Column="1" RowDefinitions="3*,2*">
+
+                                                    <Panel Grid.RowSpan="2"
+                                                           Background="{DynamicResource SemiColorBackground2}"
+                                                           Opacity="0.9" />
+
+                                                    <TextBlock Grid.Row="0"
+                                                               Margin="10,10,10,0"
+                                                               Text="{Binding Name}"
+                                                               FontWeight="Bold" TextWrapping="Wrap" MaxLines="3" />
+
+                                                    <TextBlock Grid.Row="1"
+                                                               Margin="10,0,10,10"
+                                                               Text="{Binding Artist}"
+                                                               TextWrapping="Wrap"
+                                                               MaxLines="2" />
+                                                </Grid>
+
+                                            </Grid>
+
+                                        </Panel>
+
+                                    </Border>
+
+
+                                </Button>
+                            </DataTemplate>
+                        </ChangeAvaloniaPropertyAction.Value>
+                    </ChangeAvaloniaPropertyAction>
+                </DataTrigger>
+            </Interaction.Behaviors>
+
+        </ItemsControl>
+    </ScrollViewer>
+
+
+</Grid>

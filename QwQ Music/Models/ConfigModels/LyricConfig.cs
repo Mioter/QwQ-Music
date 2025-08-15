@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia;
 using Avalonia.Layout;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using QwQ_Music.Common;
 
 namespace QwQ_Music.Models.ConfigModels;
 
@@ -41,15 +43,19 @@ public class ColorJsonConverter : JsonConverter<Color>
             {
                 case "A":
                     a = reader.GetByte();
+
                     break;
                 case "R":
                     r = reader.GetByte();
+
                     break;
                 case "G":
                     g = reader.GetByte();
+
                     break;
                 case "B":
                     b = reader.GetByte();
+
                     break;
             }
         }
@@ -99,9 +105,11 @@ public class PixelPointJsonConverter : JsonConverter<PixelPoint>
             {
                 case "X":
                     x = reader.GetInt32();
+
                     break;
                 case "Y":
                     y = reader.GetInt32();
+
                     break;
             }
         }
@@ -123,23 +131,21 @@ public class LyricConfig : ObservableObject
     public RolledLyricConfig RolledLyric { get; set; } = new();
 
     public DesktopLyricConfig DesktopLyric { get; set; } = new();
+    
+    public static Dictionary<HorizontalAlignment, string> TextAlignments { get; } = new()
+    {
+        [HorizontalAlignment.Left] = "左对齐",
+        [HorizontalAlignment.Center] = "居中",
+        [HorizontalAlignment.Right] = "右对齐",
+    };
 
-    public bool IsExpandedRolledLyricConfig { get; set; }
-
-    public bool IsExpandedDesktopLyricConfig { get; set; }
-
-    [JsonIgnore]
-    public static HorizontalAlignment[] TextAlignments { get; } =
-        [HorizontalAlignment.Left, HorizontalAlignment.Center, HorizontalAlignment.Right];
 }
 
 public partial class RolledLyricConfig : ObservableObject
 {
-    [ObservableProperty]
-    public partial HorizontalAlignment LyricTextAlignment { get; set; } = HorizontalAlignment.Left;
+    [ObservableProperty] public partial HorizontalAlignment LyricTextAlignment { get; set; } = HorizontalAlignment.Left;
 
-    [ObservableProperty]
-    public partial bool ShowTranslation { get; set; }
+    [ObservableProperty] public partial bool ShowTranslation { get; set; }
 }
 
 public partial class DesktopLyricConfig : ObservableObject
@@ -148,14 +154,13 @@ public partial class DesktopLyricConfig : ObservableObject
 
     public bool LockLyricWindow { get; set; }
 
-    [ObservableProperty]
-    public partial bool LyricIsDoubleLine { get; set; } = true;
+    [ObservableProperty] public partial bool LyricIsDoubleLine { get; set; } = true;
 
-    [ObservableProperty]
-    public partial bool LyricIsDualLang { get; set; }
+    [ObservableProperty] public partial bool LyricIsDualLang { get; set; }
 
-    [ObservableProperty]
-    public partial bool LyricIsVertical { get; set; }
+    [ObservableProperty] public partial bool LyricIsVertical { get; set; }
+
+    [ObservableProperty] public partial string DesktopLyricsFont { get; set; } = AppResources.DEFAULT_FONT_KEY;
 
     [ObservableProperty]
     [JsonConverter(typeof(PixelPointJsonConverter))]
@@ -165,8 +170,7 @@ public partial class DesktopLyricConfig : ObservableObject
     [NotifyPropertyChangedFor(nameof(LyricMargin))]
     public partial double LyricSpacing { get; set; } = 10;
 
-    [ObservableProperty]
-    public partial double LyricWidth { get; set; } = 500;
+    [ObservableProperty] public partial double LyricWidth { get; set; } = 500;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(WindowCornerRadius))]
@@ -176,8 +180,7 @@ public partial class DesktopLyricConfig : ObservableObject
 
     public Thickness LyricMargin => new(LyricSpacing);
 
-    [ObservableProperty]
-    public partial HorizontalAlignment LyricTextAlignment { get; set; } = HorizontalAlignment.Center;
+    [ObservableProperty] public partial HorizontalAlignment LyricTextAlignment { get; set; } = HorizontalAlignment.Center;
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
@@ -207,27 +210,19 @@ public partial class DesktopLyricConfig : ObservableObject
     [JsonConverter(typeof(ColorJsonConverter))]
     public partial Color LyricBackground { get; set; }
 
-    [ObservableProperty]
-    public partial double LyricMainFontSize { get; set; } = 20;
+    [ObservableProperty] public partial double LyricMainFontSize { get; set; } = 20;
 
-    [ObservableProperty]
-    public partial double LyricAltFontSize { get; set; } = 18;
+    [ObservableProperty] public partial double LyricAltFontSize { get; set; } = 18;
 
-    [ObservableProperty]
-    public partial double LyricMainLetterSpacing { get; set; } = 2;
+    [ObservableProperty] public partial double LyricMainLetterSpacing { get; set; } = 2;
 
-    [ObservableProperty]
-    public partial double LyricAltLetterSpacing { get; set; } = 2;
+    [ObservableProperty] public partial double LyricAltLetterSpacing { get; set; } = 2;
 
-    [ObservableProperty]
-    public partial double LyricMainStrokeThickness { get; set; } = 3;
+    [ObservableProperty] public partial double LyricMainStrokeThickness { get; set; } = 3;
 
-    [ObservableProperty]
-    public partial double LyricAltStrokeThickness { get; set; } = 3;
+    [ObservableProperty] public partial double LyricAltStrokeThickness { get; set; } = 3;
 
-    [ObservableProperty]
-    public partial double LyricMainTranslateSpacing { get; set; } = 2;
+    [ObservableProperty] public partial double LyricMainTranslateSpacing { get; set; } = 2;
 
-    [ObservableProperty]
-    public partial double LyricAltTranslateSping { get; set; } = 2;
+    [ObservableProperty] public partial double LyricAltTranslateSping { get; set; } = 2;
 }

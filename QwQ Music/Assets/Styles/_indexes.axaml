@@ -1,8 +1,0 @@
-<Style xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!--  Add Styles Here  -->
-    <StyleInclude Source="Button.axaml" />
-    <StyleInclude Source="Slider.axaml" />
-    <StyleInclude Source="LyricsControl.axaml"/>
-    <StyleInclude Source="LyricLineControl.axaml"/>
-    <StyleInclude Source="IconButton.axaml" />
-</Style>

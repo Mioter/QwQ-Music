@@ -1,33 +1,18 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Avalonia.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using QwQ_Music.Definitions;
-using QwQ_Music.Helper;
-using QwQ_Music.Models;
+using QwQ_Music.Common.Manager;
 using QwQ_Music.Models.ConfigModels;
-using QwQ_Music.Services;
-using QwQ_Music.Services.Audio;
-using QwQ_Music.Utilities;
-using QwQ_Music.ViewModels.ViewModelBases;
-using QwQ.Avalonia.Utilities.MessageBus;
-using QwQ.Avalonia.Utilities.TaskManager;
-using SoundFlow.Modifiers;
-using PlayerConfig = QwQ_Music.Models.ConfigModels.PlayerConfig;
+using QwQ_Music.ViewModels.Bases;
 
 namespace QwQ_Music.ViewModels.Pages;
 
-public partial class PlayConfigPageViewModel : ViewModelBase
+public class PlayConfigPageViewModel : ViewModelBase
 {
     public PlayerConfig PlayerConfig { get; } = ConfigManager.PlayerConfig;
 
-    public MusicPlayerViewModel MusicPlayerViewModel { get; } = MusicPlayerViewModel.Instance;
+    public static MusicPlayerViewModel MusicPlayerViewModel => MusicPlayerViewModel.Default;
 
     public AudioModifierConfig AudioModifierConfig { get; } = ConfigManager.AudioModifierConfig;
 
-    public PlayConfigPageViewModel()
+    /*public PlayConfigPageViewModel()
     {
         ReplayGainCalculator.CalcCompletedChanged += ReplayGainCalculatorOnCalcCompletedChanged;
         MessageBus
@@ -46,7 +31,7 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     {
         try
         {
-            if (obj.Name == nameof(MusicPlayerViewModel.MusicItems))
+            if (obj.Name == nameof(MusicPlayerViewModel.MusicLists))
             {
                 await RefreshNumberOfCompletedCalc();
             }
@@ -62,8 +47,9 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     private void ExitReminderMessageHandler(ExitReminderMessage obj, object? sender)
     {
         ReplayGainCalculator.CalcCompletedChanged -= ReplayGainCalculatorOnCalcCompletedChanged;
-    }
+    }*/
 
+    /*
     public FadeModifier.FadeCurve[] FadeCurves { get; } = EnumHelper<FadeModifier.FadeCurve>.ToArray();
 
     #region 回放增益
@@ -92,7 +78,7 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     {
         await Task.Run(() =>
         {
-            foreach (var musicItem in MusicPlayerViewModel.MusicItems)
+            foreach (var musicItem in MusicPlayerViewModel.MusicLists)
             {
                 if (musicItem.Gain < 0)
                     continue;
@@ -106,8 +92,8 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     private async Task ToggleCalculation()
     {
         if (
-            MusicPlayerViewModel.MusicItems.Count <= 0
-            || NumberOfCompletedCalc == MusicPlayerViewModel.MusicItems.Count
+            MusicPlayerViewModel.MusicLists.Count <= 0
+            || NumberOfCompletedCalc == MusicPlayerViewModel.MusicLists.Count
         )
             return;
 
@@ -159,7 +145,7 @@ public partial class PlayConfigPageViewModel : ViewModelBase
     {
         TaskController = new TaskController();
 
-        var itemsToProcess = MusicPlayerViewModel.MusicItems.Where(item => item.Gain <= 0).ToList();
+        var itemsToProcess = MusicPlayerViewModel.MusicLists.Where(item => item.Gain <= 0).ToList();
 
         TaskManager
             .CreateMultiTask(
@@ -202,13 +188,11 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
     private async Task RefreshNumberOfCompletedCalc()
     {
-        if (MusicPlayerViewModel.MusicItems.Count <= 0)
+        if (MusicPlayerViewModel.MusicLists.Count <= 0)
             return;
 
-        await Task.Run(() => NumberOfCompletedCalc = MusicPlayerViewModel.MusicItems.Count(x => x.Gain > 0));
+        await Task.Run(() => NumberOfCompletedCalc = MusicPlayerViewModel.MusicLists.Count(x => x.Gain > 0));
     }
 
-    #endregion
-
-    public static IBrush RandomColor => ColorGenerator.GeneratePastelColor();
+    #endregion*/
 }

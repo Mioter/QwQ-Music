@@ -6,15 +6,15 @@ namespace QwQ_Music.Views.UserControls;
 
 public partial class MusicAlbumCover : UserControl
 {
-    public MusicAlbumCover()
-    {
-        InitializeComponent();
-    }
-
     public static readonly StyledProperty<Bitmap> CoverImageProperty = AvaloniaProperty.Register<
         MusicAlbumCover,
         Bitmap
     >(nameof(CoverImage));
+
+    public MusicAlbumCover()
+    {
+        InitializeComponent();
+    }
 
     public Bitmap CoverImage
     {

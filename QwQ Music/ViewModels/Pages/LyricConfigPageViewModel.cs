@@ -1,51 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
 using Avalonia;
-using Avalonia.Controls.Notifications;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
-using QwQ_Music.Definitions;
-using QwQ_Music.Models;
+using QwQ_Music.Common;
+using QwQ_Music.Common.Manager;
+using QwQ_Music.Common.Services;
 using QwQ_Music.Models.ConfigModels;
-using QwQ_Music.Services;
-using QwQ_Music.ViewModels.ViewModelBases;
+using QwQ_Music.ViewModels.Bases;
 using QwQ_Music.Views;
-using QwQ.Avalonia.Utilities.MessageBus;
 using static QwQ_Music.Models.LanguageModel;
 
 namespace QwQ_Music.ViewModels.Pages;
 
 public partial class LyricConfigPageViewModel : ViewModelBase
 {
-    public static string IsEnabledName => Lang[nameof(IsEnabledName)];
-    public static string IsDoubleLineName => Lang[nameof(IsDoubleLineName)];
-    public static string IsDualLangName => Lang[nameof(IsDualLangName)];
-    public static string PositionXName => Lang[nameof(PositionXName)];
-    public static string PositionYName => Lang[nameof(PositionYName)];
-    public static string WidthName => Lang[nameof(WidthName)];
-    public static string HeightName => Lang[nameof(HeightName)];
-    public static string LyricMainTopColorName => Lang[nameof(LyricMainTopColorName)];
-    public static string LyricMainBottomColorName => Lang[nameof(LyricMainBottomColorName)];
-    public static string LyricMainBorderColorName => Lang[nameof(LyricMainBorderColorName)];
-    public static string LyricAltTopColorName => Lang[nameof(LyricAltTopColorName)];
-    public static string LyricAltBottomColorName => Lang[nameof(LyricAltBottomColorName)];
-    public static string LyricAltBorderColorName => Lang[nameof(LyricAltBorderColorName)];
-
     private DesktopLyricsWindow? _desktopLyricsWindow;
-    private DesktopLyricsWindowViewModel? _desktopLyricsWindowViewModel;
+    
+    public static AppResources AppResources => AppResources.Default;
 
     public LyricConfigPageViewModel()
     {
-        MessageBus
-            .ReceiveMessage<ExitReminderMessage>(this)
-            .WithHandler((_, _) => Dispatcher.UIThread.Post(HideLyricWindow))
-            .AsWeakReference()
-            .Subscribe();
-
         ToggleWindowDisplayStatus(LyricIsEnabled);
         OnPropertyChanged(nameof(LyricWidth));
         SetLyricsWindowWidth(LyricConfig.DesktopLyric.LyricIsDoubleLine);
     }
+
+    public static string IsEnabledName => Lang[nameof(IsEnabledName)];
+
+    public static string IsDoubleLineName => Lang[nameof(IsDoubleLineName)];
+
+    public static string IsDualLangName => Lang[nameof(IsDualLangName)];
+
+    public static string PositionXName => Lang[nameof(PositionXName)];
+
+    public static string PositionYName => Lang[nameof(PositionYName)];
+
+    public static string WidthName => Lang[nameof(WidthName)];
+
+    public static string HeightName => Lang[nameof(HeightName)];
+
+    public static string LyricMainTopColorName => Lang[nameof(LyricMainTopColorName)];
+
+    public static string LyricMainBottomColorName => Lang[nameof(LyricMainBottomColorName)];
+
+    public static string LyricMainBorderColorName => Lang[nameof(LyricMainBorderColorName)];
+
+    public static string LyricAltTopColorName => Lang[nameof(LyricAltTopColorName)];
+
+    public static string LyricAltBottomColorName => Lang[nameof(LyricAltBottomColorName)];
+
+    public static string LyricAltBorderColorName => Lang[nameof(LyricAltBorderColorName)];
 
     public bool LyricIsEnabled
     {
@@ -56,20 +60,9 @@ public partial class LyricConfigPageViewModel : ViewModelBase
                 return;
 
             LyricConfig.DesktopLyric.LyricIsEnabled = value;
+            OnPropertyChanged();
 
             ToggleWindowDisplayStatus(value);
-        }
-    }
-
-    private void ToggleWindowDisplayStatus(bool value)
-    {
-        if (value)
-        {
-            ShowLyricWindow();
-        }
-        else
-        {
-            HideLyricWindow();
         }
     }
 
@@ -114,6 +107,31 @@ public partial class LyricConfigPageViewModel : ViewModelBase
         }
     }
 
+    public static LyricConfig LyricConfig { get; } = ConfigManager.LyricConfig;
+
+    public string? DesktopLyricsFont
+    {
+        get => LyricConfig.DesktopLyric.DesktopLyricsFont;
+        set
+        {
+            if (value == LyricConfig.DesktopLyric.DesktopLyricsFont || value == null) return;
+
+            LyricConfig.DesktopLyric.DesktopLyricsFont = value;
+        }
+    }
+
+    private void ToggleWindowDisplayStatus(bool value)
+    {
+        if (value)
+        {
+            ShowLyricWindow();
+        }
+        else
+        {
+            HideLyricWindow();
+        }
+    }
+
     private void SetLyricsWindowWidth(bool value)
     {
         if (_desktopLyricsWindow == null)
@@ -137,18 +155,18 @@ public partial class LyricConfigPageViewModel : ViewModelBase
             (int)(currentCenter.X - newWidth * scaling / 2),
             (int)(currentCenter.Y - _desktopLyricsWindow.Height * scaling / 2)
         );
+
         _desktopLyricsWindow.Position = newPosition;
     }
-
-    public static LyricConfig LyricConfig { get; } = ConfigManager.LyricConfig;
 
     private void ShowLyricWindow()
     {
         _desktopLyricsWindow = new DesktopLyricsWindow
         {
-            DataContext = _desktopLyricsWindowViewModel = new DesktopLyricsWindowViewModel(),
+            DataContext = new DesktopLyricsWindowViewModel(),
             Width = LyricWidowWidth,
         };
+
         _desktopLyricsWindow.Show();
     }
 
@@ -161,9 +179,17 @@ public partial class LyricConfigPageViewModel : ViewModelBase
     [RelayCommand]
     private void SetWindowPosition(string position)
     {
-        if (_desktopLyricsWindow == null || _desktopLyricsWindow.Screens.Primary == null)
+        if (_desktopLyricsWindow == null)
         {
-            NotificationService.ShowLight("错误", "无法获取屏幕宽高~", NotificationType.Error);
+            NotificationService.Error("请先启动歌词窗口~");
+
+            return;
+        }
+
+        if (_desktopLyricsWindow.Screens.Primary == null)
+        {
+            NotificationService.Error("无法获取屏幕宽高~");
+
             return;
         }
 
@@ -176,10 +202,12 @@ public partial class LyricConfigPageViewModel : ViewModelBase
         var positions = new Dictionary<string, Func<PixelPoint>>
         {
             ["↖"] = () => new PixelPoint(0, 0),
+
             // ReSharper disable once PossibleLossOfFraction
             ["↑"] = () => new PixelPoint((int)(screenWidth / 2 - windowWidth / 2), 0),
             ["↗"] = () => new PixelPoint((int)(screenWidth - windowWidth), 0),
             ["↙"] = () => new PixelPoint(0, (int)(screenHeight - windowHeight)),
+
             // ReSharper disable once PossibleLossOfFraction
             ["↓"] = () => new PixelPoint((int)(screenWidth / 2 - windowWidth / 2), (int)(screenHeight - windowHeight)),
             ["↘"] = () => new PixelPoint((int)(screenWidth - windowWidth), (int)(screenHeight - windowHeight)),
@@ -189,6 +217,7 @@ public partial class LyricConfigPageViewModel : ViewModelBase
         {
             _desktopLyricsWindow.Position = getPosition();
         }
+
         // 如果不是已知位置，则保持原位置
     }
 }

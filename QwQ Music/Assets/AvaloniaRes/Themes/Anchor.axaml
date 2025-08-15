@@ -1,0 +1,31 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:anchorControl="clr-namespace:QwQ_Music.UI.Controls.AnchorControl">
+
+    <Thickness x:Key="ScrollBarMargin">0,0,10,0</Thickness>
+
+    <ControlTheme x:Key="{x:Type anchorControl:Anchor}" TargetType="anchorControl:Anchor">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel Background="{TemplateBinding Background}">
+                    <!-- 吸附标题 -->
+                    <Panel x:Name="PART_StickyHeader"
+                           Background="{DynamicResource SemiColorBackground0}"
+                           Height="{TemplateBinding HeaderHeight}"
+                           Margin="{StaticResource ScrollBarMargin}"
+                           VerticalAlignment="Top"
+                           ZIndex="1">
+                        <ContentPresenter x:Name="PART_StickyHeaderContent"
+                                          Content="{TemplateBinding StickyHeader}"
+                                          ContentTemplate="{TemplateBinding HeaderTemplate}" />
+                    </Panel>
+                    <!-- 滚动内容区 -->
+                    <ScrollViewer x:Name="PART_ScrollViewer" Padding="{StaticResource ScrollBarMargin}">
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+
+    </ControlTheme>
+</ResourceDictionary>

@@ -1,11 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Amusing;
-using QwQ_Music.Services;
-using QwQ_Music.Utilities;
-using QwQ_Music.ViewModels.ViewModelBases;
+using QwQ_Music.Common.Services;
+using QwQ_Music.Common.Utilities;
+using QwQ_Music.ViewModels.Bases;
 
 namespace QwQ_Music.ViewModels.Pages;
 
@@ -33,6 +32,6 @@ public partial class MiaomiaoLittleToyPageViewModel : ViewModelBase
     private static void ExecuteMemoryCleaner()
     {
         string info = MemoryCleaner.CleanAndGetInfo();
-        NotificationService.ShowLight("提示", info, NotificationType.Information);
+        NotificationService.Info("提示", info);
     }
 }

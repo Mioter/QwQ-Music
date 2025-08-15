@@ -1,26 +1,25 @@
-using QwQ_Music.Definitions.Enums;
-using QwQ_Music.Helper;
-using QwQ_Music.Models;
+using System.Collections.Generic;
+using QwQ_Music.Common.Helper;
+using QwQ_Music.Common.Manager;
+using QwQ_Music.Common.Services;
 using QwQ_Music.Models.ConfigModels;
-using QwQ_Music.Services;
-using QwQ_Music.ViewModels.ViewModelBases;
-using SystemConfig = QwQ_Music.Models.ConfigModels.SystemConfig;
+using QwQ_Music.Models.Enums;
+using QwQ_Music.ViewModels.Bases;
 
 namespace QwQ_Music.ViewModels.Pages;
 
 public class SystemConfigPageViewModel : ViewModelBase
 {
     public SystemConfig Config { get; } = ConfigManager.SystemConfig;
+
     public static LoggerServiceConfig LoggerServiceConfig => ConfigManager.LoggerServiceConfig;
+
     public static DataBaseConfig DataBaseConfig => ConfigManager.DataBaseConfig;
+
     public static JsonServiceConfig JsonServiceConfig => ConfigManager.JsonServiceConfig;
 
-    public static ClosingBehaviorMap[] ClosingBehaviors { get; } =
-        [
-            new("每次都询问", ClosingBehavior.AskAbout),
-            new("直接退出", ClosingBehavior.Exit),
-            new("隐藏到系统托盘", ClosingBehavior.HideToTray),
-        ];
+    public static Dictionary<ClosingBehavior, string> ClosingBehaviors =>
+        EnumHelper<ClosingBehavior>.GetValueDescriptionDictionary();
 
     public static LogLevel[] LogLevels { get; } = EnumHelper<LogLevel>.ToArray();
 }

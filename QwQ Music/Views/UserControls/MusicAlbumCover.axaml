@@ -1,33 +1,30 @@
 <userControls:MusicAlbumCover xmlns="https://github.com/avaloniaui"
-                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 xmlns:behaviors="clr-namespace:QwQ_Music.Helper.Behaviors"
-                 xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
-                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-                 x:Class="QwQ_Music.Views.UserControls.MusicAlbumCover">
-    
+                              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                              xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+                              xmlns:behaviors="clr-namespace:QwQ_Music.UI.Behaviors"
+                              x:Class="QwQ_Music.Views.UserControls.MusicAlbumCover">
+
     <userControls:MusicAlbumCover.Template>
         <ControlTemplate>
+            <Border
+                Background="Black"
+                BorderBrush="White"
+                BorderThickness="3"
+                BoxShadow="0 0 10 0 DarkGray"
+                Margin="10"
+                behaviors:DynamicCornerBehavior.IsEnabled="True">
                 <Border
-                    Background="Black"
-                    BorderBrush="White"
-                    BorderThickness="3"
-                    BoxShadow="0 0 10 0 DarkGray"
-                    Margin="10"
+                    ClipToBounds="True"
+                    Margin="5"
                     behaviors:DynamicCornerBehavior.IsEnabled="True">
-                    <Border
-                        ClipToBounds="True"
-                        Margin="5"
-                        behaviors:DynamicCornerBehavior.IsEnabled="True">
 
-                        <!--  专辑封面 Image 控件  -->
-                        <Image Source="{TemplateBinding CoverImage}"/>
-                    </Border>
-            
+                    <!--  专辑封面 Image 控件  -->
+                    <Image Source="{TemplateBinding CoverImage}" />
                 </Border>
+
+            </Border>
         </ControlTemplate>
     </userControls:MusicAlbumCover.Template>
-    
+
 
 </userControls:MusicAlbumCover>

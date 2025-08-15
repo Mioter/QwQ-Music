@@ -1,0 +1,43 @@
+<u:UrsaWindow xmlns="https://github.com/avaloniaui"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+              xmlns:u="https://irihi.tech/ursa"
+              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+              x:Class="QwQ_Music.Views.WindowBox"
+              Icon="resm:QwQ_Music.Assets.EmbeddedRes.app-icon.ico">
+
+    <u:UrsaWindow.Styles>
+        <!-- 窗口样式 -->
+
+        <Style Selector="u|TitleBar /template/ u|CaptionButtons#PART_CaptionButtons">
+            <Setter Property="MinHeight" Value="40" />
+        </Style>
+
+        <Style Selector="u|TitleBar /template/ u|CaptionButtons#PART_CaptionButtons:normal /template/ StackPanel">
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="Spacing" Value="5" />
+        </Style>
+
+        <Style Selector="u|TitleBar /template/ u|CaptionButtons#PART_CaptionButtons /template/ Button">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Width" Value="30" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <Style Selector="u|TitleBar /template/ u|CaptionButtons#PART_CaptionButtons">
+            <Style Selector="^:normal /template/ PathIcon#PART_CloseButtonIcon">
+                <Setter Property="Data" Value="{StaticResource SemiIconClose}" />
+                <Setter Property="Height" Value="13.5" />
+            </Style>
+            <Style Selector="^:maximized /template/ PathIcon#PART_CloseButtonIcon">
+                <Setter Property="Data" Value="{StaticResource SemiIconClose}" />
+                <Setter Property="Height" Value="13.5" />
+            </Style>
+        </Style>
+
+        <!-- 控件样式 -->
+
+    </u:UrsaWindow.Styles>
+
+</u:UrsaWindow>

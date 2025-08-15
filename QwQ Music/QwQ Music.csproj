@@ -8,54 +8,74 @@
         <TargetFramework>net9.0</TargetFramework>
         <LangVersion>preview</LangVersion>
         <ImplicitUsings>disable</ImplicitUsings>
-        <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+        <ApplicationIcon>Assets\EmbeddedRes\app-icon.ico</ApplicationIcon>
 <!--        <PublishAot>true</PublishAot>
         <TrimMode>link</TrimMode>-->
     </PropertyGroup>
 
     <ItemGroup>
-        <AvaloniaResource Include="Assets\**" Exclude="Assets\Shaders\**;Assets\Fonts\**;Assets\Images\**;Assets\AppIcon.ico" />
-        <EmbeddedResource Include="Assets\Images\**" />
-        <EmbeddedResource Include="Assets\Shaders\**" />
-        <EmbeddedResource Include="Assets\Fonts\**" />
-        <EmbeddedResource Include="Assets\AppIcon.ico" />
-    </ItemGroup>
-    
-    <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.3.2" />
-        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.2" />
-        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.2" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.2" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.2" />
-        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.2">
-            <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
-            <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
-        </PackageReference>
-        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-        <PackageReference Include="Irihi.Ursa" Version="1.12.0" />
-        <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.12.0" />
-        <PackageReference Include="managed-midi" Version="1.10.1" />
-        <PackageReference Include="QwQ.Avalonia" Version="0.1.7.3" />
-        <PackageReference Include="Semi.Avalonia" Version="11.2.1.9" />
-        <PackageReference Include="Semi.Avalonia.ColorPicker" Version="11.2.1.9" />
-        <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.9" />
-        <PackageReference Include="SkiaSharp" Version="3.119.0" />
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.6.25358.103" />
-        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.2" />
-        <PackageReference Include="z440.atl.core" Version="7.2.0" />
+        <AvaloniaResource Include="Assets\AvaloniaRes\**"/>
+        <EmbeddedResource Include="Assets\EmbeddedRes\**"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Impressionist\Impressionist.csproj" />
-        <ProjectReference Include="..\SoundFlow\SoundFlow.csproj" />
-        <ProjectReference Include="..\NcmdumpCSharp\NcmdumpCSharp\NcmdumpCSharp.csproj" />
+        <PackageReference Include="Avalonia" Version="11.3.4" />
+        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.4" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.4" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.4" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.4" />
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.4">
+            <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+            <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0"/>
+        <PackageReference Include="Irihi.Ursa" Version="1.12.0"/>
+        <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="1.12.0"/>
+        <PackageReference Include="managed-midi" Version="1.10.1"/>
+        <PackageReference Include="QwQ.Avalonia" Version="0.1.7.3"/>
+        <PackageReference Include="Semi.Avalonia" Version="11.2.1.9"/>
+        <PackageReference Include="Semi.Avalonia.ColorPicker" Version="11.2.1.9"/>
+        <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.9"/>
+        <PackageReference Include="SkiaSharp" Version="3.119.0"/>
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.7.25380.108" />
+        <PackageReference Include="SoundFlow" Version="1.2.1" />
+        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.2"/>
+        <PackageReference Include="z440.atl.core" Version="7.3.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Impressionist\Impressionist.csproj"/>
+        <ProjectReference Include="..\NcmdumpCSharp\NcmdumpCSharp\NcmdumpCSharp.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
         <None Include="..\README.md" Pack="true" PackagePath="\"/>
-        <None Include="..\LICENSE.md" Pack="true" PackagePath="\" />
+        <None Include="..\LICENSE.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
-    
+
+    <ItemGroup>
+        <Compile Update="Views\Panels\AllAlbumsPanel.axaml.cs">
+            <DependentUpon>AllAlbumsPanel.axaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Views\Panels\AlbumDetailsPanel.axaml.cs">
+            <DependentUpon>AlbumDetailsPanel.axaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Views\Panels\AllMusicListPanel.axaml.cs">
+            <DependentUpon>AllMusicListPanel.axaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Views\Panels\MusicListDetailsPanel.cs">
+            <DependentUpon>MusicListDetailsPanel.axaml</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Assets\AvaloniaRes\Palette\.index.axaml" />
+      <AdditionalFiles Include="Assets\AvaloniaRes\Palette\Dark.axaml" />
+      <AdditionalFiles Include="Assets\AvaloniaRes\Palette\Light.axaml" />
+    </ItemGroup>
+
 </Project>

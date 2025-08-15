@@ -1,0 +1,91 @@
+<Grid xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+      xmlns:dialogs="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      RowDefinitions="Auto,*,Auto"
+      Margin="20" RowSpacing="20"
+      x:DataType="dialogs:CreateMusicListViewModel"
+      x:Class="QwQ_Music.Views.Dialogs.CreateMusicList">
+
+    <StackPanel Orientation="Horizontal" Spacing="10">
+
+        <PathIcon Height="20" Width="20" Data="{StaticResource SemiIconPlusCircle}"
+                  Foreground="#46C01B" />
+
+        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+    </StackPanel>
+
+    <DockPanel Grid.Row="1" HorizontalSpacing="20" VerticalSpacing="10" Height="250" Width="500">
+
+        <DockPanel.Styles>
+
+            <Style Selector="DockPanel > StackPanel">
+                <Setter Property="Spacing" Value="5" />
+            </Style>
+
+        </DockPanel.Styles>
+
+        <Button Classes="Icon"
+                Height="180"
+                Width="180"
+                Padding="0"
+                Command="{Binding SetCoverCommand}"
+                Background="#F5F5F6"
+                CornerRadius="8">
+            <control:SwitchControl
+                Condition="{Binding Cover,Converter={x:Static ObjectConverters.IsNull}}">
+
+                <control:SwitchControl.TrueContent>
+                    <PathIcon Foreground="#CACACA" Margin="50"
+                              Data="{StaticResource AddCover}" />
+                </control:SwitchControl.TrueContent>
+
+                <control:SwitchControl.FalseContent>
+                    <Border CornerRadius="{Binding $parent[Button].CornerRadius}" ClipToBounds="True">
+                        <Image Source="{Binding Cover}" />
+                    </Border>
+                </control:SwitchControl.FalseContent>
+
+            </control:SwitchControl>
+        </Button>
+
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock Text="名称 :"
+                       FontWeight="Bold" />
+
+            <TextBox Name="NameTextBlock" CornerRadius="8" Text="{Binding   Name}" />
+        </StackPanel>
+
+        <StackPanel>
+            <TextBlock Text="描述 :" Classes="Tertiary" FontWeight="Bold" />
+            <TextBox Height="155"
+                     CornerRadius="8"
+                     TextWrapping="Wrap"
+                     VerticalContentAlignment="Top"
+                     Padding="8,5"
+                     Text="{Binding Description}" />
+        </StackPanel>
+
+    </DockPanel>
+
+    <StackPanel Grid.Row="2" Spacing="20" HorizontalAlignment="Right" Orientation="Horizontal">
+
+        <StackPanel.Styles>
+            <Style Selector="Button">
+                <Setter Property="CornerRadius" Value="8" />
+            </Style>
+        </StackPanel.Styles>
+
+        <Button Content="取消"
+                Theme="{DynamicResource OutlineButton}"
+                Command="{Binding CancelCommand}" />
+
+        <Button Content="确认"
+                IsEnabled="{Binding !HasErrors}"
+                Command="{Binding OkCommand}"
+                Theme="{DynamicResource SolidButton}" />
+
+    </StackPanel>
+
+</Grid>

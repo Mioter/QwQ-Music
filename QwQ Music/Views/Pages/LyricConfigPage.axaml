@@ -1,339 +1,564 @@
-﻿<UserControl
-    x:Class="QwQ_Music.Views.Pages.LyricConfigPage"
-    x:DataType="pages:LyricConfigPageViewModel"
-    xmlns="https://github.com/avaloniaui"
-    xmlns:u="https://irihi.tech/ursa"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
-    xmlns:converters="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls.ColorPicker"
-    xmlns:converters1="clr-namespace:Avalonia.Controls.Primitives.Converters;assembly=Avalonia.Controls.ColorPicker"
-    xmlns:configModels="clr-namespace:QwQ_Music.Models.ConfigModels">
+﻿<Grid ColumnDefinitions="Auto,*" ColumnSpacing="20" Margin="0,10"
+      x:Class="QwQ_Music.Views.Pages.LyricConfigPage"
+      x:DataType="pages:LyricConfigPageViewModel"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:u="https://irihi.tech/ursa"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+      xmlns:converters="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls.ColorPicker"
+      xmlns:converters1="clr-namespace:Avalonia.Controls.Primitives.Converters;assembly=Avalonia.Controls.ColorPicker"
+      xmlns:configModels="clr-namespace:QwQ_Music.Models.ConfigModels"
+      xmlns:anchorControl="clr-namespace:QwQ_Music.UI.Controls.AnchorControl"
+      xmlns:models="clr-namespace:QwQ_Music.Models">
 
-    <UserControl.Resources>
+    <Grid.Resources>
         <converters:ToBrushConverter x:Key="ToBrushConverter" />
         <converters1:ContrastBrushConverter x:Key="ContrastBrushConverter" />
-    </UserControl.Resources>
+    </Grid.Resources>
 
-    <UserControl.Styles>
+    <u:SelectionList Grid.Column="0" Name="NavigationList">
 
-        <Style Selector="ColorView">
-            <Setter Property="ColorSpectrumShape" Value="Ring" />
-        </Style>
+        <TextBlock Text="界面" />
+        <TextBlock Text="显示" />
+        <TextBlock Text="样式" />
 
-        <Style Selector="StackPanel">
-            <Setter Property="Spacing" Value="10" />
-        </Style>
+    </u:SelectionList>
 
-    </UserControl.Styles>
+    <anchorControl:Anchor Grid.Column="1" IndexSource="{Binding ElementName=NavigationList}">
 
-    <ScrollViewer
-        Margin="10"
-        VerticalScrollBarVisibility="Auto">
+        <anchorControl:Anchor.Styles>
 
-        <StackPanel Margin="0,0,10,0">
+            <Style Selector="StackPanel">
+                <Setter Property="Spacing" Value="10" />
+            </Style>
 
-            <Expander Header="滚动歌词" IsExpanded="{Binding LyricConfig.IsExpandedRolledLyricConfig}">
+        </anchorControl:Anchor.Styles>
 
-                <StackPanel>
-                    <Panel>
-                        <TextBlock Text="歌词文本对齐方式" VerticalAlignment="Center" />
-                        <ComboBox
-                            Width="80"
-                            HorizontalAlignment="Right"
-                            ItemsSource="{x:Static configModels:LyricConfig.TextAlignments}"
-                            SelectedItem="{Binding LyricConfig.RolledLyric.LyricTextAlignment}" />
-                    </Panel>
+        <anchorControl:Anchor.HeaderTemplate>
 
-                    <CheckBox Content="显示翻译" IsChecked="{Binding LyricConfig.RolledLyric.ShowTranslation}" />
+            <DataTemplate DataType="models:AnchorHeaderModel">
+                <DockPanel HorizontalSpacing="10">
+                    <Separator VerticalAlignment="Bottom" Margin="0" DockPanel.Dock="Bottom" />
+                    <TextBlock FontSize="16" Text="{Binding Name}" FontWeight="Bold" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Describe}"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource SemiColorTertiary}" />
+                </DockPanel>
+            </DataTemplate>
 
-                </StackPanel>
+        </anchorControl:Anchor.HeaderTemplate>
 
-            </Expander>
+        <anchorControl:AnchorItem>
 
-            <Expander Header="桌面歌词" IsExpanded="{Binding LyricConfig.IsExpandedDesktopLyricConfig}">
+            <anchorControl:AnchorItem.Header>
+                <models:AnchorHeaderModel Name="界面" Describe="播放器界面的歌词设置" />
+            </anchorControl:AnchorItem.Header>
 
-                <StackPanel>
+            <StackPanel>
 
-                    <CheckBox
-                        Content="{Binding IsEnabledName}"
-                        IsChecked="{Binding LyricIsEnabled}" />
+                <Panel>
+                    <TextBlock Text="歌词文本对齐方式" VerticalAlignment="Center" />
+                    <ComboBox
+                        Width="80"
+                        HorizontalAlignment="Right"
+                        DisplayMemberBinding="{Binding Value}"
+                        SelectedValueBinding="{Binding Key}"
+                        ItemsSource="{x:Static configModels:LyricConfig.TextAlignments}"
+                        SelectedValue="{Binding LyricConfig.RolledLyric.LyricTextAlignment}" />
+                </Panel>
 
-                    <CheckBox
-                        Content="锁定"
-                        IsChecked="{Binding LockLyricWindow}" />
+                <CheckBox Content="显示翻译" IsChecked="{Binding LyricConfig.RolledLyric.ShowTranslation}" />
 
-                    <CheckBox
-                        Content="{Binding IsDoubleLineName}"
-                        IsChecked="{Binding LyricIsDoubleLine}" />
+            </StackPanel>
 
-                    <CheckBox
-                        Content="{Binding IsDualLangName}"
-                        IsChecked="{Binding LyricConfig.DesktopLyric.LyricIsDualLang}" />
+        </anchorControl:AnchorItem>
 
-                    <StackPanel Orientation="Horizontal" Spacing="10">
+        <anchorControl:AnchorItem>
+            
+            <anchorControl:AnchorItem.Header>
+                <models:AnchorHeaderModel Name="显示" Describe="桌面歌词显示设置" />
+            </anchorControl:AnchorItem.Header>
 
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding PositionXName}" Classes="Tertiary" />
-                            <TextBlock Text="{Binding LyricConfig.DesktopLyric.Position.X,StringFormat=': {0} px'}"
-                                       Classes="Tertiary" />
-                        </StackPanel>
+            <StackPanel>
 
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding PositionYName}" Classes="Tertiary" />
-                            <TextBlock Text="{Binding LyricConfig.DesktopLyric.Position.Y,StringFormat=': {0} px'}"
-                                       Classes="Tertiary" />
-                        </StackPanel>
+                <CheckBox
+                    Content="{Binding IsEnabledName}"
+                    IsChecked="{Binding LyricIsEnabled}" />
 
+                <CheckBox
+                    Content="锁定"
+                    IsChecked="{Binding LockLyricWindow}" />
+
+                <CheckBox
+                    Content="{Binding IsDoubleLineName}"
+                    IsChecked="{Binding LyricIsDoubleLine}" />
+
+                <CheckBox
+                    Content="{Binding IsDualLangName}"
+                    IsChecked="{Binding LyricConfig.DesktopLyric.LyricIsDualLang}" />
+
+                <Panel>
+                    <TextBlock Text="字体" VerticalAlignment="Center" />
+                    <Button HorizontalAlignment="Right"
+                            Foreground="{DynamicResource TextBlockDefaultForeground}"
+                            FontWeight="Normal"
+                            Padding="{DynamicResource ComboBoxSelectorDefaultPadding}"
+                            Background="{DynamicResource BorderedBackground}"
+                            BorderBrush="{DynamicResource BorderedBorderBrush}"
+                            MinWidth="80">
+
+                        <Button.Styles>
+                            <Style Selector="Button">
+                                
+                                <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                    <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource SemiLightBlue5}" />
+                                </Style>
+
+                                <Style Selector="^:focus /template/ ContentPresenter#PART_ContentPresenter">
+                                    <Setter Property="Background" Value="{DynamicResource SemiColorBackground2}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}" />
+                                </Style>
+
+                                <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                    <Setter Property="Background" Value="{DynamicResource SemiColorBackground4}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}" />
+                                </Style>
+                            </Style>
+
+                            <Style Selector="Button  PathIcon">
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource ComboBoxIconDefaultForeground}" />
+                            </Style>
+
+                            <Style Selector="Button:pointerover  PathIcon">
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource ComboBoxIconPointeroverForeground}" />
+                            </Style>
+
+                        </Button.Styles>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{Binding DesktopLyricsFont}"/>
+                            <PathIcon
+                                Name="DropDownGlyph"
+                                Grid.Column="1"
+                                Theme="{DynamicResource InnerPathIcon}"
+                                Width="{DynamicResource ComboBoxIconWidth}"
+                                Data="{DynamicResource ComboBoxIcon}"
+                                IsHitTestVisible="False"
+                                UseLayoutRounding="False">
+
+                            </PathIcon>
+                        </Grid>
+
+                        <Button.Flyout>
+                            <Flyout>
+                                
+                                <Grid RowDefinitions="Auto,*" RowSpacing="10" Height="300" Width="200">
+
+                                    <Grid.Styles>
+
+                                        <Style Selector="ListBoxItem">
+                                            <Setter Property="CornerRadius" Value="8" />
+                                            <Setter Property="Margin" Value="0,0,0,5" />
+
+                                            <Style Selector="^:selected">
+                                                <Setter Property="Background" Value="{DynamicResource SemiBlue0}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource SemiBlue4}" />
+                                            </Style>
+                                        </Style>
+
+                                    </Grid.Styles>
+
+                                    <Border HorizontalAlignment="Center"
+                                            Theme="{StaticResource RadioButtonGroupBorder}" CornerRadius="8">
+
+                                        <StackPanel Orientation="Horizontal" Spacing="0">
+                                            <RadioButton Name="CustomFontConfig" Content="用户字体" IsChecked="True"
+                                                         Theme="{DynamicResource ButtonRadioButton}" />
+                                            <RadioButton Name="SystemFontConfig" Content="系统字体"
+                                                         Theme="{DynamicResource ButtonRadioButton}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <ScrollViewer Grid.Row="1">
+                                        <Interaction.Behaviors>
+                                            <DataTrigger Binding="{Binding #CustomFontConfig.IsChecked}"
+                                                         Value="True">
+                                                <ChangeAvaloniaPropertyAction
+                                                    TargetProperty="{x:Static ContentControl.ContentProperty}">
+                                                    <ChangeAvaloniaPropertyAction.Value>
+
+                                                        <ListBox ItemsSource="{Binding AppResources.CustomFonts}"
+                                                                 SelectedValueBinding="{Binding Key}"
+                                                                 SelectedValue="{Binding DesktopLyricsFont}">
+                                                            <ListBox.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock Text="{Binding Key}"
+                                                                               />
+                                                                </DataTemplate>
+                                                            </ListBox.ItemTemplate>
+                                                        </ListBox>
+
+                                                    </ChangeAvaloniaPropertyAction.Value>
+                                                </ChangeAvaloniaPropertyAction>
+                                            </DataTrigger>
+
+                                            <DataTrigger Binding="{Binding #SystemFontConfig.IsChecked}"
+                                                         Value="True">
+                                                <ChangeAvaloniaPropertyAction
+                                                    TargetProperty="{x:Static ContentControl.ContentProperty}">
+                                                    <ChangeAvaloniaPropertyAction.Value>
+
+                                                        <ListBox ItemsSource="{Binding AppResources.SystemFonts}"
+                                                                 SelectedValueBinding="{Binding Key}"
+                                                                 SelectedValue="{Binding DesktopLyricsFont}">
+                                                            <ListBox.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <TextBlock Text="{Binding Key}"
+                                                                               FontFamily="{Binding Value}" />
+                                                                </DataTemplate>
+                                                            </ListBox.ItemTemplate>
+                                                        </ListBox>
+
+                                                    </ChangeAvaloniaPropertyAction.Value>
+                                                </ChangeAvaloniaPropertyAction>
+                                            </DataTrigger>
+                                        </Interaction.Behaviors>
+
+                                    </ScrollViewer>
+
+                                </Grid>
+
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                </Panel>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding PositionXName}" Classes="Tertiary" />
+                        <TextBlock Text="{Binding LyricConfig.DesktopLyric.Position.X,StringFormat=': {0} px'}"
+                                   Classes="Tertiary" />
                     </StackPanel>
 
-                    <UniformGrid Columns="3" HorizontalAlignment="Left" ColumnSpacing="10" RowSpacing="10">
-
-                        <UniformGrid.Styles>
-
-                            <Style Selector="Button">
-                                <Setter Property="CornerRadius" Value="8"/>
-                                <Setter Property="Theme" Value="{DynamicResource OutlineButton}" />
-                                <Setter Property="Command" Value="{Binding SetWindowPositionCommand}" />
-                                <Setter Property="CommandParameter" Value="{Binding $self.Content}" />
-                            </Style>
-
-                        </UniformGrid.Styles>
-
-                        <Button Content="↖" />
-                        <Button Content="↑" />
-                        <Button Content="↗" />
-                        <Button Content="↙" />
-                        <Button Content="↓" />
-                        <Button Content="↘" />
-
-                    </UniformGrid>
-                    
-                    <Panel>
-                        <TextBlock Text="歌词文本对齐方式" VerticalAlignment="Center" />
-
-                        <ComboBox
-                            Width="80"
-                            HorizontalAlignment="Right"
-                            ItemsSource="{x:Static configModels:LyricConfig.TextAlignments}"
-                            SelectedItem="{Binding LyricConfig.DesktopLyric.LyricTextAlignment}" />
-                    </Panel>
-
-                    <TextBlock Text="歌词宽度" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                        Value="{Binding LyricWidth}" />
-                    
-                    <TextBlock Text="背景圆角" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="dip"
-                                        Value="{Binding LyricConfig.DesktopLyric.CornerRadius}" />
-                    
-                    <TextBlock Text="歌词间距" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                        Name="LyricSpacingIntUpDown"
-                                        Value="{Binding LyricConfig.DesktopLyric.LyricSpacing}" />
-
-                    <TextBlock Text="主歌词大小" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                        Value="{Binding LyricConfig.DesktopLyric.LyricMainFontSize}" />
-
-                    <TextBlock Text="主歌词翻译间距" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                        Maximum="{Binding #LyricSpacingIntUpDown.Value}"
-                                        Value="{Binding LyricConfig.DesktopLyric.LyricMainTranslateSpacing}" />
-
-                    <TextBlock Text="主歌词文本间距" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                        Value="{Binding LyricConfig.DesktopLyric.LyricMainLetterSpacing}" />
-
-                    <TextBlock Text="主歌词描边粗细" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                        Maximum="10"
-                                        Value="{Binding LyricConfig.DesktopLyric.LyricMainStrokeThickness}" />
-
-                    <TextBlock Text="副歌词大小" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                        Value="{Binding LyricConfig.DesktopLyric.LyricAltFontSize}" />
-
-                    <TextBlock Text="副歌词翻译间距" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                        Maximum="{Binding #LyricSpacingIntUpDown.Value}"
-                                        Value="{Binding LyricConfig.DesktopLyric.LyricAltTranslateSping}" />
-
-                    <TextBlock Text="副歌词文本间距" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                        Value="{Binding LyricConfig.DesktopLyric.LyricAltLetterSpacing}" />
-
-                    <TextBlock Text="副歌词描边粗细" />
-                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px" Maximum="10"
-                                        Value="{Binding LyricConfig.DesktopLyric.LyricAltStrokeThickness}" />
-
-                    <StackPanel Spacing="20" Margin="0,10">
-
-                        <StackPanel.Styles>
-
-                            <Style Selector="WrapPanel">
-                                <Setter Property="ItemSpacing" Value="20" />
-                                <Setter Property="LineSpacing" Value="20" />
-                            </Style>
-
-                            <Style Selector="Button">
-                                <Setter Property="Padding" Value="8,5" />
-                                <Setter Property="FontSize" Value="12" />
-                                <Setter Property="CornerRadius" Value="8" />
-                                <Setter Property="Theme" Value="{StaticResource NoPointer}" />
-                            </Style>
-                        </StackPanel.Styles>
-
-                        <StackPanel Orientation="Horizontal">
-
-                            <TextBlock Text="背景颜色" VerticalAlignment="Center" />
-
-                            <Button HorizontalAlignment="Right"
-                                    Width="50"
-                                    BorderBrush="{DynamicResource BorderCardBorderBrush}"
-                                    BorderThickness="2"
-                                    Height="30"
-                                    Background="{Binding LyricConfig.DesktopLyric.LyricBackground,Converter={StaticResource ToBrushConverter}}">
-                                <Button.Flyout>
-                                    <Flyout Placement="Top">
-                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricBackground}" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-
-                        </StackPanel>
-
-                        <!-- 第一行 -->
-                        <WrapPanel>
-                            <!-- LyricMainTopColor -->
-                            <Button
-                                Background="{Binding LyricConfig.DesktopLyric.LyricMainTopColor, Converter={StaticResource ToBrushConverter}}"
-                                BorderBrush="{Binding $self.Foreground}"
-                                Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
-                                Content="{Binding LyricMainTopColorName}">
-                                <Button.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="8"
-                                        Color="{Binding LyricConfig.DesktopLyric.LyricMainTopColor}"
-                                        OffsetX="0"
-                                        OffsetY="0" />
-                                </Button.Effect>
-                                <Button.Flyout>
-                                    <Flyout Placement="Top">
-                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricMainTopColor}" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-
-                            <!-- LyricMainBottomColor -->
-                            <Button
-                                Background="{Binding LyricConfig.DesktopLyric.LyricMainBottomColor, Converter={StaticResource ToBrushConverter}}"
-                                BorderBrush="{Binding $self.Foreground}"
-                                Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
-                                Content="{Binding LyricMainBottomColorName}">
-                                <Button.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="8"
-                                        Color="{Binding LyricConfig.DesktopLyric.LyricMainBottomColor}"
-                                        OffsetX="0"
-                                        OffsetY="0" />
-                                </Button.Effect>
-                                <Button.Flyout>
-                                    <Flyout Placement="Top">
-                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricMainBottomColor}" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-
-                            <!-- LyricMainBorderColor -->
-                            <Button
-                                Background="{Binding LyricConfig.DesktopLyric.LyricMainBorderColor, Converter={StaticResource ToBrushConverter}}"
-                                BorderBrush="{Binding $self.Foreground}"
-                                Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
-                                Content="{Binding LyricMainBorderColorName}">
-                                <Button.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="8"
-                                        Color="{Binding LyricConfig.DesktopLyric.LyricMainBorderColor}"
-                                        OffsetX="0"
-                                        OffsetY="0" />
-                                </Button.Effect>
-                                <Button.Flyout>
-                                    <Flyout Placement="Top">
-                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricMainBorderColor}" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-                        </WrapPanel>
-
-                        <!-- 第二行 -->
-                        <WrapPanel>
-                            <!-- LyricAltTopColor -->
-                            <Button
-                                Background="{Binding LyricConfig.DesktopLyric.LyricAltTopColor, Converter={StaticResource ToBrushConverter}}"
-                                BorderBrush="{Binding $self.Foreground}"
-                                Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
-                                Content="{Binding LyricAltTopColorName}">
-                                <Button.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="8"
-                                        Color="{Binding LyricConfig.DesktopLyric.LyricAltTopColor}"
-                                        OffsetX="0"
-                                        OffsetY="0" />
-                                </Button.Effect>
-                                <Button.Flyout>
-                                    <Flyout Placement="Top">
-                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricAltTopColor}" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-
-                            <!-- LyricAltBottomColor -->
-                            <Button
-                                Background="{Binding LyricConfig.DesktopLyric.LyricAltBottomColor, Converter={StaticResource ToBrushConverter}}"
-                                BorderBrush="{Binding $self.Foreground}"
-                                Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
-                                Content="{Binding LyricAltBottomColorName}">
-                                <Button.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="8"
-                                        Color="{Binding LyricConfig.DesktopLyric.LyricAltBottomColor}"
-                                        OffsetX="0"
-                                        OffsetY="0" />
-                                </Button.Effect>
-                                <Button.Flyout>
-                                    <Flyout Placement="Top">
-                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricAltBottomColor}" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-
-                            <!-- LyricAltBorderColor -->
-                            <Button
-                                Background="{Binding LyricConfig.DesktopLyric.LyricAltBorderColor, Converter={StaticResource ToBrushConverter}}"
-                                BorderBrush="{Binding $self.Foreground}"
-                                Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
-                                Content="{Binding LyricAltBorderColorName}">
-                                <Button.Effect>
-                                    <DropShadowEffect
-                                        BlurRadius="8"
-                                        Color="{Binding LyricConfig.DesktopLyric.LyricAltBorderColor}"
-                                        OffsetX="0"
-                                        OffsetY="0" />
-                                </Button.Effect>
-                                <Button.Flyout>
-                                    <Flyout Placement="Top">
-                                        <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricAltBorderColor}" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-                        </WrapPanel>
-
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding PositionYName}" Classes="Tertiary" />
+                        <TextBlock Text="{Binding LyricConfig.DesktopLyric.Position.Y,StringFormat=': {0} px'}"
+                                   Classes="Tertiary" />
                     </StackPanel>
 
                 </StackPanel>
 
-            </Expander>
-        </StackPanel>
+                <UniformGrid Columns="3" HorizontalAlignment="Left" ColumnSpacing="10" RowSpacing="10"
+                             IsEnabled="{Binding LyricIsEnabled}">
 
-    </ScrollViewer>
-</UserControl>
+                    <UniformGrid.Styles>
+
+                        <Style Selector="Button">
+                            <Setter Property="CornerRadius" Value="8" />
+                            <Setter Property="Theme" Value="{DynamicResource OutlineButton}" />
+                            <Setter Property="Command" Value="{Binding SetWindowPositionCommand}" />
+                            <Setter Property="CommandParameter" Value="{Binding $self.Content}" />
+                        </Style>
+
+                    </UniformGrid.Styles>
+
+                    <Button Content="↖" />
+                    <Button Content="↑" />
+                    <Button Content="↗" />
+                    <Button Content="↙" />
+                    <Button Content="↓" />
+                    <Button Content="↘" />
+
+                </UniformGrid>
+
+                <Panel>
+                    <TextBlock Text="歌词文本对齐方式" VerticalAlignment="Center" />
+                    <ComboBox HorizontalAlignment="Right"
+                              DisplayMemberBinding="{Binding Value}"
+                              SelectedValueBinding="{Binding Key}"
+                              ItemsSource="{x:Static configModels:LyricConfig.TextAlignments}"
+                              SelectedValue="{Binding LyricConfig.DesktopLyric.LyricTextAlignment}" />
+                </Panel>
+
+                <TextBlock Text="歌词宽度" />
+                <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                    Value="{Binding LyricWidth}" />
+
+                <TextBlock Text="背景圆角" />
+                <u:NumericIntUpDown Minimum="0" InnerRightContent="dip"
+                                    Value="{Binding LyricConfig.DesktopLyric.CornerRadius}" />
+
+                <TextBlock Text="歌词间距" />
+                <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                    Name="LyricSpacingIntUpDown"
+                                    Value="{Binding LyricConfig.DesktopLyric.LyricSpacing}" />
+
+            </StackPanel>
+
+        </anchorControl:AnchorItem>
+
+        <anchorControl:AnchorItem>
+
+            <anchorControl:AnchorItem.Header>
+                <models:AnchorHeaderModel Name="样式" Describe="桌面歌词的样式设置" />
+            </anchorControl:AnchorItem.Header>
+
+            <StackPanel>
+
+                <StackPanel.Styles>
+
+                    <Style Selector="ColorView">
+                        <Setter Property="ColorSpectrumShape" Value="Ring" />
+                    </Style>
+
+                </StackPanel.Styles>
+
+                <Border HorizontalAlignment="Left" Theme="{StaticResource RadioButtonGroupBorder}" CornerRadius="8">
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="0">
+                        <RadioButton Name="MainLyricConfig" Content="主歌词" IsChecked="True"
+                                     Theme="{DynamicResource ButtonRadioButton}" />
+                        <RadioButton Name="AltLyricConfig" Content="副歌词"
+                                     Theme="{DynamicResource ButtonRadioButton}" />
+                    </StackPanel>
+                </Border>
+
+                <ContentControl>
+                    <Interaction.Behaviors>
+                        <DataTrigger Binding="{Binding #MainLyricConfig.IsChecked}" Value="True">
+                            <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ContentControl.ContentProperty}">
+                                <ChangeAvaloniaPropertyAction.Value>
+                                    <StackPanel>
+
+                                        <TextBlock Text="主歌词大小" />
+                                        <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                                            Value="{Binding LyricConfig.DesktopLyric.LyricMainFontSize}" />
+
+                                        <TextBlock Text="主歌词翻译间距" />
+                                        <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                                            Maximum="{Binding #LyricSpacingIntUpDown.Value}"
+                                                            Value="{Binding LyricConfig.DesktopLyric.LyricMainTranslateSpacing}" />
+
+                                        <TextBlock Text="主歌词文本间距" />
+                                        <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                                            Value="{Binding LyricConfig.DesktopLyric.LyricMainLetterSpacing}" />
+
+                                        <TextBlock Text="主歌词描边粗细" />
+                                        <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                                            Maximum="10"
+                                                            Value="{Binding LyricConfig.DesktopLyric.LyricMainStrokeThickness}" />
+
+                                    </StackPanel>
+                                </ChangeAvaloniaPropertyAction.Value>
+                            </ChangeAvaloniaPropertyAction>
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding #AltLyricConfig.IsChecked}" Value="True">
+                            <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ContentControl.ContentProperty}">
+                                <ChangeAvaloniaPropertyAction.Value>
+                                    <StackPanel>
+
+                                        <TextBlock Text="副歌词大小" />
+                                        <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                                            Value="{Binding LyricConfig.DesktopLyric.LyricAltFontSize}" />
+
+                                        <TextBlock Text="副歌词翻译间距" />
+                                        <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                                            Maximum="{Binding #LyricSpacingIntUpDown.Value}"
+                                                            Value="{Binding LyricConfig.DesktopLyric.LyricAltTranslateSping}" />
+
+                                        <TextBlock Text="副歌词文本间距" />
+                                        <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                                            Value="{Binding LyricConfig.DesktopLyric.LyricAltLetterSpacing}" />
+
+                                        <TextBlock Text="副歌词描边粗细" />
+                                        <u:NumericIntUpDown Minimum="0" InnerRightContent="px" Maximum="10"
+                                                            Value="{Binding LyricConfig.DesktopLyric.LyricAltStrokeThickness}" />
+                                    </StackPanel>
+
+                                </ChangeAvaloniaPropertyAction.Value>
+                            </ChangeAvaloniaPropertyAction>
+                        </DataTrigger>
+                    </Interaction.Behaviors>
+                </ContentControl>
+                
+                <StackPanel Spacing="20" Margin="0,10">
+
+                    <StackPanel.Styles>
+
+                        <Style Selector="WrapPanel">
+                            <Setter Property="ItemSpacing" Value="20" />
+                            <Setter Property="LineSpacing" Value="20" />
+                        </Style>
+
+                        <Style Selector="Button">
+                            <Setter Property="Padding" Value="8,5" />
+                            <Setter Property="FontSize" Value="12" />
+                            <Setter Property="CornerRadius" Value="8" />
+                            <Setter Property="Theme" Value="{StaticResource NoPointer}" />
+                        </Style>
+                    </StackPanel.Styles>
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <TextBlock Text="背景颜色" VerticalAlignment="Center" />
+
+                        <Button HorizontalAlignment="Right"
+                                Width="50"
+                                BorderBrush="{DynamicResource BorderCardBorderBrush}"
+                                BorderThickness="2"
+                                Height="30"
+                                Background="{Binding LyricConfig.DesktopLyric.LyricBackground,Converter={StaticResource ToBrushConverter}}">
+                            <Button.Flyout>
+                                <Flyout Placement="Top">
+                                    <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricBackground}" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+
+                    </StackPanel>
+
+                    <!-- 第一行 -->
+                    <WrapPanel>
+                        <!-- LyricMainTopColor -->
+                        <Button
+                            Background="{Binding LyricConfig.DesktopLyric.LyricMainTopColor, Converter={StaticResource ToBrushConverter}}"
+                            BorderBrush="{Binding $self.Foreground}"
+                            Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
+                            Content="{Binding LyricMainTopColorName}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="8"
+                                    Color="{Binding LyricConfig.DesktopLyric.LyricMainTopColor}"
+                                    OffsetX="0"
+                                    OffsetY="0" />
+                            </Button.Effect>
+                            <Button.Flyout>
+                                <Flyout Placement="Top">
+                                    <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricMainTopColor}" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+
+                        <!-- LyricMainBottomColor -->
+                        <Button
+                            Background="{Binding LyricConfig.DesktopLyric.LyricMainBottomColor, Converter={StaticResource ToBrushConverter}}"
+                            BorderBrush="{Binding $self.Foreground}"
+                            Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
+                            Content="{Binding LyricMainBottomColorName}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="8"
+                                    Color="{Binding LyricConfig.DesktopLyric.LyricMainBottomColor}"
+                                    OffsetX="0"
+                                    OffsetY="0" />
+                            </Button.Effect>
+                            <Button.Flyout>
+                                <Flyout Placement="Top">
+                                    <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricMainBottomColor}" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+
+                        <!-- LyricMainBorderColor -->
+                        <Button
+                            Background="{Binding LyricConfig.DesktopLyric.LyricMainBorderColor, Converter={StaticResource ToBrushConverter}}"
+                            BorderBrush="{Binding $self.Foreground}"
+                            Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
+                            Content="{Binding LyricMainBorderColorName}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="8"
+                                    Color="{Binding LyricConfig.DesktopLyric.LyricMainBorderColor}"
+                                    OffsetX="0"
+                                    OffsetY="0" />
+                            </Button.Effect>
+                            <Button.Flyout>
+                                <Flyout Placement="Top">
+                                    <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricMainBorderColor}" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </WrapPanel>
+
+                    <!-- 第二行 -->
+                    <WrapPanel>
+                        <!-- LyricAltTopColor -->
+                        <Button
+                            Background="{Binding LyricConfig.DesktopLyric.LyricAltTopColor, Converter={StaticResource ToBrushConverter}}"
+                            BorderBrush="{Binding $self.Foreground}"
+                            Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
+                            Content="{Binding LyricAltTopColorName}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="8"
+                                    Color="{Binding LyricConfig.DesktopLyric.LyricAltTopColor}"
+                                    OffsetX="0"
+                                    OffsetY="0" />
+                            </Button.Effect>
+                            <Button.Flyout>
+                                <Flyout Placement="Top">
+                                    <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricAltTopColor}" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+
+                        <!-- LyricAltBottomColor -->
+                        <Button
+                            Background="{Binding LyricConfig.DesktopLyric.LyricAltBottomColor, Converter={StaticResource ToBrushConverter}}"
+                            BorderBrush="{Binding $self.Foreground}"
+                            Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
+                            Content="{Binding LyricAltBottomColorName}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="8"
+                                    Color="{Binding LyricConfig.DesktopLyric.LyricAltBottomColor}"
+                                    OffsetX="0"
+                                    OffsetY="0" />
+                            </Button.Effect>
+                            <Button.Flyout>
+                                <Flyout Placement="Top">
+                                    <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricAltBottomColor}" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+
+                        <!-- LyricAltBorderColor -->
+                        <Button
+                            Background="{Binding LyricConfig.DesktopLyric.LyricAltBorderColor, Converter={StaticResource ToBrushConverter}}"
+                            BorderBrush="{Binding $self.Foreground}"
+                            Foreground="{Binding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
+                            Content="{Binding LyricAltBorderColorName}">
+                            <Button.Effect>
+                                <DropShadowEffect
+                                    BlurRadius="8"
+                                    Color="{Binding LyricConfig.DesktopLyric.LyricAltBorderColor}"
+                                    OffsetX="0"
+                                    OffsetY="0" />
+                            </Button.Effect>
+                            <Button.Flyout>
+                                <Flyout Placement="Top">
+                                    <ColorView Color="{Binding LyricConfig.DesktopLyric.LyricAltBorderColor}" />
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </WrapPanel>
+
+                </StackPanel>
+
+            </StackPanel>
+
+
+        </anchorControl:AnchorItem>
+
+    </anchorControl:Anchor>
+
+
+</Grid>

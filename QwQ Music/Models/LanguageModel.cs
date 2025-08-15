@@ -11,13 +11,10 @@ public static class LanguageModel
         ZhCn,
     }
 
-    public static Language CurrentLanguage { get; set; } = Language.ZhCn;
-
     private static readonly Dictionary<Language, Dictionary<string, string>> _characterSet = new()
     {
         {
-            Language.ZhCn,
-            new Dictionary<string, string>
+            Language.ZhCn, new Dictionary<string, string>
             {
                 ["MusicName"] = "音乐",
                 ["ClassificationName"] = "分类",
@@ -47,12 +44,14 @@ public static class LanguageModel
         },
     };
 
-    public static Dictionary<string, string> Lang => _characterSet[CurrentLanguage];
+    public static Language CurrentLanguage { get; set; } = Language.ZhCn;
 
-    private class UnfinishedFunctionException(string msg) : InvalidOperationException(msg);
+    public static Dictionary<string, string> Lang => _characterSet[CurrentLanguage];
 
     public static void LoadLanguage(Language language)
     {
         throw new UnfinishedFunctionException(nameof(LoadLanguage));
     }
+
+    private class UnfinishedFunctionException(string msg) : InvalidOperationException(msg);
 }

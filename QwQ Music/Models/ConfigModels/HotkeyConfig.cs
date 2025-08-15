@@ -1,43 +1,55 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Avalonia.Input;
-using QwQ_Music.Services;
+using QwQ_Music.Common.Services;
 
 namespace QwQ_Music.Models.ConfigModels;
 
 /// <summary>
-/// 可序列化的KeyGesture包装类
+///     可序列化的KeyGesture包装类
 /// </summary>
 public class SerializableKeyGesture(Key key, KeyModifiers modifiers = KeyModifiers.None)
 {
-    [JsonPropertyName("key")]
-    public Key Key { get; set; } = key;
-
-    [JsonPropertyName("modifiers")]
-    public KeyModifiers KeyModifiers { get; set; } = modifiers;
-
     public SerializableKeyGesture()
-        : this(Key.None) { }
+        : this(Key.None)
+    {
+    }
+
+    [JsonPropertyName("key")] public Key Key { get; set; } = key;
+
+    [JsonPropertyName("modifiers")] public KeyModifiers KeyModifiers { get; set; } = modifiers;
 
     /// <summary>
-    /// 转换为KeyGesture
+    ///     转换为KeyGesture
     /// </summary>
-    public KeyGesture ToKeyGesture() => new(Key, KeyModifiers);
+    public KeyGesture ToKeyGesture()
+    {
+        return new KeyGesture(Key, KeyModifiers);
+    }
 
     /// <summary>
-    /// 从KeyGesture创建
+    ///     从KeyGesture创建
     /// </summary>
-    public static SerializableKeyGesture FromKeyGesture(KeyGesture gesture) => new(gesture.Key, gesture.KeyModifiers);
+    public static SerializableKeyGesture FromKeyGesture(KeyGesture gesture)
+    {
+        return new SerializableKeyGesture(gesture.Key, gesture.KeyModifiers);
+    }
 
     /// <summary>
-    /// 隐式转换操作符
+    ///     隐式转换操作符
     /// </summary>
-    public static implicit operator KeyGesture(SerializableKeyGesture serializable) => serializable.ToKeyGesture();
+    public static implicit operator KeyGesture(SerializableKeyGesture serializable)
+    {
+        return serializable.ToKeyGesture();
+    }
 
     /// <summary>
-    /// 隐式转换操作符
+    ///     隐式转换操作符
     /// </summary>
-    public static implicit operator SerializableKeyGesture(KeyGesture gesture) => FromKeyGesture(gesture);
+    public static implicit operator SerializableKeyGesture(KeyGesture gesture)
+    {
+        return FromKeyGesture(gesture);
+    }
 }
 
 public class HotkeyConfig
@@ -48,7 +60,7 @@ public class HotkeyConfig
         CreateDefaultHotkeyConfig();
 
     /// <summary>
-    /// 创建默认热键配置
+    ///     创建默认热键配置
     /// </summary>
     /// <returns>默认热键配置</returns>
     internal static Dictionary<HotkeyFunction, List<SerializableKeyGesture>> CreateDefaultHotkeyConfig()

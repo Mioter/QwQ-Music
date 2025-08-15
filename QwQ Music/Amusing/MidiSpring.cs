@@ -457,23 +457,29 @@ public static class MidiSpring
             {
                 case 300:
                     sleep = 300;
+
                     continue;
                 case 0:
                     sleep = 150;
+
                     continue;
                 case 700:
                     await Task.Delay(150);
+
                     continue;
                 case (int)Voice._:
                     await Task.Delay(300);
+
                     continue;
                 case 1000:
                     tmp = +5;
+
                     continue;
                 default:
                     // 发送音符
                     output.Send([0x90, (byte)(i + tmp), volume], 0, 3, 0);
                     await Task.Delay(sleep);
+
                     break;
             }
         }

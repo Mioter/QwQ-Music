@@ -1,0 +1,23 @@
+<Panel xmlns="https://github.com/avaloniaui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+       xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+       mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+       x:DataType="pages:MusicListClassPageViewModel"
+       x:Class="QwQ_Music.Views.Pages.MusicListClassPage">
+
+    <Carousel ItemsSource="{Binding Panels}"
+              SelectedIndex="{Binding NavigationIndex}">
+        <Carousel.PageTransition>
+            <CompositePageTransition>
+                <CrossFade Duration="0:0:0.5" />
+                <PageSlide Duration="0:0:0.3"
+                           Orientation="Vertical"
+                           SlideInEasing="QuadraticEaseIn"
+                           SlideOutEasing="QuadraticEaseOut" />
+            </CompositePageTransition>
+        </Carousel.PageTransition>
+    </Carousel>
+
+</Panel>

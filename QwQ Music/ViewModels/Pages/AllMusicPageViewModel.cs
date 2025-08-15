@@ -1,41 +1,60 @@
 using System;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Collections;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Input;
+using QwQ_Music.Common.Manager;
+using QwQ_Music.Common.Services;
 using QwQ_Music.Models;
-using QwQ_Music.Services;
-using QwQ_Music.ViewModels.ViewModelBases;
+using QwQ_Music.ViewModels.Bases;
 
 namespace QwQ_Music.ViewModels.Pages;
 
-public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicPlayerViewModel.Instance.MusicItems)
+public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicItemManager.Default.MusicItems)
 {
+    private readonly AvaloniaList<MusicItemModel> _filterSource = [];
+
     protected override void OnSearchTextChanged(string? value)
     {
-        var source = string.IsNullOrEmpty(value)
-            ? MusicPlayerViewModel.MusicItems
-            : MusicPlayerViewModel.MusicItems.Where(MatchesSearchCriteria);
+        if (string.IsNullOrEmpty(value))
+        {
+            MusicItems = MusicItemManager.Default.MusicItems;
 
-        MusicItems = new ObservableCollection<MusicItemModel>(source);
+            return;
+        }
+
+        var source = string.IsNullOrEmpty(value)
+            ? MusicItemManager.Default.MusicItems
+            : MusicItemManager.Default.MusicItems.Where(MatchesSearchCriteria);
+
+        _filterSource.Clear();
+        _filterSource.AddRange(source);
+        MusicItems = _filterSource;
+
         return;
 
-        bool MatchesSearchCriteria(MusicItemModel item) =>
-            item.Title.Contains(value, StringComparison.OrdinalIgnoreCase)
-            || item.Artists.Contains(value, StringComparison.OrdinalIgnoreCase)
-            || item.Album.Contains(value, StringComparison.OrdinalIgnoreCase);
+        bool MatchesSearchCriteria(MusicItemModel item)
+        {
+            return item.Title.Contains(value, StringComparison.OrdinalIgnoreCase)
+             || item.Artists.Contains(value, StringComparison.OrdinalIgnoreCase)
+             || item.Album.Contains(value, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     [RelayCommand]
     private static async Task OpenFileAsync()
     {
         if (App.TopLevel == null)
-            return ;
-        
+            return;
+
         var items = await App.TopLevel.StorageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions { Title = "选择音乐文件", AllowMultiple = true }
+            new FilePickerOpenOptions
+            {
+                Title = "选择音乐文件",
+                AllowMultiple = true,
+            }
         );
 
         if (items.Count == 0)
@@ -51,6 +70,7 @@ public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicPlayer
             return;
 
         var items = e.Data.GetFiles()?.ToList();
+
         if (items == null || items.Count == 0)
             return;
 

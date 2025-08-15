@@ -1,99 +1,227 @@
 <Application
-    RequestedThemeVariant="{Binding ThemeConfig.LightDarkMode}"
+    RequestedThemeVariant="{Binding ThemeConfig.Theme}"
     x:Class="QwQ_Music.App"
     x:CompileBindings="True"
     xmlns="https://github.com/avaloniaui"
-    xmlns:converters="clr-namespace:QwQ_Music.Helper.Converters"
     xmlns:semi="https://irihi.tech/semi"
     x:DataType="viewModels:ApplicationViewModel"
     xmlns:u-Semi="https://irihi.tech/ursa/themes/semi"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:u="https://irihi.tech/ursa"
     xmlns:viewModels="clr-namespace:QwQ_Music.ViewModels"
-    xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control">
+    xmlns:converters="clr-namespace:QwQ_Music.UI.Converters">
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Styles>
-
+        <semi:SemiPopupAnimations />
         <semi:SemiTheme Locale="zh-CN" />
-        <semi:DataGridSemiTheme />
         <semi:ColorPickerSemiTheme />
+        <semi:DataGridSemiTheme />
         <u-Semi:SemiTheme Locale="zh-CN" />
-        
+
+        <StyleInclude Source="Assets/AvaloniaRes/Styles/_indexes.axaml" />
         <StyleInclude Source="avares://QwQ.Avalonia.Control/Themes/_indexes.axaml" />
 
-        <StyleInclude Source="Assets/Styles/_indexes.axaml" />
+        <!-- 控件样式 -->
 
         <Style Selector="CheckBox">
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
+        
+        <Style Selector="RadioButton">
+            <Setter Property="CornerRadius" Value="5" />
+        </Style>
 
-        <Style Selector="ToolTip /template/ ContentPresenter">
-            <Setter Property="FontSize" Value="12" />
+        <Style Selector="TextBox">
+            <Setter Property="CornerRadius" Value="8" />
         </Style>
-        
-        <Style Selector="u|NotificationCard.Light /template/ Button#PART_CloseButton /template/ Border">
-            <Setter Property="CornerRadius" Value="5"/>
+
+        <Style Selector="u|MessageBoxControl">
+            <Setter Property="ContentTemplate">
+                <DataTemplate x:DataType="{x:Type x:String}">
+                    <SelectableTextBlock Text="{Binding}" />
+                </DataTemplate>
+            </Setter>
         </Style>
-        
+
+        <Style Selector="ComboBox">
+            <Setter Property="MinWidth" Value="80" />
+            <Setter Property="Background" Value="{DynamicResource BorderedBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderedBorderBrush}" />
+
+            <Style Selector="^:pointerover /template/ Border#Background">
+                <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SemiLightBlue5}" />
+            </Style>
+
+            <Style Selector="^:focus /template/ Border#Background">
+                <Setter Property="Background" Value="{DynamicResource SemiColorBackground2}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}" />
+            </Style>
+
+            <Style Selector="^:pressed /template/ Border#Background">
+                <Setter Property="Background" Value="{DynamicResource SemiColorBackground4}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}" />
+            </Style>
+
+            <Style Selector="^ /template/ Border#PopupBorder:focus-within">
+                <Setter Property="Background" Value="{DynamicResource SemiColorBackground2}" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="0,4" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Effect" Value="{DynamicResource LightColorDropShadowEffect}" />
+            </Style>
+        </Style>
+
+        <Style Selector="TextBox.Bordered">
+            <Setter Property="Background" Value="{DynamicResource SemiColorBackground2}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiColorBorder}" />
+            
+            <Style Selector="^:pointerover /template/ Border#PART_ContentPresenterBorder">
+                <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SemiLightBlue5}" />
+            </Style>
+
+            <Style Selector="^:focus /template/ Border#PART_ContentPresenterBorder">
+                <Setter Property="Background" Value="{DynamicResource SemiColorBackground2}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}" />
+            </Style>
+
+            <Style Selector="^:pressed /template/ Border#PART_ContentPresenterBorder">
+                <Setter Property="Background" Value="{DynamicResource SemiColorBackground4}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}" />
+            </Style>
+
+            <Style Selector="^:error">
+
+                <Style Selector="^ /template/ Border#PART_ContentPresenterBorder">
+                    <Setter Property="Background" Value="{DynamicResource DataValidationErrorsBackground}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource DataValidationErrorsBorderBrush}" />
+                </Style>
+
+                <Style Selector="^:pointerover /template/ Border#PART_ContentPresenterBorder">
+                    <Setter Property="Background" Value="{DynamicResource DataValidationErrorsPointerOverBackground}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource DataValidationErrorsPointerOverBorderBrush}" />
+                </Style>
+
+                <Style Selector="^:pressed /template/ Border#PART_ContentPresenterBorder">
+                    <Setter Property="Background" Value="{DynamicResource DataValidationErrorsPressedBackground}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource DataValidationErrorsPressedBorderBrush}" />
+                </Style>
+
+                <Style Selector="^:focus /template/ Border#PART_ContentPresenterBorder">
+                    <Setter Property="Background" Value="{DynamicResource DataValidationErrorsSelectedBackground}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource DataValidationErrorsSelectedBorderBrush}" />
+                </Style>
+
+            </Style>
+
+        </Style>
+
+        <Style Selector="u|NotificationCard /template/ Button#PART_CloseButton">
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
         <Style Selector="u|MessageBoxControl /template/ Button">
-            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="CornerRadius" Value="8" />
         </Style>
-                     
-        <Style Selector="control|RunningText">
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Space" Value="20"/>
-            <Setter Property="FontFamily" Value="{DynamicResource Cjtw85}"/>
+
+        <Style Selector=":is(u|DrawerControlBase) /template/ Button#PART_CloseButton">
+            <Setter Property="CornerRadius" Value="8" />
         </Style>
-        
+
+        <Style
+            Selector="TextBox.TextBoxErrorsCenter /template/ DataValidationErrors /template/ ContentControl#InlineDataValidationContentControl">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector=":is(u|DialogControlBase) /template/ Button#PART_CloseButton">
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Height" Value="25" />
+            <Setter Property="Width" Value="25" />
+
+            <Style Selector="^ /template/ PathIcon">
+                <Setter Property="Height" Value="15" />
+                <Setter Property="Width" Value="15" />
+            </Style>
+
+        </Style>
+
         <Style Selector=":is(u|NumericUpDown)">
-            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="CornerRadius" Value="8" />
         </Style>
-   
-        <Style Selector=":is(ContentControl)">
-            <Setter Property="FontFamily" Value="{DynamicResource Cjtw85}"/>
+
+        <Style Selector=":is(TemplatedControl)">
+            <Setter Property="FontFamily" Value="{DynamicResource AppFont}" />
+        </Style>
+
+        <!-- 过渡效果 & 动画 -->
+
+        <Style Selector=":is(Button)">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Duration="0:0:0.1" Property="RenderTransform" />
+                </Transitions>
+            </Setter>
+
+            <Style Selector="^:pressed">
+                <Setter Property="RenderTransform" Value="translateY(1px)" />
+            </Style>
+
         </Style>
 
     </Application.Styles>
 
     <Application.Resources>
+
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="Assets/Themes/_indexes.axaml" />
-                <ResourceInclude Source="Assets/Icons/_indexes.axaml" />
-                <ResourceInclude Source="Assets/Variables/_indexes.axaml"/>
+                <ResourceInclude Source="Assets/AvaloniaRes/Palette/.index.axaml" />
+                <ResourceInclude Source="Assets/AvaloniaRes/Themes/_indexes.axaml" />
+                <ResourceInclude Source="Assets/AvaloniaRes/Icons/_indexes.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
 
         <converters:CalcConverter x:Key="CalcConverter" />
         <converters:TruncateDecimalConverter x:Key="TruncateDecimalConverter" />
         <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
-        <converters:InstanceEqualityMultiConverter x:Key="InstanceEqualityMultiConverter" />
-        <converters:StringEqualityConverter x:Key="StringEqualityConverter" />
-        <converters:ValueComparisonConverter x:Key="ValueComparisonConverter"/>
-        
-        <FontFamily x:Key="Cjtw85">resm:QwQ_Music.Assets.Fonts.CJTW85.ttf#公众号-犬神志</FontFamily>
-        <FontFamily x:Key="DefaultFontFamily">fonts:Inter#Inter,$Default</FontFamily>
-        
+        <converters:ObjectCompareMultiConverter x:Key="ObjectCompareMultiConverter" />
+        <converters:StringCompareConverter x:Key="StringCompareConverter" />
+        <converters:ValueComparisonConverter x:Key="ValueComparisonConverter" />
+        <converters:StringToFontFamily x:Key="StringToFontFamily"/>
+
+        <!-- 基础 -->
+
+        <DropShadowEffect x:Key="LightColorDropShadowEffect" BlurRadius="10" Color="{DynamicResource SemiGrey2Color}"
+                          OffsetX="0" OffsetY="0" />
+
+        <!--定制-->
+
         <CornerRadius x:Key="FlyoutCornerRadius">8</CornerRadius>
 
-        <CornerRadius x:Key="ButtonCornerRadius">5</CornerRadius>
+        <CornerRadius x:Key="MenuFlyoutCornerRadius">8</CornerRadius>
+
+        <CornerRadius x:Key="ButtonCornerRadius">8</CornerRadius>
+
+        <CornerRadius x:Key="DrawerCornerRadius">8</CornerRadius>
+
         <CornerRadius x:Key="ComboBoxSelectorCornerRadius">8</CornerRadius>
-        
+
     </Application.Resources>
 
     <TrayIcon.Icons>
         <TrayIcons>
-            <TrayIcon Icon="resm:QwQ_Music.Assets.AppIcon.ico" MacOSProperties.IsTemplateIcon="true" ToolTipText="QwQ Music"
+            <TrayIcon Icon="resm:QwQ_Music.Assets.EmbeddedRes.app-icon.ico" MacOSProperties.IsTemplateIcon="true"
+                      ToolTipText="QwQ Music"
                       Command="{Binding ShowMainWindowCommand}">
-                
+
                 <TrayIcon.Menu>
                     <NativeMenu>
                         <NativeMenuItem Header="显示窗口" Command="{Binding ShowMainWindowCommand}" />
                         <NativeMenuItem Header="退出" Command="{Binding ExitApplicationCommand}" />
                     </NativeMenu>
                 </TrayIcon.Menu>
-                
+
             </TrayIcon>
         </TrayIcons>
     </TrayIcon.Icons>
