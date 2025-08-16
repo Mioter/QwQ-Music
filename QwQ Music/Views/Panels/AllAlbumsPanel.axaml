@@ -1,4 +1,4 @@
-<Grid RowDefinitions="Auto,*" Margin="0,10"
+<Grid RowDefinitions="Auto,*" Margin="0,10" RowSpacing="5"
       xmlns="https://github.com/avaloniaui"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
@@ -74,9 +74,9 @@
 
     </Panel>
 
-    <ScrollViewer Grid.Row="1">
+    <ScrollViewer Grid.Row="1" >
 
-        <ItemsControl ItemsSource="{Binding AlbumItems}" Padding="0,10">
+        <ItemsControl ItemsSource="{Binding AlbumItems}" Padding="0,5" >
 
             <ItemsControl.Styles>
 

@@ -16,7 +16,7 @@
 
     </StackPanel>
 
-    <DockPanel Grid.Row="1" HorizontalSpacing="20" VerticalSpacing="10" Height="250" Width="500">
+    <DockPanel Grid.Row="1" HorizontalSpacing="20" VerticalSpacing="10" Width="500">
 
         <DockPanel.Styles>
 

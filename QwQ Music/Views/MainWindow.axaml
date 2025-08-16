@@ -17,17 +17,23 @@
         xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
         xmlns:viewModels11="clr-namespace:QwQ_Music.ViewModels.Drawers">
 
+    <!--
+        亚克力效果
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+    -->
+    
     <Window.Styles>
 
         <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons">
             <Setter Property="MinHeight" Value="40" />
         </Style>
 
-        <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons:normal /template/ StackPanel">
+        <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons /template/ StackPanel">
             <Setter Property="Margin" Value="5" />
             <Setter Property="Spacing" Value="5" />
         </Style>
-
+        
         <Style Selector="TitleBar /template/ CaptionButtons#PART_CaptionButtons /template/ Button">
             <Setter Property="Height" Value="30" />
             <Setter Property="Width" Value="30" />
@@ -64,11 +70,6 @@
 
     </Window.Styles>
 
-    <!--
-        亚克力效果
-        Background="Transparent"
-        TransparencyLevelHint="AcrylicBlur"
-    -->
 
     <Grid DataContext="{Binding DrawerStatusViewModel}" RowDefinitions="40,*">
 

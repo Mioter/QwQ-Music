@@ -13,7 +13,7 @@ public partial class KeyGestureInputViewModel(
     HotkeyItemModel hotkeyItem,
     string title,
     KeyGesture? oldKeyGesture = null
-) : DialogViewModelBase, IDialogContext
+) : DataVerifyModelBase, IDialogContext
 {
     public string Title { get; set; } = title;
 

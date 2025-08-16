@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Collections;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Common.Services;
@@ -12,6 +13,7 @@ using QwQ_Music.Common.Services.Databases;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.ViewModels.Dialogs;
+using QwQ_Music.Views;
 using QwQ_Music.Views.Dialogs;
 using Ursa.Controls;
 
@@ -59,22 +61,11 @@ public partial class MusicListsManager : ObservableObject
     /// <param name="model">歌单模型</param>
     private async Task AddMusicList(MusicListModel model)
     {
-        try
-        {
-            await using var musicListMapRepository = new MusicListMapRepository(StaticConfig.DatabasePath);
-            await musicListMapRepository.InsertAsync(model);
+        await using var musicListMapRepository = new MusicListMapRepository(StaticConfig.DatabasePath);
+        await musicListMapRepository.InsertAsync(model);
 
-            MusicLists.Add(model);
-            NotificationService.Success("成功", $"歌单《{model.Name}》创建成功！");
-        }
-        catch (Exception e)
-        {
-            await LoggerService.ErrorAsync($"创建《{model.Name}》歌单失败！\n" +
-                $"{e.Message}");
-
-            NotificationService.Error($"创建歌单《{model.Name}》失败！\n" +
-                $"{e.Message}\n{e.StackTrace}");
-        }
+        MusicLists.Add(model);
+        NotificationService.Success("成功", $"歌单《{model.Name}》创建成功！");
     }
 
     [RelayCommand]
@@ -99,30 +90,25 @@ public partial class MusicListsManager : ObservableObject
             CanResize = false,
         };
 
-        var musicListModel = await OverlayDialog.ShowCustomModal<CreateMusicList, CreateMusicListViewModel, MusicListModel>(
+        var model = await OverlayDialog.ShowCustomModal<CreateMusicList, CreateMusicListViewModel, MusicListModel>(
             new CreateMusicListViewModel(options.Title), options: options);
 
-        if (musicListModel == null)
+        if (model == null)
             return null;
 
         try
         {
-            if (musicListModel is { CoverId: not null, CoverImage: not null })
-            {
-                string coverFilePath = Path.Combine(StaticConfig.MusicListCoverSavePath, $"{musicListModel.CoverId}.png");
-                await FileOperationService.SaveImageAsync(musicListModel.CoverImage, coverFilePath);
-            }
+            await AddMusicList(model);
 
-            await AddMusicList(musicListModel);
-
-            return musicListModel;
+            return model;
         }
         catch (Exception ex)
         {
-            await LoggerService.ErrorAsync($"创建歌单《{musicListModel.Name}》失败:\n {ex.Message}");
+            await LoggerService.ErrorAsync($"创建《{model.Name}》歌单失败！\n" +
+                $"{ex.Message}\n{ex.StackTrace}");
 
-            NotificationService.Error($"创建歌单《{musicListModel.Name}》失败！\n{ex.Message}");
-
+            NotificationService.Error($"创建歌单《{model.Name}》失败！\n" +
+                $"{ex.Message}");
             return null;
         }
     }
@@ -137,14 +123,14 @@ public partial class MusicListsManager : ObservableObject
         if (musicItems.Count == 0)
             return;
 
-        await using var musicListMapRepository = new MusicListItemRepository(musicList.IdStr, StaticConfig.DatabasePath);
+        await using var repo = new MusicListItemRepository(musicList.IdStr, StaticConfig.DatabasePath);
 
         // 过滤掉已存在的音乐项
         List<MusicItemModel> newItems = [];
 
         foreach (var item in musicItems)
         {
-            if (!await musicListMapRepository.ContainsAsync(item.FilePath))
+            if (!await repo.ContainsAsync(item.FilePath))
             {
                 newItems.Add(item);
             }
@@ -165,7 +151,7 @@ public partial class MusicListsManager : ObservableObject
         {
             try
             {
-                await musicListMapRepository.AddAsync(item.FilePath);
+                await repo.AddAsync(item.FilePath);
             }
             catch (Exception)
             {
@@ -204,7 +190,7 @@ public partial class MusicListsManager : ObservableObject
         if (musicItems.Count == 0)
             return;
 
-        await using var musicListMapRepository = new MusicListItemRepository(musicList.IdStr, StaticConfig.DatabasePath);
+        await using var repo = new MusicListItemRepository(musicList.IdStr, StaticConfig.DatabasePath);
 
         var failedItems = new List<MusicItemModel>();
 
@@ -212,7 +198,7 @@ public partial class MusicListsManager : ObservableObject
         {
             try
             {
-                await musicListMapRepository.RemoveAsync(item.FilePath);
+                await repo.RemoveAsync(item.FilePath);
             }
             catch (Exception)
             {
@@ -243,10 +229,10 @@ public partial class MusicListsManager : ObservableObject
     }
 
     [RelayCommand]
-    private async Task DeleteMusicList(MusicListModel model)
+    private async Task DeleteMusicList(MusicListModel musicList)
     {
         var result = await MessageBox.ShowOverlayAsync(
-            $"你真的要删除歌单《{model.Name}》吗?",
+            $"你真的要删除歌单《{musicList.Name}》吗?",
             "警告",
             icon: MessageBoxIcon.Warning,
             button: MessageBoxButton.YesNo
@@ -257,27 +243,37 @@ public partial class MusicListsManager : ObservableObject
 
         try
         {
+            
+            await using var repo = new MusicListItemRepository(musicList.IdStr, StaticConfig.DatabasePath);
+            await repo.RemoveAsync(musicList.IdStr);
+            
             // 删除封面图片文件
-            if (!string.IsNullOrEmpty(model.CoverId) && File.Exists(model.CoverId))
+
+            if (!string.IsNullOrEmpty(musicList.CoverId))
             {
-                File.Delete(model.CoverId);
+                string coverFullPath = MusicExtractor.GetMusicListCoverFullPath(musicList.CoverId);
+
+                if (File.Exists(coverFullPath))
+                {
+                    File.Delete(MusicExtractor.GetMusicListCoverFullPath(musicList.CoverId));
+                }
             }
 
             // 从图片缓存中移除
-            if (!string.IsNullOrEmpty(model.CoverId))
+            if (!string.IsNullOrEmpty(musicList.CoverId))
             {
-                CacheManager.ImageCache.Remove(model.CoverId);
+                CacheManager.ImageCache.Remove(musicList.CoverId);
             }
 
-            MusicLists.Remove(model);
+            MusicLists.Remove(musicList);
 
-            NotificationService.Success($"歌单《{model.Name}》删除成功！");
+            NotificationService.Success($"歌单《{musicList.Name}》删除成功！");
         }
         catch (Exception ex)
         {
-            await LoggerService.ErrorAsync($"删除歌单失败: {ex.Message}");
+            await LoggerService.ErrorAsync($"删除歌单失败:\n{ex.Message}\n{ex.StackTrace}");
 
-            NotificationService.Error($"删除歌单《{model.Name}》失败！\n{ex.Message}");
+            NotificationService.Error($"删除歌单《{musicList.Name}》失败！\n{ex.Message}");
 
             throw;
         }
@@ -288,4 +284,113 @@ public partial class MusicListsManager : ObservableObject
     {
         await AddToMusicList([argument.musicItem], argument.musicList);
     }
+    
+    [RelayCommand]
+    private static async Task EditMusicListName(MusicListModel musicList)
+    {
+        var options = new OverlayDialogOptions
+        {
+            Title = "修改名称",
+            Buttons = DialogButton.OKCancel,
+            Mode = DialogMode.Info,
+            CanDragMove = true,
+        };
+
+        string? result = await OverlayDialog.ShowCustomModal<EditText, EditTextViewModel, string>(new EditTextViewModel(musicList.Name, options.Title,64), options: options);
+
+        if (string.IsNullOrEmpty(result))
+            return;
+
+        try
+        {
+            await using (var repo = new MusicListMapRepository(StaticConfig.DatabasePath))
+            {
+                await repo.UpdateAsync(musicList.IdStr, [nameof(musicList.Name)], [musicList.Name]);
+            }
+
+            musicList.Name = result;
+
+            NotificationService.Success($"修改{musicList.Name}的名称成功了");
+        }
+        catch (Exception e)
+        {
+            await LoggerService.ErrorAsync($"修改 {musicList.Name} 的名称失败了:\n{e.Message}\n{e.StackTrace}");
+
+            NotificationService.Error($"修改 {musicList.Name} 的名称失败了");
+        }
+    }
+
+    [RelayCommand]
+    private static async Task EditMusicListDescription(MusicListModel musicList)
+    {
+        var options = new OverlayDialogOptions
+        {
+            Title = "修改描述",
+            Buttons = DialogButton.OKCancel,
+            Mode = DialogMode.Info,
+            CanDragMove = true,
+        };
+
+        string? result = await OverlayDialog.ShowCustomModal<EditText, EditTextViewModel, string>(new EditTextViewModel(musicList.Description, options.Title), options: options);
+
+        if (string.IsNullOrEmpty(result))
+            return;
+
+        try
+        {
+            await using (var repo = new MusicListMapRepository(StaticConfig.DatabasePath))
+            {
+                await repo.UpdateAsync(musicList.IdStr, [nameof(musicList.Description)], [musicList.Description]);
+            }
+
+            musicList.Name = result;
+
+            NotificationService.Success($"修改{musicList.Name}的名称成功了");
+        }
+        catch (Exception e)
+        {
+            await LoggerService.ErrorAsync($"修改 {musicList.Name} 的名称失败了:\n{e.Message}\n{e.StackTrace}");
+
+            NotificationService.Error($"修改 {musicList.Name} 的名称失败了");
+        }
+    }
+
+    [RelayCommand]
+    private static async Task EditMusicListCover(MusicListModel musicList)
+    {
+        if (App.TopLevel == null)
+            return;
+
+        var options = new ShowWindowOptions
+        {
+            Title = "裁剪图片",
+            IsRestoreButtonVisible = false,
+            IsFullScreenButtonVisible = false,
+        };
+
+        var bitmap = await FileOperationService.OpenImageFile(App.TopLevel);
+
+        if (bitmap == null)
+            return;
+        
+        var newCover= await WindowBox.ShowDialog<ImageCropping, Bitmap>(new ImageCroppingViewModel(bitmap), options, App.TopLevel);
+
+        if (newCover == null)
+            return;
+
+        musicList.CoverImage = newCover;
+
+        if (musicList.CoverId == null)
+            return;
+
+        if (await FileOperationService.SaveImageAsync(newCover, MusicExtractor.GetMusicListCoverFullPath(musicList.CoverId)))
+        {
+            NotificationService.Success($"修改歌词 {musicList.Name} 的图标成功啦~");
+        }
+        else
+        {
+            NotificationService.Error($"修改歌词 {musicList.Name} 的图标失败啦~");
+        }
+    }
+
 }

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Collections;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Common.Manager;
@@ -17,7 +18,15 @@ public partial class MusicListDetailsPanelViewModel : DataGridViewModelBase
 {
     private readonly AvaloniaList<MusicItemModel> _filterSource = [];
 
-    [ObservableProperty] public partial MusicListModel? MusicListModel { get; set; }
+    [ObservableProperty]
+    public partial MusicListModel MusicListModel { get; set; } = new()
+    {
+        Name = "Error",
+        Description = "#警告！你已进入未知空域，请立即离开此处（",
+        IdStr = "$Default",
+    };
+
+    public Bitmap CoverImage { get; set; } = CacheManager.Default;
 
     protected override void OnSearchTextChanged(string? value)
     {
@@ -51,18 +60,20 @@ public partial class MusicListDetailsPanelViewModel : DataGridViewModelBase
         try
         {
             MusicListModel = musicListModel;
+            UpdateCoverImage(musicListModel);
 
             await using var musicListMapRepository = new MusicListItemRepository(musicListModel.IdStr, StaticConfig.DatabasePath);
             var paths = await musicListMapRepository.GetAllAsync();
 
-            if (paths.Count <= 0)
-                return;
-
+    
             MusicListsManager.CurrentMusicList.IdStr = musicListModel.IdStr;
 
-            // 使用 LINQ 简化过滤逻辑
-            MusicListsManager.CurrentMusicList.MusicItems.Clear();
-            MusicListsManager.CurrentMusicList.MusicItems.AddRange(MusicItemManager.Default.MusicItems.Where(item => paths.Contains(item.FilePath)));
+            if (paths.Count > 0)
+            {
+                // 使用 LINQ 简化过滤逻辑
+                MusicListsManager.CurrentMusicList.MusicItems.Clear();
+                MusicListsManager.CurrentMusicList.MusicItems.AddRange(MusicItemManager.Default.MusicItems.Where(item => paths.Contains(item.FilePath)));
+            }
 
             MusicItems = MusicListsManager.CurrentMusicList.MusicItems;
         }
@@ -70,6 +81,28 @@ public partial class MusicListDetailsPanelViewModel : DataGridViewModelBase
         {
             await LoggerService.ErrorAsync($"更新歌单信息时发生错误！\n{e.Message}\n{e.StackTrace}");
             NotificationService.Error($"更新歌单信息时发生错误！\n{e.Message}");
+        }
+    }
+    
+    private async void UpdateCoverImage(MusicListModel musicList)
+    {
+        try
+        {
+            if (musicList.CoverId == null)
+                return;
+
+            var bitmap = await MusicExtractor.LoadBitmapFromFileAsync(MusicExtractor.GetMusicListCoverFullPath(musicList.CoverId));
+
+            if (bitmap == null)
+                return;
+
+            CoverImage = bitmap;
+            OnPropertyChanged(nameof(CoverImage));
+        }
+        catch (Exception e)
+        {
+            NotificationService.Error("加载大专辑封面时出错！");
+            await LoggerService.ErrorAsync($"更新专辑详情页封面时出错 : \n{e.Message}\n{e.StackTrace}");
         }
     }
 

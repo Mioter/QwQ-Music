@@ -14,7 +14,7 @@ using QwQ_Music.Views.Dialogs;
 namespace QwQ_Music.ViewModels.Dialogs;
 
 public partial class CreateMusicListViewModel
-    : DialogViewModelBase, IDialogContext
+    : DataVerifyModelBase, IDialogContext
 {
     public CreateMusicListViewModel(string title)
     {

@@ -39,6 +39,7 @@
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.9"/>
         <PackageReference Include="SkiaSharp" Version="3.119.0"/>
         <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.7.25380.108" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
         <PackageReference Include="SoundFlow" Version="1.2.1" />
         <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.2"/>
         <PackageReference Include="z440.atl.core" Version="7.3.0" />
@@ -69,6 +70,9 @@
         </Compile>
         <Compile Update="Views\Panels\MusicListDetailsPanel.cs">
             <DependentUpon>MusicListDetailsPanel.axaml</DependentUpon>
+        </Compile>
+        <Compile Update="Views\WindowBox.axaml.cs">
+          <DependentUpon>WindowBox.axaml</DependentUpon>
         </Compile>
     </ItemGroup>
 

@@ -79,15 +79,14 @@
                 </Style>
 
             </StackPanel.Styles>
-
+      
             <!-- 头图 -->
-            <Panel>
+            <Panel Background="Aquamarine">
 
-                <Panel.Background>
-                    <ImageBrush Stretch="UniformToFill" Source="{Binding BackgroundImage}" />
-                </Panel.Background>
+                <Image Width="{Binding #StackedLayer.Bounds.Width}" Height="{Binding #StackedLayer.Bounds.Height}"
+                       Stretch="UniformToFill" Source="{Binding BackgroundImage}" />
 
-                <Panel Background="{DynamicResource SemiColorBackground0}" Opacity="0.2" />
+                <Panel Name="StackedLayer" Background="{DynamicResource SemiColorBackground0}" Opacity="0.2" />
 
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" Margin="30">
 

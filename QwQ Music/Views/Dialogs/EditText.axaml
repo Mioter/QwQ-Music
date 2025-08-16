@@ -1,0 +1,70 @@
+<Grid RowDefinitions="Auto,*,Auto" Margin="20" RowSpacing="20" xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:dialogs="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      x:DataType="dialogs:EditTextViewModel"
+      Width="300"
+      x:Class="QwQ_Music.Views.Dialogs.EditText">
+
+    <StackPanel Orientation="Horizontal" Spacing="10">
+
+        <PathIcon
+            Height="20" Width="20"
+            Data="{StaticResource SemiIconMinusCircle}"
+            Foreground="{DynamicResource SemiOrange5}" />
+
+        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+    </StackPanel>
+
+    <StackPanel Grid.Row="1" Spacing="10">
+
+        <TextBlock Text="{Binding OldText}"
+                   HorizontalAlignment="Center"
+                   TextWrapping="Wrap" />
+
+        <PathIcon
+            Height="10" Width="10"
+            HorizontalAlignment="Center"
+            Classes.ErrorsIsNull="{Binding HasErrors}"
+            Classes.ErrorsNotNull="{Binding !HasErrors}"
+            Data="{StaticResource SemiIconSmallTriangleDown}">
+
+            <PathIcon.Styles>
+
+                <Style Selector="PathIcon.ErrorsIsNull">
+                    <Setter Property="Foreground" Value="{DynamicResource SemiRed5}" />
+                </Style>
+
+                <Style Selector="PathIcon.ErrorsNotNull">
+                    <Setter Property="Foreground" Value="{DynamicResource SemiGreen5}" />
+                </Style>
+
+            </PathIcon.Styles>
+
+        </PathIcon>
+
+        <TextBox Classes="TextBoxErrorsCenter"
+                 ClipToBounds="False"
+                 TextWrapping="Wrap"
+                 MaxLines="5"
+                 Text="{Binding NewText}"
+                 HorizontalContentAlignment="Center" />
+
+    </StackPanel>
+
+    <StackPanel Spacing="20" HorizontalAlignment="Right" Grid.Row="2" Orientation="Horizontal">
+
+        <Button ToolTip.Tip="还是蒜了吧..."
+                Content="取消"
+                Theme="{DynamicResource OutlineButton}"
+                Command="{Binding CancelCommand}" />
+
+        <Button Content="确认"
+                IsEnabled="{Binding !HasErrors}"
+                ToolTip.Tip="我确定好了！"
+                Command="{Binding OkCommand}"
+                Theme="{DynamicResource SolidButton}" />
+
+    </StackPanel>
+
+</Grid>

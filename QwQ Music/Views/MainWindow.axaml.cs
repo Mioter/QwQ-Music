@@ -83,8 +83,7 @@ public partial class MainWindow : Window
         {
             case Models.Enums.ClosingBehavior.Exit:
                 _isClosing = true;
-                ApplicationViewModel.ExitApplication();
-
+                await ApplicationViewModel.ExitApplication();
                 break;
             case Models.Enums.ClosingBehavior.HideToTray:
                 Hide();

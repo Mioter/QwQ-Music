@@ -65,7 +65,7 @@ public partial class ImageCroppingViewModel(Bitmap sourceImage) : ObservableObje
     [RelayCommand]
     private void Ok()
     {
-        Close(true);
+        Close(CroppedImage);
     }
 
     [RelayCommand]

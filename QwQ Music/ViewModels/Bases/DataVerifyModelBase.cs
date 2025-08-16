@@ -11,10 +11,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace QwQ_Music.ViewModels.Bases;
 
 /// <summary>
-///     基础对话框 ViewModel，提供属性变更通知和数据验证支持。
+///     基础数据验证模型，提供数据验证支持。
 ///     继承自 <see cref="ObservableObject" /> 并实现 <see cref="INotifyDataErrorInfo" />。
 /// </summary>
-public abstract class DialogViewModelBase : ObservableObject, INotifyDataErrorInfo
+public abstract class DataVerifyModelBase : ObservableObject, INotifyDataErrorInfo
 {
     private readonly Dictionary<string, List<string>> _errors = new();
 

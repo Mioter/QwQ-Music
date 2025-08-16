@@ -16,21 +16,20 @@ public static class FileOperationService
     /// <summary>
     ///     异步保存图片到指定路径。
     /// </summary>
-    public static async Task SaveImageAsync(Bitmap cover, string filePath, bool overwrite = false)
+    public static async Task<bool> SaveImageAsync(Bitmap cover, string filePath, bool overwrite = false)
     {
         string? directory = Path.GetDirectoryName(filePath);
 
         if (string.IsNullOrEmpty(directory))
         {
             await LoggerService.ErrorAsync($"无效的文件路径：{filePath}");
-
-            return;
+            return false;
         }
 
         Directory.CreateDirectory(directory);
 
         if (!overwrite && File.Exists(filePath))
-            return;
+            return false;
 
         try
         {
@@ -47,8 +46,11 @@ public static class FileOperationService
         }
         catch (Exception ex)
         {
-            await LoggerService.ErrorAsync($"保存图片失败 {filePath}: {ex.Message}, 类型: {ex.GetType().Name}");
+            await LoggerService.ErrorAsync($"保存图片失败 {filePath}: {ex.Message}, 类型: {ex.GetType().Name}, 异常堆栈: {ex.StackTrace}");
+            return false;
         }
+
+        return true;
     }
 
     /// <summary>

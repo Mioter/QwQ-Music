@@ -13,6 +13,7 @@
         <ResourceInclude Source="ScrollTo.axaml" />
         <ResourceInclude Source="ContextMenu.axaml" />
         <ResourceInclude Source="MenuItem.axaml" />
+        <ResourceInclude Source="TitleBar.axaml" />
         <ResourceInclude Source="MessageBoxControl.axaml" />
         <ResourceInclude Source="DraggableContainer.axaml" />
     </ResourceDictionary.MergedDictionaries>

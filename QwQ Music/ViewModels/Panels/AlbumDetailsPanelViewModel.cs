@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Collections;
 using Avalonia.Media.Imaging;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Common.Manager;
@@ -69,11 +68,6 @@ public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
     {
         try
         {
-            string? coverId = musicItem.CoverId;
-
-            if (coverId == null)
-                return;
-
             var bitmap = await MusicExtractor.GetCoverFromAudioAsync(musicItem.FilePath);
 
             if (bitmap == null)
@@ -81,7 +75,7 @@ public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
 
             CoverImage = ConfigManager.UiConfig.CoverConfig.AllowNonSquareCover
                 ? bitmap
-                : Dispatcher.UIThread.Invoke(() => BitmapCropper.Crop(bitmap, 1.0));
+                : BitmapCropper.Crop(bitmap, 1.0);
         }
         catch (Exception e)
         {

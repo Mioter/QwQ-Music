@@ -185,7 +185,7 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <ScrollViewer Grid.Row="1">
+                                    <ContentControl Grid.Row="1">
                                         <Interaction.Behaviors>
                                             <DataTrigger Binding="{Binding #CustomFontConfig.IsChecked}"
                                                          Value="True">
@@ -230,7 +230,7 @@
                                             </DataTrigger>
                                         </Interaction.Behaviors>
 
-                                    </ScrollViewer>
+                                    </ContentControl>
 
                                 </Grid>
 
@@ -392,12 +392,7 @@
                 <StackPanel Spacing="20" Margin="0,10">
 
                     <StackPanel.Styles>
-
-                        <Style Selector="WrapPanel">
-                            <Setter Property="ItemSpacing" Value="20" />
-                            <Setter Property="LineSpacing" Value="20" />
-                        </Style>
-
+                        
                         <Style Selector="Button">
                             <Setter Property="Padding" Value="8,5" />
                             <Setter Property="FontSize" Value="12" />
@@ -426,7 +421,7 @@
                     </StackPanel>
 
                     <!-- 第一行 -->
-                    <WrapPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="20" Margin="5,0">
                         <!-- LyricMainTopColor -->
                         <Button
                             Background="{Binding LyricConfig.DesktopLyric.LyricMainTopColor, Converter={StaticResource ToBrushConverter}}"
@@ -486,10 +481,10 @@
                                 </Flyout>
                             </Button.Flyout>
                         </Button>
-                    </WrapPanel>
+                    </StackPanel>
 
                     <!-- 第二行 -->
-                    <WrapPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="20" Margin="5,0">
                         <!-- LyricAltTopColor -->
                         <Button
                             Background="{Binding LyricConfig.DesktopLyric.LyricAltTopColor, Converter={StaticResource ToBrushConverter}}"
@@ -549,7 +544,7 @@
                                 </Flyout>
                             </Button.Flyout>
                         </Button>
-                    </WrapPanel>
+                    </StackPanel>
 
                 </StackPanel>
 

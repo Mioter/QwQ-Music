@@ -5,16 +5,18 @@
               xmlns:u="https://irihi.tech/ursa"
               mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
               x:Class="QwQ_Music.Views.WindowBox"
+              IsTitleBarVisible="False"
               Icon="resm:QwQ_Music.Assets.EmbeddedRes.app-icon.ico">
 
     <u:UrsaWindow.Styles>
+        
         <!-- 窗口样式 -->
 
         <Style Selector="u|TitleBar /template/ u|CaptionButtons#PART_CaptionButtons">
             <Setter Property="MinHeight" Value="40" />
         </Style>
 
-        <Style Selector="u|TitleBar /template/ u|CaptionButtons#PART_CaptionButtons:normal /template/ StackPanel">
+        <Style Selector="u|TitleBar /template/ u|CaptionButtons#PART_CaptionButtons /template/ StackPanel">
             <Setter Property="Margin" Value="5" />
             <Setter Property="Spacing" Value="5" />
         </Style>
@@ -35,8 +37,6 @@
                 <Setter Property="Height" Value="13.5" />
             </Style>
         </Style>
-
-        <!-- 控件样式 -->
 
     </u:UrsaWindow.Styles>
 

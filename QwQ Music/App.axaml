@@ -21,7 +21,7 @@
 
         <StyleInclude Source="Assets/AvaloniaRes/Styles/_indexes.axaml" />
         <StyleInclude Source="avares://QwQ.Avalonia.Control/Themes/_indexes.axaml" />
-
+        
         <!-- 控件样式 -->
 
         <Style Selector="CheckBox">

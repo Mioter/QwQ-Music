@@ -62,7 +62,7 @@ public class DatabaseService : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("SQL 语句不能为空。", nameof(sql));
 
-        using var cmd = _connection.CreateCommand();
+        await using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
         if (parameters != null)
@@ -74,7 +74,7 @@ public class DatabaseService : IAsyncDisposable
         }
 
         var result = new List<Dictionary<string, object?>>();
-        using var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
         {
@@ -164,7 +164,7 @@ public class DatabaseService : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(columnsDefinition))
             throw new ArgumentException("列定义不能为空。", nameof(columnsDefinition));
 
-        using var cmd = _connection.CreateCommand();
+        await using var cmd = _connection.CreateCommand();
         cmd.CommandText = $"CREATE TABLE IF NOT EXISTS {EscapeIdentifier(tableName)} ({columnsDefinition});";
         await cmd.ExecuteNonQueryAsync();
     }
@@ -178,7 +178,7 @@ public class DatabaseService : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(tableName))
             throw new ArgumentException("表名不能为空。", nameof(tableName));
 
-        using var cmd = _connection.CreateCommand();
+        await using var cmd = _connection.CreateCommand();
         cmd.CommandText = $"DROP TABLE IF EXISTS {EscapeIdentifier(tableName)};";
         await cmd.ExecuteNonQueryAsync();
     }
@@ -202,7 +202,7 @@ public class DatabaseService : IAsyncDisposable
 
         string columns = string.Join(", ", data.Keys.Select(EscapeIdentifier));
         string paramNames = string.Join(", ", data.Keys.Select(k => "@" + k));
-        using var cmd = _connection.CreateCommand();
+        await using var cmd = _connection.CreateCommand();
 
         foreach ((string key, object? value) in data)
         {
@@ -237,7 +237,7 @@ public class DatabaseService : IAsyncDisposable
             throw new ArgumentException("WHERE 条件不能为空。", nameof(whereClause));
 
         string setClause = string.Join(", ", data.Keys.Select(k => $"{EscapeIdentifier(k)} = @{k}"));
-        using var cmd = _connection.CreateCommand();
+        await using var cmd = _connection.CreateCommand();
 
         foreach ((string key, object? value) in data)
         {
@@ -270,7 +270,7 @@ public class DatabaseService : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(whereClause))
             throw new ArgumentException("WHERE 条件不能为空。", nameof(whereClause));
 
-        using var cmd = _connection.CreateCommand();
+        await using var cmd = _connection.CreateCommand();
 
         if (whereParams != null)
         {
@@ -335,7 +335,7 @@ public class DatabaseService : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("SQL 语句不能为空。", nameof(sql));
 
-        using var cmd = _connection.CreateCommand();
+        await using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
         if (parameters != null)

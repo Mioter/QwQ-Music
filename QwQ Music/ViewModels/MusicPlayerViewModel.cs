@@ -232,6 +232,16 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
         _audioPlay.Dispose();
     }
 
+    public async Task SaveFinalStateAsync()
+    {
+        PlayerConfig.LastPlayedFilePath = CurrentMusicItem.FilePath;
+        
+        if (CurrentMusicItem.Current != _initialTime)
+        {
+            await MusicItemManager.UpdatePlayProgress(CurrentMusicItem.FilePath, CurrentMusicItem.Current);
+        }
+    }
+
     #endregion
 
     #region 事件处理
@@ -563,7 +573,6 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
 
             CurrentMusicItem = musicItem;
             OnPropertyChanged(nameof(CurrentMusicItem));
-            PlayerConfig.LastPlayedFilePath = CurrentMusicItem.FilePath;
 
             _initialTime = musicItem.Current;
             LyricOffset = musicItem.LyricOffset;
