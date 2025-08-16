@@ -198,7 +198,7 @@ public partial class AllAlbumsPanelViewModel : ObservableObject
 
             await MusicPlayListManager.Default.Toggle(musicItems);
 
-            await MusicPlayerViewModel.Default.PlayThisMusic(musicItems.First());
+            await MusicPlayerViewModel.Default.PlayThisMusic(MusicPlayListManager.Default.First());
         }
         catch (Exception ex)
         {

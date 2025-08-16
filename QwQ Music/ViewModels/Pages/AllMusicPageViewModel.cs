@@ -64,6 +64,26 @@ public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicItemMa
     }
 
     [RelayCommand]
+    private static async Task OpenFolderAsync()
+    {
+        if (App.TopLevel == null)
+            return;
+
+        var items = await App.TopLevel.StorageProvider.OpenFolderPickerAsync(
+            new FolderPickerOpenOptions()
+            {
+                Title = "选择包含音乐的文件夹",
+                AllowMultiple = true,
+            }
+        );
+
+        if (items.Count == 0)
+            return;
+
+        await AudioFileManager.ProcessStorageItemsAsync(items);
+    }
+    
+    [RelayCommand]
     private static async Task DropFilesAsync(DragEventArgs? e)
     {
         if (e?.Data.Contains(DataFormats.Files) != true)

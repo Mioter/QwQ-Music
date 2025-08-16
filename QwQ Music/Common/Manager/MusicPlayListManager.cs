@@ -8,6 +8,7 @@ using QwQ_Music.Common.Services;
 using QwQ_Music.Common.Services.Databases;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;
+using QwQ_Music.Models.Enums;
 
 namespace QwQ_Music.Common.Manager;
 
@@ -61,6 +62,8 @@ public class MusicPlayListManager : ObservableObject
             await LoggerService.ErrorAsync($"加载播放列表时发生错误！\n{e.Message}\n{e.StackTrace}");
         }
     }
+    
+    public MusicItemModel First() => PlayList.First();
 
     public async Task Add(MusicItemModel musicItem)
     {
@@ -120,6 +123,13 @@ public class MusicPlayListManager : ObservableObject
     {
         PlayList.Clear();
         PlayList.AddRange(musicItems);
+
+        // 处于随机播放模式，且不为真随机时，在播放列表切换后打乱一次
+        if (ConfigManager.PlayerConfig is { PlayMode: PlayMode.Random, IsRealRandom: false })
+        {
+            await Shuffle();
+            NotificationService.Info("当前启用了打乱播放列表模式的随机模式，音乐播放列表已经被打乱，请注意哦~");
+        }
 
         PlayedIndicesService.ClearPlayedIndices();
 
