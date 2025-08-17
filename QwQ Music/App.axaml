@@ -21,13 +21,13 @@
 
         <StyleInclude Source="Assets/AvaloniaRes/Styles/_indexes.axaml" />
         <StyleInclude Source="avares://QwQ.Avalonia.Control/Themes/_indexes.axaml" />
-        
+
         <!-- 控件样式 -->
 
         <Style Selector="CheckBox">
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        
+
         <Style Selector="RadioButton">
             <Setter Property="CornerRadius" Value="5" />
         </Style>
@@ -76,7 +76,7 @@
         <Style Selector="TextBox.Bordered">
             <Setter Property="Background" Value="{DynamicResource SemiColorBackground2}" />
             <Setter Property="BorderBrush" Value="{DynamicResource SemiColorBorder}" />
-            
+
             <Style Selector="^:pointerover /template/ Border#PART_ContentPresenterBorder">
                 <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource SemiLightBlue5}" />
@@ -188,7 +188,7 @@
         <converters:ObjectCompareMultiConverter x:Key="ObjectCompareMultiConverter" />
         <converters:StringCompareConverter x:Key="StringCompareConverter" />
         <converters:ValueComparisonConverter x:Key="ValueComparisonConverter" />
-        <converters:StringToFontFamily x:Key="StringToFontFamily"/>
+        <converters:StringToFontFamily x:Key="StringToFontFamily" />
 
         <!-- 基础 -->
 

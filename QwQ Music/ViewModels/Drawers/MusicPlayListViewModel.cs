@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Linq;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Models;
 using QwQ_Music.ViewModels.Bases;
@@ -12,16 +11,16 @@ public partial class MusicPlayListViewModel : DataGridViewModelBase
     public static DrawerStatusViewModel DrawerStatusViewModel => DrawerStatusViewModel.Default;
 
     [RelayCommand]
-    private static async Task RemoveInPlaylist(IList items)
+    private static void RemoveInPlaylist(IList items)
     {
         var musicItems = items.Cast<MusicItemModel>().ToList();
 
-        await MusicPlayList.Remove(musicItems);
+        MusicPlayList.Remove(musicItems);
     }
 
     [RelayCommand]
-    private static async Task ClearMusicPlayList()
+    private static void ClearMusicPlayList()
     {
-        await MusicPlayList.Clear();
+        MusicPlayList.Clear();
     }
 }

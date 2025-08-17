@@ -66,8 +66,8 @@ public partial class AllMusicListPanelViewModel : ViewModelBase
         if (string.IsNullOrEmpty(musicList?.IdStr))
             return;
 
-        await using var musicListMapRepository = new MusicListItemRepository(musicList.IdStr, StaticConfig.DatabasePath);
-        var paths = await musicListMapRepository.GetAllAsync();
+        using var musicListMapRepository = new MusicListItemRepository(musicList.IdStr, StaticConfig.DatabasePath);
+        var paths = await Task.Run(() => musicListMapRepository.GetAll());
 
         if (paths.Count <= 0)
             return;
@@ -77,7 +77,7 @@ public partial class AllMusicListPanelViewModel : ViewModelBase
             MusicItemManager.Default.MusicItems.Where(item => paths.Contains(item.FilePath))
         );
 
-        await MusicPlayListManager.Default.Toggle(musicItems);
+        MusicPlayListManager.Default.Toggle(musicItems);
 
         await MusicPlayerViewModel.PlayThisMusic(musicItems.First());
     }

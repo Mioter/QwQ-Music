@@ -9,7 +9,7 @@
               Icon="resm:QwQ_Music.Assets.EmbeddedRes.app-icon.ico">
 
     <u:UrsaWindow.Styles>
-        
+
         <!-- 窗口样式 -->
 
         <Style Selector="u|TitleBar /template/ u|CaptionButtons#PART_CaptionButtons">

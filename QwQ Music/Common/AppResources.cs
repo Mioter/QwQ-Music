@@ -10,13 +10,19 @@ namespace QwQ_Music.Common;
 
 public class AppResources : ObservableObject
 {
-    public static AppResources Default { get; } = new();
-
     public const string DEFAULT_FONT_KEY = "默认";
 
     // 使用 Lazy 延迟加载系统字体，提高性能
     private readonly Lazy<Dictionary<string, FontFamily>> _systemFontsLazy;
-    
+
+    public AppResources()
+    {
+        _systemFontsLazy = new Lazy<Dictionary<string, FontFamily>>(() =>
+            FontManager.Current.SystemFonts.ToDictionary(x => x.Name, x => x));
+    }
+
+    public static AppResources Default { get; } = new();
+
     // 字体集合的只读属性
     public IReadOnlyDictionary<string, FontFamily> CustomFonts { get; } = new Dictionary<string, FontFamily>
     {
@@ -25,17 +31,11 @@ public class AppResources : ObservableObject
     };
 
     public IReadOnlyDictionary<string, FontFamily> SystemFonts => _systemFontsLazy.Value;
-    
+
     public string CurrentFont
     {
         get => ConfigManager.UiConfig.ThemeConfig.CurrentFont;
         set => SetCurrentFont(value);
-    }
-
-    public AppResources()
-    {
-        _systemFontsLazy = new Lazy<Dictionary<string, FontFamily>>(() =>
-            FontManager.Current.SystemFonts.ToDictionary(x => x.Name, x => x));
     }
 
     public void Initialize()
@@ -51,7 +51,7 @@ public class AppResources : ObservableObject
     {
         if (fontName == ConfigManager.UiConfig.ThemeConfig.CurrentFont || !TrySetFontFromName(fontName))
             return;
-        
+
         ConfigManager.UiConfig.ThemeConfig.CurrentFont = fontName ?? DEFAULT_FONT_KEY;
         OnPropertyChanged(nameof(CurrentFont));
     }
@@ -61,13 +61,13 @@ public class AppResources : ObservableObject
         if (string.IsNullOrEmpty(fontName))
             return false;
 
-        return CustomFonts.TryGetValue(fontName, out var customFont) 
+        return CustomFonts.TryGetValue(fontName, out var customFont)
             ? SetAppFont(customFont)
             : SystemFonts.TryGetValue(fontName, out var systemFont) && SetAppFont(systemFont);
     }
 
     /// <summary>
-    /// 设置应用程序的字体
+    ///     设置应用程序的字体
     /// </summary>
     /// <param name="font">字体</param>
     /// <returns>true 成功；false 失败</returns>
@@ -77,7 +77,7 @@ public class AppResources : ObservableObject
     }
 
     /// <summary>
-    /// 提供获取所有可用字体名称的方法
+    ///     提供获取所有可用字体名称的方法
     /// </summary>
     /// <returns>字体名称</returns>
     public IEnumerable<string> GetAllFontNames()
@@ -86,7 +86,7 @@ public class AppResources : ObservableObject
     }
 
     /// <summary>
-    /// 提供字体存在性检查方法
+    ///     提供字体存在性检查方法
     /// </summary>
     /// <returns>true 存在；false 不存在</returns>
     public bool ContainsFont(string fontName)
@@ -95,11 +95,11 @@ public class AppResources : ObservableObject
     }
 
     /// <summary>
-    /// 从已加载字体中查找字体，先后查找自定义字体与系统字体
+    ///     从已加载字体中查找字体，先后查找自定义字体与系统字体
     /// </summary>
     /// <param name="fontName">字体名</param>
     /// <param name="fontFamily">字体</param>
-    /// <returns>true 存在；false 不存在或为<see cref="fontName"/>为null；null 未找到或结果为null</returns>
+    /// <returns>true 存在；false 不存在或为<see cref="fontName" />为null；null 未找到或结果为null</returns>
     public bool TryGetFont(string fontName, out FontFamily? fontFamily)
     {
         // 先尝试从自定义字体中获取
@@ -112,18 +112,19 @@ public class AppResources : ObservableObject
 
         // 都没有找到，返回 false，并将 fontFamily 设置为 null
         fontFamily = null;
+
         return false;
     }
-    
+
     /// <summary>
-    /// 从已加载字体中查找字体，先后查找自定义字体与系统字体
+    ///     从已加载字体中查找字体，先后查找自定义字体与系统字体
     /// </summary>
     /// <param name="fontName">字体名</param>
     /// <returns>如果字体存在且无错误，则返回此字体，否则返回默认</returns>
     public FontFamily GetFontOrDefault(string fontName)
     {
         // 如果输入为空，直接返回默认字体
-        if (!TryGetFont(fontName, out var font)) 
+        if (!TryGetFont(fontName, out var font))
             return FontFamily.Default;
 
         return font == null ? FontFamily.Default : font;

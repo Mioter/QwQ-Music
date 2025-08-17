@@ -76,7 +76,7 @@
                                                       Margin="2" />
                                         </MenuItem.Icon>
                                     </MenuItem>
-                                    
+
                                     <MenuItem
                                         Header="描述"
                                         Command="{Binding #MusicListsContainer.((panels:AllMusicListPanelViewModel)DataContext).MusicListsManager.EditMusicListDescriptionCommand}"
@@ -219,7 +219,7 @@
                                         CornerRadius="12"
                                         ClipToBounds="True"
                                         VerticalAlignment="Top">
-                                    
+
                                     <Image Source="{Binding CoverImage}" />
 
                                 </Border>
@@ -232,14 +232,14 @@
 
                                     <Separator Margin="0" />
 
-                                <TextBlock DockPanel.Dock="Bottom"
-                                           Text="{Binding Description}"
-                                           MaxLines="2"
-                                           FontSize="12"
-                                           FontWeight="Normal"
-                                           TextTrimming="CharacterEllipsis"
-                                           TextWrapping="Wrap"
-                                           Classes="Tertiary" />
+                                    <TextBlock DockPanel.Dock="Bottom"
+                                               Text="{Binding Description}"
+                                               MaxLines="2"
+                                               FontSize="12"
+                                               FontWeight="Normal"
+                                               TextTrimming="CharacterEllipsis"
+                                               TextWrapping="Wrap"
+                                               Classes="Tertiary" />
 
                                 </StackPanel>
 

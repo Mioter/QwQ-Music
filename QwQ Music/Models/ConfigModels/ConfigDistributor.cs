@@ -10,7 +10,7 @@ public class UserConfig
 
     public LyricConfig LyricConfig { get; set; } = new();
 
-    public AudioModifierConfig AudioModifierConfig { get; set; } = new();
+    public SoundModifierConfig SoundModifierConfig { get; set; } = new();
 
     public SystemConfig SystemConfig { get; set; } = new();
 

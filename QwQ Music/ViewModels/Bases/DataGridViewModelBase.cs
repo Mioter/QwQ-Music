@@ -71,14 +71,14 @@ public partial class DataGridViewModelBase : ViewModelBase
     }
 
     [RelayCommand]
-    private static async Task AddToPlaylistNext(IList items)
+    private static void AddToPlaylistNext(IList items)
     {
         if (items.Count <= 0)
             return;
 
         var musicItems = items.Cast<MusicItemModel>().ToList();
 
-        await MusicPlayList.AddToNext(musicItems);
+        MusicPlayList.AddToNext(musicItems);
     }
 
     [RelayCommand]

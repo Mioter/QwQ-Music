@@ -23,6 +23,7 @@ public static class FileOperationService
         if (string.IsNullOrEmpty(directory))
         {
             await LoggerService.ErrorAsync($"无效的文件路径：{filePath}");
+
             return false;
         }
 
@@ -47,6 +48,7 @@ public static class FileOperationService
         catch (Exception ex)
         {
             await LoggerService.ErrorAsync($"保存图片失败 {filePath}: {ex.Message}, 类型: {ex.GetType().Name}, 异常堆栈: {ex.StackTrace}");
+
             return false;
         }
 

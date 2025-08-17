@@ -70,7 +70,7 @@ public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicItemMa
             return;
 
         var items = await App.TopLevel.StorageProvider.OpenFolderPickerAsync(
-            new FolderPickerOpenOptions()
+            new FolderPickerOpenOptions
             {
                 Title = "选择包含音乐的文件夹",
                 AllowMultiple = true,
@@ -82,7 +82,7 @@ public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicItemMa
 
         await AudioFileManager.ProcessStorageItemsAsync(items);
     }
-    
+
     [RelayCommand]
     private static async Task DropFilesAsync(DragEventArgs? e)
     {

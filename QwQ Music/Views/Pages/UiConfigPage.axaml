@@ -12,7 +12,7 @@
       xmlns:anchorControl="clr-namespace:QwQ_Music.UI.Controls.AnchorControl">
 
     <u:SelectionList Grid.Column="0" Name="NavigationList">
-    
+
         <TextBlock Text="封面" />
         <TextBlock Text="主题" />
 
@@ -109,7 +109,7 @@
 
                         <Button.Styles>
                             <Style Selector="Button">
-                                
+
                                 <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
                                     <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
                                     <Setter Property="BorderBrush" Value="{DynamicResource SemiLightBlue5}" />
@@ -139,7 +139,7 @@
                         </Button.Styles>
 
                         <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{Binding AppResources.CurrentFont}"/>
+                            <TextBlock Text="{Binding AppResources.CurrentFont}" />
                             <PathIcon
                                 Name="DropDownGlyph"
                                 Grid.Column="1"
@@ -147,14 +147,12 @@
                                 Width="{DynamicResource ComboBoxIconWidth}"
                                 Data="{DynamicResource ComboBoxIcon}"
                                 IsHitTestVisible="False"
-                                UseLayoutRounding="False">
-
-                            </PathIcon>
+                                UseLayoutRounding="False" />
                         </Grid>
 
                         <Button.Flyout>
                             <Flyout>
-                                
+
                                 <Grid RowDefinitions="Auto,*" RowSpacing="10" Height="300" Width="200">
 
                                     <Grid.Styles>
@@ -195,8 +193,7 @@
                                                                  SelectedValue="{Binding AppResources.CurrentFont}">
                                                             <ListBox.ItemTemplate>
                                                                 <DataTemplate>
-                                                                    <TextBlock Text="{Binding Key}"
-                                                                               />
+                                                                    <TextBlock Text="{Binding Key}" />
                                                                 </DataTemplate>
                                                             </ListBox.ItemTemplate>
                                                         </ListBox>

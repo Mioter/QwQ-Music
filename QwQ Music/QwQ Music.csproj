@@ -9,8 +9,8 @@
         <LangVersion>preview</LangVersion>
         <ImplicitUsings>disable</ImplicitUsings>
         <ApplicationIcon>Assets\EmbeddedRes\app-icon.ico</ApplicationIcon>
-<!--        <PublishAot>true</PublishAot>
-        <TrimMode>link</TrimMode>-->
+        <!--        <PublishAot>true</PublishAot>
+                <TrimMode>link</TrimMode>-->
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,11 +19,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.3.4" />
-        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.4" />
-        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.4" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.4" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.4" />
+        <PackageReference Include="Avalonia" Version="11.3.4"/>
+        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.4"/>
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.4"/>
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.4"/>
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.4"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Include="Avalonia.Diagnostics" Version="11.3.4">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
@@ -38,11 +38,11 @@
         <PackageReference Include="Semi.Avalonia.ColorPicker" Version="11.2.1.9"/>
         <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.2.1.9"/>
         <PackageReference Include="SkiaSharp" Version="3.119.0"/>
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.7.25380.108" />
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
-        <PackageReference Include="SoundFlow" Version="1.2.1" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-preview.7.25380.108"/>
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0"/>
+        <PackageReference Include="SoundFlow" Version="1.2.1"/>
         <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.2"/>
-        <PackageReference Include="z440.atl.core" Version="7.3.0" />
+        <PackageReference Include="z440.atl.core" Version="7.3.0"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -72,14 +72,18 @@
             <DependentUpon>MusicListDetailsPanel.axaml</DependentUpon>
         </Compile>
         <Compile Update="Views\WindowBox.axaml.cs">
-          <DependentUpon>WindowBox.axaml</DependentUpon>
+            <DependentUpon>WindowBox.axaml</DependentUpon>
         </Compile>
     </ItemGroup>
 
     <ItemGroup>
-      <AdditionalFiles Include="Assets\AvaloniaRes\Palette\.index.axaml" />
-      <AdditionalFiles Include="Assets\AvaloniaRes\Palette\Dark.axaml" />
-      <AdditionalFiles Include="Assets\AvaloniaRes\Palette\Light.axaml" />
+        <AdditionalFiles Include="Assets\AvaloniaRes\Palette\.index.axaml"/>
+        <AdditionalFiles Include="Assets\AvaloniaRes\Palette\Dark.axaml"/>
+        <AdditionalFiles Include="Assets\AvaloniaRes\Palette\Light.axaml"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Models\SoundModifierModel\" />
     </ItemGroup>
 
 </Project>

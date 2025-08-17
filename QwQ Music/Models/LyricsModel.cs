@@ -9,11 +9,11 @@ public record struct LyricLine(double TimePoint, string Primary, string? Transla
 
 public partial class LyricsModel : ObservableObject
 {
-    public static int LyricOffset { get; set; }
-
     public delegate void LyricLineChangedEventHandler(object sender, LyricLine currentLyric, LyricLine? nextLyric);
 
     private readonly List<double> _timePoints = [];
+
+    public static int LyricOffset { get; set; }
 
     [ObservableProperty] public partial int LyricsIndex { get; set; }
 

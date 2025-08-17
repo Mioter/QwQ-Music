@@ -74,9 +74,9 @@
 
     </Panel>
 
-    <ScrollViewer Grid.Row="1" >
+    <ScrollViewer Grid.Row="1">
 
-        <ItemsControl ItemsSource="{Binding AlbumItems}" Padding="0,5" >
+        <ItemsControl ItemsSource="{Binding AlbumItems}" Padding="0,5">
 
             <ItemsControl.Styles>
 
@@ -190,6 +190,8 @@
                                         <TextBlock Grid.Row="1" Grid.Column="2"
                                                    Text="{Binding Artist}"
                                                    TextWrapping="Wrap"
+                                                   FontSize="12"
+                                                   Classes="Tertiary"
                                                    MaxLines="2" />
                                     </Grid>
                                 </Button>
@@ -299,6 +301,8 @@
                                                                Margin="10,0,10,10"
                                                                Text="{Binding Artist}"
                                                                TextWrapping="Wrap"
+                                                               FontSize="12"
+                                                               Classes="Tertiary"
                                                                MaxLines="2" />
                                                 </Grid>
 
@@ -408,6 +412,8 @@
                                                                Margin="10,0,10,10"
                                                                Text="{Binding Artist}"
                                                                TextWrapping="Wrap"
+                                                               Classes="Tertiary"
+                                                               FontSize="12"
                                                                MaxLines="2" />
                                                 </Grid>
 

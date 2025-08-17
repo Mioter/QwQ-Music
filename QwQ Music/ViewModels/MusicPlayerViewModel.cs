@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using System.Timers;
 using CommunityToolkit.Mvvm.Input;
 using NcmdumpCSharp.Core;
+using QwQ_Music.Common.Audio;
 using QwQ_Music.Common.Interfaces;
 using QwQ_Music.Common.Manager;
 using QwQ_Music.Common.Services;
-using QwQ_Music.Common.Services.Audio;
 using QwQ_Music.Common.Services.Databases;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;
@@ -208,10 +208,13 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
     {
         try
         {
+            await MusicItemManager.Initialize();
+            await MusicPlayListManager.Initialize();
+            
             if (PlayerConfig.LastPlayedFilePath == null)
                 return;
 
-            foreach (var item in MusicItemManager.MusicItems.Where(item => item.FilePath == PlayerConfig.LastPlayedFilePath))
+            foreach (var item in MusicPlayListManager.PlayList.Where(item => item.FilePath == PlayerConfig.LastPlayedFilePath))
             {
                 await SetCurrentMusicItem(item);
             }
@@ -230,15 +233,17 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
         _lyricsTimer.Dispose();
 
         _audioPlay.Dispose();
+
+        SaveFinalState();
     }
 
-    public async Task SaveFinalStateAsync()
+    private void SaveFinalState()
     {
         PlayerConfig.LastPlayedFilePath = CurrentMusicItem.FilePath;
-        
+
         if (CurrentMusicItem.Current != _initialTime)
         {
-            await MusicItemManager.UpdatePlayProgress(CurrentMusicItem.FilePath, CurrentMusicItem.Current);
+            MusicItemManager.UpdatePlayProgress(CurrentMusicItem.FilePath, CurrentMusicItem.Current);
         }
     }
 
@@ -296,7 +301,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
             // 根据播放模式处理播放完成后的行为
             if (PlayerConfig.PlayMode == PlayMode.SingleLoop)
             {
-                await RefreshPlayback(); // 单曲循环模式下，重新播放当前歌曲
+                RefreshPlayback(); // 单曲循环模式下，重新播放当前歌曲
             }
             else if (PlayerConfig.AutoSwitchNext)
             {
@@ -334,7 +339,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
             await SetCurrentMusicItem(CurrentMusicItem);
         }
 
-        if (await VerifyMusicItem(CurrentMusicItem))
+        if (VerifyMusicItem(CurrentMusicItem))
         {
             OnPlayingChanged(!IsPlaying);
         }
@@ -343,7 +348,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
     [RelayCommand]
     public async Task PlayThisMusic(MusicItemModel musicItem)
     {
-        if (!await VerifyMusicItem(musicItem))
+        if (!VerifyMusicItem(musicItem))
         {
             return;
         }
@@ -374,7 +379,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
 
     public async Task ToggleMusicAsync(MusicItemModel musicItem)
     {
-        if (await VerifyMusicItem(musicItem))
+        if (VerifyMusicItem(musicItem))
         {
             OnPlayingChanged(false);
             await SetCurrentMusicItem(musicItem);
@@ -400,9 +405,9 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
     }
 
     [RelayCommand]
-    public async Task RefreshPlayback()
+    public void RefreshPlayback()
     {
-        if (!await VerifyMusicItem(CurrentMusicItem))
+        if (!VerifyMusicItem(CurrentMusicItem))
             return;
 
         Seek(0);
@@ -438,7 +443,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
         }
     }
 
-    private static async Task<bool> VerifyMusicItem(MusicItemModel musicItem)
+    private static bool VerifyMusicItem(MusicItemModel musicItem)
     {
         if (!File.Exists(musicItem.FilePath))
         {
@@ -447,19 +452,19 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
             return false;
         }
 
-        if (MusicPlayListManager.PlayList.Count == 0)
+        if (MusicPlayListManager.Count == 0)
         {
-            await MusicPlayListManager.AddRange(MusicItemManager.MusicItems);
+            MusicPlayListManager.AddRange(MusicItemManager.MusicItems);
             NotificationService.Info($"当前播放列表为空，已自动填充为全部音乐！共 {MusicPlayListManager.Count} 首~");
         }
 
         if (!MusicItemManager.MusicItems.Contains(musicItem))
         {
-            await using var musicItemRepository = new MusicItemRepository(StaticConfig.DatabasePath);
+            using var musicItemRepository = new MusicItemRepository(StaticConfig.DatabasePath);
 
             try
             {
-                await musicItemRepository.InsertAsync(musicItem);
+                musicItemRepository.Insert(musicItem);
                 NotificationService.Warning($"很奇怪，这个《{musicItem.Title}》不在音乐库中，不过没关系，现在在了，欸嘿~QvQ");
             }
             catch (Exception e)
@@ -472,7 +477,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
         if (MusicPlayListManager.PlayList.Contains(musicItem))
             return true;
 
-        MusicPlayListManager.PlayList.Add(musicItem);
+        MusicPlayListManager.Add(musicItem);
 
         NotificationService.Info($"当前音乐《{musicItem.Title}》不在播放列表中，以自动添加到播放列表末尾~");
 
@@ -486,7 +491,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
 
         var musicItem = MusicPlayListManager.PlayList[index];
 
-        if (await VerifyMusicItem(musicItem))
+        if (VerifyMusicItem(musicItem))
         {
             await SetCurrentMusicItem(musicItem, PlayerConfig.IsRestartPlay);
             OnPlayingChanged(true);
@@ -494,7 +499,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
     }
 
     [RelayCommand]
-    private async Task TogglePlayMode()
+    private void TogglePlayMode()
     {
         // 循环切换播放模式
         var previousMode = PlayerConfig.PlayMode;
@@ -503,7 +508,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
         // 如果切换到随机播放模式，则打乱播放列表
         if (previousMode != PlayMode.Random && PlayerConfig is { PlayMode: PlayMode.Random, IsRealRandom: false })
         {
-            await MusicPlayListManager.Shuffle();
+            MusicPlayListManager.Shuffle();
         }
 
         OnPropertyChanged(nameof(PlayModeName));
@@ -511,7 +516,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
 
     private int GetMusicItemIndex(int current, bool isNext = true)
     {
-        return MusicPlayListManager.PlayList.Count switch
+        return MusicPlayListManager.Count switch
         {
             <= 0 => -1,
             1 => 0,
@@ -566,7 +571,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
 
             if (CurrentMusicItem.Current != _initialTime)
             {
-                await MusicItemManager.UpdatePlayProgress(CurrentMusicItem.FilePath, CurrentMusicItem.Current);
+                _ = Task.Run(() => { MusicItemManager.UpdatePlayProgress(CurrentMusicItem.FilePath, CurrentMusicItem.Current); });
             }
 
             Position = 0;

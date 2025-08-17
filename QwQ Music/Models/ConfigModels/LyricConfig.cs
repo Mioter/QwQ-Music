@@ -131,14 +131,13 @@ public class LyricConfig : ObservableObject
     public RolledLyricConfig RolledLyric { get; set; } = new();
 
     public DesktopLyricConfig DesktopLyric { get; set; } = new();
-    
+
     public static Dictionary<HorizontalAlignment, string> TextAlignments { get; } = new()
     {
         [HorizontalAlignment.Left] = "左对齐",
         [HorizontalAlignment.Center] = "居中",
         [HorizontalAlignment.Right] = "右对齐",
     };
-
 }
 
 public partial class RolledLyricConfig : ObservableObject

@@ -1,7 +1,7 @@
 <UserControl d:DesignHeight="450"
              d:DesignWidth="800"
              mc:Ignorable="d"
-             Margin="0,10"
+             Margin="0,5"
              x:Class="QwQ_Music.Views.Pages.PlayConfigPage"
              x:DataType="pages:PlayConfigPageViewModel"
              xmlns="https://github.com/avaloniaui"
@@ -9,7 +9,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
-             xmlns:utilities="clr-namespace:QwQ_Music.Common.Utilities">
+             xmlns:utilities="clr-namespace:QwQ_Music.Common.Utilities"
+             xmlns:u="https://irihi.tech/ursa">
 
     <ScrollViewer>
 
@@ -18,15 +19,29 @@
             <StackPanel.Styles>
 
                 <Style Selector="WrapPanel">
+                    <Setter Property="Margin" Value="5"/>
                     <Setter Property="ItemSpacing" Value="20" />
                     <Setter Property="LineSpacing" Value="20" />
                 </Style>
 
                 <Style Selector="WrapPanel > Border">
                     <Setter Property="BorderBrush" Value="{DynamicResource BorderCardBorderBrush}" />
+                    <Setter Property="Background" Value="{DynamicResource SemiColorBackground0}" />
                     <Setter Property="BorderThickness" Value="1" />
                     <Setter Property="CornerRadius" Value="10" />
                     <Setter Property="MinWidth" Value="200" />
+                    
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <EffectTransition Duration="0:0:0.3"
+                                              Property="Effect" />
+                        </Transitions>
+                    </Setter>
+                    
+                    <Style Selector="^:pointerover">
+                        <Setter Property="Effect"
+                                Value="{DynamicResource LightColorDropShadowEffect}" />
+                    </Style>
                 </Style>
 
 
@@ -42,7 +57,7 @@
                 <WrapPanel.Styles>
 
                     <Style Selector="WrapPanel > Border > StackPanel">
-                        <Setter Property="Margin" Value="5,15" />
+                        <Setter Property="Margin" Value="10,15" />
                         <Setter Property="Spacing" Value="10" />
                     </Style>
 
@@ -50,15 +65,15 @@
                         <Setter Property="Margin" Value="25,0" />
                     </Style>
 
-                    <Style Selector="WrapPanel > Border > StackPanel > StackPanel > PathIcon">
-                        <Setter Property="Foreground" Value="{x:Static utilities:ColorGenerator.RandomColor}" />
-                        <Setter Property="Width" Value="25" />
+                    <Style Selector="WrapPanel > Border > StackPanel > StackPanel">
+                        <Setter Property="Height" Value="25" />   
+                        <Setter Property="Spacing" Value="5" />
+                        <Setter Property="Orientation" Value="Horizontal" />
                     </Style>
 
-                    <Style Selector="WrapPanel > Border > StackPanel > StackPanel">
-                        <Setter Property="Height" Value="25" />
-                        <Setter Property="Spacing" Value="2" />
-                        <Setter Property="Orientation" Value="Horizontal" />
+                    <Style Selector="WrapPanel > Border > StackPanel > StackPanel > PathIcon">
+                        <Setter Property="Foreground" Value="{x:Static utilities:ColorGenerator.RandomColor}" />
+                        <Setter Property="Width" Value="20" />
                     </Style>
 
                 </WrapPanel.Styles>
@@ -66,7 +81,7 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource PlayIconData}" />
+                            <PathIcon Data="{StaticResource SemiIconMusicNoteStroked}"  Height="14" />
                             <TextBlock Text="播放完成后 : " />
                         </StackPanel>
 
@@ -81,17 +96,7 @@
                             <PathIcon Data="{StaticResource SemiIconChevronUpDown}" Height="14" />
                             <TextBlock Text="切换音乐时 : " />
                         </StackPanel>
-
-                        <!--<CheckBox Name="CheckBox2">
-                    <Interaction.Behaviors>
-                        <DataTriggerBehavior Binding="{Binding #CheckBox2.IsChecked}" Value="True">
-                            <ChangePropertyAction PropertyName="Content" Value="从头开始播放" />
-                        </DataTriggerBehavior>
-                        <DataTriggerBehavior Binding="{Binding #CheckBox2.IsChecked}" Value="False">
-                            <ChangePropertyAction PropertyName="Content" Value="继续上次播放时长播放" />
-                        </DataTriggerBehavior>
-                    </Interaction.Behaviors>
-                </CheckBox>-->
+                        
                         <RadioButton Content="从头开始播放" IsChecked="{Binding PlayerConfig.IsRestartPlay}" />
                         <RadioButton Content="继续上次播放" IsChecked="{Binding !PlayerConfig.IsRestartPlay}" />
                     </StackPanel>
@@ -100,7 +105,7 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource Random}" Height="13.5" />
+                            <PathIcon Data="{StaticResource Random}" Height="14" />
                             <TextBlock Text="随机模式 : " />
                         </StackPanel>
 
@@ -112,7 +117,7 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource SemiIconBytedanceLogo}" Height="12" />
+                            <PathIcon Data="{StaticResource SemiIconSonicStroked}" Height="12.5" />
                             <TextBlock Text="输出采样率 : " />
                         </StackPanel>
 
@@ -283,16 +288,18 @@
                     </StackPanel>
                 </Border>-->
 
-                <!--
                 <Border Padding="15">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
+                            
                             <Rectangle
-                                Fill="{Binding RandomColor}"
-                                Margin="0,4"
+                                Fill="{x:Static utilities:ColorGenerator.RandomColor}"
+                                Margin="0,5"
+                                RadiusX="2" RadiusY="2"
                                 Width="4" />
+                            
                             <TextBlock Text="启用淡入淡出" />
-                            <CheckBox IsChecked="{Binding AudioModifierConfig.FadeModifier.Enabled}" />
+                            <CheckBox IsChecked="{Binding SoundModifierConfig.FadeModifier.Enabled}" />
                         </StackPanel>
 
                         <TextBlock
@@ -304,7 +311,7 @@
                             Maximum="60000"
                             Minimum="0"
                             Step="200"
-                            Value="{Binding AudioModifierConfig.FadeModifier.FadeInTimeMs}" />
+                            Value="{Binding SoundModifierConfig.FadeModifier.FadeInTimeMs}" />
 
                         <TextBlock
                             FontSize="12"
@@ -315,7 +322,7 @@
                             Maximum="60000"
                             Minimum="0"
                             Step="200"
-                            Value="{Binding AudioModifierConfig.FadeModifier.FadeOutTimeMs}" />
+                            Value="{Binding SoundModifierConfig.FadeModifier.FadeOutTimeMs}" />
 
                         <TextBlock
                             FontSize="12"
@@ -324,10 +331,12 @@
                         <ComboBox
                             ItemsSource="{Binding FadeCurves}"
                             MinWidth="150"
-                            SelectedItem="{Binding AudioModifierConfig.FadeModifier.CurveType}" />
+                            DisplayMemberBinding="{Binding Value}"
+                            SelectedValueBinding="{Binding Key}"
+                            SelectedValue="{Binding SoundModifierConfig.FadeModifier.CurveType}" />
 
                     </StackPanel>
-                </Border>-->
+                </Border>
             </WrapPanel>
 
         </StackPanel>

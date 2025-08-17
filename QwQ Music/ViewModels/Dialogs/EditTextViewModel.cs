@@ -8,6 +8,8 @@ namespace QwQ_Music.ViewModels.Dialogs;
 
 public partial class EditTextViewModel : DataVerifyModelBase, IDialogContext
 {
+    private readonly int _maxLength;
+
     public EditTextViewModel(string oldText, string title = "标题未设置", int maxLength = -1)
     {
         OldText = oldText;
@@ -16,8 +18,6 @@ public partial class EditTextViewModel : DataVerifyModelBase, IDialogContext
 
         InitialValidate();
     }
-
-    private readonly int _maxLength;
 
     public string Title { get; }
 

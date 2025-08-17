@@ -66,7 +66,7 @@ public interface IMusicPlayer
     /// <summary>
     ///     刷新播放状态
     /// </summary>
-    public Task RefreshPlayback();
+    public void RefreshPlayback();
 
     /// <summary>
     ///     清除此音乐的播放时长

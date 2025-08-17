@@ -14,20 +14,15 @@ namespace QwQ_Music.Common.Manager;
 
 public class MusicPlayListManager : ObservableObject
 {
-    public readonly MusicItemModel DefaultMusicItem = new()
+    public static readonly MusicItemModel DefaultMusicItem = new()
     {
         Title = "听你想听",
         Artists = "YOU",
-        FilePath = "",
+        FilePath = string.Empty,
     };
 
-    public MusicPlayListManager()
-    {
-        CurrentMusicItem = DefaultMusicItem;
-        Initialize();
-    }
 
-    public MusicItemModel CurrentMusicItem { get; set; }
+    public MusicItemModel CurrentMusicItem { get; set; } = DefaultMusicItem;
 
     public int CurrentIndex => PlayList.IndexOf(CurrentMusicItem);
 
@@ -37,16 +32,20 @@ public class MusicPlayListManager : ObservableObject
 
     public int Count => PlayList.Count;
 
-    public async void Initialize()
+    public async Task Initialize()
     {
         try
         {
-            await using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
+            using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
 
-            var paths = await playlistRepository.GetAllAsync();
+            var paths = await Task.Run(() => playlistRepository.GetAll());
 
             // 创建路径到索引的映射
-            var pathIndexMap = paths.Select((path, index) => new { path, index })
+            var pathIndexMap = paths.Select((path, index) => new
+                {
+                    path,
+                    index,
+                })
                 .ToDictionary(x => x.path, x => x.index);
 
             var orderedItems = MusicItemManager.Default.MusicItems
@@ -62,62 +61,65 @@ public class MusicPlayListManager : ObservableObject
             await LoggerService.ErrorAsync($"加载播放列表时发生错误！\n{e.Message}\n{e.StackTrace}");
         }
     }
-    
-    public MusicItemModel First() => PlayList.First();
 
-    public async Task Add(MusicItemModel musicItem)
+    public MusicItemModel First()
+    {
+        return PlayList.First();
+    }
+
+    public void Add(MusicItemModel musicItem)
     {
         PlayList.Add(musicItem);
-        await using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
-        await playlistRepository.AddAsync(musicItem.FilePath);
+        using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
+        playlistRepository.Add(musicItem.FilePath);
     }
 
-    public async Task AddRange(IList<MusicItemModel> musicItems)
+    public void AddRange(IList<MusicItemModel> musicItems)
     {
         PlayList.AddRange(musicItems);
-        await using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
+        using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
 
         var files = musicItems.Select(item => item.FilePath);
-        await playlistRepository.AddRangeAsync(files);
+        playlistRepository.AddRange(files);
     }
 
-    public async Task AddToNext(IList<MusicItemModel> musicItems)
+    public void AddToNext(IList<MusicItemModel> musicItems)
     {
         PlayList.RemoveAll(musicItems);
-    
-        await using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
+
+        using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
 
         // 从后往前插入，这样可以保持原有顺序
         for (int i = musicItems.Count - 1; i >= 0; i--)
         {
             PlayList.Insert(CurrentIndex + 1, musicItems[i]);
-            await playlistRepository.InsertAsync(musicItems[i].FilePath, CurrentIndex + 1);
+            playlistRepository.Insert(musicItems[i].FilePath, CurrentIndex + 1);
         }
 
         PlayedIndicesService.ClearPlayedIndices();
     }
 
-    public async Task Remove(IList<MusicItemModel> musicItems)
+    public void Remove(IList<MusicItemModel> musicItems)
     {
         PlayList.RemoveAll(musicItems);
 
-        await using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
+        using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
 
         var files = musicItems.Select(item => item.FilePath);
-        await playlistRepository.RemoveAsync(files);
+        playlistRepository.Remove(files);
 
         PlayedIndicesService.ClearPlayedIndices();
     }
 
-    public async Task Clear()
+    public void Clear()
     {
         PlayList.Clear();
 
-        await using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
-        await playlistRepository.ClearAsync();
+        using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
+        playlistRepository.Clear();
     }
 
-    public async Task Toggle(
+    public void Toggle(
         IList<MusicItemModel> musicItems
         )
     {
@@ -127,17 +129,17 @@ public class MusicPlayListManager : ObservableObject
         // 处于随机播放模式，且不为真随机时，在播放列表切换后打乱一次
         if (ConfigManager.PlayerConfig is { PlayMode: PlayMode.Random, IsRealRandom: false })
         {
-            await Shuffle();
+            Shuffle();
             NotificationService.Info("当前启用了打乱播放列表模式的随机模式，音乐播放列表已经被打乱，请注意哦~");
         }
 
         PlayedIndicesService.ClearPlayedIndices();
 
-        await using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
-        await playlistRepository.SetAllAsync(PlayList.Select(item => item.FilePath));
+        using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
+        playlistRepository.SetAll(PlayList.Select(item => item.FilePath));
     }
 
-    public async Task Shuffle()
+    public void Shuffle()
     {
         if (PlayList.Count <= 1)
             return;
@@ -159,7 +161,7 @@ public class MusicPlayListManager : ObservableObject
         PlayList.Remove(CurrentMusicItem);
         PlayList.Insert(currentIndex, CurrentMusicItem);
 
-        await using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
-        await playlistRepository.SetAllAsync(PlayList.Select(item => item.FilePath));
+        using var playlistRepository = new PlaylistRepository(StaticConfig.DatabasePath);
+        playlistRepository.SetAll(PlayList.Select(item => item.FilePath));
     }
 }

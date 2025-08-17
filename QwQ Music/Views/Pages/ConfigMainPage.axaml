@@ -63,7 +63,7 @@
     </u:SelectionList>
 
     <Carousel Grid.Row="1" SelectedIndex="{Binding NavigationIndex}">
-        
+
         <Carousel.Styles>
 
             <Style Selector="u|SelectionList">

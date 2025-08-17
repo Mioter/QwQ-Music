@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using QwQ_Music.Common.Audio.SoundModifier;
 using QwQ_Music.Common.Manager;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.ViewModels.Bases;
@@ -10,7 +12,7 @@ public class PlayConfigPageViewModel : ViewModelBase
 
     public static MusicPlayerViewModel MusicPlayerViewModel => MusicPlayerViewModel.Default;
 
-    public AudioModifierConfig AudioModifierConfig { get; } = ConfigManager.AudioModifierConfig;
+    public SoundModifierConfig SoundModifierConfig { get; } = ConfigManager.SoundModifierConfig;
 
     /*public PlayConfigPageViewModel()
     {
@@ -49,10 +51,14 @@ public class PlayConfigPageViewModel : ViewModelBase
         ReplayGainCalculator.CalcCompletedChanged -= ReplayGainCalculatorOnCalcCompletedChanged;
     }*/
 
-    /*
-    public FadeModifier.FadeCurve[] FadeCurves { get; } = EnumHelper<FadeModifier.FadeCurve>.ToArray();
+    public Dictionary<FadeModifier.FadeCurve,string> FadeCurves { get; } = new()
+    {
+        [FadeModifier.FadeCurve.Cosine] = "余弦渐变",
+        [FadeModifier.FadeCurve.Exponential] = "指数渐变",
+        [FadeModifier.FadeCurve.Linear] = "线性渐变",
+    };
 
-    #region 回放增益
+    /*#region 回放增益
 
     [ObservableProperty]
     public partial TaskController? TaskController { get; set; }

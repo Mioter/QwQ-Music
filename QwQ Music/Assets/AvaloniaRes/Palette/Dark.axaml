@@ -1,6 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- Add Resources Here -->
-    <SolidColorBrush x:Key="BorderedBorderBrush" Color="Transparent"></SolidColorBrush>   
-    <SolidColorBrush x:Key="BorderedBackground" Color="#313135"></SolidColorBrush>
+    <SolidColorBrush x:Key="BorderedBorderBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="BorderedBackground" Color="#313135" />
 </ResourceDictionary>

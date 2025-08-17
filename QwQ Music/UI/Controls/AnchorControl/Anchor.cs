@@ -235,10 +235,7 @@ public class Anchor : ItemsControl
 
     private void ResetStickyHeaderTransform()
     {
-        if (_stickyHeader != null)
-        {
-            _stickyHeader.RenderTransform = new TranslateTransform(0, 0);
-        }
+        _stickyHeader?.RenderTransform = new TranslateTransform(0, 0);
     }
 
     private void SyncListBoxSelection()

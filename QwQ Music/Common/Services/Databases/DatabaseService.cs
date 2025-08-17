@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 
 namespace QwQ_Music.Common.Services.Databases;
@@ -10,7 +9,7 @@ namespace QwQ_Music.Common.Services.Databases;
 /// <summary>
 ///     提供基于 Sqlite 的数据库操作服务，包括建表、删表、增删改查等常用功能。
 /// </summary>
-public class DatabaseService : IAsyncDisposable
+public class DatabaseService : IDisposable
 {
     private readonly SqliteConnection _connection;
 
@@ -30,23 +29,16 @@ public class DatabaseService : IAsyncDisposable
 
         string connectionString = $"Data Source={dbPath}";
         _connection = new SqliteConnection(connectionString);
+        _connection.Open(); // 构造时自动打开连接
     }
 
     /// <summary>
-    ///     异步释放数据库连接资源。
+    ///     释放数据库连接资源。
     /// </summary>
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        await _connection.DisposeAsync();
+        _connection.Dispose();
         GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    ///     异步打开数据库连接。
-    /// </summary>
-    public async Task InitializeAsync()
-    {
-        await _connection.OpenAsync();
     }
 
     #region 查询操作
@@ -57,12 +49,12 @@ public class DatabaseService : IAsyncDisposable
     /// <param name="sql">SQL 查询语句</param>
     /// <param name="parameters">参数字典</param>
     /// <returns>结果集，每行是一个字典</returns>
-    public async Task<List<Dictionary<string, object?>>> QueryAsync(string sql, Dictionary<string, object>? parameters = null)
+    public List<Dictionary<string, object?>> Query(string sql, Dictionary<string, object>? parameters = null)
     {
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("SQL 语句不能为空。", nameof(sql));
 
-        await using var cmd = _connection.CreateCommand();
+        using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
         if (parameters != null)
@@ -74,9 +66,9 @@ public class DatabaseService : IAsyncDisposable
         }
 
         var result = new List<Dictionary<string, object?>>();
-        await using var reader = await cmd.ExecuteReaderAsync();
+        using var reader = cmd.ExecuteReader();
 
-        while (await reader.ReadAsync())
+        while (reader.Read())
         {
             var row = new Dictionary<string, object?>();
 
@@ -93,47 +85,6 @@ public class DatabaseService : IAsyncDisposable
 
     #endregion
 
-    #region 迭代读取查询
-
-    /// <summary>
-    ///     异步执行查询，返回可迭代的结果集。
-    /// </summary>
-    /// <param name="sql">SQL 查询语句</param>
-    /// <param name="parameters">参数字典</param>
-    /// <returns>可迭代的结果集，每行是一个字典</returns>
-    public async IAsyncEnumerable<Dictionary<string, object?>> QueryAsyncEnumerable(string sql, Dictionary<string, object>? parameters = null)
-    {
-        if (string.IsNullOrWhiteSpace(sql))
-            throw new ArgumentException("SQL 语句不能为空。", nameof(sql));
-
-        await using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        if (parameters != null)
-        {
-            foreach ((string key, object value) in parameters)
-            {
-                cmd.Parameters.AddWithValue($"@{key}", value);
-            }
-        }
-
-        await using var reader = await cmd.ExecuteReaderAsync();
-
-        while (await reader.ReadAsync())
-        {
-            var row = new Dictionary<string, object?>();
-
-            for (int i = 0; i < reader.FieldCount; i++)
-            {
-                row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
-            }
-
-            yield return row;
-        }
-    }
-
-    #endregion
-
     #region 工具方法
 
     /// <summary>
@@ -143,7 +94,6 @@ public class DatabaseService : IAsyncDisposable
     /// <returns>转义后的标识符</returns>
     private static string EscapeIdentifier(string identifier)
     {
-        // SQLite 使用双引号转义标识符
         return $"\"{identifier.Replace("\"", "\"\"")}\"";
     }
 
@@ -154,9 +104,7 @@ public class DatabaseService : IAsyncDisposable
     /// <summary>
     ///     创建表（如果不存在）。
     /// </summary>
-    /// <param name="tableName">表名</param>
-    /// <param name="columnsDefinition">字段定义，如 "id INTEGER PRIMARY KEY, name TEXT"</param>
-    public async Task CreateTableAsync(string tableName, string columnsDefinition)
+    public void CreateTable(string tableName, string columnsDefinition)
     {
         if (string.IsNullOrWhiteSpace(tableName))
             throw new ArgumentException("表名不能为空。", nameof(tableName));
@@ -164,23 +112,22 @@ public class DatabaseService : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(columnsDefinition))
             throw new ArgumentException("列定义不能为空。", nameof(columnsDefinition));
 
-        await using var cmd = _connection.CreateCommand();
+        using var cmd = _connection.CreateCommand();
         cmd.CommandText = $"CREATE TABLE IF NOT EXISTS {EscapeIdentifier(tableName)} ({columnsDefinition});";
-        await cmd.ExecuteNonQueryAsync();
+        cmd.ExecuteNonQuery();
     }
 
     /// <summary>
     ///     删除表（如果存在）。
     /// </summary>
-    /// <param name="tableName">表名</param>
-    public async Task DropTableAsync(string tableName)
+    public void DropTable(string tableName)
     {
         if (string.IsNullOrWhiteSpace(tableName))
             throw new ArgumentException("表名不能为空。", nameof(tableName));
 
-        await using var cmd = _connection.CreateCommand();
+        using var cmd = _connection.CreateCommand();
         cmd.CommandText = $"DROP TABLE IF EXISTS {EscapeIdentifier(tableName)};";
-        await cmd.ExecuteNonQueryAsync();
+        cmd.ExecuteNonQuery();
     }
 
     #endregion
@@ -190,9 +137,7 @@ public class DatabaseService : IAsyncDisposable
     /// <summary>
     ///     插入一条数据。
     /// </summary>
-    /// <param name="tableName">表名</param>
-    /// <param name="data">字段名与值的字典</param>
-    public async Task InsertAsync(string tableName, Dictionary<string, object?> data)
+    public void Insert(string tableName, Dictionary<string, object?> data)
     {
         if (string.IsNullOrWhiteSpace(tableName))
             throw new ArgumentException("表名不能为空。", nameof(tableName));
@@ -202,7 +147,8 @@ public class DatabaseService : IAsyncDisposable
 
         string columns = string.Join(", ", data.Keys.Select(EscapeIdentifier));
         string paramNames = string.Join(", ", data.Keys.Select(k => "@" + k));
-        await using var cmd = _connection.CreateCommand();
+
+        using var cmd = _connection.CreateCommand();
 
         foreach ((string key, object? value) in data)
         {
@@ -210,17 +156,13 @@ public class DatabaseService : IAsyncDisposable
         }
 
         cmd.CommandText = $"INSERT INTO {EscapeIdentifier(tableName)} ({columns}) VALUES ({paramNames});";
-        await cmd.ExecuteNonQueryAsync();
+        cmd.ExecuteNonQuery();
     }
 
     /// <summary>
     ///     更新数据。
     /// </summary>
-    /// <param name="tableName">表名</param>
-    /// <param name="data">要更新的字段名与值</param>
-    /// <param name="whereClause">WHERE 子句（不含 WHERE 关键字）</param>
-    /// <param name="whereParams">WHERE 子句参数</param>
-    public async Task UpdateAsync(
+    public void Update(
         string tableName,
         Dictionary<string, object?> data,
         string whereClause,
@@ -237,7 +179,8 @@ public class DatabaseService : IAsyncDisposable
             throw new ArgumentException("WHERE 条件不能为空。", nameof(whereClause));
 
         string setClause = string.Join(", ", data.Keys.Select(k => $"{EscapeIdentifier(k)} = @{k}"));
-        await using var cmd = _connection.CreateCommand();
+
+        using var cmd = _connection.CreateCommand();
 
         foreach ((string key, object? value) in data)
         {
@@ -253,16 +196,13 @@ public class DatabaseService : IAsyncDisposable
         }
 
         cmd.CommandText = $"UPDATE {EscapeIdentifier(tableName)} SET {setClause} WHERE {whereClause};";
-        await cmd.ExecuteNonQueryAsync();
+        cmd.ExecuteNonQuery();
     }
 
     /// <summary>
     ///     删除数据。
     /// </summary>
-    /// <param name="tableName">表名</param>
-    /// <param name="whereClause">WHERE 子句（不含 WHERE 关键字）</param>
-    /// <param name="whereParams">WHERE 子句参数</param>
-    public async Task DeleteAsync(string tableName, string whereClause, Dictionary<string, object>? whereParams = null)
+    public void Delete(string tableName, string whereClause, Dictionary<string, object>? whereParams = null)
     {
         if (string.IsNullOrWhiteSpace(tableName))
             throw new ArgumentException("表名不能为空。", nameof(tableName));
@@ -270,7 +210,7 @@ public class DatabaseService : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(whereClause))
             throw new ArgumentException("WHERE 条件不能为空。", nameof(whereClause));
 
-        await using var cmd = _connection.CreateCommand();
+        using var cmd = _connection.CreateCommand();
 
         if (whereParams != null)
         {
@@ -281,7 +221,7 @@ public class DatabaseService : IAsyncDisposable
         }
 
         cmd.CommandText = $"DELETE FROM {EscapeIdentifier(tableName)} WHERE {whereClause};";
-        await cmd.ExecuteNonQueryAsync();
+        cmd.ExecuteNonQuery();
     }
 
     #endregion
@@ -330,12 +270,12 @@ public class DatabaseService : IAsyncDisposable
     /// <summary>
     ///     执行 SQL 命令（用于 UPDATE/DELETE 等操作）
     /// </summary>
-    public async Task ExecuteAsync(string sql, Dictionary<string, object>? parameters = null)
+    public void Execute(string sql, Dictionary<string, object>? parameters = null)
     {
         if (string.IsNullOrWhiteSpace(sql))
             throw new ArgumentException("SQL 语句不能为空。", nameof(sql));
 
-        await using var cmd = _connection.CreateCommand();
+        using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
         if (parameters != null)
@@ -347,7 +287,7 @@ public class DatabaseService : IAsyncDisposable
         }
 
         cmd.Transaction = _transaction;
-        await cmd.ExecuteNonQueryAsync();
+        cmd.ExecuteNonQuery();
     }
 
     #endregion

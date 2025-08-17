@@ -4,6 +4,7 @@ using System.Linq;
 using Avalonia.Threading;
 using QwQ_Music.Common.Interfaces;
 using QwQ_Music.Common.Manager;
+using QwQ_Music.Models.ConfigModels;
 using SoundFlow.Abstracts.Devices;
 using SoundFlow.Backends.MiniAudio;
 using SoundFlow.Components;
@@ -11,7 +12,7 @@ using SoundFlow.Enums;
 using SoundFlow.Providers;
 using SoundFlow.Structs;
 
-namespace QwQ_Music.Common.Services.Audio;
+namespace QwQ_Music.Common.Audio;
 
 /// <summary>
 ///     基于SoundFlow实现的音频播放器
@@ -24,6 +25,7 @@ public class AudioPlay : IAudioPlay
     private DispatcherTimer? _progressTimer;
     private StreamDataProvider? _soundDataProvider;
     private SoundPlayer? _soundPlayer;
+    private readonly SoundModifierConfig _soundModifier = ConfigManager.SoundModifierConfig;
 
     /// <inheritdoc />
     public event EventHandler<double>? PositionChanged;
@@ -52,10 +54,7 @@ public class AudioPlay : IAudioPlay
         {
             field = value;
 
-            if (_soundPlayer != null)
-            {
-                _soundPlayer.Mute = value;
-            }
+            _soundPlayer?.Mute = value;
         }
     }
 
@@ -67,10 +66,7 @@ public class AudioPlay : IAudioPlay
         {
             field = Math.Clamp(value, 0.0f, 1.0f);
 
-            if (_soundPlayer != null)
-            {
-                _soundPlayer.Volume = field;
-            }
+            _soundPlayer?.Volume = field;
         }
     } = 1.0f;
 
@@ -85,10 +81,7 @@ public class AudioPlay : IAudioPlay
 
             field = value;
 
-            if (_soundPlayer != null)
-            {
-                _soundPlayer.PlaybackSpeed = field;
-            }
+            _soundPlayer?.PlaybackSpeed = field;
         }
     } = 1.0f;
 
@@ -100,7 +93,6 @@ public class AudioPlay : IAudioPlay
         if (_soundPlayer == null)
             return;
 
-        /*
         if (_fadeOutTimer != null)
         {
             // 停止并清理定时器
@@ -110,12 +102,11 @@ public class AudioPlay : IAudioPlay
         }
 
         // 检查淡入效果器是否启用
-        if (_audioModifierConfig.FadeModifier.Enabled)
+        if (_soundModifier.FadeModifier.Enabled )
         {
             // 应用淡入效果
-            _audioModifierConfig.FadeModifier.BeginFadeIn();
+            _soundModifier.FadeModifier.BeginFadeIn();
         }
-        */
 
         _soundPlayer.Play();
 
@@ -131,7 +122,6 @@ public class AudioPlay : IAudioPlay
         if (_soundPlayer is not { State: PlaybackState.Playing })
             return;
 
-        /*
         // 如果已经有一个淡出定时器在运行，先取消它
         if (_fadeOutTimer != null)
         {
@@ -141,15 +131,15 @@ public class AudioPlay : IAudioPlay
         }
 
         // 检查淡出效果器是否启用
-        if (_audioModifierConfig.FadeModifier.Enabled)
+        if (_soundModifier.FadeModifier.Enabled)
         {
             // 应用淡出效果
-            _audioModifierConfig.FadeModifier.BeginFadeOut();
+            _soundModifier.FadeModifier.BeginFadeOut();
 
             // 创建一个延迟暂停的定时器，等待淡出效果完成
             _fadeOutTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(_audioModifierConfig.FadeModifier.FadeOutTimeMs),
+                Interval = TimeSpan.FromMilliseconds(_soundModifier.FadeModifier.FadeOutTimeMs),
             };
 
             _fadeOutTimer.Tick += FadeOutTimer_Tick;
@@ -161,10 +151,6 @@ public class AudioPlay : IAudioPlay
             _soundPlayer.Pause();
             _progressTimer?.Stop();
         }
-        */
-
-        _soundPlayer.Pause();
-        _progressTimer?.Stop();
     }
 
     /// <summary>
@@ -276,8 +262,9 @@ public class AudioPlay : IAudioPlay
             PlaybackSpeed = Speed,
         };
 
+        InitializeModifier(_soundPlayer);
         _playerDevice.MasterMixer.AddComponent(_soundPlayer);
-
+ 
         // 设置播放完成事件
         _soundPlayer.PlaybackEnded += OnPlaybackCompleted;
 
@@ -293,12 +280,9 @@ public class AudioPlay : IAudioPlay
     /// <summary>
     ///     初始化效果链
     /// </summary>
-    private static void InitializeEffects(SoundPlayer soundPlayer)
+    private void InitializeModifier(SoundPlayer soundPlayer)
     {
-        /*soundPlayer.AddModifier(_audioModifierConfig.ReverbModifier);
-        soundPlayer.AddModifier(_audioModifierConfig.DelayModifier);
-        soundPlayer.AddModifier(_audioModifierConfig.CompressorModifier);
-        soundPlayer.AddModifier(_audioModifierConfig.ParametricEqualizer);*/
+        soundPlayer.AddModifier(_soundModifier.FadeModifier);
     }
 
     /// <summary>

@@ -457,10 +457,7 @@ public class LyricsControl : TemplatedControl
         _isProgrammaticScrolling = false; // 重置程序滚动状态
 
         // 重置滚动条位置
-        if (_scrollViewer != null)
-        {
-            _scrollViewer.Offset = Vector.Zero;
-        }
+        _scrollViewer?.Offset = Vector.Zero;
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)

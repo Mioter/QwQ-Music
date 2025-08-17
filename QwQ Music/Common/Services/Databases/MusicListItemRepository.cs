@@ -1,21 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using QwQ_Music.Models;
 
 namespace QwQ_Music.Common.Services.Databases;
 
-public class MusicListItemRepository : IAsyncDisposable
+public class MusicListItemRepository : IDisposable
 {
     public const string TABLE_NAME = "MUSIC_LIST_ITEM";
     private readonly DatabaseService _db;
-    private bool _initialized;
 
     public MusicListItemRepository(string listIdStr, string dbPath)
     {
         ListIdStr = listIdStr;
         _db = new DatabaseService(dbPath);
+        Initialize();
     }
 
     // --- 属性 ---
@@ -26,20 +25,16 @@ public class MusicListItemRepository : IAsyncDisposable
 
     // --- Dispose ---
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        await _db.DisposeAsync();
+        _db.Dispose();
         GC.SuppressFinalize(this);
     }
 
-    private async Task InitializeAsync()
+    private void Initialize()
     {
-        if (_initialized) return;
-
-        await _db.InitializeAsync();
-
         // 创建表（如果不存在）
-        await _db.CreateTableAsync(TABLE_NAME,
+        _db.CreateTable(TABLE_NAME,
             $"""
              {nameof(MusicListModel.IdStr)} TEXT,
              {nameof(MusicItemModel.FilePath)} TEXT,
@@ -48,23 +43,19 @@ public class MusicListItemRepository : IAsyncDisposable
              FOREIGN KEY ({nameof(MusicListModel.IdStr)}) REFERENCES {MusicListMapRepository.TABLE_NAME}({nameof(MusicListModel.IdStr)}) ON DELETE CASCADE,
              FOREIGN KEY ({nameof(MusicItemModel.FilePath)}) REFERENCES {MusicItemRepository.TABLE_NAME}({nameof(MusicItemModel.FilePath)}) ON DELETE CASCADE
              """);
-
-        _initialized = true;
     }
 
     /// <summary>
     ///     添加歌曲到歌单末尾
     /// </summary>
     /// <param name="filePath">音频文件路径</param>
-    public async Task AddAsync(string filePath)
+    public void Add(string filePath)
     {
-        await InitializeAsync();
-
-        await _db.ExecuteAsync("BEGIN TRANSACTION");
+        _db.BeginTransaction();
 
         try
         {
-            int newPosition = await GetMaxPositionAsync() + 1;
+            int newPosition = GetMaxPosition() + 1;
 
             var data = new Dictionary<string, object?>
             {
@@ -73,12 +64,12 @@ public class MusicListItemRepository : IAsyncDisposable
                 [nameof(Position)] = newPosition,
             };
 
-            await _db.InsertAsync(TABLE_NAME, data);
-            await _db.ExecuteAsync("COMMIT");
+            _db.Insert(TABLE_NAME, data);
+            _db.Commit();
         }
         catch
         {
-            await _db.ExecuteAsync("ROLLBACK");
+            _db.Rollback();
 
             throw;
         }
@@ -89,16 +80,14 @@ public class MusicListItemRepository : IAsyncDisposable
     /// </summary>
     /// <param name="filePath">音频文件路径</param>
     /// <param name="position">插入位置</param>
-    public async Task InsertAsync(string filePath, int position)
+    public void Insert(string filePath, int position)
     {
-        await InitializeAsync();
-
-        await _db.ExecuteAsync("BEGIN TRANSACTION");
+        _db.BeginTransaction();
 
         try
         {
             // 将指定位置及后续所有项的 Position + 1
-            await ShiftPositionsForwardAsync(position, int.MaxValue);
+            ShiftPositionsForward(position, int.MaxValue);
 
             // 插入新项
             var data = new Dictionary<string, object?>
@@ -108,12 +97,12 @@ public class MusicListItemRepository : IAsyncDisposable
                 [nameof(Position)] = position,
             };
 
-            await _db.InsertAsync(TABLE_NAME, data);
-            await _db.ExecuteAsync("COMMIT");
+            _db.Insert(TABLE_NAME, data);
+            _db.Commit();
         }
         catch
         {
-            await _db.ExecuteAsync("ROLLBACK");
+            _db.Rollback();
 
             throw;
         }
@@ -123,17 +112,15 @@ public class MusicListItemRepository : IAsyncDisposable
     ///     从歌单中删除指定歌曲（不调整其他项位置）
     /// </summary>
     /// <param name="filePath">音频文件路径</param>
-    public async Task RemoveAsync(string filePath)
+    public void Remove(string filePath)
     {
-        await InitializeAsync();
-
         var whereParams = new Dictionary<string, object>
         {
             [nameof(MusicListModel.IdStr)] = ListIdStr,
             [nameof(MusicItemModel.FilePath)] = filePath,
         };
 
-        await _db.DeleteAsync(TABLE_NAME,
+        _db.Delete(TABLE_NAME,
             $"{nameof(MusicListModel.IdStr)} = @{nameof(MusicListModel.IdStr)} AND {nameof(MusicItemModel.FilePath)} = @{nameof(MusicItemModel.FilePath)}",
             whereParams);
     }
@@ -141,16 +128,14 @@ public class MusicListItemRepository : IAsyncDisposable
     /// <summary>
     ///     清空整个歌单
     /// </summary>
-    public async Task ClearAsync()
+    public void Clear()
     {
-        await InitializeAsync();
-
         var whereParams = new Dictionary<string, object>
         {
             [nameof(MusicListModel.IdStr)] = ListIdStr,
         };
 
-        await _db.DeleteAsync(TABLE_NAME,
+        _db.Delete(TABLE_NAME,
             $"{nameof(MusicListModel.IdStr)} = @{nameof(MusicListModel.IdStr)}",
             whereParams);
     }
@@ -159,10 +144,8 @@ public class MusicListItemRepository : IAsyncDisposable
     ///     获取歌单中所有歌曲（按位置排序）
     /// </summary>
     /// <returns>文件路径列表</returns>
-    public async Task<List<string>> GetAllAsync()
+    public List<string> GetAll()
     {
-        await InitializeAsync();
-
         const string sql = $"SELECT {nameof(MusicItemModel.FilePath)} FROM {TABLE_NAME} " +
             $"WHERE {nameof(MusicListModel.IdStr)} = @{nameof(MusicListModel.IdStr)} " +
             $"ORDER BY {nameof(Position)}";
@@ -172,7 +155,7 @@ public class MusicListItemRepository : IAsyncDisposable
             [nameof(MusicListModel.IdStr)] = ListIdStr,
         };
 
-        var result = await _db.QueryAsync(sql, parameters);
+        var result = _db.Query(sql, parameters);
 
         return result.Select(row => row[nameof(MusicItemModel.FilePath)]?.ToString() ?? "").ToList();
     }
@@ -180,10 +163,8 @@ public class MusicListItemRepository : IAsyncDisposable
     /// <summary>
     ///     检查某首歌是否在歌单中
     /// </summary>
-    public async Task<bool> ContainsAsync(string filePath)
+    public bool Contains(string filePath)
     {
-        await InitializeAsync();
-
         const string sql = $"SELECT 1 FROM {TABLE_NAME} " +
             $"WHERE {nameof(MusicListModel.IdStr)} = @{nameof(MusicListModel.IdStr)} " +
             $"AND {nameof(MusicItemModel.FilePath)} = @{nameof(MusicItemModel.FilePath)} " +
@@ -195,7 +176,7 @@ public class MusicListItemRepository : IAsyncDisposable
             [nameof(MusicListModel.IdStr)] = ListIdStr,
         };
 
-        return (await _db.QueryAsync(sql, parameters)).Count != 0;
+        return _db.Query(sql, parameters).Count != 0;
     }
 
     /// <summary>
@@ -203,44 +184,42 @@ public class MusicListItemRepository : IAsyncDisposable
     /// </summary>
     /// <param name="filePath">要移动的歌曲文件路径</param>
     /// <param name="newPosition">新位置</param>
-    public async Task MoveAsync(string filePath, int newPosition)
+    public void Move(string filePath, int newPosition)
     {
-        await InitializeAsync();
-
-        await _db.ExecuteAsync("BEGIN TRANSACTION");
+        _db.BeginTransaction();
 
         try
         {
             // 获取当前项
-            var currentItem = await GetCurrentItemAsync(filePath);
+            var currentItem = GetCurrentItem(filePath);
             int oldPosition = currentItem.Position;
 
             if (oldPosition == newPosition)
             {
-                await _db.ExecuteAsync("COMMIT");
+                _db.Commit();
 
                 return;
             }
 
             // 查找目标位置的项
-            var targetItem = await GetItemByPositionAsync(newPosition);
+            var targetItem = GetItemByPosition(newPosition);
 
             if (targetItem.HasValue)
             {
                 // 交换两个项的 Position
-                await SwapPositionsAsync(filePath, targetItem.Value.FilePath);
+                SwapPositions(filePath, targetItem.Value.FilePath);
             }
             else
             {
                 // 目标位置为空，直接更新位置
-                await UpdateItemPositionAsync(filePath, newPosition);
+                UpdateItemPosition(filePath, newPosition);
             }
 
-            await _db.ExecuteAsync("COMMIT");
+            _db.Commit();
         }
         catch
         {
-            await _db.ExecuteAsync("ROLLBACK");
+            _db.Rollback();
 
             throw;
         }
@@ -249,15 +228,13 @@ public class MusicListItemRepository : IAsyncDisposable
     /// <summary>
     ///     重新整理位置，从 0 开始连续编号（清理空洞）
     /// </summary>
-    public async Task ReorderPositionsAsync()
+    public void ReorderPositions()
     {
-        await InitializeAsync();
-
-        await _db.ExecuteAsync("BEGIN TRANSACTION");
+        _db.BeginTransaction();
 
         try
         {
-            var items = await GetAllItemsWithPositionsAsync();
+            var items = GetAllItemsWithPositions();
 
             for (int i = 0; i < items.Count; i++)
             {
@@ -272,16 +249,16 @@ public class MusicListItemRepository : IAsyncDisposable
                     [nameof(Position)] = i,
                 };
 
-                await _db.UpdateAsync(TABLE_NAME, data,
+                _db.Update(TABLE_NAME, data,
                     $"{nameof(MusicListModel.IdStr)} = @{nameof(MusicListModel.IdStr)} AND {nameof(MusicItemModel.FilePath)} = @{nameof(MusicItemModel.FilePath)}",
                     whereParams);
             }
 
-            await _db.ExecuteAsync("COMMIT");
+            _db.Commit();
         }
         catch
         {
-            await _db.ExecuteAsync("ROLLBACK");
+            _db.Rollback();
 
             throw;
         }
@@ -292,10 +269,8 @@ public class MusicListItemRepository : IAsyncDisposable
     /// </summary>
     /// <param name="autoFix">是否自动修复</param>
     /// <returns>是否存在问题</returns>
-    public async Task<bool> CheckAndCleanupPositionsAsync(bool autoFix = true)
+    public bool CheckAndCleanupPositions(bool autoFix = true)
     {
-        await InitializeAsync();
-
         const string sql = $"""
                             SELECT COUNT(*) as count,
                                    MAX({nameof(Position)}) as max_pos
@@ -308,7 +283,7 @@ public class MusicListItemRepository : IAsyncDisposable
             [nameof(MusicListModel.IdStr)] = ListIdStr,
         };
 
-        var result = (await _db.QueryAsync(sql, parameters)).FirstOrDefault();
+        var result = _db.Query(sql, parameters).FirstOrDefault();
 
         if (result == null)
             return false;
@@ -321,7 +296,7 @@ public class MusicListItemRepository : IAsyncDisposable
 
         if (autoFix)
         {
-            await ReorderPositionsAsync();
+            ReorderPositions();
         }
 
         return true;
@@ -332,10 +307,8 @@ public class MusicListItemRepository : IAsyncDisposable
     /// <summary>
     ///     获取当前最大位置值
     /// </summary>
-    private async Task<int> GetMaxPositionAsync()
+    private int GetMaxPosition()
     {
-        await InitializeAsync();
-
         const string sql = $"SELECT MAX({nameof(Position)}) FROM {TABLE_NAME} WHERE {nameof(MusicListModel.IdStr)} = @{nameof(MusicListModel.IdStr)}";
 
         var parameters = new Dictionary<string, object>
@@ -343,7 +316,7 @@ public class MusicListItemRepository : IAsyncDisposable
             [nameof(MusicListModel.IdStr)] = ListIdStr,
         };
 
-        var result = (await _db.QueryAsync(sql, parameters)).FirstOrDefault();
+        var result = _db.Query(sql, parameters).FirstOrDefault();
 
         return result?.Values.First() is long l ? (int)l : -1;
     }
@@ -351,10 +324,8 @@ public class MusicListItemRepository : IAsyncDisposable
     /// <summary>
     ///     将 [start, end] 范围内的位置 +1（为插入腾空间）
     /// </summary>
-    private async Task ShiftPositionsForwardAsync(int start, int end)
+    private void ShiftPositionsForward(int start, int end)
     {
-        await InitializeAsync();
-
         const string sql = $"""
                             UPDATE {TABLE_NAME} 
                             SET {nameof(Position)} = {nameof(Position)} + 1 
@@ -369,16 +340,14 @@ public class MusicListItemRepository : IAsyncDisposable
             ["end"] = end,
         };
 
-        await _db.ExecuteAsync(sql, parameters);
+        _db.Execute(sql, parameters);
     }
 
     /// <summary>
     ///     获取指定位置的项
     /// </summary>
-    private async Task<(string FilePath, int Position)?> GetItemByPositionAsync(int position)
+    private (string FilePath, int Position)? GetItemByPosition(int position)
     {
-        await InitializeAsync();
-
         const string sql = $"""
                             SELECT {nameof(MusicItemModel.FilePath)}, {nameof(Position)} 
                             FROM {TABLE_NAME} 
@@ -392,7 +361,7 @@ public class MusicListItemRepository : IAsyncDisposable
             ["position"] = position,
         };
 
-        var result = (await _db.QueryAsync(sql, parameters)).FirstOrDefault();
+        var result = _db.Query(sql, parameters).FirstOrDefault();
 
         if (result == null) return null;
 
@@ -403,10 +372,8 @@ public class MusicListItemRepository : IAsyncDisposable
     /// <summary>
     ///     获取当前项信息
     /// </summary>
-    private async Task<(string FilePath, int Position)> GetCurrentItemAsync(string filePath)
+    private (string FilePath, int Position) GetCurrentItem(string filePath)
     {
-        await InitializeAsync();
-
         const string sql = $"""
                             SELECT {nameof(MusicItemModel.FilePath)}, {nameof(Position)} 
                             FROM {TABLE_NAME} 
@@ -420,37 +387,30 @@ public class MusicListItemRepository : IAsyncDisposable
             [nameof(MusicItemModel.FilePath)] = filePath,
         };
 
-        var result = (await _db.QueryAsync(sql, parameters)).FirstOrDefault();
+        var result = _db.Query(sql, parameters).FirstOrDefault();
 
-        if (result == null)
-            throw new ArgumentException("Item not found");
-
-        return (filePath, Convert.ToInt32(result[nameof(Position)]));
+        return result == null ? throw new ArgumentException("Item not found") : (filePath, Convert.ToInt32(result[nameof(Position)]));
     }
 
     /// <summary>
     ///     交换两个项的位置
     /// </summary>
-    private async Task SwapPositionsAsync(string filePath1, string filePath2)
+    private void SwapPositions(string filePath1, string filePath2)
     {
-        await InitializeAsync();
-
-        var item1 = await GetCurrentItemAsync(filePath1);
-        var item2 = await GetCurrentItemAsync(filePath2);
+        var item1 = GetCurrentItem(filePath1);
+        var item2 = GetCurrentItem(filePath2);
 
         // 使用临时负数避免冲突
-        await UpdateItemPositionAsync(filePath1, -1);
-        await UpdateItemPositionAsync(filePath2, item1.Position);
-        await UpdateItemPositionAsync(filePath1, item2.Position);
+        UpdateItemPosition(filePath1, -1);
+        UpdateItemPosition(filePath2, item1.Position);
+        UpdateItemPosition(filePath1, item2.Position);
     }
 
     /// <summary>
     ///     更新项的位置
     /// </summary>
-    private async Task UpdateItemPositionAsync(string filePath, int newPosition)
+    private void UpdateItemPosition(string filePath, int newPosition)
     {
-        await InitializeAsync();
-
         var data = new Dictionary<string, object?>
         {
             [nameof(Position)] = newPosition,
@@ -462,7 +422,7 @@ public class MusicListItemRepository : IAsyncDisposable
             [nameof(MusicItemModel.FilePath)] = filePath,
         };
 
-        await _db.UpdateAsync(TABLE_NAME, data,
+        _db.Update(TABLE_NAME, data,
             $"{nameof(MusicListModel.IdStr)} = @{nameof(MusicListModel.IdStr)} AND {nameof(MusicItemModel.FilePath)} = @{nameof(MusicItemModel.FilePath)}",
             whereParams);
     }
@@ -470,10 +430,8 @@ public class MusicListItemRepository : IAsyncDisposable
     /// <summary>
     ///     获取所有项及其位置
     /// </summary>
-    private async Task<List<(string FilePath, int Position)>> GetAllItemsWithPositionsAsync()
+    private List<(string FilePath, int Position)> GetAllItemsWithPositions()
     {
-        await InitializeAsync();
-
         const string sql = $"SELECT {nameof(MusicItemModel.FilePath)}, {nameof(Position)} FROM {TABLE_NAME} " +
             $"WHERE {nameof(MusicListModel.IdStr)} = @{nameof(MusicListModel.IdStr)} " +
             $"ORDER BY {nameof(Position)}";
@@ -483,7 +441,7 @@ public class MusicListItemRepository : IAsyncDisposable
             [nameof(MusicListModel.IdStr)] = ListIdStr,
         };
 
-        var result = await _db.QueryAsync(sql, parameters);
+        var result = _db.Query(sql, parameters);
 
         return result.Select(row => (
             row[nameof(MusicItemModel.FilePath)]?.ToString() ?? "",

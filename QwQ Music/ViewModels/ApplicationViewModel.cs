@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -35,23 +34,16 @@ public partial class ApplicationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public static async Task ExitApplication()
+    public static void ExitApplication()
     {
         if (App.TopLevel is MainWindow mainWindow)
         {
             mainWindow.CloseMainWindow();
         }
 
-        await WaitAsyncWorkExecutionToComplete();
-
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return;
 
         desktop.Shutdown();
-    }
-
-    private static async Task WaitAsyncWorkExecutionToComplete()
-    {
-        await MusicPlayerViewModel.Default.SaveFinalStateAsync();
     }
 }

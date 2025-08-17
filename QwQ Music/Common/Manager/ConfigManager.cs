@@ -82,7 +82,7 @@ public static class ConfigManager
 
     public static LyricConfig LyricConfig => UserConfig.LyricConfig;
 
-    public static AudioModifierConfig AudioModifierConfig => UserConfig.AudioModifierConfig;
+    public static SoundModifierConfig SoundModifierConfig => UserConfig.SoundModifierConfig;
 
     public static UiConfig UiConfig => UserConfig.UiConfig;
 

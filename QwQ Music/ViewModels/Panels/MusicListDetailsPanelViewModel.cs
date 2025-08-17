@@ -62,10 +62,9 @@ public partial class MusicListDetailsPanelViewModel : DataGridViewModelBase
             MusicListModel = musicListModel;
             UpdateCoverImage(musicListModel);
 
-            await using var musicListMapRepository = new MusicListItemRepository(musicListModel.IdStr, StaticConfig.DatabasePath);
-            var paths = await musicListMapRepository.GetAllAsync();
+            using var musicListMapRepository = new MusicListItemRepository(musicListModel.IdStr, StaticConfig.DatabasePath);
+            var paths = await Task.Run(() => musicListMapRepository.GetAll());
 
-    
             MusicListsManager.CurrentMusicList.IdStr = musicListModel.IdStr;
 
             if (paths.Count > 0)
@@ -83,7 +82,7 @@ public partial class MusicListDetailsPanelViewModel : DataGridViewModelBase
             NotificationService.Error($"更新歌单信息时发生错误！\n{e.Message}");
         }
     }
-    
+
     private async void UpdateCoverImage(MusicListModel musicList)
     {
         try
@@ -112,7 +111,7 @@ public partial class MusicListDetailsPanelViewModel : DataGridViewModelBase
         if (MusicItems.Count <= 0)
             return;
 
-        await MusicPlayList.Toggle(MusicItems);
+        MusicPlayList.Toggle(MusicItems);
 
         await MusicPlayerViewModel.PlayThisMusic(MusicPlayList.First());
     }

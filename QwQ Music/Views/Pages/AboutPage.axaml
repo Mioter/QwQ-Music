@@ -79,7 +79,7 @@
                 </Style>
 
             </StackPanel.Styles>
-      
+
             <!-- 头图 -->
             <Panel Background="Aquamarine">
 
@@ -183,7 +183,7 @@
                            Foreground="{DynamicResource SemiColorTertiary}" />
             </DockPanel>
 
-            <ItemsControl ItemsSource="{Binding Contributors}" >
+            <ItemsControl ItemsSource="{Binding Contributors}">
 
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -298,7 +298,7 @@
                            Foreground="{DynamicResource SemiColorTertiary}" />
             </DockPanel>
 
-            <ItemsControl ItemsSource="{Binding ThankItems}" >
+            <ItemsControl ItemsSource="{Binding ThankItems}">
 
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -322,7 +322,7 @@
                                     Margin="0,5"
                                     RadiusX="2" RadiusY="2"
                                     Width="4" />
-                                
+
                                 <TextBlock DockPanel.Dock="Top" Text="{Binding Name}" />
 
                                 <control:RunningText
@@ -352,7 +352,7 @@
                            Foreground="{DynamicResource SemiColorTertiary}" />
             </DockPanel>
 
-            <ItemsControl ItemsSource="{Binding SpecialThanks}" >
+            <ItemsControl ItemsSource="{Binding SpecialThanks}">
 
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

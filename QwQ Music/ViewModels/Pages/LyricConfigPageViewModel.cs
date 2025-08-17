@@ -15,8 +15,6 @@ namespace QwQ_Music.ViewModels.Pages;
 public partial class LyricConfigPageViewModel : ViewModelBase
 {
     private DesktopLyricsWindow? _desktopLyricsWindow;
-    
-    public static AppResources AppResources => AppResources.Default;
 
     public LyricConfigPageViewModel()
     {
@@ -24,6 +22,8 @@ public partial class LyricConfigPageViewModel : ViewModelBase
         OnPropertyChanged(nameof(LyricWidth));
         SetLyricsWindowWidth(LyricConfig.DesktopLyric.LyricIsDoubleLine);
     }
+
+    public static AppResources AppResources => AppResources.Default;
 
     public static string IsEnabledName => Lang[nameof(IsEnabledName)];
 

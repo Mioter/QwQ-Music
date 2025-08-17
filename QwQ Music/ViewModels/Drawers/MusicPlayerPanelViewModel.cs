@@ -142,7 +142,7 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         if (colorsList != null)
         {
             musicItem.CoverColors = colorsList.Select(x => x.ToString()).ToArray();
-            await MusicItemManager.UpdateCoverColors(musicItem.FilePath, musicItem.CoverColors);
+            MusicItemManager.UpdateCoverColors(musicItem.FilePath, musicItem.CoverColors);
         }
 
         // 使用提取的颜色，为null则使用默认颜色

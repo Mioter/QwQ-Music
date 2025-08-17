@@ -120,6 +120,7 @@ public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem, MusicT
         if (clipboard == null)
         {
             NotificationService.Error("复制失败！\n无法找到剪贴板！〒▽〒");
+
             return;
         }
 

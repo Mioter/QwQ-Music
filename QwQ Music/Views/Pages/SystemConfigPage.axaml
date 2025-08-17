@@ -43,10 +43,10 @@
                 <Panel>
                     <TextBlock Text="在窗口关闭时" VerticalAlignment="Center" />
                     <ComboBox HorizontalAlignment="Right"
-                        ItemsSource="{Binding ClosingBehaviors}"
-                        DisplayMemberBinding="{Binding Value}"
-                        SelectedValueBinding="{Binding Key}"
-                        SelectedValue="{Binding Config.ClosingBehavior}" />
+                              ItemsSource="{Binding ClosingBehaviors}"
+                              DisplayMemberBinding="{Binding Value}"
+                              SelectedValueBinding="{Binding Key}"
+                              SelectedValue="{Binding Config.ClosingBehavior}" />
                 </Panel>
 
             </StackPanel>

@@ -141,7 +141,7 @@ public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
 
         try
         {
-            await MusicPlayList.Toggle(MusicItems);
+            MusicPlayList.Toggle(MusicItems);
 
             await MusicPlayerViewModel.PlayThisMusic(MusicPlayList.First());
         }

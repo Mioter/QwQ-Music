@@ -6,7 +6,7 @@ namespace QwQ_Music.ViewModels.Pages;
 
 public class SoundEffectConfigViewModel() : NavigationViewModel("音效")
 {
-    public AudioModifierConfig AudioModifierConfig { get; } = ConfigManager.AudioModifierConfig;
+    public SoundModifierConfig SoundModifierConfig { get; } = ConfigManager.SoundModifierConfig;
 
     public static MusicPlayerViewModel MusicPlayerViewModel => MusicPlayerViewModel.Default;
 

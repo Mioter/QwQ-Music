@@ -1,29 +1,31 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using QwQ_Music.Common.Interfaces;
 using QwQ_Music.Models;
 
 namespace QwQ_Music.Common.Services.Databases;
 
-public class MusicListMapRepository(string path) : IDatabaseRepository<MusicListModel>
+public class MusicListMapRepository : IDatabaseRepository<MusicListModel>
 {
     public const string TABLE_NAME = "MUSIC_LIST_MAP";
-    private readonly DatabaseService _db = new(path);
-    private bool _initialized;
+    private readonly DatabaseService _db;
 
-    public async ValueTask DisposeAsync()
+    public MusicListMapRepository(string path)
     {
-        await _db.DisposeAsync();
+        _db = new DatabaseService(path);
+        Initialize();
+    }
+
+    public void Dispose()
+    {
+        _db.Dispose();
         GC.SuppressFinalize(this);
     }
 
-    public async Task<MusicListModel?> GetAsync(string primaryKey)
+    public MusicListModel? Get(string primaryKey)
     {
-        await InitializeAsync();
-
-        var result = await _db.QueryAsync(
+        var result = _db.Query(
             $"SELECT * FROM {TABLE_NAME} WHERE {nameof(MusicListModel.IdStr)} = @primaryKey",
             new Dictionary<string, object>
             {
@@ -34,36 +36,28 @@ public class MusicListMapRepository(string path) : IDatabaseRepository<MusicList
         return result.Count > 0 ? MapToModel(result[0]) : null;
     }
 
-    public async Task<IEnumerable<MusicListModel>> GetAllAsync()
+    public IEnumerable<MusicListModel> GetAll()
     {
-        await InitializeAsync();
-
-        var rows = await _db.QueryAsync($"SELECT * FROM {TABLE_NAME}");
+        var rows = _db.Query($"SELECT * FROM {TABLE_NAME}");
 
         return rows.Select(MapToModel);
     }
 
-    public async Task<int> CountAsync()
+    public int Count()
     {
-        await InitializeAsync();
-
-        var result = await _db.QueryAsync($"SELECT COUNT(*) AS cnt FROM {TABLE_NAME}");
+        var result = _db.Query($"SELECT COUNT(*) AS cnt FROM {TABLE_NAME}");
 
         return Convert.ToInt32(result[0]["cnt"]);
     }
 
-    public async Task InsertAsync(MusicListModel item)
+    public void Insert(MusicListModel item)
     {
-        await InitializeAsync();
-
         var data = ModelToDictionary(item);
-        await _db.InsertAsync(TABLE_NAME, data);
+        _db.Insert(TABLE_NAME, data);
     }
 
-    public async Task UpdateAsync(MusicListModel item)
+    public void Update(MusicListModel item)
     {
-        await InitializeAsync();
-
         var data = ModelToDictionary(item);
 
         // 移除主键字段，因为主键不应该被更新
@@ -71,17 +65,15 @@ public class MusicListMapRepository(string path) : IDatabaseRepository<MusicList
 
         const string whereClause = $"{nameof(MusicListModel.IdStr)} = @{nameof(MusicListModel.IdStr)}";
 
-        await _db.UpdateAsync(TABLE_NAME, data, whereClause,
+        _db.Update(TABLE_NAME, data, whereClause,
             new Dictionary<string, object?>
             {
                 [nameof(MusicListModel.IdStr)] = item.IdStr,
             });
     }
 
-    public async Task UpdateAsync(string primaryKey, string[] fields, string?[] values)
+    public void Update(string primaryKey, string[] fields, string?[] values)
     {
-        await InitializeAsync();
-
         if (fields.Length != values.Length)
             throw new ArgumentException("字段和值的长度必须相同。");
 
@@ -94,47 +86,41 @@ public class MusicListMapRepository(string path) : IDatabaseRepository<MusicList
 
         const string whereClause = $"{nameof(MusicListModel.IdStr)} = @primaryKey";
 
-        await _db.UpdateAsync(TABLE_NAME, data, whereClause,
+        _db.Update(TABLE_NAME, data, whereClause,
             new Dictionary<string, object?>
             {
                 ["primaryKey"] = primaryKey,
             });
     }
 
-    public async Task UpdateAsync(string primaryKey, Dictionary<string, object?> fieldValues)
+    public void Update(string primaryKey, Dictionary<string, object?> fieldValues)
     {
-        await InitializeAsync();
-
         if (fieldValues.Count == 0)
             return;
 
         const string whereClause = $"{nameof(MusicListModel.IdStr)} = @primaryKey";
 
-        await _db.UpdateAsync(TABLE_NAME, fieldValues, whereClause,
+        _db.Update(TABLE_NAME, fieldValues, whereClause,
             new Dictionary<string, object?>
             {
                 ["primaryKey"] = primaryKey,
             });
     }
 
-    public async Task DeleteAsync(string primaryKey)
+    public void Delete(string primaryKey)
     {
-        await InitializeAsync();
-
         const string whereClause = $"{nameof(MusicListModel.IdStr)} = @primaryKey";
 
-        await _db.DeleteAsync(TABLE_NAME, whereClause,
+        _db.Delete(TABLE_NAME, whereClause,
             new Dictionary<string, object>
             {
                 ["primaryKey"] = primaryKey,
             });
     }
 
-    public async Task<bool> ExistsAsync(string primaryKey)
+    public bool Exists(string primaryKey)
     {
-        await InitializeAsync();
-
-        var result = await _db.QueryAsync(
+        var result = _db.Query(
             $"SELECT 1 FROM {TABLE_NAME} WHERE {nameof(MusicListModel.IdStr)} = @primaryKey LIMIT 1",
             new Dictionary<string, object>
             {
@@ -145,31 +131,22 @@ public class MusicListMapRepository(string path) : IDatabaseRepository<MusicList
         return result.Count > 0;
     }
 
-    private async Task InitializeAsync()
+    private void Initialize()
     {
-        if (_initialized) return;
-
-        await _db.InitializeAsync();
-
-        await _db.CreateTableAsync(TABLE_NAME,
+        _db.CreateTable(TABLE_NAME,
             $"""
              {nameof(MusicListModel.IdStr)} TEXT NOT NULL PRIMARY KEY,
              {nameof(MusicListModel.Name)} TEXT,
              {nameof(MusicListModel.Description)} TEXT,
              {nameof(MusicListModel.CoverId)} TEXT
              """);
-
-        _initialized = true;
     }
 
-    public async IAsyncEnumerable<MusicListModel> GetEnumerableAllAsync()
+    public IEnumerable<MusicListModel> GetEnumerableAll()
     {
-        await InitializeAsync();
+        var rows = _db.Query($"SELECT * FROM {TABLE_NAME}");
 
-        await foreach (var row in _db.QueryAsyncEnumerable($"SELECT * FROM {TABLE_NAME}"))
-        {
-            yield return MapToModel(row);
-        }
+        return rows.Select(MapToModel);
     }
 
     #region Helper Methods

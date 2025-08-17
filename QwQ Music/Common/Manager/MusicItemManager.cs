@@ -18,24 +18,19 @@ namespace QwQ_Music.Common.Manager;
 
 public partial class MusicItemManager : ObservableObject
 {
-    public MusicItemManager()
-    {
-        Initialize();
-    }
-
     public static MusicItemManager Default { get; } = new();
 
     public AvaloniaList<MusicItemModel> MusicItems { get; set; } = [];
 
     public int Count => MusicItems.Count;
 
-    private async void Initialize()
+    public async Task Initialize()
     {
         try
         {
-            await using var musicItemRepository = new MusicItemRepository(StaticConfig.DatabasePath);
+            using var musicItemRepository = new MusicItemRepository(StaticConfig.DatabasePath);
 
-            MusicItems.AddRange(await musicItemRepository.GetAllAsync());
+            MusicItems.AddRange(await Task.Run(() => musicItemRepository.GetAll()));
 
             if (MusicItems.Count != 0)
                 return;
@@ -63,54 +58,57 @@ public partial class MusicItemManager : ObservableObject
             NotificationService.Success($"歌曲{existingTitles}添加成功啦~");
         }
 
-        await using var repo = new MusicItemRepository(StaticConfig.DatabasePath);
-
-        foreach (var musicItem in musicItems)
+        await Task.Run(() =>
         {
-            try
-            {
-                await repo.InsertAsync(musicItem);
-            }
-            catch (Exception e)
-            {
-                await LoggerService.ErrorAsync($"歌曲{musicItem.Title}保存到数据库失败！\n{e.Message}\n{e.StackTrace}");
+            using var repo = new MusicItemRepository(StaticConfig.DatabasePath);
 
-                NotificationService.Error($"歌曲{musicItem.Title}保存到数据库失败！\n{e.Message}");
+            foreach (var musicItem in musicItems)
+            {
+                try
+                {
+                    repo.Insert(musicItem);
+                }
+                catch (Exception e)
+                {
+                    LoggerService.Error($"歌曲{musicItem.Title}保存到数据库失败！\n{e.Message}\n{e.StackTrace}");
+
+                    NotificationService.Error($"歌曲{musicItem.Title}保存到数据库失败！\n{e.Message}");
+                }
             }
-        }
+        });
     }
 
-    public static async Task Update(MusicItemModel musicItem)
+    public static void Update(MusicItemModel musicItem)
     {
-        await using var repo = new MusicItemRepository(StaticConfig.DatabasePath);
+        using var repo = new MusicItemRepository(StaticConfig.DatabasePath);
 
         try
         {
-            await repo.UpdateAsync(musicItem);
+            repo.Update(musicItem);
         }
         catch (Exception e)
         {
-            await LoggerService.ErrorAsync($"更新歌曲{musicItem.Title}到数据库失败！\n{e.Message}\n{e.StackTrace}");
+            LoggerService.Error($"更新歌曲{musicItem.Title}到数据库失败！\n{e.Message}\n{e.StackTrace}");
 
             NotificationService.Error($"更新歌曲{musicItem.Title}到数据库失败！\n{e.Message}");
         }
     }
 
-    public static async Task UpdatePlayProgress(string filePath, TimeSpan current)
+    public static void UpdatePlayProgress(string filePath, TimeSpan current)
     {
-        await using var repo = new MusicItemRepository(StaticConfig.DatabasePath);
+        using var repo = new MusicItemRepository(StaticConfig.DatabasePath);
 
-        await repo.UpdateAsync(filePath, new Dictionary<string, object?>
+        repo.Update(filePath, new Dictionary<string, object?>
         {
             [nameof(MusicItemModel.Current)] = current.ToString(),
         });
     }
 
-    public static async Task UpdateCoverColors(string filePath, string[] colorList)
+    public static void UpdateCoverColors(string filePath, string[] colorList)
     {
-        await using var musicItemRepository = new MusicItemRepository(StaticConfig.DatabasePath);
+        using var musicItemRepository = new MusicItemRepository(StaticConfig.DatabasePath);
 
-        await musicItemRepository.UpdateAsync(filePath, new Dictionary<string, object?>
+        musicItemRepository.Update(filePath, new Dictionary<string, object?>
         {
             [nameof(MusicItemModel.CoverColors)] = string.Join("、", colorList),
         });
@@ -136,20 +134,25 @@ public partial class MusicItemManager : ObservableObject
 
         var successItems = new List<MusicItemModel>();
 
-        await using var repo = new MusicItemRepository(StaticConfig.DatabasePath);
-
-        foreach (var musicItem in musicItems)
+        await Task.Run(() =>
         {
-            try
+            using var repo = new MusicItemRepository(StaticConfig.DatabasePath);
+
+            foreach (var musicItem in musicItems)
             {
-                await repo.DeleteAsync(musicItem.FilePath);
-                successItems.Add(musicItem);
+                try
+                {
+                    repo.Delete(musicItem.FilePath);
+                    successItems.Add(musicItem);
+                }
+                catch (Exception e)
+                {
+                    LoggerService.Error($"从数据库中删除歌曲{musicItem.Title}失败！\n{e.Message}\n{e.StackTrace}");
+
+                    NotificationService.Error("提示", $"歌曲{musicItem.Title}删除失败！\n{e.Message}");
+                }
             }
-            catch (Exception e)
-            {
-                NotificationService.Error("提示", $"歌曲{musicItem.Title}删除失败！\n{e.Message}");
-            }
-        }
+        });
 
         MusicItems.RemoveAll(successItems);
 
