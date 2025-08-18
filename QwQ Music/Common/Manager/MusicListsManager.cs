@@ -239,8 +239,8 @@ public partial class MusicListsManager : ObservableObject
         {
             await Task.Run(() =>
             {
-                using var repo = new MusicListItemRepository(musicList.IdStr, StaticConfig.DatabasePath);
-                repo.Remove(musicList.IdStr);
+                using var repo = new MusicListMapRepository(StaticConfig.DatabasePath);
+                repo.Delete(musicList.IdStr);
 
                 // 删除封面图片文件
                 if (!string.IsNullOrEmpty(musicList.CoverId))

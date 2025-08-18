@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using QwQ_Music.Common.Helper;
 using QwQ_Music.Common.Interfaces;
 using QwQ_Music.Models;
 
@@ -15,6 +16,29 @@ public class MusicItemRepository : IDatabaseRepository<MusicItemModel>
     {
         _db = new DatabaseService(dbPath);
         Initialize();
+    }
+    
+    private void Initialize()
+    {
+        _db.CreateTable(TABLE_NAME,
+            $"""
+             {nameof(MusicItemModel.Title)} TEXT NOT NULL,
+             {nameof(MusicItemModel.Artists)} TEXT,
+             {nameof(MusicItemModel.Composer)} TEXT,
+             {nameof(MusicItemModel.Album)} TEXT,
+             {nameof(MusicItemModel.CoverId)} TEXT,
+             {nameof(MusicItemModel.FilePath)} TEXT NOT NULL UNIQUE PRIMARY KEY,
+             {nameof(MusicItemModel.FileSize)} TEXT NOT NULL,
+             {nameof(MusicItemModel.Current)} BLOB,
+             {nameof(MusicItemModel.Duration)} BLOB NOT NULL,
+             {nameof(MusicItemModel.CoverColors)} TEXT,
+             {nameof(MusicItemModel.Gain)} INTEGER,
+             {nameof(MusicItemModel.EncodingFormat)} TEXT NOT NULL,
+             {nameof(MusicItemModel.Comment)} TEXT,
+             {nameof(MusicItemModel.Remarks)} TEXT,
+             {nameof(MusicItemModel.LyricOffset)} INTEGER,
+             {nameof(MusicItemModel.InsertTime)} INTEGER
+             """);
     }
 
     public void Dispose()
@@ -38,7 +62,7 @@ public class MusicItemRepository : IDatabaseRepository<MusicItemModel>
 
     public IEnumerable<MusicItemModel> GetAll()
     {
-        var rows = _db.Query($"SELECT * FROM {TABLE_NAME}");
+        var rows = _db.Query($"SELECT * FROM {TABLE_NAME} ORDER BY InsertTime DESC");
 
         return rows.Select(MapToModel);
     }
@@ -125,28 +149,6 @@ public class MusicItemRepository : IDatabaseRepository<MusicItemModel>
         return result.Count > 0;
     }
 
-    private void Initialize()
-    {
-        _db.CreateTable(TABLE_NAME,
-            $"""
-             {nameof(MusicItemModel.Title)} TEXT NOT NULL,
-             {nameof(MusicItemModel.Artists)} TEXT,
-             {nameof(MusicItemModel.Composer)} TEXT,
-             {nameof(MusicItemModel.Album)} TEXT,
-             {nameof(MusicItemModel.CoverId)} TEXT,
-             {nameof(MusicItemModel.FilePath)} TEXT NOT NULL UNIQUE PRIMARY KEY,
-             {nameof(MusicItemModel.FileSize)} TEXT NOT NULL,
-             {nameof(MusicItemModel.Current)} BLOB,
-             {nameof(MusicItemModel.Duration)} BLOB NOT NULL,
-             {nameof(MusicItemModel.CoverColors)} TEXT,
-             {nameof(MusicItemModel.Gain)} INTEGER,
-             {nameof(MusicItemModel.EncodingFormat)} TEXT NOT NULL,
-             {nameof(MusicItemModel.Comment)} TEXT,
-             {nameof(MusicItemModel.Remarks)} TEXT,
-             {nameof(MusicItemModel.LyricOffset)} INTEGER
-             """);
-    }
-
     #region Helper Methods
 
     private static MusicItemModel MapToModel(Dictionary<string, object?> dict)
@@ -198,6 +200,9 @@ public class MusicItemRepository : IDatabaseRepository<MusicItemModel>
         if (dict.TryGetValue(nameof(MusicItemModel.LyricOffset), out object? lyricOffset))
             model.LyricOffset = Convert.ToInt32(lyricOffset);
 
+        if (dict.TryGetValue(nameof(MusicItemModel.InsertTime), out object? insertTime))
+            model.InsertTime = TimestampHelper.FromUnixTimestamp(Convert.ToInt64(insertTime));
+
         return model;
     }
 
@@ -220,6 +225,7 @@ public class MusicItemRepository : IDatabaseRepository<MusicItemModel>
             [nameof(MusicItemModel.Comment)] = model.Comment,
             [nameof(MusicItemModel.Remarks)] = model.Remarks,
             [nameof(MusicItemModel.LyricOffset)] = model.LyricOffset,
+            [nameof(MusicItemModel.InsertTime)] = model.InsertTime.ToUnixTimestamp(),
         };
 
         return dict;

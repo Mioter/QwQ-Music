@@ -72,7 +72,6 @@
                     </Style>
 
                     <Style Selector="WrapPanel > Border > StackPanel > StackPanel > PathIcon">
-                        <Setter Property="Foreground" Value="{x:Static utilities:ColorGenerator.RandomColor}" />
                         <Setter Property="Width" Value="20" />
                     </Style>
 
@@ -81,7 +80,7 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource SemiIconMusicNoteStroked}"  Height="14" />
+                            <PathIcon Data="{StaticResource SemiIconMusicNoteStroked}" Height="14" Foreground="{x:Static utilities:ColorGenerator.RandomColor}"/>
                             <TextBlock Text="播放完成后 : " />
                         </StackPanel>
 
@@ -93,7 +92,7 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource SemiIconChevronUpDown}" Height="14" />
+                            <PathIcon Data="{StaticResource SemiIconChevronUpDown}" Height="14" Foreground="{x:Static utilities:ColorGenerator.RandomColor}"/>
                             <TextBlock Text="切换音乐时 : " />
                         </StackPanel>
                         
@@ -105,7 +104,7 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource Random}" Height="14" />
+                            <PathIcon Data="{StaticResource Random}" Height="14" Foreground="{x:Static utilities:ColorGenerator.RandomColor}"/>
                             <TextBlock Text="随机模式 : " />
                         </StackPanel>
 
@@ -117,7 +116,7 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource SemiIconSonicStroked}" Height="12.5" />
+                            <PathIcon Data="{StaticResource SemiIconSonicStroked}" Height="12.5" Foreground="{x:Static utilities:ColorGenerator.RandomColor}"/>
                             <TextBlock Text="输出采样率 : " />
                         </StackPanel>
 
@@ -153,15 +152,14 @@
 
                 </WrapPanel.Styles>
 
-                <!--
                 <Border MinWidth="280" Padding="15">
 
                     <StackPanel Spacing="0">
 
-                        ~1~
+                        <!--
                         <StackPanel.Resources>
 
-                            ~2~  ReSharper disable once Xaml.RedundantResource  @2@
+                            ~1~  ReSharper disable once Xaml.RedundantResource  @1@
                             <x:Double x:Key="BannerTitleFontSize">14</x:Double>
 
                         </StackPanel.Resources>
@@ -173,18 +171,21 @@
                             FontSize="12"
                             Header="什么是回放增益"
                             HorizontalContentAlignment="Stretch" />
-                            @1@
+                            -->
 
                         <StackPanel
                             HorizontalAlignment="Left"
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
+                            
                             <Rectangle
-                                Fill="{Binding RandomColor}"
-                                Margin="0,4"
+                                Fill="{x:Static utilities:ColorGenerator.RandomColor}"
+                                Margin="0,5"
+                                RadiusX="2" RadiusY="2"
                                 Width="4" />
+
                             <TextBlock FontWeight="Bold" Text="启用回放增益" />
-                            <CheckBox IsChecked="{Binding AudioModifierConfig.ReplayGainModifier.Enabled}" />
+                            <CheckBox IsChecked="{Binding SoundModifierConfig.ReplayGainModifier.Enabled}" />
                         </StackPanel>
 
                         <DockPanel>
@@ -195,29 +196,27 @@
                                 Spacing="10">
 
                                 <Button
-                                    Classes="Icon"
                                     Command="{Binding ToggleCalculationCommand}"
                                     Content="{Binding CalculationButtonText}"
                                     CornerRadius="8"
                                     FontSize="12"
+                                    Background="Transparent"
                                     Padding="8" />
 
                                 <Button
-                                    Classes="Icon"
-                                    Command="{Binding CancelCalcCallbackGainCommand}"
+                                    Command="{Binding CancelCalculationCommand}"
                                     Content="取消"
+                                    Background="Transparent"
                                     CornerRadius="8"
                                     FontSize="12"
-                                    IsEnabled="{Binding TaskController, Converter={x:Static ObjectConverters.IsNotNull}}"
                                     Padding="8" />
 
                                 <u:IconButton
-                                    Classes="Transparent"
                                     Command="{Binding ClearCallbackGainCommand}"
                                     Content="清空"
+                                    Background="Transparent"
                                     CornerRadius="8"
-                                    FontSize="12"
-                                    IsEnabled="{Binding TaskController, Converter={x:Static ObjectConverters.IsNull}}">
+                                    FontSize="12">
                                     <u:IconButton.Icon>
                                         <PathIcon
                                             Data="{StaticResource SemiIconDelete}"
@@ -243,7 +242,7 @@
 
                                 <u:NumericIntUpDown
                                     HorizontalAlignment="Right"
-                                    IsVisible="{Binding SelectedMusicReplayGainStandard, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Custom'}"
+                                    IsVisible="{Binding SelectedMusicReplayGainStandard, Converter={StaticResource StringCompareConverter}, ConverterParameter='Custom'}"
                                     Value="{Binding CustomMusicReplayGainStandard}"
                                     Width="110" />
 
@@ -270,23 +269,24 @@
                                         FontWeight="Bold"
                                         Text="{Binding NumberOfCompletedCalc}" />
 
-                                    <TextBlock FontSize="12" Text="{Binding MusicPlayerViewModel.MusicItems.Count, StringFormat=' / {0}'}" />
+                                    <TextBlock FontSize="12"
+                                               Text="{Binding MusicItemManager.MusicItems.Count, StringFormat=' / {0}'}" />
 
                                 </StackPanel>
 
                                 <ProgressBar
                                     Height="120"
                                     Margin="5,25"
-                                    Maximum="{Binding MusicPlayerViewModel.MusicItems.Count}"
+                                    Maximum="{Binding MusicItemManager.MusicItems.Count}"
                                     ShowProgressText="True"
                                     Theme="{DynamicResource ProgressRing}"
                                     Value="{Binding NumberOfCompletedCalc}"
                                     Width="120" />
                             </Panel>
                         </DockPanel>
-                        
+
                     </StackPanel>
-                </Border>-->
+                </Border>
 
                 <Border Padding="15">
                     <StackPanel>

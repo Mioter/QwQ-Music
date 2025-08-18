@@ -10,7 +10,7 @@
       x:DataType="viewModels:MainViewModel"
       x:Class="QwQ_Music.Views.MainView">
 
-    <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal" Margin="20,0" Spacing="20">
+    <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal" Margin="10,0" Spacing="20">
 
         <!-- 标题文本 -->
         <TextBlock FontWeight="Bold"

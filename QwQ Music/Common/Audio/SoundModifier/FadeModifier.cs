@@ -30,6 +30,9 @@ public sealed class FadeModifier : SoundFlow.Abstracts.SoundModifier
     private double _fadeOutTimeMs = 1000;
     private float _smoothnessThreshold = 1e-6f;
     
+    /// <inheritdoc />
+    public override string Name { get; set; } = "Fade";
+    
     public double SampleRate { get; set; } = 48000;
 
     /// <summary>

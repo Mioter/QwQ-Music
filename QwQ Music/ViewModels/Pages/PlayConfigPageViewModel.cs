@@ -1,16 +1,25 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using QwQ_Music.Common.Audio;
 using QwQ_Music.Common.Audio.SoundModifier;
+using QwQ_Music.Common.Helper;
 using QwQ_Music.Common.Manager;
+using QwQ_Music.Common.Utilities;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.ViewModels.Bases;
 
 namespace QwQ_Music.ViewModels.Pages;
 
-public class PlayConfigPageViewModel : ViewModelBase
+public partial class PlayConfigPageViewModel : ViewModelBase
 {
     public PlayerConfig PlayerConfig { get; } = ConfigManager.PlayerConfig;
 
-    public static MusicPlayerViewModel MusicPlayerViewModel => MusicPlayerViewModel.Default;
+    public static MusicItemManager MusicItemManager => MusicItemManager.Default;
 
     public SoundModifierConfig SoundModifierConfig { get; } = ConfigManager.SoundModifierConfig;
 
@@ -58,11 +67,8 @@ public class PlayConfigPageViewModel : ViewModelBase
         [FadeModifier.FadeCurve.Linear] = "线性渐变",
     };
 
-    /*#region 回放增益
-
-    [ObservableProperty]
-    public partial TaskController? TaskController { get; set; }
-
+    #region 回放增益
+    
     [ObservableProperty]
     public partial int NumberOfCompletedCalc { get; set; }
 
@@ -84,10 +90,8 @@ public class PlayConfigPageViewModel : ViewModelBase
     {
         await Task.Run(() =>
         {
-            foreach (var musicItem in MusicPlayerViewModel.MusicLists)
+            foreach (var musicItem in MusicItemManager.MusicItems.Where(musicItem => musicItem.Gain >= 0))
             {
-                if (musicItem.Gain < 0)
-                    continue;
                 musicItem.Gain = -1;
                 NumberOfCompletedCalc--;
             }
@@ -98,107 +102,76 @@ public class PlayConfigPageViewModel : ViewModelBase
     private async Task ToggleCalculation()
     {
         if (
-            MusicPlayerViewModel.MusicLists.Count <= 0
-            || NumberOfCompletedCalc == MusicPlayerViewModel.MusicLists.Count
+            MusicItemManager.Count <= 0
+            || NumberOfCompletedCalc == MusicItemManager.Count
         )
             return;
 
-        // 状态判断和操作一体化处理
-        if (TaskController != null)
-        {
-            switch (TaskController.State)
-            {
-                case TaskExecutionState.Error:
-                case TaskExecutionState.NotStarted:
-                case TaskExecutionState.Stopped:
-                case TaskExecutionState.Cancelled:
-                case TaskExecutionState.Completed:
-                case TaskExecutionState.Timeout:
-                    StartNewCalculation();
-                    break;
+        await StartNewCalculation();
+    }
+    
 
-                case TaskExecutionState.Running:
-                    await TaskController.PauseAsync();
-                    break;
+    private CancellationTokenSource? _cancellationTokenSource;
 
-                case TaskExecutionState.Paused:
-                    await TaskController.StartAsync();
-                    break;
-                default:
-                    await LoggerService.ErrorAsync($"不存在的任务状态: {TaskController.State}");
-                    break;
-            }
-        }
-        else
+    private async Task StartNewCalculation()
+    {
+        // 如果有正在运行的任务，先取消它
+        if (_cancellationTokenSource != null)
         {
-            StartNewCalculation();
+            await _cancellationTokenSource.CancelAsync();
+            _cancellationTokenSource.Dispose();
         }
 
-        UpdatePromptText();
-    }
+        // 创建新的取消令牌源
+        _cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = _cancellationTokenSource.Token;
 
-    private void UpdatePromptText()
-    {
-        CalculationButtonText = TaskController?.State switch
+        var itemsToProcess = MusicItemManager.MusicItems.Where(item => item.Gain <= 0).ToList();
+        
+        try
         {
-            TaskExecutionState.Running => "暂停 \u23f8",
-            TaskExecutionState.Paused => "继续 ▶",
-            _ => "开始 ▶",
-        };
-    }
-
-    private void StartNewCalculation()
-    {
-        TaskController = new TaskController();
-
-        var itemsToProcess = MusicPlayerViewModel.MusicLists.Where(item => item.Gain <= 0).ToList();
-
-        TaskManager
-            .CreateMultiTask(
-                itemsToProcess,
-                item =>
-                {
-                    var ex = MusicExtractor.ExtractExtensionsInfo(item.FilePath);
-                    item.Gain = AudioHelper.CalcGainOfMusicItem(item.FilePath, ex.SamplingRate, ex.Channels);
-                    return Task.CompletedTask;
-                }
-            )
-            .SetController(TaskController)
-            .SetErrorHandler(ex =>
+            await Task.Run(() =>
             {
-                if (ex is OperationCanceledException)
+                using var audioSlicer = new AudioSlicer();
+
+                foreach (var itemModel in itemsToProcess)
                 {
-                    CleanupTask();
+                    // 检查是否已请求取消
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    itemModel.Gain = AudioPreprocessor.CalcGainOfMusicItem(audioSlicer, itemModel);
+                    NumberOfCompletedCalc++;
+
+                    // 可选：在每次处理后再次检查取消状态
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
-            })
-            .SetCompleteCallback(_ => CleanupTask())
-            .RunAsync();
+            }, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            CleanupTask();
+        }
+        finally
+        {
+            CleanupTask();
+        }
     }
+
+
+    [RelayCommand]
+    public void CancelCalculation()
+    {
+        _cancellationTokenSource?.Cancel();
+    }
+
 
     private void CleanupTask()
     {
-        UpdatePromptText();
-        TaskController?.Dispose();
-        TaskController = null;
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = null;
     }
 
-    [RelayCommand]
-    private async Task CancelCalcCallbackGain()
-    {
-        if (TaskController is null)
-            return;
 
-        await TaskController.CancelAsync();
-        CleanupTask();
-    }
-
-    private async Task RefreshNumberOfCompletedCalc()
-    {
-        if (MusicPlayerViewModel.MusicLists.Count <= 0)
-            return;
-
-        await Task.Run(() => NumberOfCompletedCalc = MusicPlayerViewModel.MusicLists.Count(x => x.Gain > 0));
-    }
-
-    #endregion*/
+    #endregion
 }

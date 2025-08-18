@@ -9,7 +9,7 @@ using QwQ_Music.Models;
 
 namespace QwQ_Music.Common.Services;
 
-public static class AudioFileManager
+public static class AudioFileService
 {
     /// <summary>
     ///     处理存储项目并导入音乐文件

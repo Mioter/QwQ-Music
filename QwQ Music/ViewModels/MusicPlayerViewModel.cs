@@ -9,7 +9,6 @@ using QwQ_Music.Common.Audio;
 using QwQ_Music.Common.Interfaces;
 using QwQ_Music.Common.Manager;
 using QwQ_Music.Common.Services;
-using QwQ_Music.Common.Services.Databases;
 using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Models.Enums;
@@ -458,22 +457,6 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
             NotificationService.Info($"当前播放列表为空，已自动填充为全部音乐！共 {MusicPlayListManager.Count} 首~");
         }
 
-        if (!MusicItemManager.MusicItems.Contains(musicItem))
-        {
-            using var musicItemRepository = new MusicItemRepository(StaticConfig.DatabasePath);
-
-            try
-            {
-                musicItemRepository.Insert(musicItem);
-                NotificationService.Warning($"很奇怪，这个《{musicItem.Title}》不在音乐库中，不过没关系，现在在了，欸嘿~QvQ");
-            }
-            catch (Exception e)
-            {
-                NotificationService.Error("呜哇", $"这个 {musicItem.Title} 不再音乐库中，并且保存失败！\n" +
-                    $"{e.Message}");
-            }
-        }
-
         if (MusicPlayListManager.PlayList.Contains(musicItem))
             return true;
 
@@ -559,7 +542,10 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
         {
             // 根据文件类型初始化音频
             string extension = Path.GetExtension(musicItem.FilePath).ToUpper();
-
+            
+            // 预处理，判断音频格式
+            AudioPreprocessor.UpdateAudioFormat(_audioPlay,musicItem);
+            
             if (extension == AudioFileValidator.AudioFormatsExtendToNameMap[AudioFileValidator.ExtendAudioFormats.Ncm])
             {
                 await InitializeNcmAudioTrackAsync(musicItem);
@@ -581,7 +567,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
 
             _initialTime = musicItem.Current;
             LyricOffset = musicItem.LyricOffset;
-            LyricsModel.UpdateLyricsData(await musicItem.Lyrics);
+            LyricsModel.UpdateLyricsData(await MusicExtractor.ExtractMusicLyricsAsync(musicItem.FilePath));
             Seek(musicItem.Current.TotalSeconds);
 
             PlayerItemChanged?.Invoke(this, musicItem);

@@ -1,4 +1,5 @@
 ﻿using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using QwQ_Music.Common.Manager;
@@ -15,6 +16,10 @@ public partial class DesktopLyricsWindow : Window
         {
             return;
         }
+        
+#if DEBUG
+        this.AttachDevTools();
+#endif
 
         InitializeComponent();
 

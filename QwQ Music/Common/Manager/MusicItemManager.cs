@@ -47,16 +47,7 @@ public partial class MusicItemManager : ObservableObject
 
     public async Task AddAsync(IList<MusicItemModel> musicItems)
     {
-        // 批量添加到UI集合
-        MusicItems.InsertRange(0, musicItems);
-
-        if (musicItems.Count > 0)
-        {
-            string existingTitles = string.Join("、", musicItems.Select(items => $"《{items.Title}》")
-            );
-
-            NotificationService.Success($"歌曲{existingTitles}添加成功啦~");
-        }
+        var successItems = new List<MusicItemModel>();
 
         await Task.Run(() =>
         {
@@ -66,7 +57,10 @@ public partial class MusicItemManager : ObservableObject
             {
                 try
                 {
+                    musicItem.InsertTime = DateTime.UtcNow;
                     repo.Insert(musicItem);
+
+                    successItems.Add(musicItem);
                 }
                 catch (Exception e)
                 {
@@ -76,6 +70,25 @@ public partial class MusicItemManager : ObservableObject
                 }
             }
         });
+
+        // 批量添加到UI集合
+        MusicItems.InsertRange(0, successItems);
+
+        var failedItems = musicItems.Except(successItems).ToList();
+
+        if (musicItems.Count > 0)
+        {
+            string existingTitles = string.Join("、", musicItems.Select(items => $"《{items.Title}》")
+            );
+
+            NotificationService.Success($"歌曲 {existingTitles} 添加成功啦~");
+        }
+
+        if (failedItems.Count > 0)
+        {
+            string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
+            NotificationService.Error($"删除 {failedTitles} 添加失败了！");
+        }
     }
 
     public static void Update(MusicItemModel musicItem)
@@ -149,7 +162,7 @@ public partial class MusicItemManager : ObservableObject
                 {
                     LoggerService.Error($"从数据库中删除歌曲{musicItem.Title}失败！\n{e.Message}\n{e.StackTrace}");
 
-                    NotificationService.Error("提示", $"歌曲{musicItem.Title}删除失败！\n{e.Message}");
+                    NotificationService.Error($"歌曲{musicItem.Title}删除失败！\n{e.Message}");
                 }
             }
         });
@@ -162,13 +175,13 @@ public partial class MusicItemManager : ObservableObject
         if (successItems.Count > 0)
         {
             string successTitles = string.Join("、", successItems.Select(item => $"《{item.Title}》"));
-            NotificationService.Success("好欸", $"{successTitles}已经从音乐库中移除了！");
+            NotificationService.Success($"{successTitles}已经从音乐库中移除了！");
         }
 
         if (failedItems.Count > 0)
         {
             string failedTitles = string.Join("、", failedItems.Select(item => $"《{item.Title}》"));
-            NotificationService.Error("坏欸", $"删除{failedTitles}失败了！");
+            NotificationService.Error($"删除{failedTitles}失败了！");
         }
 
         return successItems;

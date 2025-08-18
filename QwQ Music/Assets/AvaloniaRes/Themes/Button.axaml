@@ -28,7 +28,7 @@
         </Style>
     </ControlTheme>
 
-    <ControlTheme x:Key="NoPointer" TargetType="Button">
+    <ControlTheme x:Key="NoPointerButton" TargetType="Button">
         <Setter Property="Padding" Value="{DynamicResource ButtonDefaultPadding}" />
         <Setter Property="MinHeight" Value="{DynamicResource ButtonDefaultHeight}" />
         <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultPrimaryForeground}" />

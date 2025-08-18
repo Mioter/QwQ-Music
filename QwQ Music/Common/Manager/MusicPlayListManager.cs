@@ -21,7 +21,6 @@ public class MusicPlayListManager : ObservableObject
         FilePath = string.Empty,
     };
 
-
     public MusicItemModel CurrentMusicItem { get; set; } = DefaultMusicItem;
 
     public int CurrentIndex => PlayList.IndexOf(CurrentMusicItem);

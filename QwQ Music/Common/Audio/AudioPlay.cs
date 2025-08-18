@@ -25,6 +25,7 @@ public class AudioPlay : IAudioPlay
     private DispatcherTimer? _progressTimer;
     private StreamDataProvider? _soundDataProvider;
     private SoundPlayer? _soundPlayer;
+
     private readonly SoundModifierConfig _soundModifier = ConfigManager.SoundModifierConfig;
 
     /// <inheritdoc />
@@ -32,7 +33,12 @@ public class AudioPlay : IAudioPlay
 
     /// <inheritdoc />
     public event EventHandler? PlaybackCompleted;
-
+    
+    /// <summary>
+    /// 音频格式
+    /// </summary>
+    public AudioFormat AudioFormat { get; set; } = AudioFormat.DvdHq;
+    
     /// <inheritdoc />
     public double Position
     {
@@ -175,20 +181,6 @@ public class AudioPlay : IAudioPlay
         _soundPlayer.Seek((float)positionInSeconds);
     }
 
-    /// <inheritdoc />
-    public void InitializeAudio(string filePath, double replayGain)
-    {
-        try
-        {
-            DisposeCurrentTrack();
-            InitializeNewTrack(File.OpenRead(filePath), replayGain);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"初始化音轨失败: {ex.Message}");
-        }
-    }
-
     /// <summary>
     ///     释放所有资源
     /// </summary>
@@ -219,6 +211,21 @@ public class AudioPlay : IAudioPlay
         timer.Tick -= FadeOutTimer_Tick;
         _fadeOutTimer = null;
     }
+    
+    
+    /// <inheritdoc />
+    public void InitializeAudio(string filePath, double replayGain)
+    {
+        try
+        {
+            DisposeCurrentTrack();
+            InitializeNewTrack(File.OpenRead(filePath), replayGain);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"初始化音轨失败: {ex.Message}");
+        }
+    }
 
     public void InitializeAudio(Stream audioStream, double replayGain)
     {
@@ -241,28 +248,21 @@ public class AudioPlay : IAudioPlay
         _audioEngine = new MiniAudioEngine();
 
         var defaultDevice = _audioEngine.PlaybackDevices.FirstOrDefault(x => x.IsDefault);
-
-        var format = new AudioFormat
-        {
-            SampleRate = ConfigManager.PlayerConfig.IsAutoSetSampleRate ? 48000 : ConfigManager.PlayerConfig.SampleRate,
-            Channels = 2,
-            Format = SampleFormat.F32,
-        };
-
-        _playerDevice = _audioEngine.InitializePlaybackDevice(defaultDevice, format);
+        
+        _playerDevice = _audioEngine.InitializePlaybackDevice(defaultDevice, AudioFormat);
 
         _playerDevice.Start();
 
-        _soundDataProvider = new StreamDataProvider(_audioEngine, format, audioStream);
+        _soundDataProvider = new StreamDataProvider(_audioEngine, AudioFormat, audioStream);
 
-        _soundPlayer = new SoundPlayer(_audioEngine, format, _soundDataProvider)
+        _soundPlayer = new SoundPlayer(_audioEngine, AudioFormat, _soundDataProvider)
         {
             Volume = Volume,
             Mute = IsMute,
             PlaybackSpeed = Speed,
         };
 
-        InitializeModifier(_soundPlayer);
+        InitializeModifier(_soundPlayer,replayGain);
         _playerDevice.MasterMixer.AddComponent(_soundPlayer);
  
         // 设置播放完成事件
@@ -280,8 +280,13 @@ public class AudioPlay : IAudioPlay
     /// <summary>
     ///     初始化效果链
     /// </summary>
-    private void InitializeModifier(SoundPlayer soundPlayer)
+    private void InitializeModifier(SoundPlayer soundPlayer, double replayGain)
     {
+        _soundModifier.ReplayGainModifier.Gain = (float)replayGain;
+        soundPlayer.AddModifier(_soundModifier.ReplayGainModifier);
+        
+        _soundModifier.FadeModifier.Reset();
+        _soundModifier.FadeModifier.SampleRate = soundPlayer.Format.SampleRate;
         soundPlayer.AddModifier(_soundModifier.FadeModifier);
     }
 

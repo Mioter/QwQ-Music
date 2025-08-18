@@ -17,6 +17,7 @@ public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem, MusicT
         new("专辑", musicItem.Album),
         new("作曲", musicItem.Composer ?? "未知作曲"),
         new("时长", musicItem.Duration.ToString(@"hh\:mm\:ss")),
+        new("添加时间",musicItem.InsertTime.ToString("yyyy-MM-dd HH:mm:ss")),
         new("文件路径", musicItem.FilePath),
         new("文件大小", musicItem.FileSize ?? "未知"),
         new("编码格式", musicItem.EncodingFormat ?? "未知"),
@@ -37,7 +38,7 @@ public partial class AudioDetailedInfoViewModel(MusicItemModel musicItem, MusicT
             MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("注释", musicItem.Comment));
         }
 
-        if (musicItem.Gain > -1.0)
+        if (musicItem.Gain > 0)
         {
             MusicInfoKeyValuePairs.Add(new MusicInfoKeyValuePair("回放增益", $"{musicItem.Gain:F2} dB"));
         }

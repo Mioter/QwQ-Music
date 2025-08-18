@@ -60,7 +60,7 @@ public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicItemMa
         if (items.Count == 0)
             return;
 
-        await AudioFileManager.ProcessStorageItemsAsync(items);
+        await AudioFileService.ProcessStorageItemsAsync(items);
     }
 
     [RelayCommand]
@@ -80,7 +80,7 @@ public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicItemMa
         if (items.Count == 0)
             return;
 
-        await AudioFileManager.ProcessStorageItemsAsync(items);
+        await AudioFileService.ProcessStorageItemsAsync(items);
     }
 
     [RelayCommand]
@@ -94,6 +94,6 @@ public partial class AllMusicPageViewModel() : DataGridViewModelBase(MusicItemMa
         if (items == null || items.Count == 0)
             return;
 
-        await AudioFileManager.ProcessStorageItemsAsync(items);
+        await AudioFileService.ProcessStorageItemsAsync(items);
     }
 }
