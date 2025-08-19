@@ -1,0 +1,89 @@
+<Grid RowDefinitions="Auto,*" RowSpacing="10" Height="300" Width="200"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
+      mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+      x:DataType="userControls:FontSelector"
+      x:Class="QwQ_Music.Views.UserControls.FontSelector">
+
+    <Grid.Styles>
+
+        <Style Selector="ListBoxItem">
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Margin" Value="0,0,0,5" />
+
+            <Style Selector="^:selected">
+                <Setter Property="Background"
+                        Value="{DynamicResource SemiBlue0}" />
+                <Setter Property="Foreground"
+                        Value="{DynamicResource SemiBlue4}" />
+            </Style>
+        </Style>
+
+    </Grid.Styles>
+
+    <Border HorizontalAlignment="Center"
+            Theme="{StaticResource RadioButtonGroupBorder}"
+            CornerRadius="8">
+
+        <StackPanel Orientation="Horizontal" Spacing="0">
+            <RadioButton Name="CustomFontConfig" Content="用户字体"
+                         IsChecked="True"
+                         Theme="{DynamicResource ButtonRadioButton}" />
+            <RadioButton Name="SystemFontConfig" Content="系统字体"
+                         Theme="{DynamicResource ButtonRadioButton}" />
+        </StackPanel>
+    </Border>
+
+    <ContentControl Grid.Row="1">
+        <Interaction.Behaviors>
+            <DataTrigger Binding="{Binding #CustomFontConfig.IsChecked}"
+                         Value="True">
+                <ChangeAvaloniaPropertyAction
+                    TargetProperty="{x:Static ContentControl.ContentProperty}">
+                    <ChangeAvaloniaPropertyAction.Value>
+
+                        <ListBox
+                            ItemsSource="{Binding AppResources.CustomFonts}"
+                            SelectedValueBinding="{Binding Key}"
+                            SelectedValue="{Binding SelectedFont}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Key}"
+                                               FontFamily="{Binding Value}" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                    </ChangeAvaloniaPropertyAction.Value>
+                </ChangeAvaloniaPropertyAction>
+            </DataTrigger>
+
+            <DataTrigger Binding="{Binding #SystemFontConfig.IsChecked}"
+                         Value="True">
+                <ChangeAvaloniaPropertyAction
+                    TargetProperty="{x:Static ContentControl.ContentProperty}">
+                    <ChangeAvaloniaPropertyAction.Value>
+
+                        <ListBox
+                            ItemsSource="{Binding AppResources.SystemFonts}"
+                            SelectedValueBinding="{Binding Key}"
+                            SelectedValue="{Binding SelectedFont}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Key}"
+                                               FontFamily="{Binding Value}" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                    </ChangeAvaloniaPropertyAction.Value>
+                </ChangeAvaloniaPropertyAction>
+            </DataTrigger>
+        </Interaction.Behaviors>
+
+    </ContentControl>
+
+</Grid>

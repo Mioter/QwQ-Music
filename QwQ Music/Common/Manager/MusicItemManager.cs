@@ -199,11 +199,11 @@ public partial class MusicItemManager : ObservableObject
             CanDragMove = true,
             CanResize = false,
         };
-
+        var tagExtensions = await Task.Run(() =>MusicExtractor.ExtractExtensionsInfo(musicItem.FilePath));
         await OverlayDialog.ShowModal<AudioDetailedInfo, AudioDetailedInfoViewModel>(
             new AudioDetailedInfoViewModel(
                 musicItem,
-                MusicExtractor.ExtractExtensionsInfo(musicItem.FilePath)
+                tagExtensions
             ).MoreDetailedInfor(),
             options: options
         );

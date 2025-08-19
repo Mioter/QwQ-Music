@@ -13,6 +13,7 @@ using QwQ_Music.Models;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Models.Enums;
 using QwQ_Music.ViewModels.Bases;
+using SoundFlow.Backends.MiniAudio;
 using Log = QwQ_Music.Common.Services.LoggerService;
 
 namespace QwQ_Music.ViewModels;
@@ -101,6 +102,8 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
     public static MusicItemManager MusicItemManager => MusicItemManager.Default;
 
     public static MusicPlayListManager MusicPlayListManager => MusicPlayListManager.Default;
+
+    public MiniAudioEngine AudioEngine => _audioPlay.AudioEngine;
 
     public static MusicItemModel CurrentMusicItem
     {
@@ -533,44 +536,49 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
 
     private async Task SetCurrentMusicItem(MusicItemModel musicItem, bool restart = false)
     {
+        if (CurrentMusicItem.Current != _initialTime)
+        {
+            _ = Task.Run(() => { MusicItemManager.UpdatePlayProgress(CurrentMusicItem.FilePath, CurrentMusicItem.Current); });
+        }
+        
         if (restart || IsNearEnd(musicItem))
         {
             musicItem.Current = TimeSpan.Zero;
         }
 
+        await InitializeAudioTrack(musicItem);
+
+        Position = 0;
+
+        CurrentMusicItem = musicItem;
+        OnPropertyChanged(nameof(CurrentMusicItem));
+
+        _initialTime = musicItem.Current;
+        LyricOffset = musicItem.LyricOffset;
+        LyricsModel.UpdateLyricsData(await MusicExtractor.ExtractMusicLyricsAsync(musicItem.FilePath));
+        Seek(musicItem.Current.TotalSeconds);
+
+        PlayerItemChanged?.Invoke(this, musicItem);
+
+    }
+
+    private async Task InitializeAudioTrack(MusicItemModel musicItem)
+    {
         try
         {
             // 根据文件类型初始化音频
             string extension = Path.GetExtension(musicItem.FilePath).ToUpper();
-            
-            // 预处理，判断音频格式
-            AudioPreprocessor.UpdateAudioFormat(_audioPlay,musicItem);
-            
+
             if (extension == AudioFileValidator.AudioFormatsExtendToNameMap[AudioFileValidator.ExtendAudioFormats.Ncm])
             {
+                _audioPlay.AudioFormat = await AudioPreprocessor.UpdateNcmAudioFormat(musicItem);
                 await InitializeNcmAudioTrackAsync(musicItem);
             }
             else
             {
+                _audioPlay.AudioFormat = AudioPreprocessor.UpdateAudioFormat(musicItem);
                 await Task.Run(() => _audioPlay.InitializeAudio(musicItem.FilePath, musicItem.Gain));
             }
-
-            if (CurrentMusicItem.Current != _initialTime)
-            {
-                _ = Task.Run(() => { MusicItemManager.UpdatePlayProgress(CurrentMusicItem.FilePath, CurrentMusicItem.Current); });
-            }
-
-            Position = 0;
-
-            CurrentMusicItem = musicItem;
-            OnPropertyChanged(nameof(CurrentMusicItem));
-
-            _initialTime = musicItem.Current;
-            LyricOffset = musicItem.LyricOffset;
-            LyricsModel.UpdateLyricsData(await MusicExtractor.ExtractMusicLyricsAsync(musicItem.FilePath));
-            Seek(musicItem.Current.TotalSeconds);
-
-            PlayerItemChanged?.Invoke(this, musicItem);
         }
         catch (Exception ex)
         {

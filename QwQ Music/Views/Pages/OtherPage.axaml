@@ -42,7 +42,7 @@
 
         <u:SelectionList.Indicator>
 
-            <Rectangle RadiusX="3" RadiusY="3" Height="5" Margin="10,5"
+            <Rectangle RadiusX="2.5" RadiusY="2.5" Height="5" Margin="10,5"
                        Fill="{DynamicResource SemiBlue4Color}"
                        VerticalAlignment="Bottom">
                 <Rectangle.Effect>

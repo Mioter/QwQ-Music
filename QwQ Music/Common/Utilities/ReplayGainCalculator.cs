@@ -20,9 +20,7 @@ public static class ReplayGainCalculator
     private const double STREAMING_TARGET_LUFS = -16.0; // 流媒体平台常用值
     private const double EBU_R128_TARGET_LUFS = -23.0;
     private const double REPLAY_GAIN2_TARGET_LUFS = -18.0;
-
-    public static event EventHandler? CalcCompletedChanged;
-
+    
     /// <summary>
     ///     计算音频数据的回放增益（线性比例值）
     /// </summary>
@@ -61,8 +59,6 @@ public static class ReplayGainCalculator
         double measuredLufs = loudnessMeter.GetIntegratedLoudness();
         double targetLufs = GetTargetLoudness(standard, customTargetLufs);
         double gain = CalculateLinearGain(measuredLufs, targetLufs);
-
-        CalcCompletedChanged?.Invoke(null, EventArgs.Empty);
 
         return gain;
     }

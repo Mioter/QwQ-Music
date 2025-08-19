@@ -12,7 +12,8 @@
       xmlns:converters1="clr-namespace:Avalonia.Controls.Primitives.Converters;assembly=Avalonia.Controls.ColorPicker"
       xmlns:configModels="clr-namespace:QwQ_Music.Models.ConfigModels"
       xmlns:anchorControl="clr-namespace:QwQ_Music.UI.Controls.AnchorControl"
-      xmlns:models="clr-namespace:QwQ_Music.Models">
+      xmlns:models="clr-namespace:QwQ_Music.Models"
+      xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls">
 
     <Grid.Resources>
         <converters:ToBrushConverter x:Key="ToBrushConverter" />
@@ -60,7 +61,7 @@
             <StackPanel>
 
                 <Panel>
-                    <TextBlock Text="歌词文本对齐方式" VerticalAlignment="Center" />
+                    <TextBlock Text="对齐方式" VerticalAlignment="Center" />
                     <ComboBox
                         Width="80"
                         HorizontalAlignment="Right"
@@ -72,6 +73,40 @@
 
                 <CheckBox Content="显示翻译" IsChecked="{Binding LyricConfig.RolledLyric.ShowTranslation}" />
 
+                <Panel>
+                    <TextBlock Text="字体" VerticalAlignment="Center" />
+                    <Button HorizontalAlignment="Right"
+                            Content="{Binding LyricConfig.RolledLyric.RolledLyricsFont}"
+                            Theme="{StaticResource ComboButton}">
+
+                        <Button.Styles>
+
+                            <Style Selector="Button:pressed">
+                                <Setter Property="RenderTransform" Value="translateY(0px)" />
+                            </Style>
+
+                        </Button.Styles>
+
+                        <Button.Flyout>
+                            <Flyout>
+                                <userControls:FontSelector
+                                    SelectedFont="{Binding LyricConfig.RolledLyric.RolledLyricsFont}" />
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                </Panel>
+                
+                <TextBlock Text="当前歌词大小" />
+                <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                    Value="{Binding LyricConfig.RolledLyric.CurrentLyricFontSize}" />
+                
+                <TextBlock Text="其他歌词大小" />
+                <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                    Value="{Binding LyricConfig.RolledLyric.LyricFontSize}" />
+                
+                <TextBlock Text="歌词翻译间距" />
+                <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                    Value="{Binding LyricConfig.RolledLyric.TranslationSpacing}" />
             </StackPanel>
 
         </anchorControl:AnchorItem>
@@ -103,134 +138,21 @@
                 <Panel>
                     <TextBlock Text="字体" VerticalAlignment="Center" />
                     <Button HorizontalAlignment="Right"
-                            Foreground="{DynamicResource TextBlockDefaultForeground}"
-                            FontWeight="Normal"
-                            Padding="{DynamicResource ComboBoxSelectorDefaultPadding}"
-                            Background="{DynamicResource BorderedBackground}"
-                            BorderBrush="{DynamicResource BorderedBorderBrush}"
-                            MinWidth="80">
-
+                            Content="{Binding LyricConfig.DesktopLyric.DesktopLyricsFont}"
+                            Theme="{StaticResource ComboButton}">
+                        
                         <Button.Styles>
-                            <Style Selector="Button">
-
-                                <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                                    <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
-                                    <Setter Property="BorderBrush" Value="{DynamicResource SemiLightBlue5}" />
-                                </Style>
-
-                                <Style Selector="^:focus /template/ ContentPresenter#PART_ContentPresenter">
-                                    <Setter Property="Background" Value="{DynamicResource SemiColorBackground2}" />
-                                    <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}" />
-                                </Style>
-
-                                <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
-                                    <Setter Property="Background" Value="{DynamicResource SemiColorBackground4}" />
-                                    <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}" />
-                                </Style>
-                            </Style>
-
-                            <Style Selector="Button  PathIcon">
-                                <Setter Property="Foreground"
-                                        Value="{DynamicResource ComboBoxIconDefaultForeground}" />
-                            </Style>
-
-                            <Style Selector="Button:pointerover  PathIcon">
-                                <Setter Property="Foreground"
-                                        Value="{DynamicResource ComboBoxIconPointeroverForeground}" />
+                            
+                            <Style Selector="Button:pressed">
+                                <Setter Property="RenderTransform" Value="translateY(0px)" />
                             </Style>
 
                         </Button.Styles>
-
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{Binding DesktopLyricsFont}" />
-                            <PathIcon
-                                Name="DropDownGlyph"
-                                Grid.Column="1"
-                                Theme="{DynamicResource InnerPathIcon}"
-                                Width="{DynamicResource ComboBoxIconWidth}"
-                                Data="{DynamicResource ComboBoxIcon}"
-                                IsHitTestVisible="False"
-                                UseLayoutRounding="False" />
-                        </Grid>
-
+                        
                         <Button.Flyout>
                             <Flyout>
-
-                                <Grid RowDefinitions="Auto,*" RowSpacing="10" Height="300" Width="200">
-
-                                    <Grid.Styles>
-
-                                        <Style Selector="ListBoxItem">
-                                            <Setter Property="CornerRadius" Value="8" />
-                                            <Setter Property="Margin" Value="0,0,0,5" />
-
-                                            <Style Selector="^:selected">
-                                                <Setter Property="Background" Value="{DynamicResource SemiBlue0}" />
-                                                <Setter Property="Foreground" Value="{DynamicResource SemiBlue4}" />
-                                            </Style>
-                                        </Style>
-
-                                    </Grid.Styles>
-
-                                    <Border HorizontalAlignment="Center"
-                                            Theme="{StaticResource RadioButtonGroupBorder}" CornerRadius="8">
-
-                                        <StackPanel Orientation="Horizontal" Spacing="0">
-                                            <RadioButton Name="CustomFontConfig" Content="用户字体" IsChecked="True"
-                                                         Theme="{DynamicResource ButtonRadioButton}" />
-                                            <RadioButton Name="SystemFontConfig" Content="系统字体"
-                                                         Theme="{DynamicResource ButtonRadioButton}" />
-                                        </StackPanel>
-                                    </Border>
-
-                                    <ContentControl Grid.Row="1">
-                                        <Interaction.Behaviors>
-                                            <DataTrigger Binding="{Binding #CustomFontConfig.IsChecked}"
-                                                         Value="True">
-                                                <ChangeAvaloniaPropertyAction
-                                                    TargetProperty="{x:Static ContentControl.ContentProperty}">
-                                                    <ChangeAvaloniaPropertyAction.Value>
-
-                                                        <ListBox ItemsSource="{Binding AppResources.CustomFonts}"
-                                                                 SelectedValueBinding="{Binding Key}"
-                                                                 SelectedValue="{Binding DesktopLyricsFont}">
-                                                            <ListBox.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <TextBlock Text="{Binding Key}" />
-                                                                </DataTemplate>
-                                                            </ListBox.ItemTemplate>
-                                                        </ListBox>
-
-                                                    </ChangeAvaloniaPropertyAction.Value>
-                                                </ChangeAvaloniaPropertyAction>
-                                            </DataTrigger>
-
-                                            <DataTrigger Binding="{Binding #SystemFontConfig.IsChecked}"
-                                                         Value="True">
-                                                <ChangeAvaloniaPropertyAction
-                                                    TargetProperty="{x:Static ContentControl.ContentProperty}">
-                                                    <ChangeAvaloniaPropertyAction.Value>
-
-                                                        <ListBox ItemsSource="{Binding AppResources.SystemFonts}"
-                                                                 SelectedValueBinding="{Binding Key}"
-                                                                 SelectedValue="{Binding DesktopLyricsFont}">
-                                                            <ListBox.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <TextBlock Text="{Binding Key}"
-                                                                               FontFamily="{Binding Value}" />
-                                                                </DataTemplate>
-                                                            </ListBox.ItemTemplate>
-                                                        </ListBox>
-
-                                                    </ChangeAvaloniaPropertyAction.Value>
-                                                </ChangeAvaloniaPropertyAction>
-                                            </DataTrigger>
-                                        </Interaction.Behaviors>
-
-                                    </ContentControl>
-
-                                </Grid>
-
+                                <userControls:FontSelector
+                                    SelectedFont="{Binding LyricConfig.DesktopLyric.DesktopLyricsFont}" />
                             </Flyout>
                         </Button.Flyout>
                     </Button>
@@ -327,10 +249,10 @@
                     </StackPanel>
                 </Border>
 
-                <ContentControl>
+                <ContentPresenter>
                     <Interaction.Behaviors>
                         <DataTrigger Binding="{Binding #MainLyricConfig.IsChecked}" Value="True">
-                            <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ContentControl.ContentProperty}">
+                            <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ContentPresenter.ContentProperty}">
                                 <ChangeAvaloniaPropertyAction.Value>
                                     <StackPanel>
 
@@ -358,7 +280,7 @@
                         </DataTrigger>
 
                         <DataTrigger Binding="{Binding #AltLyricConfig.IsChecked}" Value="True">
-                            <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ContentControl.ContentProperty}">
+                            <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ContentPresenter.ContentProperty}">
                                 <ChangeAvaloniaPropertyAction.Value>
                                     <StackPanel>
 
@@ -384,7 +306,7 @@
                             </ChangeAvaloniaPropertyAction>
                         </DataTrigger>
                     </Interaction.Behaviors>
-                </ContentControl>
+                </ContentPresenter>
 
                 <StackPanel Orientation="Horizontal">
 

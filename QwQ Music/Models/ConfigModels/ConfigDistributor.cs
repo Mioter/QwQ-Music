@@ -22,8 +22,6 @@ public class ServiceConfig
     public JsonServiceConfig JsonServiceConfig { get; set; } = new();
 
     public LoggerServiceConfig LoggerServiceConfig { get; set; } = new();
-
-    public DataBaseConfig DataBaseConfig { get; set; } = new();
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

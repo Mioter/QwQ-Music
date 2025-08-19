@@ -14,8 +14,6 @@ public class SystemConfigPageViewModel : ViewModelBase
 
     public static LoggerServiceConfig LoggerServiceConfig => ConfigManager.LoggerServiceConfig;
 
-    public static DataBaseConfig DataBaseConfig => ConfigManager.DataBaseConfig;
-
     public static JsonServiceConfig JsonServiceConfig => ConfigManager.JsonServiceConfig;
 
     public static Dictionary<ClosingBehavior, string> ClosingBehaviors =>

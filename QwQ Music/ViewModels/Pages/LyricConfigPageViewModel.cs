@@ -109,17 +109,6 @@ public partial class LyricConfigPageViewModel : ViewModelBase
 
     public static LyricConfig LyricConfig { get; } = ConfigManager.LyricConfig;
 
-    public string? DesktopLyricsFont
-    {
-        get => LyricConfig.DesktopLyric.DesktopLyricsFont;
-        set
-        {
-            if (value == LyricConfig.DesktopLyric.DesktopLyricsFont || value == null) return;
-
-            LyricConfig.DesktopLyric.DesktopLyricsFont = value;
-        }
-    }
-
     private void ToggleWindowDisplayStatus(bool value)
     {
         if (value)

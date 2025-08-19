@@ -8,6 +8,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using QwQ_Music.Common;
 using QwQ_Music.Common.Manager;
 using QwQ_Music.Common.Services;
 using QwQ_Music.Common.Services.Shader;
@@ -20,6 +21,13 @@ namespace QwQ_Music.ViewModels.Drawers;
 
 public partial class MusicCoverPageViewModel : NavigationViewModel
 {
+    public MusicCoverPageViewModel()
+        : base("播放")
+    {
+        MusicPlayerViewModelOnPlayerItemChanged(null, MusicPlayerViewModel.CurrentMusicItem);
+        MusicPlayerViewModel.PlayerItemChanged += MusicPlayerViewModelOnPlayerItemChanged;
+        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_OnProcessExit;
+    }
     private const int COLOR_COUNT = 4;
 
     private static readonly CoverConfig _coverConfig = ConfigManager.UiConfig.CoverConfig;
@@ -31,16 +39,10 @@ public partial class MusicCoverPageViewModel : NavigationViewModel
         Color.Parse("#DFE7FF"),
         Color.Parse("#E4F2FF"),
     ];
-
-    public MusicCoverPageViewModel()
-        : base("播放")
-    {
-        MusicPlayerViewModelOnPlayerItemChanged(null, MusicPlayerViewModel.CurrentMusicItem);
-        MusicPlayerViewModel.PlayerItemChanged += MusicPlayerViewModelOnPlayerItemChanged;
-        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_OnProcessExit;
-    }
-
+    
     public static DrawerStatusViewModel DrawerStatusViewModel => DrawerStatusViewModel.Default;
+    
+    public static AppResources AppResources => AppResources.Default;
 
     public static string OffsetName => LanguageModel.Lang[nameof(OffsetName)];
 

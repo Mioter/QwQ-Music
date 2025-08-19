@@ -71,13 +71,6 @@
         <Setter Property="Foreground" Value="{DynamicResource SemiColorText1}" />
     </Style>
 
-    <!--
-    ~1~ 当前高亮翻译文本样式 @1@
-    <Style Selector="controls|LyricLineControl.current /template/ TextBlock#PART_TranslationText">
-        <Setter Property="Foreground" Value="#808080" />
-    </Style>
-    -->
-
     <!-- 空白歌词样式 -->
     <Style Selector="controls|LyricLineControl.empty /template/ TextBlock#PART_PrimaryText">
         <Setter Property="Text" Value="● ● ●" />

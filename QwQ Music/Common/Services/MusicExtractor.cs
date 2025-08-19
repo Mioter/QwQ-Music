@@ -103,7 +103,7 @@ public static class MusicExtractor
     /// </summary>
     /// <param name="filePath">音频文件路径。</param>
     /// <returns>包含扩展信息的字典。</returns>
-    public static MusicTagExtensions ExtractExtensionsInfo(string? filePath)
+    public static MusicTagExtensions ExtractExtensionsInfo(string filePath)
     {
         var track = new Track(filePath);
 
@@ -143,7 +143,6 @@ public static class MusicExtractor
         var track = new Track(filePath);
 
         return new MusicDetailedInfo(
-
             // 发布信息
             track.Date,
             track.OriginalReleaseDate,

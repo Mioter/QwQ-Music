@@ -13,7 +13,9 @@
     <u:SelectionList Grid.Column="0" Name="NavigationList">
 
         <TextBlock Text="程序" />
-
+        <TextBlock Text="日志" IsEnabled="{Binding Config.IsDebugMode}"/>
+        <TextBlock Text="配置" IsEnabled="{Binding Config.IsDebugMode}"/>
+        
     </u:SelectionList>
 
     <anchorControl:Anchor Grid.Column="1" IndexSource="{Binding ElementName=NavigationList}">
@@ -37,9 +39,10 @@
 
         </anchorControl:Anchor.HeaderTemplate>
 
-        <anchorControl:AnchorItem Header="程序">
+        <anchorControl:AnchorItem Header="程序" >
 
             <StackPanel>
+                
                 <Panel>
                     <TextBlock Text="在窗口关闭时" VerticalAlignment="Center" />
                     <ComboBox HorizontalAlignment="Right"
@@ -48,61 +51,59 @@
                               SelectedValueBinding="{Binding Key}"
                               SelectedValue="{Binding Config.ClosingBehavior}" />
                 </Panel>
+                
+                <CheckBox
+                    Content="开发者模式"
+                    IsChecked="{Binding Config.IsDebugMode}" />
 
             </StackPanel>
 
         </anchorControl:AnchorItem>
 
+        <anchorControl:AnchorItem Header="日志" IsEnabled="{Binding Config.IsDebugMode}">
+
+            <StackPanel>
+
+                <Panel>
+                    <TextBlock Text="过滤级别" VerticalAlignment="Center" />
+                    <ComboBox
+                        MinWidth="80"
+                        HorizontalAlignment="Right"
+                        ItemsSource="{Binding LogLevels}"
+                        SelectedValue="{Binding LoggerServiceConfig.Level}" />
+                </Panel>
+
+                <CheckBox
+                    Content="保持文件打开"
+                    IsChecked="{Binding LoggerServiceConfig.IsKeepOpen}" />
+
+                <TextBlock Text="重试次数" />
+                <u:NumericIntUpDown Minimum="0" Maximum="10"
+                                    Value="{Binding LoggerServiceConfig.RetryCount}" />
+
+            </StackPanel>
+
+        </anchorControl:AnchorItem>
+
+        <anchorControl:AnchorItem Header="配置" IsEnabled="{Binding Config.IsDebugMode}">
+
+            <StackPanel>
+
+                <CheckBox
+                    Content="启用备份"
+                    IsChecked="{Binding JsonServiceConfig.EnableBackup}" />
+
+                <CheckBox
+                    Content="性能监控"
+                    IsChecked="{Binding JsonServiceConfig.EnablePerformanceLogging}" />
+
+                <TextBlock Text="最大备份数量" />
+                <u:NumericIntUpDown Minimum="0" Maximum="10" InnerRightContent="个"
+                                    Value="{Binding JsonServiceConfig.MaxBackupCount}" />
+
+            </StackPanel>
+        </anchorControl:AnchorItem>
+
     </anchorControl:Anchor>
-
-    <!--
-    <Expander Header="日志" IsExpanded="{Binding Config.IsDebugMode}"
-              IsVisible="{Binding #DeveloperOptionsCheckBox.IsChecked}">
-
-        <StackPanel>
-
-            <Panel>
-                <TextBlock Text="过滤级别" VerticalAlignment="Center" />
-                <ComboBox
-                    MinWidth="80"
-                    HorizontalAlignment="Right"
-                    ItemsSource="{Binding LogLevels}"
-                    SelectedValue="{Binding LoggerServiceConfig.Level}" />
-            </Panel>
-
-            <CheckBox
-                Content="保持文件打开"
-                IsChecked="{Binding LoggerServiceConfig.IsKeepOpen}" />
-
-            <TextBlock Text="重试次数" />
-            <u:NumericIntUpDown Minimum="0" Maximum="10"
-                                Value="{Binding LoggerServiceConfig.RetryCount}" />
-
-        </StackPanel>
-
-    </Expander>
-
-    <Expander Header="配置" IsExpanded="{Binding Config.IsDebugMode}"
-              IsVisible="{Binding #DeveloperOptionsCheckBox.IsChecked}">
-
-
-        <StackPanel>
-
-            <CheckBox
-                Content="启用备份"
-                IsChecked="{Binding JsonServiceConfig.EnableBackup}" />
-
-            <CheckBox
-                Content="性能监控"
-                IsChecked="{Binding JsonServiceConfig.EnablePerformanceLogging}" />
-
-            <TextBlock Text="最大备份数量" />
-            <u:NumericIntUpDown Minimum="0" Maximum="10" InnerRightContent="个"
-                                Value="{Binding JsonServiceConfig.MaxBackupCount}" />
-
-        </StackPanel>
-
-    </Expander>
-    -->
 
 </Grid>

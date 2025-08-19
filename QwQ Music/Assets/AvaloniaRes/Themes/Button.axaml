@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
     <!-- Add Resources Here -->
     <ControlTheme x:Key="OverlayCloseButton" TargetType="Button">
         <Setter Property="CornerRadius" Value="5" />
@@ -28,23 +29,8 @@
         </Style>
     </ControlTheme>
 
-    <ControlTheme x:Key="NoPointerButton" TargetType="Button">
-        <Setter Property="Padding" Value="{DynamicResource ButtonDefaultPadding}" />
-        <Setter Property="MinHeight" Value="{DynamicResource ButtonDefaultHeight}" />
-        <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultPrimaryForeground}" />
-        <Setter Property="Background" Value="{DynamicResource ButtonDefaultBackground}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultBorderBrush}" />
-        <Setter Property="BorderThickness" Value="{DynamicResource ButtonBorderThickness}" />
-        <Setter Property="CornerRadius" Value="{DynamicResource ButtonCornerRadius}" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="HorizontalContentAlignment" Value="Center" />
-        <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="FontSize" Value="{DynamicResource ButtonDefaultFontSize}" />
-        <Setter Property="FontWeight" Value="{DynamicResource ButtonDefaultFontWeight}" />
-        <Setter Property="RenderTransform" Value="none" />
-        <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
-        <Setter Property="Cursor" Value="Hand" />
+    <ControlTheme x:Key="NoPointerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+
         <Setter Property="Template">
             <ControlTemplate TargetType="Button">
                 <ContentPresenter
@@ -70,12 +56,92 @@
             <Setter Property="Background" Value="{TemplateBinding Background}" />
             <Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
         </Style>
-
-
+        
         <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultDisabledForeground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultDisabledBorderBrush}" />
         </Style>
 
     </ControlTheme>
+
+    <ControlTheme x:Key="ComboButton" TargetType="Button">
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ComboBoxSelectorCornerRadius}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
+        <Setter Property="Padding" Value="{DynamicResource ComboBoxSelectorDefaultPadding}" />
+        <Setter Property="Background" Value="{DynamicResource BorderedBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderedBorderBrush}" />
+        <Setter Property="MinWidth" Value="{DynamicResource ComboBoxDefaultWidth}" />
+        <Setter Property="MinHeight" Value="{DynamicResource ComboBoxDefaultHeight}" />
+        <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="BorderThickness" Value="{DynamicResource ComboBoxSelectorThickness}" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="Button">
+                <Border Name="BorderContainer"
+                        Padding="{TemplateBinding Padding}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        MinWidth="{TemplateBinding MinWidth}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        MinHeight="{TemplateBinding MinHeight}"
+                        UseLayoutRounding="False">
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True"
+                                          TextElement.FontSize="{TemplateBinding FontSize}"
+                                          TextElement.FontWeight="{TemplateBinding FontWeight}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        <PathIcon
+                            Name="DropDownGlyph"
+                            Grid.Column="1"
+                            Theme="{DynamicResource InnerPathIcon}"
+                            Width="{DynamicResource ComboBoxIconWidth}"
+                            Data="{DynamicResource ComboBoxIcon}"
+                            IsHitTestVisible="False"
+                            UseLayoutRounding="False" />
+                    </Grid>
+
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pointerover">
+
+            <Style Selector="^ /template/ Border#BorderContainer">
+                <Setter Property="Background" Value="{DynamicResource SemiColorBackground3}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource SemiLightBlue5}" />
+            </Style>
+            <Style Selector="^ /template/ PathIcon#DropDownGlyph">
+                <Setter Property="Foreground"
+                        Value="{DynamicResource ComboBoxIconPointeroverForeground}" />
+            </Style>
+
+        </Style>
+
+        <Style Selector="^:focus /template/ Border#BorderContainer">
+            <Setter Property="Background" Value="{DynamicResource SemiColorBackground2}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}" />
+        </Style>
+
+        <Style Selector="^:pressed /template/ Border#BorderContainer">
+            <Setter Property="Background" Value="{DynamicResource SemiColorBackground4}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiBlue5}" />
+        </Style>
+
+        <Style Selector="^ /template/ PathIcon#DropDownGlyph">
+            <Setter Property="Foreground"
+                    Value="{DynamicResource ComboBoxIconDefaultForeground}" />
+        </Style>
+
+    </ControlTheme>
+
 </ResourceDictionary>

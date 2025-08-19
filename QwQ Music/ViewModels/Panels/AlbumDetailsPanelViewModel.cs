@@ -32,15 +32,27 @@ public partial class AlbumDetailsPanelViewModel : DataGridViewModelBase
 
     private void ComeToOneselfEvent()
     {
-        UpdateAlbumItemModel(AlbumItemModel);
-    }
+        var newMusicItems = SearchMusicItems(AlbumItemModel).ToList();
 
+        // 创建FilePath的HashSet以提高查找效率
+        var newFilePaths = new HashSet<string>(newMusicItems.Select(item => item.FilePath));
+        var existingFilePaths = new HashSet<string>(_allMusicItems.Select(item => item.FilePath));
+    
+        // 添加newMusicItems中多出的项
+        var itemsToAdd = newMusicItems.Where(item => !existingFilePaths.Contains(item.FilePath));
+    
+        // 移除_allMusicItems中缺少的项
+        var itemsToRemove = _allMusicItems.Where(item => !newFilePaths.Contains(item.FilePath));
+  
+        _allMusicItems.AddRange(itemsToAdd);
+        
+        _allMusicItems.RemoveAll(itemsToRemove);
+
+    }
+    
     public void UpdateAlbumItemModel(AlbumItemModel albumItemModel)
     {
         AlbumItemModel = albumItemModel;
-
-        _allMusicItems.Clear();
-        _allMusicItems.AddRange(SearchMusicItems(albumItemModel));
 
         OnSearchTextChanged(SearchText);
 

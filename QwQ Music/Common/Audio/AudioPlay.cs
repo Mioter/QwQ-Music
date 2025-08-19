@@ -19,7 +19,6 @@ namespace QwQ_Music.Common.Audio;
 /// </summary>
 public class AudioPlay : IAudioPlay
 {
-    private MiniAudioEngine? _audioEngine;
     private DispatcherTimer? _fadeOutTimer; // 添加一个字段来跟踪当前的淡出定时器
     private AudioPlaybackDevice? _playerDevice;
     private DispatcherTimer? _progressTimer;
@@ -28,12 +27,14 @@ public class AudioPlay : IAudioPlay
 
     private readonly SoundModifierConfig _soundModifier = ConfigManager.SoundModifierConfig;
 
+    public MiniAudioEngine AudioEngine { get; } = new();
+
     /// <inheritdoc />
     public event EventHandler<double>? PositionChanged;
 
     /// <inheritdoc />
     public event EventHandler? PlaybackCompleted;
-    
+
     /// <summary>
     /// 音频格式
     /// </summary>
@@ -182,16 +183,6 @@ public class AudioPlay : IAudioPlay
     }
 
     /// <summary>
-    ///     释放所有资源
-    /// </summary>
-    public void Dispose()
-    {
-        DisposeCurrentTrack();
-
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
     ///     淡出定时器事件处理
     /// </summary>
     private void FadeOutTimer_Tick(object? sender, EventArgs e)
@@ -245,17 +236,15 @@ public class AudioPlay : IAudioPlay
     /// </summary>
     private void InitializeNewTrack(Stream audioStream, double replayGain)
     {
-        _audioEngine = new MiniAudioEngine();
-
-        var defaultDevice = _audioEngine.PlaybackDevices.FirstOrDefault(x => x.IsDefault);
+        var defaultDevice = AudioEngine.PlaybackDevices.FirstOrDefault(x => x.IsDefault);
         
-        _playerDevice = _audioEngine.InitializePlaybackDevice(defaultDevice, AudioFormat);
+        _playerDevice = AudioEngine.InitializePlaybackDevice(defaultDevice, AudioFormat);
 
         _playerDevice.Start();
 
-        _soundDataProvider = new StreamDataProvider(_audioEngine, AudioFormat, audioStream);
+        _soundDataProvider = new StreamDataProvider(AudioEngine, AudioFormat, audioStream);
 
-        _soundPlayer = new SoundPlayer(_audioEngine, AudioFormat, _soundDataProvider)
+        _soundPlayer = new SoundPlayer(AudioEngine, AudioFormat, _soundDataProvider)
         {
             Volume = Volume,
             Mute = IsMute,
@@ -356,6 +345,16 @@ public class AudioPlay : IAudioPlay
         }
 
         _soundDataProvider?.Dispose();
-        _audioEngine?.Dispose();
+    }
+    
+    /// <summary>
+    ///     释放所有资源
+    /// </summary>
+    public void Dispose()
+    {
+        DisposeCurrentTrack();
+        AudioEngine.Dispose();
+        
+        GC.SuppressFinalize(this);
     }
 }

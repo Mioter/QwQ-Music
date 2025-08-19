@@ -197,9 +197,10 @@
 
                                 <Button
                                     Command="{Binding ToggleCalculationCommand}"
-                                    Content="{Binding CalculationButtonText}"
+                                    Content="开始"
                                     CornerRadius="8"
                                     FontSize="12"
+                                    IsEnabled="{Binding CancellationTokenSource,Converter={x:Static ObjectConverters.IsNull}}"
                                     Background="Transparent"
                                     Padding="8" />
 
@@ -209,21 +210,17 @@
                                     Background="Transparent"
                                     CornerRadius="8"
                                     FontSize="12"
+                                    IsEnabled="{Binding CancellationTokenSource,Converter={x:Static ObjectConverters.IsNotNull}}"
                                     Padding="8" />
 
                                 <u:IconButton
                                     Command="{Binding ClearCallbackGainCommand}"
                                     Content="清空"
-                                    Background="Transparent"
+                                    Background="Transparent"      
+                                    IsEnabled="{Binding CancellationTokenSource,Converter={x:Static ObjectConverters.IsNull}}"
+                                    Foreground="{DynamicResource SemiRed4}"
                                     CornerRadius="8"
-                                    FontSize="12">
-                                    <u:IconButton.Icon>
-                                        <PathIcon
-                                            Data="{StaticResource SemiIconDelete}"
-                                            Foreground="{DynamicResource SemiRed4}"
-                                            Height="12" />
-                                    </u:IconButton.Icon>
-                                </u:IconButton>
+                                    FontSize="12" />
                             </StackPanel>
 
                             <StackPanel

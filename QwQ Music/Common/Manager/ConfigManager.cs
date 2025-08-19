@@ -41,31 +41,7 @@ public static class ConfigManager
 
         if (Enum.TryParse(levelStr, out LogLevel level))
             config.LoggerServiceConfig.Level = level;
-
-        // DataBaseConfig
-        config.DataBaseConfig.EnableVerboseLogging = ini.Get("EnableVerboseLogging", "DataBase")?.ToLower() != "false";
-
-        config.DataBaseConfig.EnablePerformanceMonitoring =
-            ini.Get("EnablePerformanceMonitoring", "DataBase")?.ToLower() != "false";
-
-        config.DataBaseConfig.SlowQueryThreshold = int.TryParse(ini.Get("SlowQueryThreshold", "DataBase"), out int sqt)
-            ? sqt
-            : 500;
-
-        config.DataBaseConfig.CommandTimeout = int.TryParse(ini.Get("CommandTimeout", "DataBase"), out int cto)
-            ? cto
-            : 30;
-
-        config.DataBaseConfig.MaxRetryCount = int.TryParse(ini.Get("MaxRetryCount", "DataBase"), out int mrc) ? mrc : 3;
-        config.DataBaseConfig.RetryDelay = int.TryParse(ini.Get("RetryDelay", "DataBase"), out int rtd) ? rtd : 100;
-
-        config.DataBaseConfig.MaxConnectionPoolSize = int.TryParse(
-            ini.Get("MaxConnectionPoolSize", "DataBase"),
-            out int mcps
-        )
-            ? mcps
-            : 10;
-
+        
         return config;
     });
 
@@ -93,8 +69,6 @@ public static class ConfigManager
     public static JsonServiceConfig JsonServiceConfig => ServiceConfig.JsonServiceConfig;
 
     public static LoggerServiceConfig LoggerServiceConfig => ServiceConfig.LoggerServiceConfig;
-
-    public static DataBaseConfig DataBaseConfig => ServiceConfig.DataBaseConfig;
 
     public static void SaveConfig()
     {
@@ -139,31 +113,7 @@ public static class ConfigManager
 
             ini.Set("RetryCount", ServiceConfig.LoggerServiceConfig.RetryCount.ToString(), "LoggerService");
             ini.Set("Level", ServiceConfig.LoggerServiceConfig.Level.ToString(), "LoggerService");
-
-            // DataBaseConfig
-            ini.Set(
-                "EnableVerboseLogging",
-                ServiceConfig.DataBaseConfig.EnableVerboseLogging.ToString().ToLower(),
-                "DataBase"
-            );
-
-            ini.Set(
-                "EnablePerformanceMonitoring",
-                ServiceConfig.DataBaseConfig.EnablePerformanceMonitoring.ToString().ToLower(),
-                "DataBase"
-            );
-
-            ini.Set("SlowQueryThreshold", ServiceConfig.DataBaseConfig.SlowQueryThreshold.ToString(), "DataBase");
-            ini.Set("CommandTimeout", ServiceConfig.DataBaseConfig.CommandTimeout.ToString(), "DataBase");
-            ini.Set("MaxRetryCount", ServiceConfig.DataBaseConfig.MaxRetryCount.ToString(), "DataBase");
-            ini.Set("RetryDelay", ServiceConfig.DataBaseConfig.RetryDelay.ToString(), "DataBase");
-
-            ini.Set(
-                "MaxConnectionPoolSize",
-                ServiceConfig.DataBaseConfig.MaxConnectionPoolSize.ToString(),
-                "DataBase"
-            );
-
+            
             ini.Save(_serviceConfigIniPath);
         }
         catch (Exception e)

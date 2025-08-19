@@ -9,6 +9,7 @@ using QwQ_Music.Common.Audio;
 using QwQ_Music.Common.Audio.SoundModifier;
 using QwQ_Music.Common.Helper;
 using QwQ_Music.Common.Manager;
+using QwQ_Music.Common.Services;
 using QwQ_Music.Common.Utilities;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.ViewModels.Bases;
@@ -23,42 +24,15 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
     public SoundModifierConfig SoundModifierConfig { get; } = ConfigManager.SoundModifierConfig;
 
-    /*public PlayConfigPageViewModel()
+    public PlayConfigPageViewModel()
     {
-        ReplayGainCalculator.CalcCompletedChanged += ReplayGainCalculatorOnCalcCompletedChanged;
-        MessageBus
-            .ReceiveMessage<ExitReminderMessage>(this)
-            .WithHandler(ExitReminderMessageHandler)
-            .AsWeakReference()
-            .Subscribe();
-        MessageBus
-            .ReceiveMessage<OperateCompletedMessage>(this)
-            .WithHandler(LoadCompletedMessageHandler)
-            .AsWeakReference()
-            .Subscribe();
+        NavigateService.ComeToOneselfEvents["播放"] = ComeToOneselfEvent;
     }
 
-    private async void LoadCompletedMessageHandler(OperateCompletedMessage obj, object? sender)
+    private void ComeToOneselfEvent()
     {
-        try
-        {
-            if (obj.Name == nameof(MusicPlayerViewModel.MusicLists))
-            {
-                await RefreshNumberOfCompletedCalc();
-            }
-        }
-        catch (Exception e)
-        {
-            await LoggerService.ErrorAsync($"在加载时刷新已计算增益的歌词数量时出错: {e.Message}");
-        }
+        NumberOfCompletedCalc = MusicItemManager.MusicItems.Count(item => item.Gain > 0);
     }
-
-    private void ReplayGainCalculatorOnCalcCompletedChanged(object? sender, EventArgs e) => NumberOfCompletedCalc++;
-
-    private void ExitReminderMessageHandler(ExitReminderMessage obj, object? sender)
-    {
-        ReplayGainCalculator.CalcCompletedChanged -= ReplayGainCalculatorOnCalcCompletedChanged;
-    }*/
 
     public Dictionary<FadeModifier.FadeCurve,string> FadeCurves { get; } = new()
     {
@@ -81,9 +55,11 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial double CustomMusicReplayGainStandard { get; set; } = 12;
+    
 
     [ObservableProperty]
-    public partial string CalculationButtonText { get; set; } = "开始 ▶";
+    public partial CancellationTokenSource? CancellationTokenSource { get; set; }
+
 
     [RelayCommand]
     private async Task ClearCallbackGain()
@@ -92,7 +68,7 @@ public partial class PlayConfigPageViewModel : ViewModelBase
         {
             foreach (var musicItem in MusicItemManager.MusicItems.Where(musicItem => musicItem.Gain >= 0))
             {
-                musicItem.Gain = -1;
+                musicItem.Gain = 0;
                 NumberOfCompletedCalc--;
             }
         });
@@ -109,42 +85,35 @@ public partial class PlayConfigPageViewModel : ViewModelBase
 
         await StartNewCalculation();
     }
-    
-
-    private CancellationTokenSource? _cancellationTokenSource;
 
     private async Task StartNewCalculation()
     {
-        // 如果有正在运行的任务，先取消它
-        if (_cancellationTokenSource != null)
-        {
-            await _cancellationTokenSource.CancelAsync();
-            _cancellationTokenSource.Dispose();
-        }
-
         // 创建新的取消令牌源
-        _cancellationTokenSource = new CancellationTokenSource();
-        var cancellationToken = _cancellationTokenSource.Token;
+        CancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = CancellationTokenSource.Token;
 
         var itemsToProcess = MusicItemManager.MusicItems.Where(item => item.Gain <= 0).ToList();
-        
+
         try
         {
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
-                using var audioSlicer = new AudioSlicer();
+                // 使用并行处理
+                await Parallel.ForEachAsync(itemsToProcess,
+                    new ParallelOptions
+                    {
+                        MaxDegreeOfParallelism = Environment.ProcessorCount,
+                        CancellationToken = cancellationToken,
+                    },
+                    async (itemModel, ct) =>
+                    {
+                        ct.ThrowIfCancellationRequested();
 
-                foreach (var itemModel in itemsToProcess)
-                {
-                    // 检查是否已请求取消
-                    cancellationToken.ThrowIfCancellationRequested();
+                        double gain = await Task.Run(() => AudioPreprocessor.CalcGainOfMusicItem(itemModel), ct);
+                        itemModel.Gain = gain;
 
-                    itemModel.Gain = AudioPreprocessor.CalcGainOfMusicItem(audioSlicer, itemModel);
-                    NumberOfCompletedCalc++;
-
-                    // 可选：在每次处理后再次检查取消状态
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
+                        NumberOfCompletedCalc++;
+                    });
             }, cancellationToken);
         }
         catch (OperationCanceledException)
@@ -156,22 +125,19 @@ public partial class PlayConfigPageViewModel : ViewModelBase
             CleanupTask();
         }
     }
-
-
+    
     [RelayCommand]
     public void CancelCalculation()
     {
-        _cancellationTokenSource?.Cancel();
+        CancellationTokenSource?.Cancel();
     }
-
-
+    
     private void CleanupTask()
     {
-        _cancellationTokenSource?.Cancel();
-        _cancellationTokenSource?.Dispose();
-        _cancellationTokenSource = null;
+        CancellationTokenSource?.Cancel();
+        CancellationTokenSource?.Dispose();
+        CancellationTokenSource = null;
     }
-
-
+    
     #endregion
 }
