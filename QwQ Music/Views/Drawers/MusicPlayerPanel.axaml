@@ -13,7 +13,6 @@
       xmlns:enums="clr-namespace:QwQ_Music.Models.Enums"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:anchorControl="clr-namespace:QwQ_Music.UI.Controls.AnchorControl"
       d:DesignHeight="450" d:DesignWidth="600"
       mc:Ignorable="d"
       Background="Transparent"
@@ -112,31 +111,23 @@
                             LyricsData="{Binding MusicPlayerViewModel.LyricsModel.LyricsData}"
                             ShowTranslation="{Binding RolledLyric.ShowTranslation}"
                             TextMargin="30,10"
+                            LineSpacing="{Binding RolledLyric.LyricsLineSpacing}"
                             TranslationSpacing="{Binding RolledLyric.TranslationSpacing}">
 
         <controls:LyricsControl.Styles>
+
             <Style Selector="TextBlock">
+                <Setter Property="FontSize" Value="{Binding RolledLyric.PrimaryFontSize}" />
                 <Setter Property="FontFamily"
                         Value="{Binding RolledLyric.RolledLyricsFont,Converter={StaticResource StringToFontFamily}}" />
-                <Setter Property="Transitions">
-                    <Transitions>
-                        <BrushTransition Duration="0:0:0.3" Easing="QuadraticEaseIn" Property="Foreground" />
-                    </Transitions>
-                </Setter>
-            </Style>
-            
-            <Style Selector="controls|LyricLineControl.current /template/ TextBlock">
-                <Setter Property="FontSize" Value="{Binding RolledLyric.CurrentLyricFontSize}" />
-                <Setter Property="Foreground" Value="{DynamicResource SemiColorText0}" />
-                <Setter Property="FontWeight" Value="Bold" />
             </Style>
 
             <!-- 普通歌词样式 -->
-            <Style Selector="controls|LyricLineControl /template/ TextBlock">
-                <Setter Property="FontSize" Value="{Binding RolledLyric.LyricFontSize}" />
-                <Setter Property="Foreground" Value="{DynamicResource SemiColorText1}" />
+            <Style Selector="controls|LyricLineControl">
+                <Setter Property="PrimaryFontSize" Value="{Binding RolledLyric.PrimaryFontSize}" />
+                <Setter Property="TranslationFontSize" Value="{Binding RolledLyric.TranslationFontSize}" />
             </Style>
-            
+
         </controls:LyricsControl.Styles>
 
     </controls:LyricsControl>
@@ -400,8 +391,8 @@
                     <Flyout Placement="Top">
 
                         <Grid ColumnDefinitions="Auto,*" Height="300" Width="200" ColumnSpacing="10" Margin="5">
-                            
-                            <Border  Theme="{StaticResource RadioButtonGroupBorder}"
+
+                            <Border Theme="{StaticResource RadioButtonGroupBorder}"
                                     CornerRadius="8">
 
                                 <StackPanel Orientation="Vertical" Spacing="0">
@@ -471,20 +462,24 @@
                                             <ChangeAvaloniaPropertyAction.Value>
 
                                                 <StackPanel Spacing="10" Margin="5">
-                                                    <TextBlock Text="当前歌词大小" />
-                                                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                                                        Value="{Binding RolledLyric.CurrentLyricFontSize}" />
 
-                                                    <TextBlock Text="其他歌词大小" />
+                                                    <TextBlock Text="主歌词大小" />
                                                     <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                                                        Value="{Binding RolledLyric.LyricFontSize}" />
+                                                                        Value="{Binding RolledLyric.PrimaryFontSize}" />
+
+                                                    <TextBlock Text="翻译歌词大小" />
+                                                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                                                        Value="{Binding RolledLyric.TranslationFontSize}" />
+
+                                                    <TextBlock Text="歌词行间距" />
+                                                    <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                                                        Value="{Binding RolledLyric.LyricsLineSpacing}" />
 
                                                     <TextBlock Text="歌词翻译间距" />
                                                     <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
                                                                         Value="{Binding RolledLyric.TranslationSpacing}" />
 
                                                 </StackPanel>
-
 
                                             </ChangeAvaloniaPropertyAction.Value>
                                         </ChangeAvaloniaPropertyAction>

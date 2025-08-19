@@ -148,11 +148,13 @@ public partial class RolledLyricConfig : ObservableObject
     [ObservableProperty] public partial bool ShowTranslation { get; set; }
 
     [ObservableProperty] public partial string? RolledLyricsFont { get; set; } = AppResources.DEFAULT_FONT_KEY;
-    
-    [ObservableProperty] public partial double LyricFontSize { get; set; } = 15;
-    
-    [ObservableProperty] public partial double CurrentLyricFontSize { get; set; } = 15;
-        
+
+    [ObservableProperty] public partial double PrimaryFontSize { get; set; } = 16;
+
+    [ObservableProperty] public partial double TranslationFontSize { get; set; } = 14;
+
+    [ObservableProperty] public partial int LyricsLineSpacing { get; set; }
+
     [ObservableProperty] public partial int TranslationSpacing { get; set; } = 5;
 }
 

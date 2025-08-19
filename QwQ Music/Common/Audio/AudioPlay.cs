@@ -19,15 +19,19 @@ namespace QwQ_Music.Common.Audio;
 /// </summary>
 public class AudioPlay : IAudioPlay
 {
+    private readonly SoundModifierConfig _soundModifier = ConfigManager.SoundModifierConfig;
     private DispatcherTimer? _fadeOutTimer; // 添加一个字段来跟踪当前的淡出定时器
     private AudioPlaybackDevice? _playerDevice;
     private DispatcherTimer? _progressTimer;
     private StreamDataProvider? _soundDataProvider;
     private SoundPlayer? _soundPlayer;
 
-    private readonly SoundModifierConfig _soundModifier = ConfigManager.SoundModifierConfig;
-
     public MiniAudioEngine AudioEngine { get; } = new();
+
+    /// <summary>
+    ///     音频格式
+    /// </summary>
+    public AudioFormat AudioFormat { get; set; } = AudioFormat.DvdHq;
 
     /// <inheritdoc />
     public event EventHandler<double>? PositionChanged;
@@ -35,11 +39,6 @@ public class AudioPlay : IAudioPlay
     /// <inheritdoc />
     public event EventHandler? PlaybackCompleted;
 
-    /// <summary>
-    /// 音频格式
-    /// </summary>
-    public AudioFormat AudioFormat { get; set; } = AudioFormat.DvdHq;
-    
     /// <inheritdoc />
     public double Position
     {
@@ -109,7 +108,7 @@ public class AudioPlay : IAudioPlay
         }
 
         // 检查淡入效果器是否启用
-        if (_soundModifier.FadeModifier.Enabled )
+        if (_soundModifier.FadeModifier.Enabled)
         {
             // 应用淡入效果
             _soundModifier.FadeModifier.BeginFadeIn();
@@ -182,6 +181,31 @@ public class AudioPlay : IAudioPlay
         _soundPlayer.Seek((float)positionInSeconds);
     }
 
+    /// <inheritdoc />
+    public void InitializeAudio(string filePath, double replayGain)
+    {
+        try
+        {
+            DisposeCurrentTrack();
+            InitializeNewTrack(File.OpenRead(filePath), replayGain);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"初始化音轨失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    ///     释放所有资源
+    /// </summary>
+    public void Dispose()
+    {
+        DisposeCurrentTrack();
+        AudioEngine.Dispose();
+
+        GC.SuppressFinalize(this);
+    }
+
     /// <summary>
     ///     淡出定时器事件处理
     /// </summary>
@@ -201,21 +225,6 @@ public class AudioPlay : IAudioPlay
         timer.Stop();
         timer.Tick -= FadeOutTimer_Tick;
         _fadeOutTimer = null;
-    }
-    
-    
-    /// <inheritdoc />
-    public void InitializeAudio(string filePath, double replayGain)
-    {
-        try
-        {
-            DisposeCurrentTrack();
-            InitializeNewTrack(File.OpenRead(filePath), replayGain);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"初始化音轨失败: {ex.Message}");
-        }
     }
 
     public void InitializeAudio(Stream audioStream, double replayGain)
@@ -237,7 +246,7 @@ public class AudioPlay : IAudioPlay
     private void InitializeNewTrack(Stream audioStream, double replayGain)
     {
         var defaultDevice = AudioEngine.PlaybackDevices.FirstOrDefault(x => x.IsDefault);
-        
+
         _playerDevice = AudioEngine.InitializePlaybackDevice(defaultDevice, AudioFormat);
 
         _playerDevice.Start();
@@ -251,9 +260,9 @@ public class AudioPlay : IAudioPlay
             PlaybackSpeed = Speed,
         };
 
-        InitializeModifier(_soundPlayer,replayGain);
+        InitializeModifier(_soundPlayer, replayGain);
         _playerDevice.MasterMixer.AddComponent(_soundPlayer);
- 
+
         // 设置播放完成事件
         _soundPlayer.PlaybackEnded += OnPlaybackCompleted;
 
@@ -273,7 +282,7 @@ public class AudioPlay : IAudioPlay
     {
         _soundModifier.ReplayGainModifier.Gain = (float)replayGain;
         soundPlayer.AddModifier(_soundModifier.ReplayGainModifier);
-        
+
         _soundModifier.FadeModifier.Reset();
         _soundModifier.FadeModifier.SampleRate = soundPlayer.Format.SampleRate;
         soundPlayer.AddModifier(_soundModifier.FadeModifier);
@@ -345,16 +354,5 @@ public class AudioPlay : IAudioPlay
         }
 
         _soundDataProvider?.Dispose();
-    }
-    
-    /// <summary>
-    ///     释放所有资源
-    /// </summary>
-    public void Dispose()
-    {
-        DisposeCurrentTrack();
-        AudioEngine.Dispose();
-        
-        GC.SuppressFinalize(this);
     }
 }

@@ -4,10 +4,10 @@ namespace QwQ_Music.Common.Helper;
 
 public static class TimestampHelper
 {
-    private static readonly DateTime _unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-    
+    private static readonly DateTime _unixEpoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
     /// <summary>
-    /// 获取当前时间戳（秒）
+    ///     获取当前时间戳（秒）
     /// </summary>
     public static long GetTimestamp()
     {
@@ -15,7 +15,7 @@ public static class TimestampHelper
     }
 
     /// <summary>
-    /// 获取当前时间戳（毫秒）
+    ///     获取当前时间戳（毫秒）
     /// </summary>
     public static long GetTimestampMs()
     {
@@ -23,7 +23,7 @@ public static class TimestampHelper
     }
 
     /// <summary>
-    /// DateTime转时间戳（秒）
+    ///     DateTime转时间戳（秒）
     /// </summary>
     public static long ToTimestamp(this DateTime dateTime)
     {
@@ -31,7 +31,7 @@ public static class TimestampHelper
     }
 
     /// <summary>
-    /// DateTime转时间戳（毫秒）
+    ///     DateTime转时间戳（毫秒）
     /// </summary>
     public static long ToTimestampMs(this DateTime dateTime)
     {
@@ -39,7 +39,7 @@ public static class TimestampHelper
     }
 
     /// <summary>
-    /// 时间戳转DateTime（秒）
+    ///     时间戳转DateTime（秒）
     /// </summary>
     public static DateTime ToDateTime(long timestamp)
     {
@@ -47,15 +47,15 @@ public static class TimestampHelper
     }
 
     /// <summary>
-    /// 时间戳转DateTime（毫秒）
+    ///     时间戳转DateTime（毫秒）
     /// </summary>
     public static DateTime ToDateTimeMs(long timestampMs)
     {
         return DateTimeOffset.FromUnixTimeMilliseconds(timestampMs).DateTime;
     }
-    
+
     /// <summary>
-    /// 将 DateTime 转换为 Unix 时间戳（秒）
+    ///     将 DateTime 转换为 Unix 时间戳（秒）
     /// </summary>
     public static long ToUnixTimestamp(this DateTime dateTime)
     {
@@ -63,7 +63,7 @@ public static class TimestampHelper
     }
 
     /// <summary>
-    /// 将 DateTime 转换为 Unix 时间戳（毫秒）
+    ///     将 DateTime 转换为 Unix 时间戳（毫秒）
     /// </summary>
     public static long ToUnixTimestampMilliseconds(this DateTime dateTime)
     {
@@ -71,7 +71,7 @@ public static class TimestampHelper
     }
 
     /// <summary>
-    /// 从 Unix 时间戳（秒）转换为 DateTime
+    ///     从 Unix 时间戳（秒）转换为 DateTime
     /// </summary>
     public static DateTime FromUnixTimestamp(long timestamp)
     {
@@ -79,7 +79,7 @@ public static class TimestampHelper
     }
 
     /// <summary>
-    /// 从 Unix 时间戳（毫秒）转换为 DateTime
+    ///     从 Unix 时间戳（毫秒）转换为 DateTime
     /// </summary>
     public static DateTime FromUnixTimestampMilliseconds(long timestamp)
     {

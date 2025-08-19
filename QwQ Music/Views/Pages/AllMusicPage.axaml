@@ -19,8 +19,7 @@
         <StackPanel.Styles>
 
             <Style Selector="u|IconButton">
-                <Setter Property="CornerRadius" Value="8" />
-                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Theme" Value="{StaticResource BorderlessIconButton}" />
             </Style>
 
             <Style Selector="PathIcon">

@@ -143,6 +143,7 @@ public static class MusicExtractor
         var track = new Track(filePath);
 
         return new MusicDetailedInfo(
+
             // 发布信息
             track.Date,
             track.OriginalReleaseDate,

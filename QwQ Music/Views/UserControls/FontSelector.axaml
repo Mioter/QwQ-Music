@@ -4,7 +4,8 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:userControls="clr-namespace:QwQ_Music.Views.UserControls"
-      mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+      xmlns:u="https://irihi.tech/ursa"
+      mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="400"
       x:DataType="userControls:FontSelector"
       x:Class="QwQ_Music.Views.UserControls.FontSelector">
 
@@ -24,18 +25,23 @@
 
     </Grid.Styles>
 
-    <Border HorizontalAlignment="Center"
-            Theme="{StaticResource RadioButtonGroupBorder}"
-            CornerRadius="8">
+    <StackPanel Orientation="Horizontal" Spacing="5">
+        <Border HorizontalAlignment="Left"
+                Theme="{StaticResource RadioButtonGroupBorder}"
+                CornerRadius="8">
 
-        <StackPanel Orientation="Horizontal" Spacing="0">
-            <RadioButton Name="CustomFontConfig" Content="用户字体"
-                         IsChecked="True"
-                         Theme="{DynamicResource ButtonRadioButton}" />
-            <RadioButton Name="SystemFontConfig" Content="系统字体"
-                         Theme="{DynamicResource ButtonRadioButton}" />
-        </StackPanel>
-    </Border>
+            <StackPanel Orientation="Horizontal" Spacing="0">
+                <RadioButton Name="CustomFontConfig" Content="用户字体"
+                             IsChecked="True"
+                             Theme="{DynamicResource ButtonRadioButton}" />
+                <RadioButton Name="SystemFontConfig" Content="系统字体"
+                             Theme="{DynamicResource ButtonRadioButton}" />
+            </StackPanel>
+        </Border>
+
+        <u:IconButton Icon="{StaticResource SemiIconPlus}" />
+
+    </StackPanel>
 
     <ContentControl Grid.Row="1">
         <Interaction.Behaviors>

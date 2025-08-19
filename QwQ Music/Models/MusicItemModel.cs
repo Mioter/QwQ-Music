@@ -12,6 +12,9 @@ namespace QwQ_Music.Models;
 
 public partial class MusicItemModel : ObservableObject
 {
+    // 添加一个标志表示图片是否正在加载
+    private LoadingState? _loadingState;
+
     [ObservableProperty] public partial string Title { get; set; } = "未知标题";
 
     [ObservableProperty] public partial string Artists { get; set; } = "未知歌手";
@@ -37,9 +40,6 @@ public partial class MusicItemModel : ObservableObject
     public string[]? CoverColors { get; set; }
 
     public string? Comment { get; set; }
-    
-    // 添加一个标志表示图片是否正在加载
-    private LoadingState? _loadingState;
 
     public Bitmap? CoverImage
     {
@@ -115,7 +115,7 @@ public partial class MusicItemModel : ObservableObject
     [ObservableProperty] public partial string? Remarks { get; set; }
 
     public int LyricOffset { get; set; }
-    
+
     public DateTime InsertTime { get; set; }
 }
 

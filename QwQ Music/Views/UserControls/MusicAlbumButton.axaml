@@ -1,6 +1,6 @@
 <userControls:MusicAlbumButton
     Classes="None"
-    Foreground="White"
+    Foreground="{DynamicResource SemiColorBackground4}"
     Height="50"
     Margin="10"
     Width="50"

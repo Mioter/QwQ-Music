@@ -53,6 +53,18 @@ public class LyricLineControl : TemplatedControl
     >(nameof(TextAlignment), HorizontalAlignment.Center);
 
     // 翻译间距
+    public static readonly StyledProperty<double> PrimaryFontSizeProperty = AvaloniaProperty.Register<
+        LyricLineControl,
+        double
+    >(nameof(PrimaryFontSize), 2.0);
+
+    // 翻译间距
+    public static readonly StyledProperty<double> TranslationFontSizeProperty = AvaloniaProperty.Register<
+        LyricLineControl,
+        double
+    >(nameof(TranslationFontSize), 2.0);
+
+    // 翻译间距
     public static readonly StyledProperty<double> TranslationSpacingProperty = AvaloniaProperty.Register<
         LyricLineControl,
         double
@@ -98,16 +110,28 @@ public class LyricLineControl : TemplatedControl
         set => SetValue(TextAlignmentProperty, value);
     }
 
-    public Thickness TextMargin
+    public double PrimaryFontSize
     {
-        get => GetValue(TextMarginProperty);
-        set => SetValue(TextMarginProperty, value);
+        get => GetValue(PrimaryFontSizeProperty);
+        set => SetValue(PrimaryFontSizeProperty, value);
+    }
+
+    public double TranslationFontSize
+    {
+        get => GetValue(TranslationFontSizeProperty);
+        set => SetValue(TranslationFontSizeProperty, value);
     }
 
     public double TranslationSpacing
     {
         get => GetValue(TranslationSpacingProperty);
         set => SetValue(TranslationSpacingProperty, value);
+    }
+
+    public Thickness TextMargin
+    {
+        get => GetValue(TextMarginProperty);
+        set => SetValue(TextMarginProperty, value);
     }
 
     #endregion

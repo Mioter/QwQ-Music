@@ -41,7 +41,7 @@ public static class ConfigManager
 
         if (Enum.TryParse(levelStr, out LogLevel level))
             config.LoggerServiceConfig.Level = level;
-        
+
         return config;
     });
 
@@ -113,7 +113,7 @@ public static class ConfigManager
 
             ini.Set("RetryCount", ServiceConfig.LoggerServiceConfig.RetryCount.ToString(), "LoggerService");
             ini.Set("Level", ServiceConfig.LoggerServiceConfig.Level.ToString(), "LoggerService");
-            
+
             ini.Save(_serviceConfigIniPath);
         }
         catch (Exception e)

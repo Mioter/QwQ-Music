@@ -82,8 +82,4 @@
         <AdditionalFiles Include="Assets\AvaloniaRes\Palette\Light.axaml"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Models\SoundModifierModel\" />
-    </ItemGroup>
-
 </Project>

@@ -19,20 +19,23 @@ public sealed class FadeModifier : SoundFlow.Abstracts.SoundModifier
         Cosine,
     }
 
-    private FadePhase _phase = FadePhase.Idle;
-    private int _samplesProcessed;
-    private int _totalSamples;
-    private float _startGain;
-    private float _targetGain;
+    // 曲线函数：输入 [0,1]，输出归一化增益变化
+    private Func<float, float> _curveFunc = p => p; // 默认线性
 
     // 配置参数
     private double _fadeInTimeMs = 1000;
     private double _fadeOutTimeMs = 1000;
+
+    private FadePhase _phase = FadePhase.Idle;
+    private int _samplesProcessed;
     private float _smoothnessThreshold = 1e-6f;
-    
+    private float _startGain;
+    private float _targetGain;
+    private int _totalSamples;
+
     /// <inheritdoc />
     public override string Name { get; set; } = "Fade";
-    
+
     public double SampleRate { get; set; } = 48000;
 
     /// <summary>
@@ -82,18 +85,21 @@ public sealed class FadeModifier : SoundFlow.Abstracts.SoundModifier
         set => _smoothnessThreshold = (float)Math.Clamp(value, 1e-9, 0.1);
     }
 
-    // 曲线函数：输入 [0,1]，输出归一化增益变化
-    private Func<float, float> _curveFunc = p => p; // 默认线性
-
     /// <summary>
     ///     启动淡入
     /// </summary>
-    public void BeginFadeIn() => BeginFade(1.0f);
+    public void BeginFadeIn()
+    {
+        BeginFade(1.0f);
+    }
 
     /// <summary>
     ///     启动淡出
     /// </summary>
-    public void BeginFadeOut() => BeginFade(0.0f);
+    public void BeginFadeOut()
+    {
+        BeginFade(0.0f);
+    }
 
     /// <summary>
     ///     重置状态
@@ -117,6 +123,7 @@ public sealed class FadeModifier : SoundFlow.Abstracts.SoundModifier
         {
             ApplyFinalGain(ref first, length, _targetGain);
             _phase = FadePhase.Idle;
+
             return;
         }
 
@@ -133,6 +140,7 @@ public sealed class FadeModifier : SoundFlow.Abstracts.SoundModifier
                 _phase = FadePhase.Completing;
                 ApplyFinalGain(ref Unsafe.Add(ref first, i), length - i, target);
                 _samplesProcessed = 0;
+
                 return;
             }
 
@@ -147,7 +155,12 @@ public sealed class FadeModifier : SoundFlow.Abstracts.SoundModifier
     }
 
     /// <inheritdoc />
-    public override float ProcessSample(float sample, int channel) => sample; // 不单独处理
+    public override float ProcessSample(float sample, int channel)
+    {
+        return sample;
+
+        // 不单独处理
+    }
 
     private void BeginFade(float targetGain)
     {
@@ -180,9 +193,10 @@ public sealed class FadeModifier : SoundFlow.Abstracts.SoundModifier
         }
     }
 
-    private int CalculateSampleCount(double timeMs) =>
-        (int)(timeMs * SampleRate / 1000.0);
-    
+    private int CalculateSampleCount(double timeMs)
+    {
+        return (int)(timeMs * SampleRate / 1000.0);
+    }
 
     private enum FadePhase
     {

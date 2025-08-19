@@ -13,9 +13,9 @@
     <u:SelectionList Grid.Column="0" Name="NavigationList">
 
         <TextBlock Text="程序" />
-        <TextBlock Text="日志" IsEnabled="{Binding Config.IsDebugMode}"/>
-        <TextBlock Text="配置" IsEnabled="{Binding Config.IsDebugMode}"/>
-        
+        <TextBlock Text="日志" IsEnabled="{Binding Config.IsDebugMode}" />
+        <TextBlock Text="配置" IsEnabled="{Binding Config.IsDebugMode}" />
+
     </u:SelectionList>
 
     <anchorControl:Anchor Grid.Column="1" IndexSource="{Binding ElementName=NavigationList}">
@@ -39,10 +39,10 @@
 
         </anchorControl:Anchor.HeaderTemplate>
 
-        <anchorControl:AnchorItem Header="程序" >
+        <anchorControl:AnchorItem Header="程序">
 
             <StackPanel>
-                
+
                 <Panel>
                     <TextBlock Text="在窗口关闭时" VerticalAlignment="Center" />
                     <ComboBox HorizontalAlignment="Right"
@@ -51,7 +51,7 @@
                               SelectedValueBinding="{Binding Key}"
                               SelectedValue="{Binding Config.ClosingBehavior}" />
                 </Panel>
-                
+
                 <CheckBox
                     Content="开发者模式"
                     IsChecked="{Binding Config.IsDebugMode}" />

@@ -16,7 +16,7 @@ public partial class DesktopLyricsWindow : Window
         {
             return;
         }
-        
+
 #if DEBUG
         this.AttachDevTools();
 #endif

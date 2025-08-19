@@ -6,6 +6,6 @@ namespace QwQ_Music.Models.ConfigModels;
 public class SoundModifierConfig : ObservableObject
 {
     public ReplayGainModifier ReplayGainModifier { get; set; } = new();
-    
+
     public FadeModifier FadeModifier { get; set; } = new();
 }

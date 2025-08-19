@@ -95,15 +95,19 @@
                         </Button.Flyout>
                     </Button>
                 </Panel>
-                
-                <TextBlock Text="当前歌词大小" />
+
+                <TextBlock Text="主歌词大小" />
                 <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                    Value="{Binding LyricConfig.RolledLyric.CurrentLyricFontSize}" />
-                
-                <TextBlock Text="其他歌词大小" />
+                                    Value="{Binding LyricConfig.RolledLyric.PrimaryFontSize}" />
+
+                <TextBlock Text="翻译歌词大小" />
                 <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                    Value="{Binding LyricConfig.RolledLyric.LyricFontSize}" />
-                
+                                    Value="{Binding LyricConfig.RolledLyric.TranslationFontSize}" />
+
+                <TextBlock Text="歌词行间距" />
+                <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
+                                    Value="{Binding LyricConfig.RolledLyric.LyricsLineSpacing}" />
+
                 <TextBlock Text="歌词翻译间距" />
                 <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
                                     Value="{Binding LyricConfig.RolledLyric.TranslationSpacing}" />
@@ -140,15 +144,15 @@
                     <Button HorizontalAlignment="Right"
                             Content="{Binding LyricConfig.DesktopLyric.DesktopLyricsFont}"
                             Theme="{StaticResource ComboButton}">
-                        
+
                         <Button.Styles>
-                            
+
                             <Style Selector="Button:pressed">
                                 <Setter Property="RenderTransform" Value="translateY(0px)" />
                             </Style>
 
                         </Button.Styles>
-                        
+
                         <Button.Flyout>
                             <Flyout>
                                 <userControls:FontSelector
@@ -475,8 +479,6 @@
 
 
             </StackPanel>
-
-
 
 
         </anchorControl:AnchorItem>

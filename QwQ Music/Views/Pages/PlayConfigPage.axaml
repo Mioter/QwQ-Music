@@ -19,7 +19,7 @@
             <StackPanel.Styles>
 
                 <Style Selector="WrapPanel">
-                    <Setter Property="Margin" Value="5"/>
+                    <Setter Property="Margin" Value="5" />
                     <Setter Property="ItemSpacing" Value="20" />
                     <Setter Property="LineSpacing" Value="20" />
                 </Style>
@@ -30,14 +30,14 @@
                     <Setter Property="BorderThickness" Value="1" />
                     <Setter Property="CornerRadius" Value="10" />
                     <Setter Property="MinWidth" Value="200" />
-                    
+
                     <Setter Property="Transitions">
                         <Transitions>
                             <EffectTransition Duration="0:0:0.3"
                                               Property="Effect" />
                         </Transitions>
                     </Setter>
-                    
+
                     <Style Selector="^:pointerover">
                         <Setter Property="Effect"
                                 Value="{DynamicResource LightColorDropShadowEffect}" />
@@ -66,7 +66,7 @@
                     </Style>
 
                     <Style Selector="WrapPanel > Border > StackPanel > StackPanel">
-                        <Setter Property="Height" Value="25" />   
+                        <Setter Property="Height" Value="25" />
                         <Setter Property="Spacing" Value="5" />
                         <Setter Property="Orientation" Value="Horizontal" />
                     </Style>
@@ -80,7 +80,8 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource SemiIconMusicNoteStroked}" Height="14" Foreground="{x:Static utilities:ColorGenerator.RandomColor}"/>
+                            <PathIcon Data="{StaticResource SemiIconMusicNoteStroked}" Height="14"
+                                      Foreground="{x:Static utilities:ColorGenerator.RandomColor}" />
                             <TextBlock Text="播放完成后 : " />
                         </StackPanel>
 
@@ -92,10 +93,11 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource SemiIconChevronUpDown}" Height="14" Foreground="{x:Static utilities:ColorGenerator.RandomColor}"/>
+                            <PathIcon Data="{StaticResource SemiIconChevronUpDown}" Height="14"
+                                      Foreground="{x:Static utilities:ColorGenerator.RandomColor}" />
                             <TextBlock Text="切换音乐时 : " />
                         </StackPanel>
-                        
+
                         <RadioButton Content="从头开始播放" IsChecked="{Binding PlayerConfig.IsRestartPlay}" />
                         <RadioButton Content="继续上次播放" IsChecked="{Binding !PlayerConfig.IsRestartPlay}" />
                     </StackPanel>
@@ -104,7 +106,8 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource Random}" Height="14" Foreground="{x:Static utilities:ColorGenerator.RandomColor}"/>
+                            <PathIcon Data="{StaticResource Random}" Height="14"
+                                      Foreground="{x:Static utilities:ColorGenerator.RandomColor}" />
                             <TextBlock Text="随机模式 : " />
                         </StackPanel>
 
@@ -116,7 +119,8 @@
                 <Border>
                     <StackPanel>
                         <StackPanel>
-                            <PathIcon Data="{StaticResource SemiIconSonicStroked}" Height="12.5" Foreground="{x:Static utilities:ColorGenerator.RandomColor}"/>
+                            <PathIcon Data="{StaticResource SemiIconSonicStroked}" Height="12.5"
+                                      Foreground="{x:Static utilities:ColorGenerator.RandomColor}" />
                             <TextBlock Text="输出采样率 : " />
                         </StackPanel>
 
@@ -177,7 +181,7 @@
                             HorizontalAlignment="Left"
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
-                            
+
                             <Rectangle
                                 Fill="{x:Static utilities:ColorGenerator.RandomColor}"
                                 Margin="0,5"
@@ -216,7 +220,7 @@
                                 <u:IconButton
                                     Command="{Binding ClearCallbackGainCommand}"
                                     Content="清空"
-                                    Background="Transparent"      
+                                    Background="Transparent"
                                     IsEnabled="{Binding CancellationTokenSource,Converter={x:Static ObjectConverters.IsNull}}"
                                     Foreground="{DynamicResource SemiRed4}"
                                     CornerRadius="8"
@@ -233,14 +237,30 @@
 
                                 <ComboBox
                                     HorizontalAlignment="Right"
-                                    ItemsSource="{Binding MusicReplayGainStandardList}"
-                                    SelectedItem="{Binding SelectedMusicReplayGainStandard}"
-                                    Width="125" />
+                                    ItemsSource="{Binding MusicReplayGainStandards}"
+                                    SelectedValueBinding="{Binding Key}"
+                                    SelectedValue="{Binding SelectedMusicReplayGainStandard}"
+                                    Width="125">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Key}" ToolTip.Tip="{Binding Value}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+
+                                <TextBlock Text="{Binding SelectedMusicReplayGainStandardDescription}" FontSize="12"
+                                           Classes="Tertiary"
+                                           TextWrapping="Wrap"
+                                           IsVisible="{Binding SelectedMusicReplayGainStandard, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter='{x:Static utilities:MusicReplayGainStandard.Custom}'}"
+                                           TextAlignment="Right" />
 
                                 <u:NumericIntUpDown
                                     HorizontalAlignment="Right"
-                                    IsVisible="{Binding SelectedMusicReplayGainStandard, Converter={StaticResource StringCompareConverter}, ConverterParameter='Custom'}"
-                                    Value="{Binding CustomMusicReplayGainStandard}"
+                                    InnerRightContent="LUFS"
+                                    Minimum="-40"
+                                    Maximum="10"
+                                    IsVisible="{Binding SelectedMusicReplayGainStandard, Converter={x:Static ObjectConverters.Equal}, ConverterParameter='{x:Static utilities:MusicReplayGainStandard.Custom}'}"
+                                    Value="{Binding PlayerConfig.CustomMusicReplayGainStandard}"
                                     Width="110" />
 
                             </StackPanel>
@@ -288,13 +308,13 @@
                 <Border Padding="15">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            
+
                             <Rectangle
                                 Fill="{x:Static utilities:ColorGenerator.RandomColor}"
                                 Margin="0,5"
                                 RadiusX="2" RadiusY="2"
                                 Width="4" />
-                            
+
                             <TextBlock Text="启用淡入淡出" />
                             <CheckBox IsChecked="{Binding SoundModifierConfig.FadeModifier.Enabled}" />
                         </StackPanel>

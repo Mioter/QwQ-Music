@@ -1,6 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    
+
     <!-- Add Resources Here -->
     <ControlTheme x:Key="OverlayCloseButton" TargetType="Button">
         <Setter Property="CornerRadius" Value="5" />
@@ -56,7 +56,7 @@
             <Setter Property="Background" Value="{TemplateBinding Background}" />
             <Setter Property="BorderBrush" Value="{TemplateBinding BorderBrush}" />
         </Style>
-        
+
         <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultDisabledForeground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultDisabledBorderBrush}" />

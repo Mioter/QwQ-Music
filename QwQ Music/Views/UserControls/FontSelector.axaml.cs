@@ -7,6 +7,13 @@ namespace QwQ_Music.Views.UserControls;
 
 public partial class FontSelector : Grid
 {
+    public static readonly DirectProperty<FontSelector, string?> SelectedFontProperty =
+        AvaloniaProperty.RegisterDirect<FontSelector, string?>(
+            nameof(SelectedFont),
+            o => o.SelectedFont,
+            (o, v) => o.SelectedFont = v,
+            defaultBindingMode: BindingMode.TwoWay);
+
     public FontSelector()
     {
         InitializeComponent();
@@ -14,13 +21,6 @@ public partial class FontSelector : Grid
     }
 
     public static AppResources AppResources => AppResources.Default;
-
-    public static readonly DirectProperty<FontSelector, string?> SelectedFontProperty =
-        AvaloniaProperty.RegisterDirect<FontSelector, string?>(
-            nameof(SelectedFont),
-            o => o.SelectedFont,
-            (o, v) => o.SelectedFont = v,
-            defaultBindingMode: BindingMode.TwoWay);
 
     public string? SelectedFont
     {

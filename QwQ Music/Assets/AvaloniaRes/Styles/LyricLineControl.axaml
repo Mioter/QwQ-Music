@@ -5,6 +5,8 @@
     <!-- 歌词行控件样式 -->
     <Style Selector="controls|LyricLineControl">
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="PrimaryFontSize" Value="16" />
+        <Setter Property="TranslationFontSize" Value="14" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Template">
             <ControlTemplate>
@@ -29,14 +31,14 @@
                                    Text="{TemplateBinding Text}"
                                    TextWrapping="Wrap"
                                    VerticalAlignment="Center"
-                                   FontSize="16" />
+                                   FontSize="{TemplateBinding PrimaryFontSize}" />
 
                         <!-- 翻译文本 -->
                         <TextBlock Name="PART_TranslationText"
                                    HorizontalAlignment="{TemplateBinding TextAlignment}"
                                    Text="{TemplateBinding Translation}"
                                    TextWrapping="Wrap"
-                                   FontSize="14"
+                                   FontSize="{TemplateBinding TranslationFontSize}"
                                    VerticalAlignment="Center"
                                    IsVisible="{TemplateBinding ShowTranslation}" />
                     </StackPanel>
@@ -63,7 +65,7 @@
     <Style Selector="controls|LyricLineControl.current /template/ TextBlock">
         <!--<Setter Property="FontSize" Value="18" />-->
         <Setter Property="Foreground" Value="{DynamicResource SemiColorText0}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontWeight" Value="Bold" />
     </Style>
 
     <!-- 普通歌词样式 -->

@@ -17,20 +17,6 @@ public class MusicListItemRepository : IDisposable
         Initialize();
     }
 
-    private void Initialize()
-    {
-        // 创建表（如果不存在）
-        _db.CreateTable(TABLE_NAME,
-            $"""
-             {nameof(MusicListModel.IdStr)} TEXT,
-             {nameof(MusicItemModel.FilePath)} TEXT,
-             {nameof(Position)} INTEGER,
-             PRIMARY KEY ({nameof(MusicListModel.IdStr)}, {nameof(MusicItemModel.FilePath)}),
-             FOREIGN KEY ({nameof(MusicListModel.IdStr)}) REFERENCES {MusicListMapRepository.TABLE_NAME}({nameof(MusicListModel.IdStr)}) ON DELETE CASCADE,
-             FOREIGN KEY ({nameof(MusicItemModel.FilePath)}) REFERENCES {MusicItemRepository.TABLE_NAME}({nameof(MusicItemModel.FilePath)}) ON DELETE CASCADE
-             """);
-    }
-
     // --- 属性 ---
 
     public int Position { get; set; } // 保持为整数
@@ -43,6 +29,20 @@ public class MusicListItemRepository : IDisposable
     {
         _db.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private void Initialize()
+    {
+        // 创建表（如果不存在）
+        _db.CreateTable(TABLE_NAME,
+            $"""
+             {nameof(MusicListModel.IdStr)} TEXT,
+             {nameof(MusicItemModel.FilePath)} TEXT,
+             {nameof(Position)} INTEGER,
+             PRIMARY KEY ({nameof(MusicListModel.IdStr)}, {nameof(MusicItemModel.FilePath)}),
+             FOREIGN KEY ({nameof(MusicListModel.IdStr)}) REFERENCES {MusicListMapRepository.TABLE_NAME}({nameof(MusicListModel.IdStr)}) ON DELETE CASCADE,
+             FOREIGN KEY ({nameof(MusicItemModel.FilePath)}) REFERENCES {MusicItemRepository.TABLE_NAME}({nameof(MusicItemModel.FilePath)}) ON DELETE CASCADE
+             """);
     }
 
     /// <summary>

@@ -212,7 +212,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
         {
             await MusicItemManager.Initialize();
             await MusicPlayListManager.Initialize();
-            
+
             if (PlayerConfig.LastPlayedFilePath == null)
                 return;
 
@@ -540,7 +540,7 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
         {
             _ = Task.Run(() => { MusicItemManager.UpdatePlayProgress(CurrentMusicItem.FilePath, CurrentMusicItem.Current); });
         }
-        
+
         if (restart || IsNearEnd(musicItem))
         {
             musicItem.Current = TimeSpan.Zero;
@@ -559,7 +559,6 @@ public partial class MusicPlayerViewModel : ViewModelBase, IMusicPlayer
         Seek(musicItem.Current.TotalSeconds);
 
         PlayerItemChanged?.Invoke(this, musicItem);
-
     }
 
     private async Task InitializeAudioTrack(MusicItemModel musicItem)

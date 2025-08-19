@@ -17,29 +17,6 @@ public class MusicItemRepository : IDatabaseRepository<MusicItemModel>
         _db = new DatabaseService(dbPath);
         Initialize();
     }
-    
-    private void Initialize()
-    {
-        _db.CreateTable(TABLE_NAME,
-            $"""
-             {nameof(MusicItemModel.Title)} TEXT NOT NULL,
-             {nameof(MusicItemModel.Artists)} TEXT,
-             {nameof(MusicItemModel.Composer)} TEXT,
-             {nameof(MusicItemModel.Album)} TEXT,
-             {nameof(MusicItemModel.CoverId)} TEXT,
-             {nameof(MusicItemModel.FilePath)} TEXT NOT NULL UNIQUE PRIMARY KEY,
-             {nameof(MusicItemModel.FileSize)} TEXT NOT NULL,
-             {nameof(MusicItemModel.Current)} BLOB,
-             {nameof(MusicItemModel.Duration)} BLOB NOT NULL,
-             {nameof(MusicItemModel.CoverColors)} TEXT,
-             {nameof(MusicItemModel.Gain)} INTEGER,
-             {nameof(MusicItemModel.EncodingFormat)} TEXT NOT NULL,
-             {nameof(MusicItemModel.Comment)} TEXT,
-             {nameof(MusicItemModel.Remarks)} TEXT,
-             {nameof(MusicItemModel.LyricOffset)} INTEGER,
-             {nameof(MusicItemModel.InsertTime)} INTEGER
-             """);
-    }
 
     public void Dispose()
     {
@@ -147,6 +124,29 @@ public class MusicItemRepository : IDatabaseRepository<MusicItemModel>
         );
 
         return result.Count > 0;
+    }
+
+    private void Initialize()
+    {
+        _db.CreateTable(TABLE_NAME,
+            $"""
+             {nameof(MusicItemModel.Title)} TEXT NOT NULL,
+             {nameof(MusicItemModel.Artists)} TEXT,
+             {nameof(MusicItemModel.Composer)} TEXT,
+             {nameof(MusicItemModel.Album)} TEXT,
+             {nameof(MusicItemModel.CoverId)} TEXT,
+             {nameof(MusicItemModel.FilePath)} TEXT NOT NULL UNIQUE PRIMARY KEY,
+             {nameof(MusicItemModel.FileSize)} TEXT NOT NULL,
+             {nameof(MusicItemModel.Current)} BLOB,
+             {nameof(MusicItemModel.Duration)} BLOB NOT NULL,
+             {nameof(MusicItemModel.CoverColors)} TEXT,
+             {nameof(MusicItemModel.Gain)} INTEGER,
+             {nameof(MusicItemModel.EncodingFormat)} TEXT NOT NULL,
+             {nameof(MusicItemModel.Comment)} TEXT,
+             {nameof(MusicItemModel.Remarks)} TEXT,
+             {nameof(MusicItemModel.LyricOffset)} INTEGER,
+             {nameof(MusicItemModel.InsertTime)} INTEGER
+             """);
     }
 
     #region Helper Methods

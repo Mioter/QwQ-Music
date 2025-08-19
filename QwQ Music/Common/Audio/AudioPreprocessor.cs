@@ -28,7 +28,7 @@ public static class AudioPreprocessor
             Format = SampleFormat.F32,
         };
     }
-    
+
     public static async Task<AudioFormat> UpdateNcmAudioFormat(MusicItemModel model)
     {
         using var crypt = new NeteaseCrypt(model.FilePath);
@@ -43,8 +43,12 @@ public static class AudioPreprocessor
             Format = SampleFormat.F32,
         };
     }
-    
-    public static double CalcGainOfMusicItem(MusicItemModel musicItem)
+
+    public static double CalcGainOfMusicItem(
+        MusicItemModel musicItem,
+        MusicReplayGainStandard standard = MusicReplayGainStandard.Streaming,
+        double customTargetLufs = -16d
+        )
     {
         string extension = Path.GetExtension(musicItem.FilePath).ToUpper();
 
@@ -60,7 +64,9 @@ public static class AudioPreprocessor
         return ReplayGainCalculator.CalculateGain(
             ReadAudioBlocks(musicItem.FilePath, ex.SamplingRate, ex.Channels),
             ex.SamplingRate,
-            ex.Channels
+            ex.Channels,
+            standard,
+            customTargetLufs
         );
     }
 

@@ -76,7 +76,7 @@
 
     <ScrollViewer Grid.Row="1">
 
-        <ItemsControl ItemsSource="{Binding AlbumItems}" >
+        <ItemsControl ItemsSource="{Binding AlbumItems}">
 
             <ItemsControl.Styles>
 

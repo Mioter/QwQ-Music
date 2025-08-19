@@ -20,6 +20,8 @@ public partial class PlayerConfig : ObservableObject
     [ObservableProperty] public partial bool IsAutoSetSampleRate { get; set; } = true;
 
     public string? LastPlayedFilePath { get; set; }
+    
+    [ObservableProperty] public partial double CustomMusicReplayGainStandard { get; set; } = -16;
 
     public static int[] AudioOutputSampleRateArray { get; } =
         [44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000];

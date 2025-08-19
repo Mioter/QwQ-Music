@@ -20,7 +20,12 @@ public sealed class PlaylistRepository : IDisposable
         _db = new DatabaseService(dbPath);
         Initialize();
     }
-    
+
+    public void Dispose()
+    {
+        _db.Dispose();
+    }
+
     // 初始化并创建表和索引
     private void Initialize()
     {
@@ -44,11 +49,6 @@ public sealed class PlaylistRepository : IDisposable
                      """);
 
         _initialized = true;
-    }
-
-    public void Dispose()
-    {
-        _db.Dispose();
     }
 
     // =========================

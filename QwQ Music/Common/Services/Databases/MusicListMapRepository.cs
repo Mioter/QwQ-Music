@@ -17,17 +17,6 @@ public class MusicListMapRepository : IDatabaseRepository<MusicListModel>
         Initialize();
     }
 
-    private void Initialize()
-    {
-        _db.CreateTable(TABLE_NAME,
-            $"""
-             {nameof(MusicListModel.IdStr)} TEXT NOT NULL PRIMARY KEY,
-             {nameof(MusicListModel.Name)} TEXT,
-             {nameof(MusicListModel.Description)} TEXT,
-             {nameof(MusicListModel.CoverId)} TEXT
-             """);
-    }
-
     public void Dispose()
     {
         _db.Dispose();
@@ -140,6 +129,17 @@ public class MusicListMapRepository : IDatabaseRepository<MusicListModel>
         );
 
         return result.Count > 0;
+    }
+
+    private void Initialize()
+    {
+        _db.CreateTable(TABLE_NAME,
+            $"""
+             {nameof(MusicListModel.IdStr)} TEXT NOT NULL PRIMARY KEY,
+             {nameof(MusicListModel.Name)} TEXT,
+             {nameof(MusicListModel.Description)} TEXT,
+             {nameof(MusicListModel.CoverId)} TEXT
+             """);
     }
 
     public IEnumerable<MusicListModel> GetEnumerableAll()

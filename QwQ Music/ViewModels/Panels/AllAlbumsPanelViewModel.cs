@@ -93,7 +93,7 @@ public partial class AllAlbumsPanelViewModel : ObservableObject
             case NotifyCollectionChangedAction.Move:
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(e),"未知的集合变更操作！");
+                throw new ArgumentOutOfRangeException(nameof(e), "未知的集合变更操作！");
         }
 
         // 更新过滤后的结果（考虑搜索框）

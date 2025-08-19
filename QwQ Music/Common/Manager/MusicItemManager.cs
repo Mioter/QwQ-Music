@@ -107,6 +107,13 @@ public partial class MusicItemManager : ObservableObject
         }
     }
 
+    public static void Update(string filePath, Dictionary<string, object?> fields)
+    {
+        using var repo = new MusicItemRepository(StaticConfig.DatabasePath);
+
+        repo.Update(filePath, fields);
+    }
+
     public static void UpdatePlayProgress(string filePath, TimeSpan current)
     {
         using var repo = new MusicItemRepository(StaticConfig.DatabasePath);
@@ -114,16 +121,6 @@ public partial class MusicItemManager : ObservableObject
         repo.Update(filePath, new Dictionary<string, object?>
         {
             [nameof(MusicItemModel.Current)] = current.ToString(),
-        });
-    }
-
-    public static void UpdateCoverColors(string filePath, string[] colorList)
-    {
-        using var musicItemRepository = new MusicItemRepository(StaticConfig.DatabasePath);
-
-        musicItemRepository.Update(filePath, new Dictionary<string, object?>
-        {
-            [nameof(MusicItemModel.CoverColors)] = string.Join("、", colorList),
         });
     }
 
@@ -199,7 +196,9 @@ public partial class MusicItemManager : ObservableObject
             CanDragMove = true,
             CanResize = false,
         };
-        var tagExtensions = await Task.Run(() =>MusicExtractor.ExtractExtensionsInfo(musicItem.FilePath));
+
+        var tagExtensions = await Task.Run(() => MusicExtractor.ExtractExtensionsInfo(musicItem.FilePath));
+
         await OverlayDialog.ShowModal<AudioDetailedInfo, AudioDetailedInfoViewModel>(
             new AudioDetailedInfoViewModel(
                 musicItem,
