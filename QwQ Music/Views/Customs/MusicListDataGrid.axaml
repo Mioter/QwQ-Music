@@ -75,7 +75,7 @@
                                         <CheckBox Content="大小" Name="MoreColumn2" />
                                         <CheckBox Content="附注" Name="MoreColumn3" />
                                         <CheckBox Content="添加时间" Name="MoreColumn4" />
-                                        <CheckBox Content="最后一次听的时间" />
+                                        <CheckBox Content="最后一次听的时间" Name="MoreColumn5" />
                                     </StackPanel>
                                 </Flyout>
                             </Button.Flyout>
@@ -184,7 +184,7 @@
 
                                             <MenuItem
                                                 Command="{CompiledBinding #PART_Data.((vm:MusicItemsViewModelBase)DataContext).MusicItemsManager.ShowDetailedInfoCommand}"
-                                                CommandParameter="{CompiledBinding #PART_Data.SelectedItems,Mode=OneWay,FallbackValue=.}"
+                                                CommandParameter="{CompiledBinding }"
                                                 Header="详细信息">
                                                 <MenuItem.Icon>
                                                     <PathIcon Data="{StaticResource SemiIconArticle}" Margin="2" />
@@ -194,7 +194,7 @@
                                             <!--  在文件中打开  -->
                                             <MenuItem
                                                 Command="{CompiledBinding #PART_Data.((vm:MusicItemsViewModelBase)DataContext).MusicItemsManager.OpenInExplorerCommand}"
-                                                CommandParameter="{CompiledBinding #PART_Data.SelectedItems,Mode=OneWay,FallbackValue=.}"
+                                                CommandParameter="{CompiledBinding }"
                                                 Header="在文件中打开">
                                                 <MenuItem.Icon>
                                                     <PathIcon Data="{StaticResource SemiIconFolder}" Margin="2" />
@@ -339,6 +339,18 @@
                                 Header="附注"
                                 MaxWidth="200"
                                 IsVisible="{CompiledBinding IsChecked, ElementName=MoreColumn3}"
+                                MinWidth="100" />
+                            <DataGridTextColumn
+                                Binding="{CompiledBinding InsertTime}"
+                                Header="添加时间"
+                                MaxWidth="200"
+                                IsVisible="{CompiledBinding IsChecked, ElementName=MoreColumn4}"
+                                MinWidth="100" />
+                            <DataGridTextColumn
+                                Binding="{CompiledBinding ModificationTime}"
+                                Header="最后一次听的时间"
+                                MaxWidth="200"
+                                IsVisible="{CompiledBinding IsChecked, ElementName=MoreColumn5}"
                                 MinWidth="100" />
 
                         </DataGrid.Columns>

@@ -104,7 +104,7 @@
 
         <pages:ThemeConfigPage />
         <pages:PlayerConfigPage />
-        <pages:LyricConfigPage />
+        <pages:DesktopFunctionsConfigPage />
         <pages:SoundEffectConfigPage />
         <pages:SystemConfigPage />
         <pages:HotkeyConfigPage />

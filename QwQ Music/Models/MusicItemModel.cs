@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Timers;
 using ATL;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -14,14 +13,25 @@ using QwQ_Music.Common.Utilities;
 using QwQ_Music.Common.Utilities.StringUtilities;
 using QwQ_Music.Models.Enums;
 using SystemMediaInterop;
-using Timer = System.Timers.Timer;
 
 namespace QwQ_Music.Models;
 
 public partial class MusicItemModel : ObservableObject, IMediaItem {
-    public static readonly MusicItemModel Default = new() { Title = "听你想听", Artists = "YOU", FilePath = string.Empty };
+    public static readonly MusicItemModel Default = new() {
+        Title = "听你想听", Artists = "YOU", FilePath = string.Empty, Lyrics = LyricsData.Default
+    };
 
     public string Extension;
+
+    public bool IsTemporary {
+        get;
+        set {
+            if (!SetProperty(ref field, value))
+                return;
+            _tempThumbnail = null;
+            _ = UpdateMetaDataAsync().ConfigureAwait(false);
+        }
+    }
 
     public bool IsCurrent {
         get;
@@ -79,14 +89,18 @@ public partial class MusicItemModel : ObservableObject, IMediaItem {
 
     public string Comment { get; set; } = "";
 
+    private Bitmap? _tempThumbnail;
+
     public Bitmap Thumbnail =>
-        CacheManager.TryLoadThumbnail(
-            AlbumId,
-            "音频",
-            "封面",
-            AlbumThumbnailRepository.Instance,
-            () => OnPropertyChanged(),
-            Title);
+        IsTemporary ?
+            _tempThumbnail ?? CacheManager.Loading :
+            CacheManager.TryLoadThumbnail(
+                AlbumId,
+                "音频",
+                "封面",
+                AlbumThumbnailRepository.Instance,
+                () => OnPropertyChanged(),
+                Title);
 
     public Stream ThumbnailStream {
         get {
@@ -125,6 +139,7 @@ public partial class MusicItemModel : ObservableObject, IMediaItem {
 
     public async Task<bool> UpdateMetaDataAsync(bool forceRefresh = false) {
         if (!File.Exists(FilePath)) {
+            NotificationService.Error($"未找到{Title} - {Artists}: 文件不存在，源路径{FilePath}");
             await LoggerService.ErrorAsync($"未找到音乐文件: {FilePath}").ConfigureAwait(false);
             return false;
         }
@@ -174,8 +189,8 @@ public partial class MusicItemModel : ObservableObject, IMediaItem {
                 byte[]? coverData = track.EmbeddedPictures[0].PictureData;
 
                 AlbumId = (string.IsNullOrWhiteSpace(Album) ? $"\u0002{Guid.NewGuid()}" : Album, AlbumArtists);
-
-                await AlbumRepository.Instance.AddOrUpdateAlbumItemAsync(this).ConfigureAwait(false);
+                if (!IsTemporary)
+                    await AlbumRepository.Instance.AddOrUpdateAlbumItemAsync(this).ConfigureAwait(false);
                 Bitmap? thumbnail = await ImageHelper
                                           .LoadFromMemoryAsync(new MemoryStream(coverData), AlbumId.ToString(), 128)
                                           .ConfigureAwait(false);
@@ -186,20 +201,24 @@ public partial class MusicItemModel : ObservableObject, IMediaItem {
 
                 await LoggerService.DebugAsync("制作缩略图成功").ConfigureAwait(false);
                 CacheManager.SetImage(AlbumId, "音频", thumbnail);
-                _ = AlbumCoverRepository.Instance
-                                        .InsertAsync(
-                                            this,
-                                            coverData,
-                                            forceRefresh ? InsertExist.REPLACE : InsertExist.IGNORE)
-                                        .ContinueWith(LoggerService.HandleException)
-                                        .ConfigureAwait(false);
+                if (IsTemporary)
+                    _tempThumbnail = thumbnail;
+                else
+                    _ = AlbumCoverRepository.Instance
+                                            .InsertAsync(
+                                                this,
+                                                coverData,
+                                                forceRefresh ? InsertExist.REPLACE : InsertExist.IGNORE)
+                                            .ContinueWith(LoggerService.HandleException)
+                                            .ConfigureAwait(false);
                 OnPropertyChanged(nameof(Thumbnail));
             }
         } catch (Exception e) {
             await LoggerService.ErrorAsync($"解码{Title}的封面图像失败", e).ConfigureAwait(false);
         }
 
-        await MusicItemRepository.Instance.UpdateAsync(this).ConfigureAwait(false);
+        if (!IsTemporary)
+            await MusicItemRepository.Instance.UpdateAsync(this).ConfigureAwait(false);
     }
 
     private async Task<LyricsData> LoadLyricsAsync(Track track) {
@@ -359,6 +378,8 @@ public partial class MusicItemModel : ObservableObject, IMediaItem {
     public Track? Track { get; private set; }
 
     #endregion 播放歌曲前加载的属性
+
+    public override string ToString() { return $"{Title}_{Artists}"; }
 }
 
 public readonly record struct PlaylistItemModel : IMediaItemWrapper {
@@ -384,4 +405,5 @@ public readonly record struct PlaylistItemModel : IMediaItemWrapper {
 
     public static void Reset() { IdAllocator = 1; }
     public IMediaItem MediaItem => Model;
+    public override string ToString() { return $"{Model.Title}_{Model.Artists}({Id})"; }
 }

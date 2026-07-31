@@ -23,7 +23,10 @@ public partial class MusicPlaylistViewModel : ViewModelBase {
     }
 
     [RelayCommand]
-    private void ClearMusic() { AudioPlayManager.ClearPlaylist(); }
+    private void ClearMusic() {
+        AudioPlayManager.ClearPlaylist();
+        AudioPlayManager.Instance.Stop();
+    }
 
     [RelayCommand]
     private void JumpToTop(ListBox listBox) {

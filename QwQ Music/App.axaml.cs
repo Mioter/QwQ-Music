@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
@@ -19,11 +18,6 @@ public class App : Application {
 
     public override void Initialize() {
         AvaloniaXamlLoader.Load(this);
-
-#if DEBUG
-        this.AttachDeveloperTools();
-#endif
-
         AppResources.Default.Initialize();
         DataContext = new ApplicationViewModel();
     }
@@ -36,16 +30,18 @@ public class App : Application {
         AppDomain.CurrentDomain.ProcessExit += CurrentDomain_OnProcessExit;
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
-            // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
-            // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
-            /*DisableAvaloniaDataAnnotationValidation();*/
-
             desktop.MainWindow = TopLevel = new MainWindow { DataContext = new MainWindowViewModel() };
-
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
         }
 
         base.OnFrameworkInitializationCompleted();
+        if (Program.OpenWithFiles is not null)
+            Task.Run(async Task? () => await AudioFileService.FileOpenAsync(Program.OpenWithFiles)
+                                                             .ConfigureAwait(false))
+                .ConfigureAwait(false);
+
+        DesktopPlayControlService.Start();
+        DesktopLyricsService.Create();
     }
 
     private static void CurrentDomain_OnProcessExit(object? sender, EventArgs e) {
@@ -84,6 +80,7 @@ public class App : Application {
     private static void CurrentDomain_OnUnhandledException(object sender, UnhandledExceptionEventArgs e) {
         // LoggerService.Error("应用域错误: ", (e.ExceptionObject as Exception)!);
     }
+
     private static void HandleException(string message, Exception? exception = null) {
         string fullMessage = exception != null ? $"{message}\n\n详细信息:\n{exception}" : message;
 
@@ -94,20 +91,4 @@ public class App : Application {
 
         LoggerService.Error(fullMessage);
     }
-
-    /*
-    private static void DisableAvaloniaDataAnnotationValidation()
-    {
-        // Get an array of plugins to remove
-        var dataValidationPluginsToRemove = BindingPlugins
-            .DataValidators.OfType<DataAnnotationsValidationPlugin>()
-            .ToArray();
-
-        // remove each entry found
-        foreach (var plugin in dataValidationPluginsToRemove)
-        {
-            BindingPlugins.DataValidators.Remove(plugin);
-        }
-    }
-    */
 }

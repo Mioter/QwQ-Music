@@ -28,7 +28,7 @@
 
     <Window.Styles>
         <Style Selector="u|TitleBar#PART_TitleBar">
-            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style Selector="WindowDrawnDecorationsContent">
             <Style Selector="^ TextBlock">
@@ -137,7 +137,7 @@
                             Height="{CompiledBinding #MusicPlayerTray.Bounds.Height}"
                             CornerRadius="25" />
 
-                    <drawers:MusicPlayerTray Name="MusicPlayerTray" />
+                    <drawers:MusicPlayerTray Name="MusicPlayerTray"/>
 
                 </Panel>
             </Border>

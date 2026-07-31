@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Avalonia;
 using Avalonia.Data.Converters;
 
 namespace QwQ_Music.UI.Converters;
@@ -11,6 +12,6 @@ public class TypeCheckConverter : IValueConverter {
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) {
-        throw new NotImplementedException();
+        return AvaloniaProperty.UnsetValue;
     }
 }

@@ -1,20 +1,18 @@
 ﻿using Avalonia;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Common.Managers;
 using QwQ_Music.Common.Services;
 using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.ViewModels.Bases;
-using QwQ_Music.ViewModels.Windows;
-using QwQ_Music.Windows;
-using static QwQ_Music.Common.Services.I18NService;
 
 namespace QwQ_Music.ViewModels.Pages;
 
-public partial class LyricConfigPageViewModel : ViewModelBase {
-    private DesktopLyricsWindow? _desktopLyricsWindow;
+public partial class DesktopFunctionsConfigPageViewModel : ViewModelBase {
+    public DesktopControlConfig DesktopControlConfig => ConfigManager.DesktopControlConfig;
 
-    public LyricConfigPageViewModel() {
+    public DesktopFunctionsConfigPageViewModel() {
         ToggleWindowDisplayStatus(LyricIsEnabled);
         ToggleDesktopPlayControlService(DesktopPlayControlIsEnabled);
         OnPropertyChanged(nameof(LyricWidth));
@@ -23,12 +21,12 @@ public partial class LyricConfigPageViewModel : ViewModelBase {
     }
 
     public bool LyricIsEnabled {
-        get => LyricConfig.DesktopLyric.LyricIsEnabled;
+        get => LyricConfig.DesktopLyric.IsEnabled;
         set {
             if (LyricIsEnabled == value)
                 return;
 
-            LyricConfig.DesktopLyric.LyricIsEnabled = value;
+            LyricConfig.DesktopLyric.IsEnabled = value;
             OnPropertyChanged();
 
             ToggleWindowDisplayStatus(value);
@@ -36,23 +34,24 @@ public partial class LyricConfigPageViewModel : ViewModelBase {
     }
 
     public bool LyricIsDualLang {
-        get => LyricConfig.DesktopLyric.LyricIsDualLang;
+        get => LyricConfig.DesktopLyric.IsDualLang;
         set {
             if (LyricIsDualLang == value)
                 return;
 
-            LyricConfig.DesktopLyric.LyricIsDualLang = value;
+            LyricConfig.DesktopLyric.IsDualLang = value;
             OnPropertyChanged();
         }
     }
 
+
     public bool DesktopPlayControlIsEnabled {
-        get => LyricConfig.DesktopLyric.DesktopPlayControlIsEnabled;
+        get => DesktopControlConfig.IsEnabled;
         set {
             if (DesktopPlayControlIsEnabled == value)
                 return;
 
-            LyricConfig.DesktopLyric.DesktopPlayControlIsEnabled = value;
+            DesktopControlConfig.IsEnabled = value;
             OnPropertyChanged();
 
             ToggleDesktopPlayControlService(value);
@@ -60,32 +59,55 @@ public partial class LyricConfigPageViewModel : ViewModelBase {
     }
 
     public bool LockLyricWindow {
-        get => LyricConfig.DesktopLyric.LockLyricWindow;
+        get => LyricConfig.DesktopLyric.IsAnchored;
         set {
             if (LockLyricWindow == value)
                 return;
 
-            LyricConfig.DesktopLyric.LockLyricWindow = value;
-            _desktopLyricsWindow?.SetPenetrate(value);
+            LyricConfig.DesktopLyric.IsAnchored = value;
+            DesktopLyricsService.DesktopLyricsWindow?.SetPenetrate(value);
         }
     }
 
     public double LyricWidth {
-        get => LyricConfig.DesktopLyric.LyricWidth;
-        set => LyricConfig.DesktopLyric.LyricWidth = value;
+        get => LyricConfig.DesktopLyric.Width;
+        set => LyricConfig.DesktopLyric.Width = value;
     }
 
     public bool LyricIsDoubleLine {
-        get => LyricConfig.DesktopLyric.LyricIsDoubleLine;
+        get => LyricConfig.DesktopLyric.IsDoubleLine;
         set {
             if (LyricIsDoubleLine == value)
                 return;
 
-            LyricConfig.DesktopLyric.LyricIsDoubleLine = value;
+            LyricConfig.DesktopLyric.IsDoubleLine = value;
+            DesktopLyricsService.DesktopLyricsWindow?.UpdateFades();
         }
     }
 
-    public static LyricConfig LyricConfig { get; } = ConfigManager.LyricConfig;
+    public int CrossFadeTime {
+        get => (int)LyricConfig.DesktopLyric.CrossFadeTime.TotalMilliseconds;
+        set {
+            TimeSpan time = TimeSpan.FromMilliseconds(value);
+            LyricConfig.DesktopLyric.CrossFadeTime = time;
+            DesktopLyricsService.DesktopLyricsWindow?.UpdateFades();
+        }
+    }
+
+    public bool IsPrimaryBold {
+        get => LyricConfig.DesktopLyric.IsEnabled;
+        set {
+            if (LyricIsEnabled == value)
+                return;
+
+            LyricConfig.DesktopLyric.IsEnabled = value;
+            OnPropertyChanged();
+
+            ToggleWindowDisplayStatus(value);
+        }
+    }
+
+    public static LyricConfig LyricConfig => ConfigManager.LyricConfig;
 
     private void CurrentDomainOnProcessExit(object? sender, EventArgs e) {
         AppDomain.CurrentDomain.ProcessExit -= CurrentDomainOnProcessExit;
@@ -111,37 +133,35 @@ public partial class LyricConfigPageViewModel : ViewModelBase {
     }
 
     private void ShowLyricWindow() {
-        _desktopLyricsWindow = new DesktopLyricsWindow {
-            DataContext = new DesktopLyricsWindowViewModel(), Width = LyricConfig.DesktopLyric.LyricWidth
-        };
-        _desktopLyricsWindow.Show();
-        _desktopLyricsWindow.SetPenetrate(LyricConfig.DesktopLyric.LockLyricWindow);
+        if (!LyricConfig.DesktopLyric.IsEnabled)
+            return;
+        DesktopLyricsService.Create();
+        DesktopLyricsService.DesktopLyricsWindow?.Show();
     }
 
-    private void CloseLyricWindow() {
-        _desktopLyricsWindow?.Close();
-        _desktopLyricsWindow = null;
-    }
+    private void CloseLyricWindow() { DesktopLyricsService.Close(); }
 
     [RelayCommand]
     private void SetWindowPosition(string position) {
-        if (_desktopLyricsWindow == null) {
+        if (DesktopLyricsService.DesktopLyricsWindow == null) {
             NotificationService.Error("请先启动歌词窗口~");
 
             return;
         }
 
-        if (_desktopLyricsWindow.Screens.Primary == null) {
+        Screen? screen =
+            DesktopLyricsService.DesktopLyricsWindow.Screens.ScreenFromWindow(DesktopLyricsService.DesktopLyricsWindow);
+        if (screen == null) {
             NotificationService.Error("无法获取屏幕宽高~");
 
             return;
         }
 
-        int screenWidth = _desktopLyricsWindow.Screens.Primary.WorkingArea.Width;
-        int screenHeight = _desktopLyricsWindow.Screens.Primary.WorkingArea.Height;
-        double scaling = _desktopLyricsWindow.Screens.Primary.Scaling;
-        double windowWidth = _desktopLyricsWindow.Width * scaling;
-        double windowHeight = _desktopLyricsWindow.Height * scaling;
+        int screenWidth = screen.WorkingArea.Width;
+        int screenHeight = screen.WorkingArea.Height;
+        double scaling = screen.Scaling;
+        double windowWidth = DesktopLyricsService.DesktopLyricsWindow.Width * scaling;
+        double windowHeight = DesktopLyricsService.DesktopLyricsWindow.Height * scaling;
 
         var positions = new Dictionary<string, Func<PixelPoint>> {
             ["↖"] = () => new PixelPoint(0, 0),
@@ -157,7 +177,7 @@ public partial class LyricConfigPageViewModel : ViewModelBase {
         };
 
         if (positions.TryGetValue(position, out Func<PixelPoint>? getPosition))
-            _desktopLyricsWindow.Position = getPosition();
+            DesktopLyricsService.DesktopLyricsWindow.Position = getPosition();
 
         // 如果不是已知位置，则保持原位置
     }
@@ -166,9 +186,13 @@ public partial class LyricConfigPageViewModel : ViewModelBase {
 
     public static string IsEnabledV => I18NService.Lang.Translation[nameof(IsEnabledV)];
 
+    public static string IsAutoFadeV => I18NService.Lang.Translation[nameof(IsAutoFadeV)];
+
     public static string IsDoubleLineV => I18NService.Lang.Translation[nameof(IsDoubleLineV)];
 
     public static string IsDualLangV => I18NService.Lang.Translation[nameof(IsDualLangV)];
+
+    public static string IsBoldV => I18NService.Lang.Translation[nameof(IsBoldV)];
 
     // ReSharper disable once InconsistentNaming
     public static string PositionXV => I18NService.Lang.Translation[nameof(PositionXV)];

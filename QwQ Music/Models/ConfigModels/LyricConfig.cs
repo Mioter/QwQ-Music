@@ -100,13 +100,21 @@ public class PixelPointJsonConverter : JsonConverter<PixelPoint> {
     }
 }
 
+public partial class DesktopControlConfig : ObservableObject {
+    public bool IsEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial int TriggerDistance { get; set; } = 10;
+}
+
 public class LyricConfig : ObservableObject {
     public RolledLyricConfig RolledLyric { get; set; } = new();
 
     public DesktopLyricConfig DesktopLyric { get; set; } = new();
 
     [JsonIgnore]
-    public static FrozenDictionary<string,HorizontalAlignment> TextAlignments { get; } = EnumHelper<HorizontalAlignment>.ToDictionary();
+    public static FrozenDictionary<string, HorizontalAlignment> TextAlignments { get; } =
+        EnumHelper<HorizontalAlignment>.ToDictionary();
 }
 
 public partial class RolledLyricConfig : ObservableObject {
@@ -126,42 +134,53 @@ public partial class RolledLyricConfig : ObservableObject {
     public partial double TranslationFontSize { get; set; } = 14;
 
     [ObservableProperty]
-    public partial int LyricsLineSpacing { get; set; }
+    public partial int LineSpacing { get; set; }
 
     [ObservableProperty]
     public partial int TranslationSpacing { get; set; } = 5;
 }
 
 public partial class DesktopLyricConfig : ObservableObject {
-    public bool LyricIsEnabled { get; set; } = true;
-
-    public bool LockLyricWindow { get; set; }
+    [ObservableProperty]
+    public partial bool IsTopmost { get; set; } = true;
 
     [ObservableProperty]
-    public partial bool LyricIsDoubleLine { get; set; }
+    public partial bool IsAutoFade { get; set; } = true;
+
+    public int FadeInMilliseconds { get; set; } = 500;
+
+    public int FadeOutMilliseconds { get; set; } = 5000;
+
+    public int FadeOutDelayMilliseconds { get; set; } = 10000;
+
+    public int MinimumOpacity { get; set; }
 
     [ObservableProperty]
-    public partial bool LyricIsDualLang { get; set; } = true;
+    public partial TimeSpan CrossFadeTime { get; set; } = TimeSpan.FromMilliseconds(500);
 
-    public bool DesktopPlayControlIsEnabled { get; set; } = true;
+    public bool IsEnabled { get; set; } = true;
 
-    [ObservableProperty]
-    public partial int DesktopPlayControlTriggerDistance { get; set; } = 10;
-
+    public bool IsAnchored { get; set; }
 
     [ObservableProperty]
-    public partial string DesktopLyricsFont { get; set; } = AppResources.DEFAULT_FONT_KEY;
+    public partial bool IsDoubleLine { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsDualLang { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string Font { get; set; } = AppResources.DEFAULT_FONT_KEY;
 
     [ObservableProperty]
     [JsonConverter(typeof(PixelPointJsonConverter))]
     public partial PixelPoint Position { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(LyricMargin))]
-    public partial double LyricSpacing { get; set; } = 10;
+    [NotifyPropertyChangedFor(nameof(Margin))]
+    public partial double Spacing { get; set; } = 10;
 
     [ObservableProperty]
-    public partial double LyricWidth { get; set; } = 800;
+    public partial double Width { get; set; } = 800;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(WindowCornerRadius))]
@@ -169,60 +188,72 @@ public partial class DesktopLyricConfig : ObservableObject {
 
     public CornerRadius WindowCornerRadius => new(CornerRadius);
 
-    public Thickness LyricMargin => new(LyricSpacing);
+    public Thickness Margin => new(Spacing);
 
     [ObservableProperty]
-    public partial HorizontalAlignment LyricTextAlignment { get; set; } = HorizontalAlignment.Center;
+    public partial HorizontalAlignment TextAlignment { get; set; } = HorizontalAlignment.Center;
 
-    [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricMainTopColor { get; set; } = Color.FromArgb(255, 255, 35, 112);
+    public partial FontWeight PrimaryWeight { get; set; } = FontWeight.Bold;
 
-    [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricMainBottomColor { get; set; } = Color.FromArgb(255, 180, 152, 255);
+    public partial FontWeight SecondaryWeight { get; set; } = FontWeight.Bold;
 
-    [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricMainBorderColor { get; set; } = Colors.White;
+    public partial FontWeight AltPrimaryWeight { get; set; } = FontWeight.Normal;
 
-    [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricAltTopColor { get; set; } = Color.FromArgb(255, 122, 68, 255);
+    public partial FontWeight AltSecondaryWeight { get; set; } = FontWeight.Normal;
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricAltBottomColor { get; set; } = Color.FromArgb(255, 255, 134, 227);
+    public partial Color MainTopColor { get; set; } = Color.FromArgb(255, 255, 35, 112);
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricAltBorderColor { get; set; } = Colors.White;
+    public partial Color MainBottomColor { get; set; } = Color.FromArgb(255, 180, 152, 255);
+
+    [JsonConverter(typeof(ColorJsonConverter))]
+    [ObservableProperty]
+    public partial Color MainBorderColor { get; set; } = Colors.White;
+
+    [JsonConverter(typeof(ColorJsonConverter))]
+    [ObservableProperty]
+    public partial Color AltTopColor { get; set; } = Color.FromArgb(255, 122, 68, 255);
+
+    [JsonConverter(typeof(ColorJsonConverter))]
+    [ObservableProperty]
+    public partial Color AltBottomColor { get; set; } = Color.FromArgb(255, 255, 134, 227);
+
+    [JsonConverter(typeof(ColorJsonConverter))]
+    [ObservableProperty]
+    public partial Color AltBorderColor { get; set; } = Colors.White;
 
     [ObservableProperty]
     [JsonConverter(typeof(ColorJsonConverter))]
-    public partial Color LyricBackground { get; set; }
+    public partial Color Background { get; set; }
 
     [ObservableProperty]
-    public partial double LyricMainFontSize { get; set; } = 20;
+    public partial double MainFontSize { get; set; } = 20;
 
     [ObservableProperty]
-    public partial double LyricAltFontSize { get; set; } = 18;
+    public partial double AltFontSize { get; set; } = 18;
 
     [ObservableProperty]
-    public partial double LyricMainLetterSpacing { get; set; } = 2;
+    public partial double MainCharSpacing { get; set; } = 2;
 
     [ObservableProperty]
-    public partial double LyricAltLetterSpacing { get; set; } = 2;
+    public partial double AltCharSpacing { get; set; } = 2;
 
     [ObservableProperty]
-    public partial double LyricMainStrokeThickness { get; set; } = 3;
+    public partial double MainStrokeThickness { get; set; } = 3;
 
     [ObservableProperty]
-    public partial double LyricAltStrokeThickness { get; set; } = 3;
+    public partial double AltStrokeThickness { get; set; } = 3;
 
     [ObservableProperty]
-    public partial double LyricMainTranslateSpacing { get; set; } = 2;
+    public partial double MainTranslateSpacing { get; set; } = 2;
 
     [ObservableProperty]
-    public partial double LyricAltTranslateSping { get; set; } = 2;
+    public partial double AltTranslateSping { get; set; } = 2;
 }

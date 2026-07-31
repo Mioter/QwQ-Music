@@ -7,6 +7,8 @@ public class UserConfig {
 
     public PlayerConfig PlayerConfig { get; set; } = new();
 
+    public DesktopControlConfig DesktopControlConfig { get; set; } = new();
+
     public LyricConfig LyricConfig { get; set; } = new();
 
     public SoundModifierConfig SoundModifierConfig { get; set; } = new();

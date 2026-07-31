@@ -31,9 +31,8 @@ public sealed partial class MusicItemsManager : ObservableObject, IDisposable {
     private async Task InitializeAsync() {
         try {
             MusicItems = new OrderedDictionary<string, MusicItemModel>(
-                (await MusicItemRepository.Instance.GetAsync().ConfigureAwait(false))
-                .Select(item => KeyValuePair.Create(item.FilePath, item))
-                .OrderBy(item => item.Key));
+                (await MusicItemRepository.Instance.GetAsync().ConfigureAwait(false)).Select(item =>
+                    KeyValuePair.Create(item.FilePath, item)));
             if (MusicItems.Count != 0)
                 return;
 
@@ -45,7 +44,7 @@ public sealed partial class MusicItemsManager : ObservableObject, IDisposable {
     }
 
     public async Task AddAsync(IAsyncEnumerable<MusicItemModel> musicItems) {
-        await using StringWriter successItems = new();
+        List<string> successItems = [];
         await using StringWriter failedItems = new();
         var repo = MusicItemRepository.Instance;
 
@@ -54,7 +53,7 @@ public sealed partial class MusicItemsManager : ObservableObject, IDisposable {
                 musicItem.InsertTime = DateTime.UtcNow;
                 await repo.InsertAsync(musicItem).ConfigureAwait(false);
 
-                await successItems.WriteAsync($"《{musicItem.Title}》").ConfigureAwait(false);
+                successItems.Add($"《{musicItem.Title}》");
                 await _addSem.WaitAsync().ConfigureAwait(false);
                 MusicItems.Add(musicItem.FilePath, musicItem);
                 OnPropertyChanged(nameof(Count));
@@ -71,8 +70,11 @@ public sealed partial class MusicItemsManager : ObservableObject, IDisposable {
         if (failedItems.ToString() is { Length: > 0 } failedTitles)
             NotificationService.Error($"歌曲 {failedTitles} 添加失败了！");
 
-        if (successItems.ToString() is { Length: > 0 } successTitles)
-            NotificationService.Success($"歌曲 {successTitles} 添加成功啦~");
+        if (successItems.Count > 0)
+            NotificationService.Success(
+                successItems.Count > 10 ?
+                    $"有{successItems.Count}首歌曲添加成功啦~" :
+                    $"歌曲{string.Join("", successItems)}添加成功啦~");
     }
 
     public static async Task UpdateAsync(MusicItemModel musicItem) {
@@ -206,34 +208,31 @@ public sealed partial class MusicItemsManager : ObservableObject, IDisposable {
     }
 
     [RelayCommand]
-    public static void ShowDetailedInfo(IList musicItems) {
-        foreach (MusicItemModel item in musicItems) {
-            var options = new OverlayDialogOptions { Title = "详细信息", CanLightDismiss = true, Mode = DialogMode.Info };
+    public static void ShowDetailedInfo(MusicItemModel musicItems) {
+        var options = new OverlayDialogOptions { Title = "详细信息", CanLightDismiss = true, Mode = DialogMode.Info };
 
-            OverlayDialog.ShowCustomAsync<AudioDetailedInfo, AudioDetailedInfoViewModel, DialogResult>(
-                             new AudioDetailedInfoViewModel(item, item.Track),
-                             options: options)
-                         .ContinueWith(LoggerService.HandleException)
-                         .ConfigureAwait(false);
-        }
+        OverlayDialog.ShowCustomAsync<AudioDetailedInfo, AudioDetailedInfoViewModel, DialogResult>(
+                         new AudioDetailedInfoViewModel(musicItems, musicItems.Track),
+                         options: options)
+                     .ContinueWith(LoggerService.HandleException)
+                     .ConfigureAwait(false);
     }
 
     [RelayCommand]
-    public static void OpenInExplorer(IList musicItems) {
-        foreach (MusicItemModel item in musicItems) {
-            if (string.IsNullOrEmpty(item.FilePath) || !File.Exists(item.FilePath)) {
-                NotificationService.Error($"无法打开《{item.Title}》文件位置：{item.FilePath}文件不存在");
-                return;
-            }
+    public static void OpenInExplorer(MusicItemModel musicItem) {
+        if (string.IsNullOrEmpty(musicItem.FilePath) || !File.Exists(musicItem.FilePath)) {
+            NotificationService.Error($"无法打开《{musicItem.Title}》文件位置：{musicItem.FilePath}文件不存在");
+            return;
+        }
 
-            try {
-                FileOperationService.OpenInFileManager(item.FilePath);
-            } catch (Exception e) {
-                LoggerService.Error($"打开文件位置失败: {e.Message}");
-                NotificationService.Error($"打开《{item.Title}》文件位置时报错：{e.Message}");
-            }
+        try {
+            FileOperationService.OpenInFileManager(musicItem.FilePath);
+        } catch (Exception e) {
+            LoggerService.Error($"打开文件位置失败: {e.Message}");
+            NotificationService.Error($"打开《{musicItem.Title}》文件位置时报错：{e.Message}");
         }
     }
+
 
     [RelayCommand]
     public static void RemoveItems(IList items) {

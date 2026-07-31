@@ -1,6 +1,6 @@
 ﻿<Grid ColumnDefinitions="Auto,*" ColumnSpacing="20" Margin="0,10"
-      x:Class="QwQ_Music.Views.Pages.LyricConfigPage"
-      x:DataType="pages:LyricConfigPageViewModel"
+      x:Class="QwQ_Music.Views.Pages.DesktopFunctionsConfigPage"
+      x:DataType="pages:DesktopFunctionsConfigPageViewModel"
       xmlns="https://github.com/avaloniaui"
       xmlns:u="https://irihi.tech/ursa"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -8,8 +8,7 @@
       xmlns:configModels="clr-namespace:QwQ_Music.Models.ConfigModels"
       xmlns:anchorControl="clr-namespace:QwQ_Music.UI.Controls.AnchorControl"
       xmlns:models="clr-namespace:QwQ_Music.Models"
-      xmlns:customs="clr-namespace:QwQ_Music.Views.Customs"
-      xmlns:me="clr-namespace:QwQ_Music.MarkupExtensions">
+      xmlns:customs="clr-namespace:QwQ_Music.Views.Customs">
 
     <u:SelectionList Grid.Column="0" Name="NavigationList">
 
@@ -97,7 +96,7 @@
 
                 <TextBlock Text="歌词行间距" />
                 <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                    Value="{CompiledBinding LyricConfig.RolledLyric.LyricsLineSpacing}" />
+                                    Value="{CompiledBinding LyricConfig.RolledLyric.LineSpacing}" />
 
                 <TextBlock Text="歌词翻译间距" />
                 <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
@@ -129,7 +128,34 @@
                 <CheckBox
                     Content="{CompiledBinding IsDualLangV}"
                     IsChecked="{CompiledBinding LyricIsDualLang}" />
+                <StackPanel>
+                    <TextBlock Text="交叉渐变时间" />
+                    <u:NumericIntUpDown Minimum="0" InnerRightContent="ms"
+                                        Value="{CompiledBinding CrossFadeTime,Delay=500}" />
+                </StackPanel>
 
+                <CheckBox
+                    Content="{CompiledBinding IsAutoFadeV}"
+                    IsChecked="{CompiledBinding LyricConfig.DesktopLyric.IsAutoFade}" />
+                <StackPanel Margin="24 0 0 0" IsVisible="{CompiledBinding LyricConfig.DesktopLyric.IsAutoFade}">
+
+                    <TextBlock Text="淡入时间" />
+                    <u:NumericIntUpDown Minimum="0" InnerRightContent="ms"
+                                        Value="{CompiledBinding LyricConfig.DesktopLyric.FadeInMilliseconds,Delay=500}" />
+
+                    <TextBlock Text="淡出时间" />
+                    <u:NumericIntUpDown Minimum="0" InnerRightContent="ms"
+                                        Value="{CompiledBinding LyricConfig.DesktopLyric.FadeOutMilliseconds,Delay=500}" />
+
+                    <TextBlock Text="淡出延时" />
+                    <u:NumericIntUpDown Minimum="0" InnerRightContent="ms"
+                                        Value="{CompiledBinding LyricConfig.DesktopLyric.FadeOutDelayMilliseconds,Delay=500}" />
+
+                    <TextBlock Text="最低透明度" />
+                    <u:NumericIntUpDown Minimum="0" Maximum="100" InnerRightContent="%"
+                                        Value="{CompiledBinding LyricConfig.DesktopLyric.MinimumOpacity}" />
+
+                </StackPanel>
                 <CheckBox
                     IsChecked="{CompiledBinding DesktopPlayControlIsEnabled}">
                     <StackPanel Orientation="Horizontal" Spacing="10">
@@ -141,12 +167,12 @@
 
                 <TextBlock Text="触发距离" />
                 <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                    Value="{CompiledBinding LyricConfig.DesktopLyric.DesktopPlayControlTriggerDistance}" />
+                                    Value="{CompiledBinding DesktopControlConfig.TriggerDistance}" />
 
                 <Panel>
                     <TextBlock Text="字体" VerticalAlignment="Center" />
                     <Button HorizontalAlignment="Right"
-                            Content="{CompiledBinding LyricConfig.DesktopLyric.DesktopLyricsFont}"
+                            Content="{CompiledBinding LyricConfig.DesktopLyric.Font}"
                             Theme="{StaticResource ComboButton}">
 
                         <Button.Styles>
@@ -160,7 +186,7 @@
                         <Button.Flyout>
                             <Flyout>
                                 <customs:FontSelector
-                                    SelectedFont="{CompiledBinding LyricConfig.DesktopLyric.DesktopLyricsFont}" />
+                                    SelectedFont="{CompiledBinding LyricConfig.DesktopLyric.Font}" />
                             </Flyout>
                         </Button.Flyout>
                     </Button>
@@ -170,14 +196,16 @@
 
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{CompiledBinding PositionXV}" Classes="Tertiary" />
-                        <TextBlock Text="{CompiledBinding LyricConfig.DesktopLyric.Position.X,StringFormat=': {0} px'}"
-                                   Classes="Tertiary" />
+                        <TextBlock
+                            Text="{CompiledBinding LyricConfig.DesktopLyric.Position.X,StringFormat=': {0} px'}"
+                            Classes="Tertiary" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{CompiledBinding PositionYV}" Classes="Tertiary" />
-                        <TextBlock Text="{CompiledBinding LyricConfig.DesktopLyric.Position.Y,StringFormat=': {0} px'}"
-                                   Classes="Tertiary" />
+                        <TextBlock
+                            Text="{CompiledBinding LyricConfig.DesktopLyric.Position.Y,StringFormat=': {0} px'}"
+                            Classes="Tertiary" />
                     </StackPanel>
 
                 </StackPanel>
@@ -211,7 +239,7 @@
                               ItemsSource="{x:Static configModels:LyricConfig.TextAlignments}"
                               DisplayMemberBinding="{CompiledBinding Key}"
                               SelectedValueBinding="{CompiledBinding Value}"
-                              SelectedValue="{CompiledBinding LyricConfig.DesktopLyric.LyricTextAlignment}" />
+                              SelectedValue="{CompiledBinding LyricConfig.DesktopLyric.TextAlignment}" />
                 </Panel>
 
                 <TextBlock Text="歌词宽度" />
@@ -225,7 +253,7 @@
                 <TextBlock Text="歌词间距" />
                 <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
                                     Name="LyricSpacingIntUpDown"
-                                    Value="{CompiledBinding LyricConfig.DesktopLyric.LyricSpacing}" />
+                                    Value="{CompiledBinding LyricConfig.DesktopLyric.Spacing}" />
 
             </StackPanel>
 
@@ -267,23 +295,23 @@
                                     <ChangeAvaloniaPropertyAction.Value>
                                         <StackPanel>
 
-                                            <TextBlock Text="主歌词大小" />
+                                            <TextBlock Text="大小" />
                                             <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.LyricMainFontSize}" />
+                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.MainFontSize}" />
 
-                                            <TextBlock Text="主歌词翻译间距" />
+                                            <TextBlock Text="翻译间距" />
                                             <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
                                                                 Maximum="{CompiledBinding #LyricSpacingIntUpDown.Value}"
-                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.LyricMainTranslateSpacing}" />
+                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.MainTranslateSpacing}" />
 
-                                            <TextBlock Text="主歌词文本间距" />
+                                            <TextBlock Text="文本间距" />
                                             <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.LyricMainLetterSpacing}" />
+                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.MainCharSpacing}" />
 
-                                            <TextBlock Text="主歌词描边粗细" />
+                                            <TextBlock Text="描边粗细" />
                                             <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
                                                                 Maximum="10"
-                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.LyricMainStrokeThickness}" />
+                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.MainStrokeThickness}" />
 
                                         </StackPanel>
                                     </ChangeAvaloniaPropertyAction.Value>
@@ -295,23 +323,28 @@
                                     TargetProperty="{x:Static ContentPresenter.ContentProperty}">
                                     <ChangeAvaloniaPropertyAction.Value>
                                         <StackPanel>
-
-                                            <TextBlock Text="副歌词大小" />
+                                            <!-- <ComboBox SelectedValue="{CompiledBinding LyricConfig.DesktopLyric.PrimaryWeight}"> -->
+                                            <!--     <ComboBox.ItemTemplate> -->
+                                            <!--         <TextBlock Text="" -->
+                                            <!--     </ComboBox.ItemTemplate> -->
+                                            <!--     <ComboBoxItem Content="{x:Static FontWeight.Bold}" /> -->
+                                            <!-- </ComboBox> -->
+                                            <TextBlock Text="大小" />
                                             <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.LyricAltFontSize}" />
+                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.AltFontSize}" />
 
-                                            <TextBlock Text="副歌词翻译间距" />
+                                            <TextBlock Text="翻译间距" />
                                             <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
                                                                 Maximum="{CompiledBinding #LyricSpacingIntUpDown.Value}"
-                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.LyricAltTranslateSping}" />
+                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.AltTranslateSping}" />
 
-                                            <TextBlock Text="副歌词文本间距" />
+                                            <TextBlock Text="文本间距" />
                                             <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.LyricAltLetterSpacing}" />
+                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.AltCharSpacing}" />
 
-                                            <TextBlock Text="副歌词描边粗细" />
+                                            <TextBlock Text="描边粗细" />
                                             <u:NumericIntUpDown Minimum="0" InnerRightContent="px" Maximum="10"
-                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.LyricAltStrokeThickness}" />
+                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.AltStrokeThickness}" />
                                         </StackPanel>
 
                                     </ChangeAvaloniaPropertyAction.Value>
@@ -332,10 +365,10 @@
                             BorderBrush="{DynamicResource BorderCardBorderBrush}"
                             BorderThickness="2"
                             Height="30"
-                            Background="{CompiledBinding LyricConfig.DesktopLyric.LyricBackground,Converter={StaticResource ToBrushConverter}}">
+                            Background="{CompiledBinding LyricConfig.DesktopLyric.Background,Converter={StaticResource ToBrushConverter}}">
                         <Button.Flyout>
                             <Flyout Placement="Top">
-                                <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.LyricBackground}" />
+                                <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.Background}" />
                             </Flyout>
                         </Button.Flyout>
                     </Button>
@@ -361,60 +394,60 @@
 
                         <!-- LyricMainTopColor -->
                         <Button
-                            Background="{CompiledBinding LyricConfig.DesktopLyric.LyricMainTopColor, Converter={StaticResource ToBrushConverter}}"
+                            Background="{CompiledBinding LyricConfig.DesktopLyric.MainTopColor, Converter={StaticResource ToBrushConverter}}"
                             BorderBrush="{CompiledBinding $self.Foreground}"
                             Foreground="{CompiledBinding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
                             Content="{CompiledBinding LyricMainTopColorV}">
                             <Button.Effect>
                                 <DropShadowEffect
                                     BlurRadius="8"
-                                    Color="{CompiledBinding LyricConfig.DesktopLyric.LyricMainTopColor}"
+                                    Color="{CompiledBinding LyricConfig.DesktopLyric.MainTopColor}"
                                     OffsetX="0"
                                     OffsetY="0" />
                             </Button.Effect>
                             <Button.Flyout>
                                 <Flyout Placement="Top">
-                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.LyricMainTopColor}" />
+                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.MainTopColor}" />
                                 </Flyout>
                             </Button.Flyout>
                         </Button>
 
                         <!-- LyricMainBottomColor -->
                         <Button
-                            Background="{CompiledBinding LyricConfig.DesktopLyric.LyricMainBottomColor, Converter={StaticResource ToBrushConverter}}"
+                            Background="{CompiledBinding LyricConfig.DesktopLyric.MainBottomColor, Converter={StaticResource ToBrushConverter}}"
                             BorderBrush="{CompiledBinding $self.Foreground}"
                             Foreground="{CompiledBinding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
                             Content="{CompiledBinding LyricMainBottomColorV}">
                             <Button.Effect>
                                 <DropShadowEffect
                                     BlurRadius="8"
-                                    Color="{CompiledBinding LyricConfig.DesktopLyric.LyricMainBottomColor}"
+                                    Color="{CompiledBinding LyricConfig.DesktopLyric.MainBottomColor}"
                                     OffsetX="0"
                                     OffsetY="0" />
                             </Button.Effect>
                             <Button.Flyout>
                                 <Flyout Placement="Top">
-                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.LyricMainBottomColor}" />
+                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.MainBottomColor}" />
                                 </Flyout>
                             </Button.Flyout>
                         </Button>
 
                         <!-- LyricMainBorderColor -->
                         <Button
-                            Background="{CompiledBinding LyricConfig.DesktopLyric.LyricMainBorderColor, Converter={StaticResource ToBrushConverter}}"
+                            Background="{CompiledBinding LyricConfig.DesktopLyric.MainBorderColor, Converter={StaticResource ToBrushConverter}}"
                             BorderBrush="{CompiledBinding $self.Foreground}"
                             Foreground="{CompiledBinding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
                             Content="{CompiledBinding LyricMainBorderColorV}">
                             <Button.Effect>
                                 <DropShadowEffect
                                     BlurRadius="8"
-                                    Color="{CompiledBinding LyricConfig.DesktopLyric.LyricMainBorderColor}"
+                                    Color="{CompiledBinding LyricConfig.DesktopLyric.MainBorderColor}"
                                     OffsetX="0"
                                     OffsetY="0" />
                             </Button.Effect>
                             <Button.Flyout>
                                 <Flyout Placement="Top">
-                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.LyricMainBorderColor}" />
+                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.MainBorderColor}" />
                                 </Flyout>
                             </Button.Flyout>
                         </Button>
@@ -426,60 +459,60 @@
 
                         <!-- LyricAltTopColor -->
                         <Button
-                            Background="{CompiledBinding LyricConfig.DesktopLyric.LyricAltTopColor, Converter={StaticResource ToBrushConverter}}"
+                            Background="{CompiledBinding LyricConfig.DesktopLyric.AltTopColor, Converter={StaticResource ToBrushConverter}}"
                             BorderBrush="{CompiledBinding $self.Foreground}"
                             Foreground="{CompiledBinding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
                             Content="{CompiledBinding LyricAltTopColorV}">
                             <Button.Effect>
                                 <DropShadowEffect
                                     BlurRadius="8"
-                                    Color="{CompiledBinding LyricConfig.DesktopLyric.LyricAltTopColor}"
+                                    Color="{CompiledBinding LyricConfig.DesktopLyric.AltTopColor}"
                                     OffsetX="0"
                                     OffsetY="0" />
                             </Button.Effect>
                             <Button.Flyout>
                                 <Flyout Placement="Top">
-                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.LyricAltTopColor}" />
+                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.AltTopColor}" />
                                 </Flyout>
                             </Button.Flyout>
                         </Button>
 
                         <!-- LyricAltBottomColor -->
                         <Button
-                            Background="{CompiledBinding LyricConfig.DesktopLyric.LyricAltBottomColor, Converter={StaticResource ToBrushConverter}}"
+                            Background="{CompiledBinding LyricConfig.DesktopLyric.AltBottomColor, Converter={StaticResource ToBrushConverter}}"
                             BorderBrush="{CompiledBinding $self.Foreground}"
                             Foreground="{CompiledBinding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
                             Content="{CompiledBinding LyricAltBottomColorV}">
                             <Button.Effect>
                                 <DropShadowEffect
                                     BlurRadius="8"
-                                    Color="{CompiledBinding LyricConfig.DesktopLyric.LyricAltBottomColor}"
+                                    Color="{CompiledBinding LyricConfig.DesktopLyric.AltBottomColor}"
                                     OffsetX="0"
                                     OffsetY="0" />
                             </Button.Effect>
                             <Button.Flyout>
                                 <Flyout Placement="Top">
-                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.LyricAltBottomColor}" />
+                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.AltBottomColor}" />
                                 </Flyout>
                             </Button.Flyout>
                         </Button>
 
                         <!-- LyricAltBorderColor -->
                         <Button
-                            Background="{CompiledBinding LyricConfig.DesktopLyric.LyricAltBorderColor, Converter={StaticResource ToBrushConverter}}"
+                            Background="{CompiledBinding LyricConfig.DesktopLyric.AltBorderColor, Converter={StaticResource ToBrushConverter}}"
                             BorderBrush="{CompiledBinding $self.Foreground}"
                             Foreground="{CompiledBinding $self.Background, Converter={StaticResource ContrastBrushConverter}}"
                             Content="{CompiledBinding LyricAltBorderColorV}">
                             <Button.Effect>
                                 <DropShadowEffect
                                     BlurRadius="8"
-                                    Color="{CompiledBinding LyricConfig.DesktopLyric.LyricAltBorderColor}"
+                                    Color="{CompiledBinding LyricConfig.DesktopLyric.AltBorderColor}"
                                     OffsetX="0"
                                     OffsetY="0" />
                             </Button.Effect>
                             <Button.Flyout>
                                 <Flyout Placement="Top">
-                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.LyricAltBorderColor}" />
+                                    <ColorView Color="{CompiledBinding LyricConfig.DesktopLyric.AltBorderColor}" />
                                 </Flyout>
                             </Button.Flyout>
                         </Button>

@@ -6,7 +6,6 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:drawers="clr-namespace:QwQ_Music.ViewModels.Drawers"
-      xmlns:behaviors="clr-namespace:QwQ_Music.UI.Behaviors"
       xmlns:managers="clr-namespace:QwQ_Music.Common.Managers"
       xmlns:customs="clr-namespace:QwQ_Music.Views.Customs"
       ColumnDefinitions="Auto,Auto,6*">
@@ -85,7 +84,7 @@
                                                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                                                     <Binding Path="RolledLyric.ShowTranslation" />
                                                     <Binding
-                                                        Path="AudioPlayManager.LyricsModel.Current.Secondary"
+                                                        Path="AudioPlayManager.LyricsModel.Current.Primary.Secondary"
                                                         Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
                                                 </MultiBinding>
 
@@ -100,7 +99,7 @@
 
                                                         <TextBlock FontSize="12"
                                                                    MaxLines="2"
-                                                                   Text="{CompiledBinding AudioPlayManager.LyricsModel.Current.Secondary}"
+                                                                   Text="{CompiledBinding AudioPlayManager.LyricsModel.Current.Primary.Secondary}"
                                                                    TextTrimming="CharacterEllipsis"
                                                                    TextWrapping="Wrap"
                                                                    ToolTip.Tip="{CompiledBinding RelativeSource={RelativeSource Self}, Path=Text}" />
@@ -120,7 +119,7 @@
 
                                                         <TextBlock FontSize="12"
                                                                    MaxLines="2"
-                                                                   Text="{CompiledBinding AudioPlayManager.LyricsModel.Current.Primary}"
+                                                                   Text="{CompiledBinding AudioPlayManager.LyricsModel.Current.Primary.Primary}"
                                                                    TextTrimming="CharacterEllipsis"
                                                                    TextWrapping="Wrap"
                                                                    ToolTip.Tip="{CompiledBinding RelativeSource={RelativeSource Self}, Path=Text}" />
@@ -174,7 +173,7 @@
     <Grid
         ColumnDefinitions="*,Auto"
         Grid.Column="2"
-        Margin="0,0,0,10"
+        Margin="0 0 20 10"
         RowDefinitions="*,Auto">
 
         <customs:MusicPlayControllers Spacing="10" />
@@ -209,306 +208,6 @@
             </StackPanel.Styles>
 
         </StackPanel>
-
-        <!--  操作按钮  -->
-        <WrapPanel
-            Grid.Column="1"
-            Grid.Row="0"
-            HorizontalAlignment="Right"
-            ItemSpacing="10"
-            LineSpacing="10"
-            VerticalAlignment="Center"
-            Width="100">
-
-            <WrapPanel.Styles>
-
-                <Style Selector="WrapPanel > Button">
-                    <Setter Property="Height" Value="20" />
-                    <Setter Property="Width" Value="20" />
-                    <Setter Property="Padding" Value="0" />
-                    <Setter Property="CornerRadius" Value="5" />
-                </Style>
-
-            </WrapPanel.Styles>
-
-            <WrapPanel.Resources>
-
-                <!-- ReSharper disable once Xaml.RedundantResource -->
-                <x:Double x:Key="FlyoutMinWidth">30</x:Double>
-                <!-- ReSharper disable once Xaml.RedundantResource -->
-                <Thickness x:Key="FlyoutPadding">0</Thickness>
-                <!-- ReSharper disable once Xaml.RedundantResource -->
-                <x:Double x:Key="FlyoutMinHeight">30</x:Double>
-
-            </WrapPanel.Resources>
-
-            <Button ToolTip.Tip="播放效果" Classes="Icon">
-
-                <PathIcon
-                    Data="{StaticResource SemiIconSimilarity}"
-                    Height="13"
-                    Width="13" />
-
-                <Button.Flyout>
-
-                    <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
-
-                        <StackPanel
-                            Margin="10"
-                            Spacing="5"
-                            Width="180">
-
-                            <TextBlock
-                                FontSize="12"
-                                FontWeight="Bold"
-                                HorizontalAlignment="Center"
-                                Text="{CompiledBinding AudioPlayManager.Speed, StringFormat='播放速率 : {0:F3}'}" />
-
-                            <Slider
-                                Maximum="1.5"
-                                Minimum="0.5"
-                                Value="{CompiledBinding AudioPlayManager.Speed}">
-
-                                <Interaction.Behaviors>
-
-                                    <PointerWheelChangedTrigger>
-                                        <InvokeCommandAction Command="{CompiledBinding SpeedBarPointerWheelChangedCommand}"
-                                                             PassEventArgsToCommand="True" />
-                                    </PointerWheelChangedTrigger>
-
-                                </Interaction.Behaviors>
-
-                            </Slider>
-
-                            <Panel>
-
-                                <Panel.Styles>
-
-                                    <Style Selector="Panel > Button">
-                                        <Setter Property="Height" Value="25" />
-                                        <Setter Property="Width" Value="25" />
-                                        <Setter Property="Padding" Value="6" />
-                                        <Setter Property="CornerRadius" Value="15" />
-                                        <Setter Property="VerticalAlignment" Value="Center" />
-                                    </Style>
-
-                                </Panel.Styles>
-
-                                <Button
-                                    HorizontalAlignment="Left"
-                                    Classes="Icon"
-                                    ToolTip.Tip="跳转至音效"
-                                    Command="{CompiledBinding NavigationToSoundEffectViewCommand}"
-                                    IsEnabled="{CompiledBinding !IsSoundEffectView}">
-                                    <PathIcon
-                                        Data="{StaticResource SemiIconLink}" />
-                                </Button>
-
-                                <Border HorizontalAlignment="Center" CornerRadius="15"
-                                        BorderBrush="{DynamicResource BorderCardBorderBrush}"
-                                        BorderThickness="1" Padding="2,0">
-
-                                    <StackPanel Orientation="Horizontal" Spacing="3">
-
-                                        <StackPanel.Styles>
-
-                                            <Style Selector="StackPanel > Button">
-                                                <Setter Property="Height" Value="25" />
-                                                <Setter Property="Width" Value="25" />
-                                                <Setter Property="Padding" Value="4" />
-                                                <Setter Property="CornerRadius" Value="15" />
-                                                <Setter Property="VerticalAlignment" Value="Center" />
-                                            </Style>
-
-                                        </StackPanel.Styles>
-
-                                        <!--  Speed-  -->
-                                        <Button
-                                            ToolTip.Tip="播放速度➖"
-                                            Classes="Icon"
-                                            Command="{CompiledBinding PlaySpeedDownCommand}"
-                                            Foreground="{DynamicResource TextBlockDefaultForeground}">
-                                            <PathIcon
-                                                Data="{StaticResource PlayIconData}"
-                                                RenderTransform="rotate(180deg)" />
-                                        </Button>
-
-                                        <Button
-                                            Classes="Icon"
-                                            Height="30"
-                                            Width="30"
-                                            ToolTip.Tip="重置播放速度"
-                                            Padding="7"
-                                            Command="{CompiledBinding ResetPlaybackSpeedCommand}">
-                                            <PathIcon
-                                                Data="{StaticResource SemiIconRefresh}" />
-                                        </Button>
-
-                                        <!--  Speed+ -->
-                                        <Button
-                                            Classes="Icon"
-                                            ToolTip.Tip="播放速度➕"
-                                            Command="{CompiledBinding PlaySpeedUpCommand}"
-                                            Foreground="{DynamicResource TextBlockDefaultForeground}">
-                                            <PathIcon Data="{StaticResource PlayIconData}" />
-                                        </Button>
-
-                                    </StackPanel>
-                                </Border>
-
-                            </Panel>
-
-                        </StackPanel>
-                    </Flyout>
-
-                </Button.Flyout>
-
-            </Button>
-
-            <Button
-                Classes="Icon"
-                ToolTip.Placement="Top"
-                ToolTip.VerticalOffset="-10">
-
-                <Panel>
-                    <Border
-                        Background="#20c997"
-                        IsVisible="{CompiledBinding !AudioPlayManager.IsMuted}"
-                        Margin="8,4,2,4"
-                        behaviors:DynamicCornerBehavior.IsEnabled="True" />
-                    <PathIcon
-                        Data="{StaticResource EmptyVolume}"
-                        Height="14"
-                        Margin="0,0,2,0"
-                        Width="14" />
-                    <Border
-                        Background="{DynamicResource SemiRed4}"
-                        CornerRadius="5"
-                        IsVisible="{CompiledBinding AudioPlayManager.IsMuted}"
-                        RenderTransform="rotate(120deg)"
-                        Width="2" />
-                </Panel>
-
-
-                <Button.Flyout>
-                    <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway">
-
-                        <Grid
-                            Height="180"
-                            Margin="0,5,0,0"
-                            RowDefinitions="Auto,*,Auto">
-
-                            <TextBlock
-                                FontSize="12"
-                                FontWeight="Bold"
-                                HorizontalAlignment="Center"
-                                Margin="0,0,0,3"
-                                Text="{CompiledBinding AudioPlayManager.Volume}" />
-
-                            <Slider
-                                Grid.Row="1"
-                                HorizontalAlignment="Center"
-                                Maximum="100"
-                                Orientation="Vertical"
-                                Value="{CompiledBinding AudioPlayManager.Volume}" />
-
-                            <Button
-                                Classes="Icon"
-                                Classes.Silent="{CompiledBinding AudioPlayManager.IsMuted}"
-                                Command="{CompiledBinding AudioPlayManager.ToggleMuteCommand}"
-                                CornerRadius="8"
-                                Grid.Row="2"
-                                Margin="8"
-                                Padding="0">
-
-                                <PathIcon Data="{StaticResource Prohibit}" Width="25" />
-
-                                <Button.Styles>
-                                    <Style Selector="Button.Silent">
-                                        <Setter Property="Background" Value="{DynamicResource SemiRed5}" />
-                                        <Setter Property="Foreground" Value="White" />
-                                        <Style Selector="^:pointerover /template/ ContentPresenter">
-                                            <Setter Property="Background" Value="{DynamicResource SemiRed4}" />
-                                        </Style>
-                                    </Style>
-                                </Button.Styles>
-
-                                <Interaction.Behaviors>
-
-                                    <PointerWheelChangedTrigger>
-                                        <InvokeCommandAction
-                                            Command="{CompiledBinding VolumeBarPointerWheelChangedCommand}"
-                                            PassEventArgsToCommand="True" />
-                                    </PointerWheelChangedTrigger>
-
-                                </Interaction.Behaviors>
-
-                            </Button>
-
-                        </Grid>
-                    </Flyout>
-                </Button.Flyout>
-
-                <ToolTip.Tip>
-                    <ContentPresenter>
-
-                        <Interaction.Behaviors>
-
-                            <IfElseTrigger Condition="{CompiledBinding AudioPlayManager.Volume,Mode=OneWay}">
-
-                                <IfElseTrigger.IfActions>
-                                    <ChangeAvaloniaPropertyAction
-                                        TargetProperty="{x:Static ContentPresenter.ContentProperty}">
-                                        <ChangeAvaloniaPropertyAction.Value>
-                                            <TextBlock>
-                                                <Run Text="当前音量：" />
-                                                <Run Text="{CompiledBinding AudioPlayManager.Volume}" />
-                                                <Run Text="%" />
-                                            </TextBlock>
-                                        </ChangeAvaloniaPropertyAction.Value>
-                                    </ChangeAvaloniaPropertyAction>
-                                </IfElseTrigger.IfActions>
-
-                                <IfElseTrigger.ElseActions>
-
-                                    <ChangeAvaloniaPropertyAction
-                                        TargetProperty="{x:Static ContentPresenter.ContentProperty}">
-                                        <ChangeAvaloniaPropertyAction.Value>
-                                            <TextBlock Text="静音" />
-
-                                        </ChangeAvaloniaPropertyAction.Value>
-                                    </ChangeAvaloniaPropertyAction>
-                                </IfElseTrigger.ElseActions>
-
-                            </IfElseTrigger>
-
-                        </Interaction.Behaviors>
-
-                    </ContentPresenter>
-
-                </ToolTip.Tip>
-
-                <Interaction.Behaviors>
-
-                    <PointerWheelChangedTrigger>
-                        <InvokeCommandAction Command="{CompiledBinding VolumeBarPointerWheelChangedCommand}"
-                                             PassEventArgsToCommand="True" />
-                    </PointerWheelChangedTrigger>
-
-                </Interaction.Behaviors>
-
-            </Button>
-
-            <Button Classes="Icon"
-                    ToolTip.Tip="切换播放列表"
-                    Command="{CompiledBinding DrawerManager.ToggleMusicPlaylistCommand}">
-                <PathIcon
-                    Data="{StaticResource SemiIconDescend2}"
-                    Height="12"
-                    Width="12" />
-            </Button>
-
-        </WrapPanel>
     </Grid>
 
 

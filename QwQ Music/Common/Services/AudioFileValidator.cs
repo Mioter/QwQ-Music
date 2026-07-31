@@ -108,5 +108,5 @@ public static class AudioFileValidator {
         }
     }
 
-    public static IEnumerable<string> FilterAudioFiles(IReadOnlyList<string> items) { return items.Where(IsAudioFile); }
+    public static IEnumerable<string> FilterAudioFiles(IEnumerable<string> items) { return items.Where(IsAudioFile); }
 }

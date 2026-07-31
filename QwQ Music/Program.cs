@@ -1,80 +1,76 @@
-﻿using System.Diagnostics;
-using System.Reflection;
-using Avalonia;
+﻿using Avalonia;
 using QwQ_Music.Common.Managers;
 using QwQ_Music.Common.Services;
 using QwQ_Music.Common.Services.Databases;
 using QwQ_Music.Common.Utilities;
-using SystemMediaInterop;
 using AudioPlayManager = QwQ_Music.Common.Managers.AudioPlayManager;
-using ThreadState = System.Diagnostics.ThreadState;
 
 namespace QwQ_Music;
 
 public static class Program {
-    public static string VersionText => "2.1.3";
+    public const string Version = "2.1.3";
+    public const string AppId = "com.Mioter.QwQMusic";
+    public static string[]? OpenWithFiles { get; private set; }
 
     [STAThread]
     public static async Task Main(string[] args) {
 #if _WIN_NT
-        _ = SystemMediaControl.Instance; // 提前初始化，以在窗口出现前创建好开始菜单快捷方式，为 SMTC提供程序信息
+        if (Environment.ProcessPath is not null)
+            RegisterFileAssociationHelper.RegisterAppForOpenWithList(
+                Environment.ProcessPath,
+                [".mp3", ".wav", ".flac"]);
+        else
+            // ReSharper disable once MethodHasAsyncOverload
+            LoggerService.Warning("无法获取程序路径，未知原因");
 #endif
+        // ReSharper disable once MethodHasAsyncOverload
+        LoggerService.Debug($"启动参数：{string.Join(',', args)}");
+        Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+
         try {
-            await LoggerService.InfoAsync(
-                                   $"""
-                                    ===========================================
-                                                                                                                                
-                                      _|_|                          _|_|          _|      _|                      _|            
-                                    _|    _|  _|      _|      _|  _|    _|        _|_|  _|_|  _|    _|    _|_|_|        _|_|_|  
-                                    _|  _|_|  _|      _|      _|  _|  _|_|        _|  _|  _|  _|    _|  _|_|      _|  _|        
-                                    _|    _|    _|  _|  _|  _|    _|    _|        _|      _|  _|    _|      _|_|  _|  _|        
-                                      _|_|  _|    _|      _|        _|_|  _|      _|      _|    _|_|_|  _|_|_|    _|    _|_|_|  
-                                                                              
-                                                                 
-                                           ▶  QwQ Music v{VersionText}  🔊
-                                         "Where emotions meet melody"
+            // ReSharper disable once MethodHasAsyncOverload
+            LoggerService.Info(
+                $"""
+                 ===========================================
+                                                                                                             
+                   _|_|                          _|_|          _|      _|                      _|            
+                 _|    _|  _|      _|      _|  _|    _|        _|_|  _|_|  _|    _|    _|_|_|        _|_|_|  
+                 _|  _|_|  _|      _|      _|  _|  _|_|        _|  _|  _|  _|    _|  _|_|      _|  _|        
+                 _|    _|    _|  _|  _|  _|    _|    _|        _|      _|  _|    _|      _|_|  _|  _|        
+                   _|_|  _|    _|      _|        _|_|  _|      _|      _|    _|_|_|  _|_|_|    _|    _|_|_|  
+                                                           
+                                              
+                        ▶  QwQ Music v{Version}  🔊
+                      "Where emotions meet melody"
 
-                                    ===========================================
-                                    """)
-                               .ConfigureAwait(false);
+                 ===========================================
+                 """);
+            if (args.Length > 0) {
+                Dictionary<bool, string[]> separated =
+                    args.GroupBy(Path.Exists).ToDictionary(k => k.Key, v => v.ToArray());
+                separated.TryGetValue(true, out string[]? files);
+                OpenWithFiles = files;
+                args = separated.GetValueOrDefault(false, []);
+                if (files is not null) {
+                    // ReSharper disable once MethodHasAsyncOverload
+                    LoggerService.Info($"带文件启动：{files.Length}个文件");
+                }
+            }
 
-            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            BuildAvaloniaApp()
+#if DEBUG
+                .WithDeveloperTools()
+#endif
+                .StartWithClassicDesktopLifetime(args);
         } catch (Exception e) {
             await LoggerService.ErrorAsync($"程序异常退出！\n捕捉到未处理异常:\n {e.Message}\n {e.StackTrace}").ConfigureAwait(false);
-
             throw;
         } finally {
             await ShutdownAsync().ConfigureAwait(false);
         }
 
-        LogActiveThreads();
-        ThreadPool.GetMinThreads(out int a, out int b);
-        ThreadPool.GetMaxThreads(out int c, out int d);
-        Console.WriteLine($"[{a},{c}] | [{b},{d}]");
-        // Environment.Exit(0); // TODO FIXME TIER 1 
-        // // NOTE: Here must be some leaks.
-        // // The program did not exit so that I have to exit it manually and explicitly here.
-        // // We must fix this bug in the future.
+        // Environment.Exit(0);
     }
-
-    private static void LogActiveThreads() {
-        var reasons = new Dictionary<string, int>();
-        ProcessThreadCollection threads = Process.GetCurrentProcess().Threads;
-        foreach (ProcessThread thread in threads) {
-            if (thread.ThreadState == ThreadState.Wait)
-                reasons[thread.WaitReason.ToString()] = reasons.GetValueOrDefault(thread.WaitReason.ToString(), 0) + 1;
-            else
-                reasons[thread.ThreadState.ToString()] =
-                    reasons.GetValueOrDefault(thread.ThreadState.ToString(), 0) + 1;
-            if (thread.ThreadState == ThreadState.Wait)
-                Console.WriteLine($"Thread {thread.Id} is waiting. Wait Reason: {thread.WaitReason}");
-        }
-
-        Console.WriteLine(threads.Count);
-        foreach (KeyValuePair<string, int> reason in reasons)
-            Console.WriteLine($"{reason.Key}: {reason.Value}");
-    }
-
 
     private static async Task ShutdownAsync() {
         await LoggerService.InfoAsync("正在关闭...").ConfigureAwait(false);

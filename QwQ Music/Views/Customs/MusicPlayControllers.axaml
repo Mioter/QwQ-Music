@@ -1,16 +1,16 @@
 ﻿<StackPanel xmlns="https://github.com/avaloniaui"
             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-            xmlns:managers="clr-namespace:QwQ_Music.Common.Managers"
             xmlns:behaviors="clr-namespace:QwQ_Music.UI.Behaviors"
             xmlns:enums="clr-namespace:QwQ_Music.Models.Enums"
             xmlns:customs="clr-namespace:QwQ_Music.Views.Customs"
-            xmlns:me="clr-namespace:QwQ_Music.MarkupExtensions"
+            xmlns:vm="clr-namespace:QwQ_Music.ViewModels.Drawers"
             x:Class="QwQ_Music.Views.Customs.MusicPlayControllers"
-            x:DataType="managers:AudioPlayManager"
+            x:DataType="vm:MusicPlayControllersViewModel"
             HorizontalAlignment="Center"
             Orientation="Horizontal"
             Spacing="30"
-            VerticalAlignment="Center">
+            VerticalAlignment="Center"
+            Name="ControllersContainer">
 
     <StackPanel.Styles>
         <Style Selector="StackPanel > Button">
@@ -20,17 +20,17 @@
 
     <!--  刷新播放  -->
     <Button Classes="Icon"
-            Command="{CompiledBinding Instance.ReplayCommand}"
+            Command="{CompiledBinding AudioPlayManager.ReplayCommand}"
             Foreground="{DynamicResource TextBlockDefaultForeground}"
             Height="25"
-            IsEnabled="{CompiledBinding Instance.CurrentMusicItem.Model.FilePath, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=''}"
+            IsEnabled="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.FilePath, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=''}"
             behaviors:DynamicCornerBehavior.IsEnabled="True">
         <PathIcon Data="{StaticResource SemiIconRefresh2}" Margin="5" />
     </Button>
 
     <!--  上一首  -->
     <Button Classes="Icon"
-            Command="{CompiledBinding Instance.PreviousMusicCommand}"
+            Command="{CompiledBinding AudioPlayManager.PreviousMusicCommand}"
             Foreground="{DynamicResource TextBlockDefaultForeground}"
             behaviors:DynamicCornerBehavior.IsEnabled="True">
         <PathIcon
@@ -44,19 +44,18 @@
 
     <!--  下一首  -->
     <Button Classes="Icon"
-            Command="{CompiledBinding Instance.NextMusicCommand}"
+            Command="{CompiledBinding AudioPlayManager.NextMusicCommand}"
             Foreground="{DynamicResource TextBlockDefaultForeground}"
             behaviors:DynamicCornerBehavior.IsEnabled="True">
         <PathIcon Data="{StaticResource PlayIconData}"
                   Height="30" />
     </Button>
-    <!--  播放模式  -->
     <Button Classes="Icon"
-            Command="{CompiledBinding Instance.TogglePlayModeCommand}"
+            Command="{CompiledBinding AudioPlayManager.TogglePlayModeCommand}"
             Foreground="{DynamicResource TextBlockDefaultForeground}"
             Height="25"
             ToolTip.Placement="Top"
-            ToolTip.Tip="{CompiledBinding PlayerConfig.PlayMode,Converter={StaticResource TranslationConverter}}"
+            ToolTip.Tip="{CompiledBinding AudioPlayManager.PlayerConfig.PlayMode,Converter={StaticResource TranslationConverter}}"
             ToolTip.VerticalOffset="-10"
             behaviors:DynamicCornerBehavior.IsEnabled="True">
 
@@ -64,7 +63,7 @@
 
             <Interaction.Behaviors>
 
-                <DataTrigger Binding="{CompiledBinding PlayerConfig.PlayMode}"
+                <DataTrigger Binding="{CompiledBinding AudioPlayManager.PlayerConfig.PlayMode}"
                              Value="{x:Static enums:PlayMode.Sequential}">
 
                     <ChangeAvaloniaPropertyAction TargetProperty="{x:Static Layoutable.MarginProperty}"
@@ -73,7 +72,7 @@
                                                   Value="{StaticResource Sequential}" />
                 </DataTrigger>
 
-                <DataTrigger Binding="{CompiledBinding PlayerConfig.PlayMode}"
+                <DataTrigger Binding="{CompiledBinding AudioPlayManager.PlayerConfig.PlayMode}"
                              Value="{x:Static enums:PlayMode.Loop}">
 
                     <ChangeAvaloniaPropertyAction TargetProperty="{x:Static Layoutable.MarginProperty}"
@@ -83,7 +82,7 @@
 
                 </DataTrigger>
 
-                <DataTrigger Binding="{CompiledBinding PlayerConfig.PlayMode}"
+                <DataTrigger Binding="{CompiledBinding AudioPlayManager.PlayerConfig.PlayMode}"
                              Value="{x:Static enums:PlayMode.Random}">
 
                     <ChangeAvaloniaPropertyAction TargetProperty="{x:Static Layoutable.MarginProperty}"
@@ -93,7 +92,7 @@
 
                 </DataTrigger>
 
-                <DataTrigger Binding="{CompiledBinding PlayerConfig.PlayMode}"
+                <DataTrigger Binding="{CompiledBinding AudioPlayManager.PlayerConfig.PlayMode}"
                              Value="{x:Static enums:PlayMode.SingleLoop}">
 
                     <ChangeAvaloniaPropertyAction TargetProperty="{x:Static Layoutable.MarginProperty}"
@@ -108,5 +107,148 @@
         </PathIcon>
 
     </Button>
+    <StackPanel Orientation="Horizontal" Spacing="15">
+        <StackPanel.Styles>
+
+            <Style Selector="StackPanel > Button">
+                <Setter Property="Height" Value="20" />
+                <Setter Property="Width" Value="20" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="CornerRadius" Value="5" />
+            </Style>
+        </StackPanel.Styles>
+        <StackPanel.Resources>
+            <!-- ReSharper disable once Xaml.RedundantResource -->
+            <x:Double x:Key="FlyoutMinWidth">30</x:Double>
+            <!-- ReSharper disable once Xaml.RedundantResource -->
+            <Thickness x:Key="FlyoutPadding">0</Thickness>
+            <!-- ReSharper disable once Xaml.RedundantResource -->
+            <x:Double x:Key="FlyoutMinHeight">30</x:Double>
+        </StackPanel.Resources>
+
+        <Button
+            x:Name="PART_VolumeButton"
+            Classes="Icon"
+            ToolTip.Placement="Top"
+            ToolTip.VerticalOffset="-10"
+            Command="{CompiledBinding AudioPlayManager.ToggleMuteCommand}">
+
+            <Panel>
+                <Border
+                    Background="#20c997"
+                    IsVisible="{CompiledBinding !AudioPlayManager.IsMuted}"
+                    Margin="8,4,2,4"
+                    behaviors:DynamicCornerBehavior.IsEnabled="True" />
+                <PathIcon
+                    Data="{StaticResource EmptyVolume}"
+                    Height="14"
+                    Margin="0,0,2,0"
+                    Width="14" />
+                <Border
+                    Background="{DynamicResource SemiRed4}"
+                    CornerRadius="5"
+                    IsVisible="{CompiledBinding AudioPlayManager.IsMuted}"
+                    RenderTransform="rotate(120deg)"
+                    Width="2" />
+            </Panel>
+
+
+            <FlyoutBase.AttachedFlyout>
+                <Flyout Placement="Top" ShowMode="TransientWithDismissOnPointerMoveAway"
+                        OverlayInputPassThroughElement="{CompiledBinding #ControllersContainer}">
+
+                    <Grid
+                        Height="180"
+                        Margin="5 5"
+                        RowDefinitions="Auto,*,Auto">
+
+                        <TextBlock
+                            FontSize="12"
+                            FontWeight="Bold"
+                            HorizontalAlignment="Center"
+                            Margin="0,0,0,3"
+                            Text="{CompiledBinding AudioPlayManager.Volume}" />
+
+                        <Slider
+                            Grid.Row="1"
+                            HorizontalAlignment="Center"
+                            Maximum="100"
+                            Orientation="Vertical"
+                            Value="{CompiledBinding AudioPlayManager.Volume}">
+
+                            <Interaction.Behaviors>
+
+                                <PointerWheelChangedTrigger>
+                                    <InvokeCommandAction
+                                        Command="{CompiledBinding VolumeBarPointerWheelChangedCommand}"
+                                        PassEventArgsToCommand="True" />
+                                </PointerWheelChangedTrigger>
+
+                            </Interaction.Behaviors>
+                        </Slider>
+
+                    </Grid>
+                </Flyout>
+            </FlyoutBase.AttachedFlyout>
+
+            <ToolTip.Tip>
+                <ContentPresenter>
+
+                    <Interaction.Behaviors>
+
+                        <IfElseTrigger Condition="{CompiledBinding AudioPlayManager.Volume,Mode=OneWay}">
+
+                            <IfElseTrigger.IfActions>
+                                <ChangeAvaloniaPropertyAction
+                                    TargetProperty="{x:Static ContentPresenter.ContentProperty}">
+                                    <ChangeAvaloniaPropertyAction.Value>
+                                        <TextBlock>
+                                            <Run Text="当前音量：" />
+                                            <Run Text="{CompiledBinding AudioPlayManager.Volume}" />
+                                            <Run Text="%" />
+                                        </TextBlock>
+                                    </ChangeAvaloniaPropertyAction.Value>
+                                </ChangeAvaloniaPropertyAction>
+                            </IfElseTrigger.IfActions>
+
+                            <IfElseTrigger.ElseActions>
+
+                                <ChangeAvaloniaPropertyAction
+                                    TargetProperty="{x:Static ContentPresenter.ContentProperty}">
+                                    <ChangeAvaloniaPropertyAction.Value>
+                                        <TextBlock Text="静音" />
+
+                                    </ChangeAvaloniaPropertyAction.Value>
+                                </ChangeAvaloniaPropertyAction>
+                            </IfElseTrigger.ElseActions>
+
+                        </IfElseTrigger>
+
+                    </Interaction.Behaviors>
+
+                </ContentPresenter>
+
+            </ToolTip.Tip>
+
+            <Interaction.Behaviors>
+
+                <PointerEnteredTrigger>
+                    <InvokeCommandAction Command="{CompiledBinding OpenVolumeFlyoutCommand}"
+                                         CommandParameter="{CompiledBinding #PART_VolumeButton}" />
+                </PointerEnteredTrigger>
+
+            </Interaction.Behaviors>
+
+        </Button>
+
+        <Button Classes="Icon"
+                ToolTip.Tip="切换播放列表"
+                Command="{CompiledBinding DrawerManager.ToggleMusicPlaylistCommand}">
+            <PathIcon
+                Data="{StaticResource SemiIconDescend2}"
+                Height="12"
+                Width="12" />
+        </Button>
+    </StackPanel>
 
 </StackPanel>

@@ -20,18 +20,12 @@ public partial class MainWindow : UrsaWindow {
         InitializeComponent();
         Width = 1200;
         Height = 800;
-
-        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_OnProcessExit;
         MusicPlayerPanel.TopPanel.PointerPressed += MusicCoverPageOnPointerPressed;
     }
 
-    private void CurrentDomain_OnProcessExit(object? sender, EventArgs e) {
-        MusicPlayerPanel.TopPanel.PointerPressed -= MusicCoverPageOnPointerPressed;
-        AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_OnProcessExit;
-    }
 
     public void ShowMainWindow() {
-        Show();   
+        Show();
         Activate();
         WindowState = WindowState.Normal;
     }
@@ -100,7 +94,7 @@ public partial class MainWindow : UrsaWindow {
     }
 
     private static async Task<ClosingBehavior> GetUserClosingBehaviorAsync() {
-        var options = new OverlayDialogOptions { Title = "确认关闭?", Mode = DialogMode.Question };
+        var options = new OverlayDialogOptions { Mode = DialogMode.Question, IsCloseButtonVisible = false };
 
         var model = new ExitConfirmViewModel();
         bool result = await OverlayDialog
@@ -128,4 +122,6 @@ public partial class MainWindow : UrsaWindow {
         HotkeyService.HandleKeyDown(e);
         base.OnKeyDown(e);
     }
+
+    ~MainWindow() { MusicPlayerPanel.TopPanel.PointerPressed -= MusicCoverPageOnPointerPressed; }
 }

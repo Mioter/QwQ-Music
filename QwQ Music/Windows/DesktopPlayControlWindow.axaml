@@ -1,6 +1,6 @@
 <Window CanResize="False"
         Focusable="False"
-        ShowActivated="False"
+        Topmost="True"
         ShowInTaskbar="False"
         WindowDecorations="None"
         RemoveAnimationDuration="0:0:0.25"

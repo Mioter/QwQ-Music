@@ -94,7 +94,7 @@ public partial class AboutPageViewModel : ViewModelBase {
         new("沙雕群友", "https://p.qlogo.cn/gh/397510870/397510870/100/", "https://qm.qq.com/q/kRktVpnTIA", "397510870")
     ];
 
-    public static string VersionText => Program.VersionText;
+    public static string Version => Program.Version;
 
     [RelayCommand]
     private static void OpenContributorFromGayHub(string name) {
@@ -117,17 +117,17 @@ public partial class AboutPageViewModel : ViewModelBase {
 
         if (clipboard == null) {
             LoggerService.Warning($"版本号复制失败：剪贴板不存在。TopLevel:{App.TopLevel}");
-            NotificationService.Error($"版本号“{VersionText}”复制失败！\n无法找到剪贴板！〒▽〒");
+            NotificationService.Error($"版本号“{Version}”复制失败！\n无法找到剪贴板！〒▽〒");
             return;
         }
 
-        clipboard.SetTextAsync(VersionText)
+        clipboard.SetTextAsync(Version)
                  .ContinueWith(LoggerService.HandleException)
                  .ConfigureAwait(false)
                  .GetAwaiter()
                  .OnCompleted(() => {
                      LoggerService.Info("版本号复制成功。");
-                     NotificationService.Success($"版本号“{VersionText}”复制成功！");
+                     NotificationService.Success($"版本号“{Version}”复制成功！");
                  });
     }
 }

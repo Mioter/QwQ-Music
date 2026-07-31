@@ -229,7 +229,7 @@ public static class CacheManager {
             } finally {
                 callIfExist?.Invoke();
             }
-        });
+        }).ContinueWith(LoggerService.HandleException).ConfigureAwait(false);
         return Loading;
     }
 

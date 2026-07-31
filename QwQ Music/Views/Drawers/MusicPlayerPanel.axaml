@@ -179,7 +179,7 @@
                             LyricTextAlignment="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.LyricTextAlignment}"
                             LyricsData="{CompiledBinding .}"
                             ShowTranslation="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.ShowTranslation}"
-                            LineSpacing="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.LyricsLineSpacing}"
+                            LineSpacing="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.LineSpacing}"
                             TranslationSpacing="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.TranslationSpacing}">
                             <custom:LyricsControl.Styles>
 

@@ -14,6 +14,7 @@
   "IsVertical": "纵向模式",
   "PositionX": "横坐标",
   "PositionY": "纵坐标",
+  "IsAutoFade": "启用暂停自动隐藏",
   "Width": "宽度",
   "Height": "高度",
   "Maximize": "最大化",

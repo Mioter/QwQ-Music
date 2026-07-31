@@ -14,25 +14,28 @@ public class I18NService {
     public static I18NService Lang { get; } = new();
 
     private I18NService() {
-        UpdateAvailableLanguagesAsync().ContinueWith(LoggerService.HandleException).ConfigureAwait(false);
+        UpdateAvailableLanguages();
+        LoadLanguage(ConfigManager.SystemConfig.Language);
     }
 
-    public Translation Translation { get; set; }
+    public Translation Translation { get; private set; }
 
 
     [MemberNotNull(nameof(AvailableLanguages))]
-    public async Task UpdateAvailableLanguagesAsync(bool isForced = false) {
+    public void UpdateAvailableLanguages(bool isForced = false) {
         var identifier = new JsonConfigService(I18NJsonContext.Default, StaticConfig.ConfigSavePath);
         var old = identifier.Load<Dictionary<string, string>>("i18n-identifiers");
         string directory = Path.Combine(Environment.CurrentDirectory, "i18n");
         HashSet<string> files = [.. Directory.GetFiles(directory, "*.QwQ.json").Select(s => Path.GetFileName(s)[..^9])];
         if (old is null) {
             old = new Dictionary<string, string>();
-            await foreach (var (k, v) in GetLanguageNames(files).ConfigureAwait(false)) {
+            foreach (var (k, v) in GetLanguageNames(files)) {
                 old.Add(k, v);
             }
 
-            await identifier.SaveAsync(old, "i18n-identifiers").ConfigureAwait(false);
+            _ = identifier.SaveAsync(old, "i18n-identifiers")
+                          .ContinueWith(LoggerService.HandleException)
+                          .ConfigureAwait(false);
             SetAvailableLanguages(old);
             return;
         }
@@ -48,24 +51,29 @@ public class I18NService {
         }
 
         IEnumerable<string> targets = isForced ? files : files.Except(old.Keys);
-        await foreach (var (k, v) in GetLanguageNames(targets).ConfigureAwait(false)) {
+        foreach (var (k, v) in GetLanguageNames(targets)) {
             old[k] = v;
         }
 
-        await identifier.SaveAsync(old, "i18n-identifiers").ConfigureAwait(false);
+        _ = identifier.SaveAsync(old, "i18n-identifiers")
+                      .ContinueWith(LoggerService.HandleException)
+                      .ConfigureAwait(false);
 
         SetAvailableLanguages(old);
         return;
 
         // ReSharper disable once VariableHidesOuterVariable
-        async IAsyncEnumerable<(string, string)> GetLanguageNames(IEnumerable<string> files) {
+        IEnumerable<(string, string)> GetLanguageNames(IEnumerable<string> files) {
             foreach (string file in files) {
                 string? name = null;
-                (await new JsonConfigService(I18NJsonContext.Default, StaticConfig.I18NSavePath)
-                       .LoadAsync<Dictionary<string, string>>(file)
-                       .ConfigureAwait(false))?.TryGetValue("LanguageName", out name);
+                new JsonConfigService(I18NJsonContext.Default, StaticConfig.I18NSavePath)
+                    .LoadAsync<Dictionary<string, string>>(file)
+                    .ConfigureAwait(false)
+                    .GetAwaiter()
+                    .GetResult()
+                    ?.TryGetValue("LanguageName", out name);
                 if (name is null) {
-                    await LoggerService.WarningAsync($"无法获取语言文件{file}的语言名称，使用文件名。").ConfigureAwait(false);
+                    LoggerService.Warning($"无法获取语言文件{file}的语言名称，使用文件名。");
                     name = file;
                 }
 

@@ -114,7 +114,7 @@ public partial class MusicItemsViewModelBase(string viewModelName) : ItemsViewMo
                     SelectedItems,
                     0,
                     true),
-                AddMusicBehavior.ReplaceList => PlaylistManager.Instance.ReplaceAsync(name, items, index, true),
+                AddMusicBehavior.ReplaceList => PlaylistManager.Instance.ReplaceAsync(name, items, index, true,true),
                 _ => throw new IndexOutOfRangeException(
                     $"{ConfigManager.PlayerConfig.AddMusicBehavior} is not a valid state of {
                         nameof(ConfigManager.PlayerConfig.AddMusicBehavior)}")

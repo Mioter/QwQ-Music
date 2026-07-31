@@ -22,24 +22,30 @@ public partial class PlaylistManager : ObservableObject {
                                                             .ParseAsync(
                                                                 AudioPlayManager.PlayerConfig.LastPlayedFilePath)
                                                             .ConfigureAwait(false);
-                await ReplaceAsync(
-                        MusicItemsManager.All.Name,
-                        paths.Select((item, index) => {
-                            if (!MusicItemsManager.All.MusicItems.TryGetValue(item, out MusicItemModel? model)) {
-                                count--;
-                                if (index < latest)
-                                    latest--;
-                                else if (index == latest)
-                                    latest = 0;
-                            }
+                if (Program.OpenWithFiles is null)
+                    await ReplaceAsync(
+                            MusicItemsManager.All.Name,
+                            paths.Select((item, index) => {
+                                     if (!MusicItemsManager.All.MusicItems.TryGetValue(
+                                             item,
+                                             out MusicItemModel? model)) {
+                                         count--;
+                                         if (index < latest)
+                                             latest--;
+                                         else if (index == latest)
+                                             latest = 0;
+                                     }
 
-                            return model ?? MusicItemModel.Default;
-                        }),
-                        count,
-                        latest,
-                        false,
-                        indexes)
-                    .ConfigureAwait(false);
+                                     return model;
+                                 })
+                                 .Where(item => item is not null)
+                                 .Cast<MusicItemModel>(),
+                            count,
+                            latest,
+                            ConfigManager.SystemConfig.IsPlayOnStart,
+                            ConfigManager.SystemConfig.IsPlayOnStart,
+                            indexes)
+                        .ConfigureAwait(false);
             })
             .ContinueWith(LoggerService.HandleException)
             .ConfigureAwait(false);
@@ -106,9 +112,18 @@ public partial class PlaylistManager : ObservableObject {
     [RelayCommand]
     public void Remove(params IEnumerable<PlaylistItemModel> musicItems) {
         CurrentListName = Custom;
-        PlaylistItemModel[] items = musicItems.ToArray();
+        PlaylistItemModel[] items = [.. musicItems];
+        PlaylistItemModel next = ActualPlaylist.Skip(CurrentIndex)
+                                               .FirstOrDefault(
+                                                   item => !items.Contains(item),
+                                                   PlaylistItemModel.RefDefault);
         SequentialPlaylist.RemoveAll(item => items.Contains(item));
         ActualPlaylist.RemoveAll(items);
+        if (items.Contains(CurrentItem)) {
+            _ = AudioPlayManager.Instance.SetMusicAsync(next, true, false)
+                                .ContinueWith(LoggerService.HandleException)
+                                .ConfigureAwait(false);
+        }
     }
 
     public void RemoveAllOf(params IEnumerable<MusicItemModel> musicItems) {
@@ -137,10 +152,11 @@ public partial class PlaylistManager : ObservableObject {
         IEnumerable<MusicItemModel> musicItems,
         int capacity,
         int target,
+        bool isUserRequested,
         bool isPlayNow = false,
         IEnumerable<int>? memorizedRandomOrder = null) {
         if (name is not Custom and not Unknown && CurrentListName == name && ActualPlaylist.Count == capacity) {
-            await AudioPlayManager.Instance.SetMusicAsync(SequentialPlaylist[target], isPlayNow)
+            await AudioPlayManager.Instance.SetMusicAsync(SequentialPlaylist[target], isPlayNow, isUserRequested)
                                   .ConfigureAwait(false);
             return;
         }
@@ -156,7 +172,7 @@ public partial class PlaylistManager : ObservableObject {
             SequentialPlaylist.Add(item);
             ActualPlaylist.Add(item);
             NotificationService.Info($"已切换到{item.Model.Title} - {item.Model.Artists}");
-            await AudioPlayManager.Instance.SetMusicAsync(item, isPlayNow).ConfigureAwait(false);
+            await AudioPlayManager.Instance.SetMusicAsync(item, isPlayNow, isUserRequested).ConfigureAwait(false);
             return;
         }
 
@@ -178,7 +194,7 @@ public partial class PlaylistManager : ObservableObject {
                           });
                 SequentialPlaylist.RemoveAll(item => item == PlaylistItemModel.RefDefault);
                 ActualPlaylist.AddRange(actualPlaylist.Where(item => item != PlaylistItemModel.RefDefault));
-                await AudioPlayManager.Instance.SetMusicAsync(SequentialPlaylist[target], isPlayNow)
+                await AudioPlayManager.Instance.SetMusicAsync(SequentialPlaylist[target], isPlayNow, isUserRequested)
                                       .ConfigureAwait(false);
             } catch (IndexOutOfRangeException ex) {
                 await LoggerService.ErrorAsync("无法恢复播放列表", ex).ConfigureAwait(false);
@@ -199,7 +215,8 @@ public partial class PlaylistManager : ObservableObject {
             return;
         NotificationService.Info(
             $"已切换到歌单{(name == MusicItemsManager.All.Name ? I18NService.Lang.Translation["All Musics"] : name)}");
-        await AudioPlayManager.Instance.SetMusicAsync(SequentialPlaylist[target], isPlayNow).ConfigureAwait(false);
+        await AudioPlayManager.Instance.SetMusicAsync(SequentialPlaylist[target], isPlayNow, isUserRequested)
+                              .ConfigureAwait(false);
     }
 
 
@@ -207,11 +224,12 @@ public partial class PlaylistManager : ObservableObject {
         string name,
         IList<MusicItemModel> musicItems,
         int target,
+        bool isUserRequested,
         bool isPlayNow = false,
         IEnumerable<int>? memorizedRandomOrder = null) {
         if (musicItems.ElementAtOrDefault(target) != SequentialPlaylist.ElementAtOrDefault(target).Model)
             CurrentListName = Unknown;
-        await ReplaceAsync(name, musicItems, musicItems.Count, target, isPlayNow, memorizedRandomOrder)
+        await ReplaceAsync(name, musicItems, musicItems.Count, target, isUserRequested, isPlayNow, memorizedRandomOrder)
             .ConfigureAwait(false);
     }
 }

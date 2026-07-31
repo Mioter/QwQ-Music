@@ -69,8 +69,7 @@ public static class LoggerService {
 
     private static DateTime _currentDay = DateTime.Today;
     private static bool _useFallbackPath;
-
-
+    
     private static StreamWriter Writer {
         get {
             if (field?.BaseStream is { CanWrite: true })
@@ -207,7 +206,7 @@ public static class LoggerService {
         Log(LogLevel.Error, "ERROR", message, line, function, filename);
     }
 
-    public static void Error( // TODO PARTIAL REPLACE ABOVE
+    public static void Error(
         string message,
         Exception ex,
         [CallerLineNumber] int line = 0,
@@ -272,7 +271,7 @@ public static class LoggerService {
         await LogAsync(LogLevel.Error, "ERROR", message, line, function, filename).ConfigureAwait(false);
     }
 
-    public static async Task ErrorAsync( // TODO PARTIAL REPLACE ABOVE
+    public static async Task ErrorAsync(
         string message,
         Exception ex,
         [CallerLineNumber] int line = 0,

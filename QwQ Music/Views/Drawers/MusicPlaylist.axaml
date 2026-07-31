@@ -86,14 +86,6 @@
                                 <customs:PlaylistAlbumCoverButton
                                     CornerRadius="8"
                                     ExternalPointerOver="{CompiledBinding $parent[ListBoxItem].IsPointerOver}" />
-                                <!--<Button.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="10"
-                                    Color="DarkGray"
-                                    OffsetX="0"
-                                    OffsetY="0"
-                                    Opacity="0.5" />
-                            </Button.Effect>-->
 
                                 <StackPanel Spacing="5" VerticalAlignment="Center">
                                     <TextBlock FontWeight="Bold" Text="{CompiledBinding Model.Title}" />
@@ -131,7 +123,7 @@
 
                                     <MenuItem
                                         Command="{CompiledBinding #PlaylistDrawer.((drawers:MusicPlaylistViewModel)DataContext).AudioPlayManager.PlaylistManager.RemoveCommand}"
-                                        CommandParameter="{CompiledBinding}"
+                                        CommandParameter="{CompiledBinding #PlaylistBox.SelectedItems}"
                                         Header="移出播放列表">
                                         <MenuItem.Icon>
                                             <PathIcon

@@ -8,8 +8,13 @@ public record struct LyricLine(double TimePoint, string Primary, string? Seconda
     public static readonly LyricLine Empty = new(0, string.Empty);
 }
 
+public readonly record struct LyricLinePair {
+    public required LyricLine Primary { get; init; }
+    public required LyricLine Alternate { get; init; }
+};
+
 public partial class LyricsModel : ObservableObject {
-    public delegate void LyricLineChangedEventHandler(object sender, LyricLine currentLyric, LyricLine? nextLyric);
+    public delegate void LyricLineChangedEventHandler(object sender, LyricLinePair newLyric);
 
     public double Offset {
         get => Lyrics.Offset;
@@ -20,10 +25,7 @@ public partial class LyricsModel : ObservableObject {
     public partial int CurrentIndex { get; set; }
 
     [ObservableProperty]
-    public partial LyricLine Current { get; private set; }
-
-    [ObservableProperty]
-    public partial LyricLine Next { get; private set; }
+    public partial LyricLinePair Current { get; private set; }
 
     [ObservableProperty]
     public partial LyricsData Lyrics { get; set; } = LyricsData.Loading;
@@ -53,19 +55,19 @@ public partial class LyricsModel : ObservableObject {
         int newIndex = Math.Max(0, Lyrics.Data.FindLastIndex(line => line.TimePoint <= currPos));
 
         CurrentIndex = newIndex;
-        Current = Lyrics[CurrentIndex];
-
-        Next = CurrentIndex + 1 == Total ? LyricLine.Empty : Lyrics.Data[CurrentIndex + 1];
+        Current = new LyricLinePair {
+            Primary = Lyrics[CurrentIndex],
+            Alternate = CurrentIndex + 1 == Total ? LyricLine.Empty : Lyrics.Data[CurrentIndex + 1]
+        };
 
         // 触发歌词变更事件，同时传递当前歌词和下一句歌词
-        LyricLineChanged?.Invoke(this, Current, Next);
+        LyricLineChanged?.Invoke(this, Current);
     }
 
     public void Reset(LyricsData? newValue = null) {
         Offset = 0;
         CurrentIndex = 0;
-        Current = Lyrics[0];
-        Next = Total > 1 ? Lyrics[1] : Lyrics[0];
+        Current = new LyricLinePair { Primary = Lyrics[0], Alternate = Total > 1 ? Lyrics[1] : Lyrics[0] };
         if (newValue != null)
             Lyrics = newValue;
     }
@@ -73,6 +75,10 @@ public partial class LyricsModel : ObservableObject {
 
 public sealed class LyricsData {
     private LyricsData() { }
+
+    public static readonly LyricsData Default = new() {
+        Title = null, Artist = null, Album = null, Data = [new LyricLine(0, "QwQ Music")]
+    };
 
     public static readonly LyricsData Loading = new() {
         Title = null,
@@ -83,7 +89,7 @@ public sealed class LyricsData {
 
     private LyricLine DefaultLyricLine => new(0, $"{Title} - {Artist}", Album);
 
-    public LyricLine this[int index] => index < Data.Count - 1 && index > 0 ? Data[index] : DefaultLyricLine;
+    public LyricLine this[int index] => index < Data.Count && index > 0 ? Data[index] : DefaultLyricLine;
 
     // 歌词元数据
     public required string? Title { get; init; }
@@ -102,6 +108,9 @@ public sealed class LyricsData {
             LoggerService.Debug($"更新音频偏移量：{field} -> {value}");
         }
     }
+
+    // public double DesktopLyricAdditionalOffset { get; set; } =
+    //     -ConfigManager.LyricConfig.DesktopLyric.CrossFadeMilliseconds;
 
     public List<LyricLine> Data {
         get;

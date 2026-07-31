@@ -50,10 +50,10 @@ public class SoundModifierManager {
             _ => null
         };
 
-        if (model != null) {
-            _modifierMap[modifierName] = model;
-            SoundModifiers.Add(model);
-        }
+        if (model == null)
+            return;
+        _modifierMap[modifierName] = model;
+        SoundModifiers.Add(model);
     }
 
     private void UnloadModifierInternal(string modifierName) {

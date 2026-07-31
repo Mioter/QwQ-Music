@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
 using System.Timers;
 using Avalonia.Collections;
@@ -6,7 +5,6 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Common.Audio;
-using QwQ_Music.Common.Helpers;
 using QwQ_Music.Common.Services;
 using QwQ_Music.Common.Services.Databases;
 using QwQ_Music.Models;
@@ -33,8 +31,12 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
     public AudioPlayer AudioPlayer { get; } = new();
     private readonly AudioPreprocessor _audioPreprocessor;
 
-    public readonly ISystemMediaControlImpl SystemMediaControl = SystemMediaInterop.SystemMediaControl.Instance;
+    public readonly ISystemSleepInhibitorImpl Inhibitor = SleepInhibitor.CreateInhibitor(Program.AppId);
 
+    public readonly ISystemMediaControlImpl SystemMediaControl =
+        SystemMediaInterop.SystemMediaControl.CreateSystemMediaControl(
+            Program.AppId,
+            new SystemSideEffectConfig { Windows = { CreateStartMenuShortcut = true } });
 
     private readonly Timer _lrcTimer;
 
@@ -406,18 +408,19 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
 
     [RelayCommand]
     public void PlayMusic(PlaylistItemModel? musicItem) {
-        SetMusicAsync(musicItem, true).ContinueWith(LoggerService.HandleException).ConfigureAwait(false);
+        SetMusicAsync(musicItem, true, true).ContinueWith(LoggerService.HandleException).ConfigureAwait(false);
     }
 
-    public async Task SetMusicAsync(PlaylistItemModel? musicItem, bool isPlaynow) {
-        if (musicItem is not { } item || !VerifyMusicItem(musicItem))
+    public async Task SetMusicAsync(PlaylistItemModel? musicItem, bool isPlaynow, bool isUserRequested) {
+        if (musicItem is not { } item)
             return;
-
-        if (CurrentMusicItem.Equals(item)) {
+        bool isValid = VerifyMusicItem(musicItem);
+        if (CurrentMusicItem.Equals(item) && isValid) {
             OnPlayingChanged(!IsPlaying, true);
         } else {
             await SetCurrentMusicItemAsync(item, !isPlaynow).ConfigureAwait(false);
-            OnPlayingChanged(isPlaynow, true);
+            if (isValid)
+                OnPlayingChanged(isPlaynow, isUserRequested);
         }
     }
 
@@ -428,6 +431,13 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
 
 
     public async Task NextMusicAsync(bool isUserRequested) {
+        var next = GetMusicItemIndex(PlaylistManager.Instance.CurrentIndex, 1);
+        if (PlayerConfig.PlayMode is PlayMode.Sequential && next == 0) {
+            NotificationService.Info("列表播放结束：歌单已播放完毕！");
+            await SetAndPlayAsync(-1, true).ConfigureAwait(false);
+            return;
+        }
+
         await SetAndPlayAsync(GetMusicItemIndex(PlaylistManager.Instance.CurrentIndex, 1), isUserRequested)
             .ConfigureAwait(false);
     }
@@ -441,14 +451,41 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
     public void NextMusic() { NextMusicAsync(true).ContinueWith(LoggerService.HandleException).ConfigureAwait(false); }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Pause(bool isUserRequested) { OnPlayingChanged(false, isUserRequested); }
+    public void Pause(bool isUserRequested) {
+        IsPlaying = false;
+        if (isUserRequested && ConfigManager.SystemConfig.KeepSystemAwake)
+            Dispatcher.UIThread.Post(
+                () => _ = Inhibitor.RestoreAsync().ContinueWith(LoggerService.HandleException).ConfigureAwait(true),
+                DispatcherPriority.Background);
+        AudioPlayer.Pause();
+        _lrcTimer.Stop();
+        if (isUserRequested && ConfigManager.LyricConfig.DesktopLyric.IsAutoFade)
+            DesktopLyricsService.TryFadeOut();
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Play(bool isUserRequested) { OnPlayingChanged(true, isUserRequested); }
+    public void Play(bool isUserRequested) {
+        IsPlaying = true;
+        if (isUserRequested && ConfigManager.LyricConfig.DesktopLyric.IsAutoFade)
+            DesktopLyricsService.TryFadeIn();
+        if (isUserRequested && ConfigManager.SystemConfig.KeepSystemAwake)
+            Dispatcher.UIThread.Post(
+                () => _ = Inhibitor.InhibitAsync(
+                                       ConfigManager.SystemConfig.KeepDisplay,
+                                       $"正在播放{CurrentMusicItem.Model.Title}")
+                                   .ContinueWith(LoggerService.HandleException)
+                                   .ConfigureAwait(true),
+                DispatcherPriority.Background);
+        AudioPlayer.Play();
+        UpdateLyricsTimer();
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Stop() {
-        OnPlayingChanged(false, true);
+        _ = SetMusicAsync(PlaylistItemModel.RefDefault, false, false)
+            .ContinueWith(LoggerService.HandleException)
+            .ConfigureAwait(false);
+        Pause(true);
         AudioPlayer.Stop();
     }
 
@@ -462,7 +499,7 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
             return;
 
         Position = 0;
-        OnPlayingChanged(true, false);
+        OnPlayingChanged(true, true);
     }
 
     public void CheckForRemovedItems(IEnumerable<MusicItemModel> successItems) {
@@ -488,35 +525,20 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
             SystemMediaInterop.MediaPlaybackStatus.Playing :
             SystemMediaInterop.MediaPlaybackStatus.Paused;
 
-        if (isPlayNow) {
-            if (isUserRequested && ConfigManager.SystemConfig.KeepSystemAwake)
-                Dispatcher.UIThread.Post(
-                    () => _ = Inhibitor.Instance.InhibitAsync(
-                                           ConfigManager.SystemConfig.KeepDisplay,
-                                           $"正在播放{CurrentMusicItem.Model.Title}")
-                                       .ConfigureAwait(true),
-                    DispatcherPriority.Background);
-
-            AudioPlayer.Play();
-            UpdateLyricsTimer();
-        } else {
-            if (isUserRequested && ConfigManager.SystemConfig.KeepSystemAwake)
-                Dispatcher.UIThread.Post(
-                    () => _ = Inhibitor.Instance.RestoreAsync().ConfigureAwait(true),
-                    DispatcherPriority.Background);
-            AudioPlayer.Pause();
-            _lrcTimer.Stop();
-        }
+        if (isPlayNow)
+            Play(isUserRequested);
+        else
+            Pause(isUserRequested);
     }
 
-    private bool VerifyMusicItem(PlaylistItemModel? musicItem) {
+    public static bool VerifyMusicItem(PlaylistItemModel? musicItem) {
         if (musicItem == PlaylistItemModel.RefDefault) {
             return false;
         }
 
         if (musicItem is not { } item || !File.Exists(item.Model.FilePath)) {
             NotificationService.Error($"当前音乐不存在，请切换音乐！\n无法找到音乐文件:  {musicItem?.Model.FilePath}");
-
+            LoggerService.Error($"无法找到当前音乐：{musicItem?.Model.FilePath}");
             return false;
         }
 
@@ -540,7 +562,7 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
             IsPreviousEnabled = false;
             IsNextEnabled = false;
             await SetCurrentMusicItemAsync(PlaylistItemModel.RefDefault, true).ConfigureAwait(false);
-            Pause(true);
+            LyricsModel = new LyricsModel { Offset = 0, Lyrics = MusicItemModel.Default.Lyrics };
             return;
         }
 
@@ -552,6 +574,19 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
         if (VerifyMusicItem(musicItem)) {
             await SetCurrentMusicItemAsync(musicItem, PlayerConfig.IsRestartPlay).ConfigureAwait(false);
             Play(isUserRequested);
+        } else {
+            await SetAndPlayAsync(
+                    GetMusicItemIndex(
+                        index,
+                        (index - PlaylistManager.CurrentIndex) switch {
+                            0    => 1,
+                            1    => 1,
+                            < -1 => 1,
+                            -1   => -1,
+                            > 1  => -1
+                        }),
+                    isUserRequested)
+                .ConfigureAwait(false);
         }
     }
 

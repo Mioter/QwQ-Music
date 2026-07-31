@@ -118,7 +118,7 @@
                             <Panel>
                                 <Panel Background="{DynamicResource SemiColorBackground2}" Opacity="0.5" />
 
-                                <TextBlock Text="{CompiledBinding VersionText}" VerticalAlignment="Center" Margin="10" />
+                                <TextBlock Text="{CompiledBinding Version}" VerticalAlignment="Center" Margin="10" />
                             </Panel>
                         </Border>
                     </Button>

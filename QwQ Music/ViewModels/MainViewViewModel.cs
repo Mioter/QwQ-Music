@@ -6,7 +6,6 @@ using QwQ_Music.Common.Managers;
 using QwQ_Music.Common.Services;
 using QwQ_Music.ViewModels.Bases;
 using QwQ_Music.Views.Pages;
-using static QwQ_Music.Common.Services.I18NService;
 
 namespace QwQ_Music.ViewModels;
 

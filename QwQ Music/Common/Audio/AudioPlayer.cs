@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using ATL.Logging;
 using Avalonia.Threading;
 using QwQ_Music.Common.Interfaces;
 using QwQ_Music.Common.Managers;
@@ -170,6 +169,7 @@ public sealed class AudioPlayer : IAudioPlayer {
         }
 
         Debug.Assert(_soundPlayer is not null);
+        ReloadDevice();
         if (Current is null) {
             LoggerService.Warning("当前音频流已不可用");
             return;

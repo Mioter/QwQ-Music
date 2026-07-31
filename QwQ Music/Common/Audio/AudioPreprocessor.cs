@@ -37,7 +37,7 @@ public class AudioPreprocessor(AudioPlayer audioPlayer) {
                     ConfigManager.PlayerConfig.SampleRate :
                     (int)model.SampleRate,
             Channels = model.Channels,
-            Layout = ChannelLayout.Stereo, //TODO
+            Layout = ChannelLayout.Stereo, // TODO
             Format = SampleFormat.F32
         };
         LoggerService.Info($"已更新音频格式。旧格式：{audioPlayer.AudioFormat}，新格式：{format}。");

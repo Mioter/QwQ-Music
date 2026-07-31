@@ -6,7 +6,6 @@ using Avalonia.Input;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using QwQ_Music.Common.Managers;
-using QwQ_Music.Models.ConfigModels;
 using QwQ_Music.Windows;
 
 namespace QwQ_Music.Common.Services;
@@ -16,12 +15,11 @@ namespace QwQ_Music.Common.Services;
 ///     当鼠标既不在窗口上方，也不在该区域时隐藏窗口。
 /// </summary>
 public static partial class DesktopPlayControlService {
+    public static DesktopPlayControlWindow? DesktopPlayControlWindow;
     private static readonly TimeSpan _pollInterval = TimeSpan.FromMilliseconds(120);
-    private static readonly DesktopLyricConfig _desktopLyricConfig = ConfigManager.UserConfig.LyricConfig.DesktopLyric;
-    private static DispatcherTimer? timer;
-    private static DesktopPlayControlWindow? window;
-    private static bool isPointerOverWindow;
-    private static bool errorToRecord;
+    private static DispatcherTimer? _timer;
+    private static bool _isPointerOverWindow;
+    private static bool _errorToRecord;
 
     // Windows
     [DllImport("user32.dll")]
@@ -61,24 +59,24 @@ public static partial class DesktopPlayControlService {
         out uint mask_return);
 
     public static void Start() {
-        if (timer != null)
+        if (_timer != null)
             return;
 
-        timer = new DispatcherTimer { Interval = _pollInterval };
+        _timer = new DispatcherTimer { Interval = _pollInterval };
 
-        timer.Tick += OnTick;
-        timer.Start();
+        _timer.Tick += OnTick;
+        _timer.Start();
 
-        errorToRecord = false;
+        _errorToRecord = false;
     }
 
     public static void Stop() {
-        if (timer == null)
+        if (_timer == null)
             return;
 
-        timer.Stop();
-        timer.Tick -= OnTick;
-        timer = null;
+        _timer.Stop();
+        _timer.Tick -= OnTick;
+        _timer = null;
 
         // 关闭并销毁窗口
         CloseWindow();
@@ -93,25 +91,26 @@ public static partial class DesktopPlayControlService {
 
         bool inTopCenterRegion = IsInTopCenterRegion(cursor, bounds);
 
-        if (window != null)
-            isPointerOverWindow = window.IsPointerOver;
+        if (DesktopPlayControlWindow != null)
+            _isPointerOverWindow = DesktopPlayControlWindow.IsPointerOver;
 
         if (inTopCenterRegion)
             ShowOrMoveWindow(cursor);
-        else if (!isPointerOverWindow)
+        else if (!_isPointerOverWindow)
             HideWindow();
     }
 
     private static void ShowOrMoveWindow(PixelPoint cursor) {
         EnsureWindow();
 
-        if (window == null)
+        if (DesktopPlayControlWindow == null)
             return;
 
         bool justShown = false;
 
-        if (!window.IsVisible) {
-            window.Show();
+        if (!DesktopPlayControlWindow.IsVisible) {
+            DesktopPlayControlWindow.Show();
+            DesktopPlayControlWindow.Activate();
             justShown = true;
         }
 
@@ -119,72 +118,70 @@ public static partial class DesktopPlayControlService {
         if (!justShown)
             return;
 
-        if (window.IsMeasureValid)
+        if (DesktopPlayControlWindow.IsMeasureValid)
             Reposition();
         else
             // 延迟到 UI 循环的下一帧，确保 SizeToContent 生效
-            Dispatcher.UIThread.Post(Reposition, DispatcherPriority.Background);
-
+            Dispatcher.UIThread.Post(Reposition, DispatcherPriority.Render);
         return;
 
         // 在布局稳定后将窗口移动到鼠标为中心（水平居中，垂直贴顶）
         void Reposition() {
-            if (window == null)
+            if (DesktopPlayControlWindow == null)
                 return;
             if (!TryGetCurrentScreenBounds(cursor, out PixelRect bounds))
                 return;
 
-            int width = (int)window.Bounds.Width;
+            int width = (int)DesktopPlayControlWindow.Bounds.Width;
             if (width <= 0)
                 return;
 
             // 水平以鼠标为中心，并限制在屏幕内
-            if (window.Screens.Primary == null)
+            if (DesktopPlayControlWindow.Screens.Primary == null)
                 return;
 
-            double scaling = window.Screens.Primary.Scaling;
+            double scaling = DesktopPlayControlWindow.Screens.Primary.Scaling;
 
             int x = (int)(cursor.X - width * scaling / 2);
 
             // 垂直贴近顶部（工作区顶部）
             int y = bounds.Y;
 
-            window.Position = new PixelPoint(x, y);
+            DesktopPlayControlWindow.Position = new PixelPoint(x, y);
         }
     }
 
     private static void HideWindow() {
-        if (window == null)
+        if (DesktopPlayControlWindow == null)
             return;
 
-        if (window.IsVisible)
-            window.StartMovingOut = true;
+        if (DesktopPlayControlWindow.IsVisible)
+            DesktopPlayControlWindow.StartMovingOut = true;
     }
 
     private static void CloseWindow() {
-        if (window == null)
+        if (DesktopPlayControlWindow == null)
             return;
 
         // 解除事件订阅，防止潜在泄漏
-        window.PointerEntered -= OnWindowPointerEntered;
-        window.PointerExited -= OnWindowPointerExited;
-        window.Closed -= OnWindowClosed;
+        DesktopPlayControlWindow.PointerEntered -= OnDesktopPlayControlWindowPointerEntered;
+        DesktopPlayControlWindow.PointerExited -= OnDesktopPlayControlWindowPointerExited;
+        DesktopPlayControlWindow.Closed -= OnDesktopPlayControlWindowClosed;
 
-        window.Close();
+        DesktopPlayControlWindow.Close();
 
-        window = null;
+        DesktopPlayControlWindow = null;
     }
 
     private static void EnsureWindow() {
-        if (window != null)
+        if (DesktopPlayControlWindow != null)
             return;
 
-        window = new DesktopPlayControlWindow();
+        DesktopPlayControlWindow = new DesktopPlayControlWindow();
 
-        window.PointerEntered += OnWindowPointerEntered;
-        window.PointerExited += OnWindowPointerExited;
-        window.Closed += OnWindowClosed;
-        window.Topmost = true;
+        DesktopPlayControlWindow.PointerEntered += OnDesktopPlayControlWindowPointerEntered;
+        DesktopPlayControlWindow.PointerExited += OnDesktopPlayControlWindowPointerExited;
+        DesktopPlayControlWindow.Closed += OnDesktopPlayControlWindowClosed;
     }
 
     private static bool TryGetCursorPixelPoint(out PixelPoint cursor) {
@@ -256,12 +253,12 @@ public static partial class DesktopPlayControlService {
 
             LoggerService.Warning("非桌面平台，或不支持的桌面环境！");
         } catch (Exception ex) {
-            if (errorToRecord)
+            if (_errorToRecord)
                 return false;
 
             // 忽略平台 P/Invoke 失败，降级为失败
             LoggerService.Error($"平台 P/Invoke 失败: {ex.Message}\n{ex.StackTrace}\n无法获取光标位置！");
-            errorToRecord = true;
+            _errorToRecord = true;
         }
 
         return false;
@@ -281,7 +278,7 @@ public static partial class DesktopPlayControlService {
         int regionWidth = bounds.Width / 3;
         int regionX = bounds.X + (bounds.Width - regionWidth) / 2;
         int regionY = bounds.Y;
-        int regionHeight = Math.Min(_desktopLyricConfig.DesktopPlayControlTriggerDistance, bounds.Height);
+        int regionHeight = Math.Min(ConfigManager.DesktopControlConfig.TriggerDistance, bounds.Height);
 
         return cursor.X >= regionX &&
                cursor.X <= regionX + regionWidth &&
@@ -289,11 +286,17 @@ public static partial class DesktopPlayControlService {
                cursor.Y <= regionY + regionHeight;
     }
 
-    private static void OnWindowPointerEntered(object? sender, PointerEventArgs e) { isPointerOverWindow = true; }
+    private static void OnDesktopPlayControlWindowPointerEntered(object? sender, PointerEventArgs e) {
+        _isPointerOverWindow = true;
+    }
 
-    private static void OnWindowPointerExited(object? sender, PointerEventArgs e) { isPointerOverWindow = false; }
+    private static void OnDesktopPlayControlWindowPointerExited(object? sender, PointerEventArgs e) {
+        _isPointerOverWindow = false;
+    }
 
-    private static void OnWindowClosed(object? sender, EventArgs e) { window = null; }
+    private static void OnDesktopPlayControlWindowClosed(object? sender, EventArgs e) {
+        DesktopPlayControlWindow = null;
+    }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct WinPoint {

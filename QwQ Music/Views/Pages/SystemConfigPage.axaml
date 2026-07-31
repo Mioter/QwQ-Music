@@ -38,23 +38,23 @@
         <anchorControl:AnchorItem Header="程序">
 
             <StackPanel>
-
-                <Panel>
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="语言" />
-                        <TextBlock Text="* 需要重启程序" Foreground="{DynamicResource  TextBlockTertiaryForeground}" />
-                    </StackPanel>
-                    <ComboBox HorizontalAlignment="Right"
-                              ItemsSource="{CompiledBinding Lang.AvailableLanguages }"
-                              DisplayMemberBinding="{CompiledBinding Value}"
-                              SelectedValueBinding="{CompiledBinding Key}"
-                              SelectedValue="{CompiledBinding Config.Language}" />
-                </Panel>
+                <CheckBox
+                    Content="启动时播放"
+                    IsChecked="{CompiledBinding Config.IsPlayOnStart}" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="语言" />
+                    <TextBlock Text="* 需要重启程序" Foreground="{DynamicResource  TextBlockTertiaryForeground}" />
+                </StackPanel>
+                <ComboBox HorizontalAlignment="Right"
+                          ItemsSource="{CompiledBinding Lang.AvailableLanguages }"
+                          DisplayMemberBinding="{CompiledBinding Value}"
+                          SelectedValueBinding="{CompiledBinding Key}"
+                          SelectedValue="{CompiledBinding Config.Language}" />
                 <CheckBox
                     Content="播放时阻止系统睡眠"
                     IsChecked="{CompiledBinding Config.KeepSystemAwake}" />
                 <CheckBox
-                    Margin="32 0 0 0"
+                    Margin="24 0 0 0"
                     Content="同时保持显示器开启"
                     IsEnabled="{CompiledBinding Config.KeepSystemAwake}"
                     IsChecked="{CompiledBinding Config.KeepDisplay}" />

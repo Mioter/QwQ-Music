@@ -2,7 +2,6 @@ using System.Collections.Frozen;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using QwQ_Music.Common.Audio.SoundModifier;
-using QwQ_Music.Common.Helpers;
 using QwQ_Music.Common.Managers;
 using QwQ_Music.Common.Services;
 using QwQ_Music.Common.Utilities;

@@ -5,10 +5,13 @@ namespace QwQ_Music.Common.Utilities;
 
 public static class MousePenetrate {
     // Windows 平台常量
+    // ReSharper disable InconsistentNaming
     private const uint WS_EX_LAYERED = 0x80000;
     private const int WS_EX_TRANSPARENT = 0x20;
     private const int GWL_EXSTYLE = -20;
     private const int LWA_ALPHA = 0x2;
+    // ReSharper restore InconsistentNaming
+
     private static readonly Dictionary<IntPtr, bool> _windowStateCache = new();
 
     // Windows API

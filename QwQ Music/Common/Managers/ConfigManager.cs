@@ -20,6 +20,8 @@ public static class ConfigManager {
 
     public static PlayerConfig PlayerConfig => UserConfig.PlayerConfig;
 
+    public static DesktopControlConfig DesktopControlConfig => UserConfig.DesktopControlConfig;
+    
     public static LyricConfig LyricConfig => UserConfig.LyricConfig;
 
     public static SoundModifierConfig SoundModifierConfig => UserConfig.SoundModifierConfig;

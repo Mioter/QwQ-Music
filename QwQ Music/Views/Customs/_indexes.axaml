@@ -7,4 +7,5 @@
     <StyleInclude Source="MusicAlbumCoverButton.axaml" />
     <StyleInclude Source="MusicListDataGrid.axaml" />
     <StyleInclude Source="PlaylistAlbumCoverButton.axaml" />
+    <StyleInclude Source="DualTransitioningContentControl.axaml" />
 </Styles>

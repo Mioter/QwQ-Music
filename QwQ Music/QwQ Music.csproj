@@ -5,11 +5,10 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-        <!--        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>-->
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <TargetFrameworks>net10.0;net10.0-windows10.0.19041.0</TargetFrameworks>
-        <LangVersion>preview</LangVersion>
+        <LangVersion>default</LangVersion>
         <ImplicitUsings>true</ImplicitUsings>
         <ApplicationIcon>QwQ Music.ico</ApplicationIcon>
         <Version>2.1.3</Version>
@@ -37,46 +36,46 @@
         <None Include="QwQ Music.ico">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <AvaloniaResource Include="Assets\AvaloniaRes\**"/>
-        <AvaloniaResource Remove="Assets\EmbeddedRes\**"/>
-        <EmbeddedResource Include="Assets\EmbeddedRes\**"/>
+        <AvaloniaResource Include="Assets\AvaloniaRes\**" />
+        <AvaloniaResource Remove="Assets\EmbeddedRes\**" />
+        <EmbeddedResource Include="Assets\EmbeddedRes\**" />
         <None Update="i18n\zh_CN.QwQ.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="12.0.4" />
-        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="12.0.4" />
-        <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.0.0" />
+        <PackageReference Include="Avalonia" Version="12.1.0" />
+        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="12.1.0" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.0" />
         <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="12.0.0" />
-        <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />
-        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.2">
+        <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.0" />
+        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
             <PrivateAssets>All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-        <PackageReference Include="Irihi.Ursa" Version="2.0.0" />
-        <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="2.0.0" />
-        <PackageReference Include="managed-midi" Version="1.10.1"/>
+        <PackageReference Include="Irihi.Ursa" Version="2.1.0" />
+        <PackageReference Include="Irihi.Ursa.Themes.Semi" Version="2.1.0" />
+        <PackageReference Include="managed-midi" Version="1.10.1" />
         <PackageReference Include="QwQ.Avalonia.Control" Version="0.12.0" />
-        <PackageReference Include="Semi.Avalonia" Version="12.0.3" />
-        <PackageReference Include="Semi.Avalonia.ColorPicker" Version="12.0.3" />
-        <PackageReference Include="Semi.Avalonia.DataGrid" Version="12.0.0" />
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
-        <PackageReference Include="SkiaSharp" Version="3.119.4"/>
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />
-        <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.4" />
+        <PackageReference Include="Semi.Avalonia" Version="12.1.0" />
+        <PackageReference Include="Semi.Avalonia.ColorPicker" Version="12.1.0" />
+        <PackageReference Include="Semi.Avalonia.DataGrid" Version="12.1.0" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
+        <PackageReference Include="SkiaSharp" Version="4.150.0" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.150.0" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.150.0" />
         <PackageReference Include="SoundFlow" Version="1.4.1" />
-        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.0.1" />
+        <PackageReference Include="SystemMediaInterop" Version="0.0.1" />
+        <PackageReference Include="SystemSleepInhibitor" Version="0.3.1" />
+        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.5" />
         <PackageReference Include="z440.atl.core" Version="7.15.3" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Impressionist\Impressionist.csproj"/>
-        <ProjectReference Include="..\NcmdumpCSharp\NcmdumpCSharp\NcmdumpCSharp.csproj"/>
-        <ProjectReference Include="..\SystemMediaInterop\SystemMediaInterop.csproj" />
-        <ProjectReference Include="..\SystemSleepInhibitor\SystemSleepInhibitor.csproj" />
+        <ProjectReference Include="..\Impressionist\Impressionist.csproj" />
+        <ProjectReference Include="..\NcmdumpCSharp\NcmdumpCSharp\NcmdumpCSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -90,9 +89,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="Views\Customs\TitleBar.axaml.cs">
-        <DependentUpon>TitleBar.axaml</DependentUpon>
-        <SubType>Code</SubType>
+      <Compile Update="Views\Customs\DualTransitioningContentControl.cs">
+        <DependentUpon>DualTransitioningContentControl.axaml</DependentUpon>
       </Compile>
     </ItemGroup>
 </Project>

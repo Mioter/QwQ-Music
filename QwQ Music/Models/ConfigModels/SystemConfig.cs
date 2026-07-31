@@ -6,16 +6,23 @@ namespace QwQ_Music.Models.ConfigModels;
 
 public partial class SystemConfig : ObservableObject {
     [ObservableProperty]
+    public partial bool IsPlayOnStart { get; set; } = false;
+
+    [ObservableProperty]
     public partial bool KeepSystemAwake { get; set; } = true;
 
     [ObservableProperty]
     public partial bool KeepDisplay { get; set; } = false;
 
-    [ObservableProperty]
-    public partial string Language { get; set; } = "zh_CN";
+    public string Language {
+        get;
+        set {
+            if (SetProperty(ref field, value)) {
+                I18NService.Lang.LoadLanguage(value);
+            }
+        }
+    } = "zh_CN";
 
-    // ReSharper disable once UnusedParameterInPartialMethod
-    partial void OnLanguageChanged(string value) { I18NService.Lang.LoadLanguage(value); }
 
     [ObservableProperty]
     public partial bool IsDebugMode { get; set; }
