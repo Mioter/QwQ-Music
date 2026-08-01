@@ -66,6 +66,9 @@ public partial class DesktopFunctionsConfigPageViewModel : ViewModelBase {
                 return;
 
             LyricConfig.DesktopLyric.IsDoubleLine = value;
+            if (!value) {
+                LyricConfig.DesktopLyric.IsKtvMode = false;
+            }
             DesktopLyricsService.DesktopLyricsWindow?.UpdateFades();
             OnPropertyChanged();
         }
