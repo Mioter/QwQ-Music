@@ -76,9 +76,7 @@ public class SplitLyricControl : TemplatedControl {
 
     private record SlotStatus {
         public ContentControl? Slot;
-        public LyricLine Cache = LyricLine.Empty;
         public LyricLine Pending = LyricLine.Empty;
-        public readonly DispatcherTimer Timer = new(DispatcherPriority.Background, Dispatcher.UIThread);
     }
 
     private readonly SlotStatus _slot1 = new();
@@ -114,8 +112,8 @@ public class SplitLyricControl : TemplatedControl {
         if (!IsVisible || _slot1.Slot == null || _slot2.Slot == null)
             return;
 
-        if (_slot1.Cache == LyricLine.Empty ||                                   // 初始化
-            (_slot1.Cache != Current.Primary && _slot2.Cache != Current.Primary) // 跳转
+        if (_slot1.Pending == LyricLine.Empty ||                                     // 初始化
+            (_slot1.Pending != Current.Primary && _slot2.Pending != Current.Primary) // 跳转
            ) {
             _slot1.Pending = Current.Primary;
             _slot2.Pending = Current.Alternate;
@@ -125,10 +123,10 @@ public class SplitLyricControl : TemplatedControl {
                     BeginAnimationOnSlot(_slot2);
                 },
                 DispatcherPriority.Render);
-        } else if (_slot1.Cache == Current.Primary) {
+        } else if (_slot1.Pending == Current.Primary) {
             _slot2.Pending = Current.Alternate;
             BeginAnimationOnSlot(_slot2);
-        } else if (_slot2.Cache == Current.Primary) {
+        } else if (_slot2.Pending == Current.Primary) {
             _slot1.Pending = Current.Alternate;
             BeginAnimationOnSlot(_slot1);
         }
@@ -137,33 +135,9 @@ public class SplitLyricControl : TemplatedControl {
     private void BeginAnimationOnSlot(SlotStatus slot) {
         if (slot.Slot is null)
             return;
-        slot.Timer.Interval = Duration;
-
-        if (!slot.Timer.IsEnabled) {
-            slot.Slot.Opacity = 0;
-            slot.Timer.Tick += Update;
-        } else {
-            ResetSlotTransition(slot, 0);
-            slot.Cache = slot.Pending;
-            slot.Slot.Content = slot.Cache;
-            slot.Slot.Opacity = 1;
-        }
-
-        slot.Timer.Start();
-
-        return;
-
-        void Update(object? sender, EventArgs e) {
-            if (slot.Slot.Opacity < 0.01) {
-                Dispatcher.UIThread.Post(() => {
-                    slot.Cache = slot.Pending;
-                    slot.Slot.Content = slot.Cache;
-                    slot.Slot.Opacity = 1;
-                });
-            } else {
-                slot.Timer.Stop();
-            }
-        }
+        ResetSlotTransition(slot, 0);
+        slot.Slot.Content = slot.Pending;
+        slot.Slot.Opacity = 1;
     }
 
     private void ResetSlotTransition(SlotStatus slot, double? opacity = null) {

@@ -28,6 +28,11 @@
     </Window.Resources>
 
     <Panel>
+        <Panel.Styles>
+            <Style Selector="control|TextPath">
+                <Setter Property="MinHeight" Value="{Binding $self.FontSize}" />
+            </Style>
+        </Panel.Styles>
 
         <Border Classes.RunLyricBorder="{CompiledBinding $parent[Window].IsPointerOver}"
                 CornerRadius="{CompiledBinding LyricConfig.WindowCornerRadius}"
@@ -126,17 +131,8 @@
                                 Stroke="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBorderColor,Converter={StaticResource ToBrushConverter}}"
                                 FontSize="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainFontSize}"
                                 Text="{CompiledBinding Primary.Secondary,FallbackValue=''}"
-                                FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.SecondaryWeight}">
-
-                                <control:TextPath.IsVisible>
-                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                        <Binding
-                                            Path="#DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).AudioPlayManager.LyricsModel.Current.Primary.Secondary"
-                                            Converter="{x:Static ObjectConverters.IsNotNull}" />
-                                        <Binding
-                                            Path="#DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang" />
-                                    </MultiBinding>
-                                </control:TextPath.IsVisible>
+                                FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.SecondaryWeight}"
+                                IsVisible="{Binding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang}">
 
                                 <control:TextPath.Foreground>
                                     <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
@@ -148,11 +144,8 @@
                                             Offset="1" />
                                     </LinearGradientBrush>
                                 </control:TextPath.Foreground>
-
                             </control:TextPath>
-
                         </StackPanel>
-
                     </StackPanel>
                 </DataTemplate>
             </TransitioningContentControl.ContentTemplate>
@@ -218,15 +211,8 @@
                             Stroke="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBorderColor,Converter={StaticResource ToBrushConverter}}"
                             FontSize="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainFontSize}"
                             Text="{CompiledBinding Secondary,FallbackValue=''}"
-                            FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.SecondaryWeight}">
-
-                            <control:TextPath.IsVisible>
-                                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                    <Binding Path="Secondary" Converter="{x:Static ObjectConverters.IsNotNull}" />
-                                    <Binding
-                                        Path="#DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang" />
-                                </MultiBinding>
-                            </control:TextPath.IsVisible>
+                            FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.SecondaryWeight}"
+                            IsVisible="{Binding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang}">
 
                             <control:TextPath.Foreground>
                                 <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
@@ -287,15 +273,8 @@
                             Text="{CompiledBinding Secondary,FallbackValue=''}"
                             FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.SecondaryWeight}"
                             VerticalAlignment="Center"
-                            HorizontalAlignment="Left">
-
-                            <control:TextPath.IsVisible>
-                                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                    <Binding Path="Secondary" Converter="{x:Static ObjectConverters.IsNotNull}" />
-                                    <Binding
-                                        Path="#DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang" />
-                                </MultiBinding>
-                            </control:TextPath.IsVisible>
+                            HorizontalAlignment="Left"
+                            IsVisible="{Binding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang}">
 
                             <control:TextPath.Foreground>
                                 <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
@@ -352,15 +331,8 @@
                             Text="{CompiledBinding Secondary,FallbackValue=''}"
                             FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltSecondaryWeight}"
                             VerticalAlignment="Center"
-                            HorizontalAlignment="Right">
-
-                            <control:TextPath.IsVisible>
-                                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                    <Binding Path="Secondary" Converter="{x:Static ObjectConverters.IsNotNull}" />
-                                    <Binding
-                                        Path="#DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang" />
-                                </MultiBinding>
-                            </control:TextPath.IsVisible>
+                            HorizontalAlignment="Right"
+                            IsVisible="{Binding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang}">
 
                             <control:TextPath.Foreground>
                                 <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
@@ -380,5 +352,4 @@
             </custom:SplitLyricControl.SecondContentTemplate>
         </custom:SplitLyricControl>
     </Panel>
-
 </Window>

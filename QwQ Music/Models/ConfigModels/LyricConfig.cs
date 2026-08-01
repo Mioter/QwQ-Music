@@ -226,7 +226,7 @@ public partial class DesktopLyricConfig : ObservableObject {
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color MainBorderColor { get; set; } = Colors.Blue;
+    public partial Color MainBorderColor { get; set; } = Colors.Black;
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
@@ -238,7 +238,7 @@ public partial class DesktopLyricConfig : ObservableObject {
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color AltBorderColor { get; set; } = Colors.Blue;
+    public partial Color AltBorderColor { get; set; } = Colors.Black;
 
     [ObservableProperty]
     [JsonConverter(typeof(ColorJsonConverter))]
