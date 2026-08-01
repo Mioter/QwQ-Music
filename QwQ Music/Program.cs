@@ -8,7 +8,7 @@ using AudioPlayManager = QwQ_Music.Common.Managers.AudioPlayManager;
 namespace QwQ_Music;
 
 public static class Program {
-    public const string Version = "2.2.1";
+    public const string Version = "2.2.2";
     public const string AppId = "com.Mioter.QwQMusic";
     public static string[]? OpenWithFiles { get; private set; }
 

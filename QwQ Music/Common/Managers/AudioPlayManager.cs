@@ -79,7 +79,7 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
     private double _position;
 
     public void ClearPlaylist() {
-        PlaylistManager.Clear();
+        PlaylistManager.Clear(true);
         UpdateSequenceControlStatus();
     }
 
@@ -481,11 +481,11 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Stop() {
+    public void Stop(bool isUserRequested) {
         _ = SetMusicAsync(PlaylistItemModel.RefDefault, false, false)
             .ContinueWith(LoggerService.HandleException)
             .ConfigureAwait(false);
-        Pause(true);
+        Pause(isUserRequested);
         AudioPlayer.Stop();
     }
 
@@ -662,7 +662,7 @@ public sealed partial class AudioPlayManager : ObservableObject, IAsyncDisposabl
 
     private void OnSystemPreviousRequested(object? sender, EventArgs e) { Dispatcher.UIThread.Post(PreviousMusic); }
 
-    private void OnSystemStopRequested(object? sender, EventArgs e) { Dispatcher.UIThread.Post(Stop); }
+    private void OnSystemStopRequested(object? sender, EventArgs e) { Dispatcher.UIThread.Post(()=>Stop(true)); }
 
     private void OnSystemSeekRequested(object? sender, PlaybackPositionChangedEventArgs e) {
         Dispatcher.UIThread.Post(() => Position = e.Position.TotalSeconds);

@@ -139,12 +139,12 @@ public partial class PlaylistManager : ObservableObject {
             AudioPlayManager.Instance.NextMusic();
     }
 
-    public void Clear() {
+    public void Clear(bool isUserRequested) {
         CurrentListName = Custom;
         SequentialPlaylist.Clear();
         ActualPlaylist.Clear();
         PlaylistItemModel.Reset();
-        AudioPlayManager.Instance.Stop();
+        AudioPlayManager.Instance.Stop(isUserRequested);
     }
 
     public async Task ReplaceAsync(
@@ -163,7 +163,7 @@ public partial class PlaylistManager : ObservableObject {
 
 
         AudioPlayManager.Instance.Pause(false);
-        Clear();
+        Clear(isUserRequested);
         SequentialPlaylist.EnsureCapacity(capacity);
         ActualPlaylist.EnsureCapacity(capacity);
         CurrentListName = name;

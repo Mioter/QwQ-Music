@@ -25,7 +25,6 @@ public partial class MusicPlaylistViewModel : ViewModelBase {
     [RelayCommand]
     private void ClearMusic() {
         AudioPlayManager.ClearPlaylist();
-        AudioPlayManager.Instance.Stop();
     }
 
     [RelayCommand]
