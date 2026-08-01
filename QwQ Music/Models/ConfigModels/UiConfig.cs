@@ -66,7 +66,7 @@ public partial class SpectrumConfig : ObservableObject {
 
 public partial class ThemeConfig : ObservableObject {
     [ObservableProperty]
-    public partial string CurrentFont { get; set; } = AppResources.DEFAULT_FONT_KEY;
+    public partial string CurrentFont { get; set; } = AppResources.CUTE_FONT_KEY;
 
     [ObservableProperty]
     public partial string Theme { get; set; } = "Default";

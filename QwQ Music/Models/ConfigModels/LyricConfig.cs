@@ -125,7 +125,7 @@ public partial class RolledLyricConfig : ObservableObject {
     public partial bool ShowTranslation { get; set; } = true;
 
     [ObservableProperty]
-    public partial string? RolledLyricsFont { get; set; } = AppResources.DEFAULT_FONT_KEY;
+    public partial string? RolledLyricsFont { get; set; } = AppResources.CUTE_FONT_KEY;
 
     [ObservableProperty]
     public partial double PrimaryFontSize { get; set; } = 16;
@@ -158,6 +158,13 @@ public partial class DesktopLyricConfig : ObservableObject {
     [ObservableProperty]
     public partial TimeSpan CrossFadeTime { get; set; } = TimeSpan.FromMilliseconds(500);
 
+    [ObservableProperty]
+    public partial TimeSpan SlideTime { get; set; } = TimeSpan.FromMilliseconds(300);
+
+    [ObservableProperty]
+    public partial TimeSpan FadeTime { get; set; } = TimeSpan.FromMilliseconds(300);
+
+
     public bool IsEnabled { get; set; } = true;
 
     public bool IsAnchored { get; set; }
@@ -165,11 +172,15 @@ public partial class DesktopLyricConfig : ObservableObject {
     [ObservableProperty]
     public partial bool IsDoubleLine { get; set; }
 
+    /// <summary>双行模式下的分居两侧：当前行靠左、下一行靠右，并使用淡入淡出过渡。</summary>
+    [ObservableProperty]
+    public partial bool IsKtvMode { get; set; }
+
     [ObservableProperty]
     public partial bool IsDualLang { get; set; } = true;
 
     [ObservableProperty]
-    public partial string Font { get; set; } = AppResources.DEFAULT_FONT_KEY;
+    public partial string Font { get; set; } = AppResources.CUTE_FONT_KEY;
 
     [ObservableProperty]
     [JsonConverter(typeof(PixelPointJsonConverter))]
@@ -215,7 +226,7 @@ public partial class DesktopLyricConfig : ObservableObject {
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color MainBorderColor { get; set; } = Colors.White;
+    public partial Color MainBorderColor { get; set; } = Colors.Blue;
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
@@ -227,33 +238,33 @@ public partial class DesktopLyricConfig : ObservableObject {
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color AltBorderColor { get; set; } = Colors.White;
+    public partial Color AltBorderColor { get; set; } = Colors.Blue;
 
     [ObservableProperty]
     [JsonConverter(typeof(ColorJsonConverter))]
     public partial Color Background { get; set; }
 
     [ObservableProperty]
-    public partial double MainFontSize { get; set; } = 20;
+    public partial double MainFontSize { get; set; } = 24;
 
     [ObservableProperty]
-    public partial double AltFontSize { get; set; } = 18;
+    public partial double AltFontSize { get; set; } = 22;
 
     [ObservableProperty]
-    public partial double MainCharSpacing { get; set; } = 2;
+    public partial double MainCharSpacing { get; set; } = 3;
 
     [ObservableProperty]
-    public partial double AltCharSpacing { get; set; } = 2;
+    public partial double AltCharSpacing { get; set; } = 3;
 
     [ObservableProperty]
-    public partial double MainStrokeThickness { get; set; } = 3;
+    public partial double MainStrokeThickness { get; set; } = 1;
 
     [ObservableProperty]
-    public partial double AltStrokeThickness { get; set; } = 3;
+    public partial double AltStrokeThickness { get; set; } = 1;
 
     [ObservableProperty]
     public partial double MainTranslateSpacing { get; set; } = 2;
 
     [ObservableProperty]
-    public partial double AltTranslateSping { get; set; } = 2;
+    public partial double AltTranslateSpacing { get; set; } = 2;
 }

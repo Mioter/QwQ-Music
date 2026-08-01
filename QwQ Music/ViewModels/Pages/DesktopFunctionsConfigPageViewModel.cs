@@ -15,7 +15,7 @@ public partial class DesktopFunctionsConfigPageViewModel : ViewModelBase {
     public DesktopFunctionsConfigPageViewModel() {
         ToggleWindowDisplayStatus(LyricIsEnabled);
         ToggleDesktopPlayControlService(DesktopPlayControlIsEnabled);
-        OnPropertyChanged(nameof(LyricWidth));
+        OnPropertyChanged(nameof(LyricConfig.DesktopLyric.Width));
 
         AppDomain.CurrentDomain.ProcessExit += CurrentDomainOnProcessExit;
     }
@@ -30,17 +30,6 @@ public partial class DesktopFunctionsConfigPageViewModel : ViewModelBase {
             OnPropertyChanged();
 
             ToggleWindowDisplayStatus(value);
-        }
-    }
-
-    public bool LyricIsDualLang {
-        get => LyricConfig.DesktopLyric.IsDualLang;
-        set {
-            if (LyricIsDualLang == value)
-                return;
-
-            LyricConfig.DesktopLyric.IsDualLang = value;
-            OnPropertyChanged();
         }
     }
 
@@ -66,12 +55,8 @@ public partial class DesktopFunctionsConfigPageViewModel : ViewModelBase {
 
             LyricConfig.DesktopLyric.IsAnchored = value;
             DesktopLyricsService.DesktopLyricsWindow?.SetPenetrate(value);
+            OnPropertyChanged();
         }
-    }
-
-    public double LyricWidth {
-        get => LyricConfig.DesktopLyric.Width;
-        set => LyricConfig.DesktopLyric.Width = value;
     }
 
     public bool LyricIsDoubleLine {
@@ -82,6 +67,7 @@ public partial class DesktopFunctionsConfigPageViewModel : ViewModelBase {
 
             LyricConfig.DesktopLyric.IsDoubleLine = value;
             DesktopLyricsService.DesktopLyricsWindow?.UpdateFades();
+            OnPropertyChanged();
         }
     }
 
@@ -91,6 +77,26 @@ public partial class DesktopFunctionsConfigPageViewModel : ViewModelBase {
             TimeSpan time = TimeSpan.FromMilliseconds(value);
             LyricConfig.DesktopLyric.CrossFadeTime = time;
             DesktopLyricsService.DesktopLyricsWindow?.UpdateFades();
+            OnPropertyChanged();
+        }
+    }
+
+    public int SlideTime {
+        get => (int)LyricConfig.DesktopLyric.SlideTime.TotalMilliseconds;
+        set {
+            TimeSpan time = TimeSpan.FromMilliseconds(value);
+            LyricConfig.DesktopLyric.SlideTime = time;
+            OnPropertyChanged();
+        }
+    }
+
+
+    public int FadeTime {
+        get => (int)LyricConfig.DesktopLyric.FadeTime.TotalMilliseconds;
+        set {
+            TimeSpan time = TimeSpan.FromMilliseconds(value);
+            LyricConfig.DesktopLyric.FadeTime = time;
+            OnPropertyChanged();
         }
     }
 
@@ -189,6 +195,9 @@ public partial class DesktopFunctionsConfigPageViewModel : ViewModelBase {
     public static string IsAutoFadeV => I18NService.Lang.Translation[nameof(IsAutoFadeV)];
 
     public static string IsDoubleLineV => I18NService.Lang.Translation[nameof(IsDoubleLineV)];
+
+    // ReSharper disable once InconsistentNaming
+    public static string IsKTVModeV => I18NService.Lang.Translation[nameof(IsKTVModeV)];
 
     public static string IsDualLangV => I18NService.Lang.Translation[nameof(IsDualLangV)];
 

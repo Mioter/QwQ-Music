@@ -7,6 +7,7 @@ namespace QwQ_Music.Common;
 
 public class AppResources : ObservableObject {
     public const string DEFAULT_FONT_KEY = "默认";
+    public const string CUTE_FONT_KEY = "CJTW85";
 
     // 使用 Lazy 延迟加载系统字体，提高性能
     private readonly Lazy<Dictionary<string, FontFamily>> _systemFontsLazy;
@@ -23,7 +24,7 @@ public class AppResources : ObservableObject {
     // 字体集合的只读属性
     public IReadOnlyDictionary<string, FontFamily> CustomFonts { get; } = new Dictionary<string, FontFamily> {
         [DEFAULT_FONT_KEY] = FontFamily.Default,
-        ["CJTW85"] = new("resm:QwQ_Music.Assets.EmbeddedRes.Fonts.CJTW85.ttf#公众号-犬神志")
+        [CUTE_FONT_KEY] = new("resm:QwQ_Music.Assets.EmbeddedRes.Fonts.CJTW85.ttf#公众号-犬神志")
     };
 
     public IReadOnlyDictionary<string, FontFamily> SystemFonts => _systemFontsLazy.Value;

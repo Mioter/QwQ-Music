@@ -92,5 +92,8 @@
       <Compile Update="Views\Customs\DualTransitioningContentControl.cs">
         <DependentUpon>DualTransitioningContentControl.axaml</DependentUpon>
       </Compile>
+      <Compile Update="Views\Customs\SplitLyricControl.cs">
+        <DependentUpon>SplitLyricControl.axaml</DependentUpon>
+      </Compile>
     </ItemGroup>
 </Project>

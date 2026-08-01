@@ -122,16 +122,40 @@
                     IsChecked="{CompiledBinding LockLyricWindow}" />
 
                 <CheckBox
+                    Content="{CompiledBinding IsDualLangV}"
+                    IsChecked="{CompiledBinding LyricConfig.DesktopLyric.IsDualLang}" />
+
+                <CheckBox
                     Content="{CompiledBinding IsDoubleLineV}"
                     IsChecked="{CompiledBinding LyricIsDoubleLine}" />
 
-                <CheckBox
-                    Content="{CompiledBinding IsDualLangV}"
-                    IsChecked="{CompiledBinding LyricIsDualLang}" />
-                <StackPanel>
+                <CheckBox Margin="24 0 0 0"
+                          Content="{CompiledBinding IsKTVModeV}"
+                          IsChecked="{CompiledBinding LyricConfig.DesktopLyric.IsKtvMode}"
+                          IsVisible="{CompiledBinding LyricIsDoubleLine}" />
+
+                <StackPanel IsVisible="{Binding !LyricConfig.DesktopLyric.IsDoubleLine}">
                     <TextBlock Text="交叉渐变时间" />
                     <u:NumericIntUpDown Minimum="0" InnerRightContent="ms"
                                         Value="{CompiledBinding CrossFadeTime,Delay=500}" />
+                </StackPanel>
+
+                <StackPanel>
+                    <StackPanel.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="LyricConfig.DesktopLyric.IsDoubleLine" />
+                            <Binding Path="!LyricConfig.DesktopLyric.IsKtvMode" />
+                        </MultiBinding>
+                    </StackPanel.IsVisible>
+                    <TextBlock Text="滚动时间" />
+                    <u:NumericIntUpDown Minimum="0" InnerRightContent="ms"
+                                        Value="{CompiledBinding SlideTime,Delay=500}" />
+                </StackPanel>
+
+                <StackPanel IsVisible="{Binding LyricConfig.DesktopLyric.IsKtvMode}">
+                    <TextBlock Text="渐变时间" />
+                    <u:NumericIntUpDown Minimum="0" InnerRightContent="ms"
+                                        Value="{CompiledBinding FadeTime,Delay=500}" />
                 </StackPanel>
 
                 <CheckBox
@@ -244,7 +268,7 @@
 
                 <TextBlock Text="歌词宽度" />
                 <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
-                                    Value="{CompiledBinding LyricWidth}" />
+                                    Value="{CompiledBinding LyricConfig.DesktopLyric.Width}" />
 
                 <TextBlock Text="背景圆角" />
                 <u:NumericIntUpDown Minimum="0" InnerRightContent="dip"
@@ -336,7 +360,7 @@
                                             <TextBlock Text="翻译间距" />
                                             <u:NumericIntUpDown Minimum="0" InnerRightContent="px"
                                                                 Maximum="{CompiledBinding #LyricSpacingIntUpDown.Value}"
-                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.AltTranslateSping}" />
+                                                                Value="{CompiledBinding LyricConfig.DesktopLyric.AltTranslateSpacing}" />
 
                                             <TextBlock Text="文本间距" />
                                             <u:NumericIntUpDown Minimum="0" InnerRightContent="px"

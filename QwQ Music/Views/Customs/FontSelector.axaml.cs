@@ -26,5 +26,5 @@ public partial class FontSelector : Grid {
             if (value != null && value != field)
                 SetAndRaise(SelectedFontProperty, ref field, value);
         }
-    } = AppResources.DEFAULT_FONT_KEY;
+    } = AppResources.CUTE_FONT_KEY;
 }
