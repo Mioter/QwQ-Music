@@ -163,7 +163,7 @@ public partial class PlaylistManager : ObservableObject {
 
 
         AudioPlayManager.Instance.Pause(false);
-        Clear(isUserRequested);
+        Clear(false);
         SequentialPlaylist.EnsureCapacity(capacity);
         ActualPlaylist.EnsureCapacity(capacity);
         CurrentListName = name;
