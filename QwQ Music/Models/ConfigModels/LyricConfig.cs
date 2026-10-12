@@ -1,55 +1,48 @@
-using System;
+using System.Collections.Frozen;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia;
 using Avalonia.Layout;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using QwQ_Music.Common;
+using QwQ_Music.Common.Helpers;
 
 namespace QwQ_Music.Models.ConfigModels;
 
-public class ColorJsonConverter : JsonConverter<Color>
-{
-    public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
+public class ColorJsonConverter : JsonConverter<Color> {
+    public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
         if (reader.TokenType != JsonTokenType.StartObject)
-        {
             throw new JsonException();
-        }
 
-        byte a = 255,
-            r = 0,
-            g = 0,
-            b = 0;
+        byte a = 255, r = 0, g = 0, b = 0;
 
-        while (reader.Read())
-        {
+        while (reader.Read()) {
             if (reader.TokenType == JsonTokenType.EndObject)
-            {
                 break;
-            }
 
             if (reader.TokenType != JsonTokenType.PropertyName)
-            {
                 throw new JsonException();
-            }
 
             string? propertyName = reader.GetString();
             reader.Read();
 
-            switch (propertyName)
-            {
+            switch (propertyName) {
                 case "A":
                     a = reader.GetByte();
+
                     break;
                 case "R":
                     r = reader.GetByte();
+
                     break;
                 case "G":
                     g = reader.GetByte();
+
                     break;
                 case "B":
                     b = reader.GetByte();
+
                     break;
             }
         }
@@ -57,8 +50,7 @@ public class ColorJsonConverter : JsonConverter<Color>
         return new Color(a, r, g, b);
     }
 
-    public override void Write(Utf8JsonWriter writer, Color value, JsonSerializerOptions options)
-    {
+    public override void Write(Utf8JsonWriter writer, Color value, JsonSerializerOptions options) {
         writer.WriteStartObject();
         writer.WriteNumber("A", value.A);
         writer.WriteNumber("R", value.R);
@@ -68,40 +60,31 @@ public class ColorJsonConverter : JsonConverter<Color>
     }
 }
 
-public class PixelPointJsonConverter : JsonConverter<PixelPoint>
-{
-    public override PixelPoint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
+public class PixelPointJsonConverter : JsonConverter<PixelPoint> {
+    public override PixelPoint Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
         if (reader.TokenType != JsonTokenType.StartObject)
-        {
             throw new JsonException();
-        }
 
-        int x = 0,
-            y = 0;
+        int x = 0, y = 0;
 
-        while (reader.Read())
-        {
+        while (reader.Read()) {
             if (reader.TokenType == JsonTokenType.EndObject)
-            {
                 break;
-            }
 
             if (reader.TokenType != JsonTokenType.PropertyName)
-            {
                 throw new JsonException();
-            }
 
             string? propertyName = reader.GetString();
             reader.Read();
 
-            switch (propertyName)
-            {
+            switch (propertyName) {
                 case "X":
                     x = reader.GetInt32();
+
                     break;
                 case "Y":
                     y = reader.GetInt32();
+
                     break;
             }
         }
@@ -109,8 +92,7 @@ public class PixelPointJsonConverter : JsonConverter<PixelPoint>
         return new PixelPoint(x, y);
     }
 
-    public override void Write(Utf8JsonWriter writer, PixelPoint value, JsonSerializerOptions options)
-    {
+    public override void Write(Utf8JsonWriter writer, PixelPoint value, JsonSerializerOptions options) {
         writer.WriteStartObject();
         writer.WriteNumber("X", value.X);
         writer.WriteNumber("Y", value.Y);
@@ -118,55 +100,98 @@ public class PixelPointJsonConverter : JsonConverter<PixelPoint>
     }
 }
 
-public class LyricConfig : ObservableObject
-{
+public partial class DesktopControlConfig : ObservableObject {
+    public bool IsEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial int TriggerDistance { get; set; } = 10;
+}
+
+public class LyricConfig : ObservableObject {
     public RolledLyricConfig RolledLyric { get; set; } = new();
 
     public DesktopLyricConfig DesktopLyric { get; set; } = new();
 
-    public bool IsExpandedRolledLyricConfig { get; set; }
-
-    public bool IsExpandedDesktopLyricConfig { get; set; }
-
     [JsonIgnore]
-    public static HorizontalAlignment[] TextAlignments { get; } =
-        [HorizontalAlignment.Left, HorizontalAlignment.Center, HorizontalAlignment.Right];
+    public static FrozenDictionary<string, HorizontalAlignment> TextAlignments { get; } =
+        EnumHelper<HorizontalAlignment>.ToDictionary();
 }
 
-public partial class RolledLyricConfig : ObservableObject
-{
+public partial class RolledLyricConfig : ObservableObject {
     [ObservableProperty]
     public partial HorizontalAlignment LyricTextAlignment { get; set; } = HorizontalAlignment.Left;
 
     [ObservableProperty]
-    public partial bool ShowTranslation { get; set; }
+    public partial bool ShowTranslation { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string? RolledLyricsFont { get; set; } = AppResources.CUTE_FONT_KEY;
+
+    [ObservableProperty]
+    public partial double PrimaryFontSize { get; set; } = 16;
+
+    [ObservableProperty]
+    public partial double TranslationFontSize { get; set; } = 14;
+
+    [ObservableProperty]
+    public partial int LineSpacing { get; set; }
+
+    [ObservableProperty]
+    public partial int TranslationSpacing { get; set; } = 5;
 }
 
-public partial class DesktopLyricConfig : ObservableObject
-{
-    public bool LyricIsEnabled { get; set; }
-
-    public bool LockLyricWindow { get; set; }
+public partial class DesktopLyricConfig : ObservableObject {
+    [ObservableProperty]
+    public partial bool IsTopmost { get; set; } = true;
 
     [ObservableProperty]
-    public partial bool LyricIsDoubleLine { get; set; } = true;
+    public partial bool IsAutoFade { get; set; } = true;
+
+    public int FadeInMilliseconds { get; set; } = 500;
+
+    public int FadeOutMilliseconds { get; set; } = 5000;
+
+    public int FadeOutDelayMilliseconds { get; set; } = 10000;
+
+    public int MinimumOpacity { get; set; }
 
     [ObservableProperty]
-    public partial bool LyricIsDualLang { get; set; }
+    public partial TimeSpan CrossFadeTime { get; set; } = TimeSpan.FromMilliseconds(500);
 
     [ObservableProperty]
-    public partial bool LyricIsVertical { get; set; }
+    public partial TimeSpan SlideTime { get; set; } = TimeSpan.FromMilliseconds(300);
+
+    [ObservableProperty]
+    public partial TimeSpan FadeTime { get; set; } = TimeSpan.FromMilliseconds(300);
+
+
+    public bool IsEnabled { get; set; } = true;
+
+    public bool IsAnchored { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsDoubleLine { get; set; }
+
+    /// <summary>双行模式下的分居两侧：当前行靠左、下一行靠右，并使用淡入淡出过渡。</summary>
+    [ObservableProperty]
+    public partial bool IsKtvMode { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsDualLang { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string Font { get; set; } = AppResources.CUTE_FONT_KEY;
 
     [ObservableProperty]
     [JsonConverter(typeof(PixelPointJsonConverter))]
     public partial PixelPoint Position { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(LyricMargin))]
-    public partial double LyricSpacing { get; set; } = 10;
+    [NotifyPropertyChangedFor(nameof(Margin))]
+    public partial double Spacing { get; set; } = 10;
 
     [ObservableProperty]
-    public partial double LyricWidth { get; set; } = 500;
+    public partial double Width { get; set; } = 800;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(WindowCornerRadius))]
@@ -174,60 +199,72 @@ public partial class DesktopLyricConfig : ObservableObject
 
     public CornerRadius WindowCornerRadius => new(CornerRadius);
 
-    public Thickness LyricMargin => new(LyricSpacing);
+    public Thickness Margin => new(Spacing);
 
     [ObservableProperty]
-    public partial HorizontalAlignment LyricTextAlignment { get; set; } = HorizontalAlignment.Center;
+    public partial HorizontalAlignment TextAlignment { get; set; } = HorizontalAlignment.Center;
 
-    [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricMainTopColor { get; set; } = Color.FromArgb(255, 255, 35, 112);
+    public partial FontWeight PrimaryWeight { get; set; } = FontWeight.Bold;
 
-    [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricMainBottomColor { get; set; } = Color.FromArgb(255, 180, 152, 255);
+    public partial FontWeight SecondaryWeight { get; set; } = FontWeight.Bold;
 
-    [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricMainBorderColor { get; set; } = Colors.White;
+    public partial FontWeight AltPrimaryWeight { get; set; } = FontWeight.Normal;
 
-    [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricAltTopColor { get; set; } = Color.FromArgb(255, 122, 68, 255);
+    public partial FontWeight AltSecondaryWeight { get; set; } = FontWeight.Normal;
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricAltBottomColor { get; set; } = Color.FromArgb(255, 255, 134, 227);
+    public partial Color MainTopColor { get; set; } = Color.FromArgb(255, 255, 35, 112);
 
     [JsonConverter(typeof(ColorJsonConverter))]
     [ObservableProperty]
-    public partial Color LyricAltBorderColor { get; set; } = Colors.White;
+    public partial Color MainBottomColor { get; set; } = Color.FromArgb(255, 180, 152, 255);
+
+    [JsonConverter(typeof(ColorJsonConverter))]
+    [ObservableProperty]
+    public partial Color MainBorderColor { get; set; } = Colors.Black;
+
+    [JsonConverter(typeof(ColorJsonConverter))]
+    [ObservableProperty]
+    public partial Color AltTopColor { get; set; } = Color.FromArgb(255, 122, 68, 255);
+
+    [JsonConverter(typeof(ColorJsonConverter))]
+    [ObservableProperty]
+    public partial Color AltBottomColor { get; set; } = Color.FromArgb(255, 255, 134, 227);
+
+    [JsonConverter(typeof(ColorJsonConverter))]
+    [ObservableProperty]
+    public partial Color AltBorderColor { get; set; } = Colors.Black;
 
     [ObservableProperty]
     [JsonConverter(typeof(ColorJsonConverter))]
-    public partial Color LyricBackground { get; set; }
+    public partial Color Background { get; set; }
 
     [ObservableProperty]
-    public partial double LyricMainFontSize { get; set; } = 20;
+    public partial double MainFontSize { get; set; } = 24;
 
     [ObservableProperty]
-    public partial double LyricAltFontSize { get; set; } = 18;
+    public partial double AltFontSize { get; set; } = 22;
 
     [ObservableProperty]
-    public partial double LyricMainLetterSpacing { get; set; } = 2;
+    public partial double MainCharSpacing { get; set; } = 3;
 
     [ObservableProperty]
-    public partial double LyricAltLetterSpacing { get; set; } = 2;
+    public partial double AltCharSpacing { get; set; } = 3;
 
     [ObservableProperty]
-    public partial double LyricMainStrokeThickness { get; set; } = 3;
+    public partial double MainStrokeThickness { get; set; } = 1;
 
     [ObservableProperty]
-    public partial double LyricAltStrokeThickness { get; set; } = 3;
+    public partial double AltStrokeThickness { get; set; } = 1;
 
     [ObservableProperty]
-    public partial double LyricMainTranslateSpacing { get; set; } = 2;
+    public partial double MainTranslateSpacing { get; set; } = 2;
 
     [ObservableProperty]
-    public partial double LyricAltTranslateSping { get; set; } = 2;
+    public partial double AltTranslateSpacing { get; set; } = 2;
 }

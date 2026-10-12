@@ -1,0 +1,34 @@
+<StackPanel xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:soundEffectModels="clr-namespace:QwQ_Music.Models.SoundEffectModels"
+            xmlns:u="https://irihi.tech/ursa"
+            Spacing="10"
+            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+            x:DataType="soundEffectModels:BassBoosterModel"
+            x:Class="QwQ_Music.Views.SoundEffects.BassBooster">
+
+    <DockPanel HorizontalSpacing="10" Height="40">
+        <Separator VerticalAlignment="Bottom" Margin="0" DockPanel.Dock="Bottom" />
+        <TextBlock FontSize="16" Text="{CompiledBinding Name}" FontWeight="Bold" VerticalAlignment="Center" />
+        <TextBlock Text="使用共振低通滤波器提高低音频率"
+                   VerticalAlignment="Center"
+                   Foreground="{DynamicResource SemiColorTertiary}" />
+    </DockPanel>
+
+    <TextBlock Text="{CompiledBinding Cutoff, StringFormat='截至频繁 : {0} Hz'}" />
+    <u:NumericIntUpDown
+        InnerRightContent="Hz"
+        Step="100"
+        Value="{CompiledBinding Cutoff}" />
+
+    <TextBlock Text="{CompiledBinding BoostGainDb, StringFormat='增益 : {0:F3} dB'}" />
+    <u:NumericFloatUpDown
+        Maximum="12"
+        Minimum="-12"
+        InnerRightContent="dB"
+        Step="0.1"
+        Value="{CompiledBinding BoostGainDb}" />
+
+</StackPanel>

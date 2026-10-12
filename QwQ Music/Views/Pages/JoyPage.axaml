@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             Margin="0,10"
+             x:DataType="pages:JoyViewModel"
+             x:Class="QwQ_Music.Views.Pages.JoyPage">
+
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Spacing="10" Margin="10,0">
+        <Button Command="{CompiledBinding ClickMeButtonCommand}" Content="❤️" ToolTip.Tip="给你比❤️" />
+        <Button Command="{CompiledBinding LagButtonClickCommand}" Content="❔" ToolTip.Tip="这是什么？卡一下" />
+        <Button Command="{CompiledBinding IceButtonClickCommand}" Content="🧊" ToolTip.Tip="为什么要播放《春日影》" />
+        <Button Command="{CompiledBinding ExecuteMemoryCleanerCommand}" Content="🧹" ToolTip.Tip="减少自身内存占用，应该能减少吧..." />
+    </StackPanel>
+
+</UserControl>

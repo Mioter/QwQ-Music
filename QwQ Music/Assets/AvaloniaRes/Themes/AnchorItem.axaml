@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:anchorControl="clr-namespace:QwQ_Music.UI.Controls.AnchorControl">
+
+    <ControlTheme x:Key="{x:Type anchorControl:AnchorItem}"
+                  TargetType="anchorControl:AnchorItem">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel>
+                    <!-- 标题栏 -->
+                    <Panel Background="{DynamicResource SemiColorBackground0}" VerticalAlignment="Top"
+                           Height="{TemplateBinding HeaderHeight}">
+                        <ContentPresenter Content="{TemplateBinding Header}"
+                                          ContentTemplate="{TemplateBinding HeaderTemplate}" />
+                    </Panel>
+                    <!-- 内容区 -->
+                    <ContentPresenter Content="{TemplateBinding Content}" />
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

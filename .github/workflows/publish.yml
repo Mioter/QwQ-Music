@@ -1,0 +1,167 @@
+﻿name: Publish QwQ Music
+
+on:
+  release:
+    types: 
+      - published
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag (e.g., v2.1.0)"
+        required: true
+      release_name:
+        description: "Release name (optional)"
+        required: false
+      prerelease:
+        description: "Mark release as prerelease"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: publish (${{ matrix.rid }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            framework: net10.0-windows10.0.19041.0
+            archive_ext: zip
+          - os: windows-11-arm
+            rid: win-arm64
+            framework: net10.0-windows10.0.19041.0
+            archive_ext: zip
+          - os: ubuntu-latest
+            rid: linux-x64
+            framework: net10.0
+            archive_ext: tar.gz
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+            framework: net10.0
+            archive_ext: tar.gz
+          - os: macos-15-intel
+            rid: osx-x64
+            framework: net10.0
+            archive_ext: tar.gz
+          - os: macos-latest
+            rid: osx-arm64
+            framework: net10.0
+            archive_ext: tar.gz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Publish Windows ${{matrix.rid}}
+        if: startsWith(matrix.rid,'win')
+        shell: pwsh
+        run: |
+          dotnet publish "QwQ Music/QwQ Music.csproj" -c Release -f ${{ matrix.framework }} -r ${{ matrix.rid }} -p:DebugType=None -p:DebugSymbols=false -p:PublishTrimmed=true -p:TrimMode=full -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:SelfContained=true -o "artifacts/${{ matrix.rid }}"
+
+      - name: Publish Linux ${{matrix.rid}}
+        if: startsWith(matrix.rid,'linux')
+        shell: bash
+        run: |
+          dotnet publish "QwQ Music/QwQ Music.csproj" -c Release -f "${{ matrix.framework }}" -r "${{ matrix.rid }}" -p:DebugType=None -p:DebugSymbols=false -p:PublishTrimmed=true -p:TrimMode=full -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:SelfContained=true -o "artifacts/${{ matrix.rid }}"
+
+      - name: Publish macOS ${{matrix.rid}}
+        if: startsWith(matrix.rid,'osx')
+        shell: bash
+        run: |
+          dotnet publish "QwQ Music/QwQ Music.csproj" -c Release -f "${{ matrix.framework }}" -r "${{ matrix.rid }}" -p:DebugType=None -p:DebugSymbols=false -p:PublishTrimmed=true -p:TrimMode=full -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:SelfContained=true -o "artifacts/${{ matrix.rid }}"
+
+      - name: Remove PDBs (Windows)
+        if: startsWith(matrix.rid,'win')
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path "artifacts/${{ matrix.rid }}" -Recurse -Filter *.pdb | Remove-Item -Force -ErrorAction SilentlyContinue
+
+      - name: Remove PDBs (Linux)
+        if: startsWith(matrix.rid,'linux')
+        shell: bash
+        run: |
+          find "artifacts/${{ matrix.rid }}" -type f -name "*.pdb" -delete
+          
+      - name: Remove PDBs (macOS)
+        if: startsWith(matrix.rid,'osx')
+        shell: bash
+        run: |
+          find "artifacts/${{ matrix.rid }}" -type f -name "*.pdb" -delete
+
+      - name: Archive Windows ${{matrix.rid}}
+        if: startsWith(matrix.rid,'win')
+        shell: pwsh
+        run: |
+          $archive = "artifacts/QwQ-Music-${{ matrix.rid }}.zip"
+          Compress-Archive -Path "artifacts/${{ matrix.rid }}/*" -DestinationPath $archive
+
+      - name: Archive Linux ${{matrix.rid}}
+        if: startsWith(matrix.rid,'linux')
+        shell: bash
+        run: |
+          tar -czf "artifacts/QwQ-Music-${{ matrix.rid }}.tar.gz" -C "artifacts/${{ matrix.rid }}" .
+
+      - name: Archive macOS ${{matrix.rid}}
+        if: startsWith(matrix.rid,'osx')
+        shell: bash
+        run: |
+          tar -czf "artifacts/QwQ-Music-${{ matrix.rid }}.tar.gz" -C "artifacts/${{ matrix.rid }}" .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: QwQ-Music-${{ matrix.rid }}
+          path: artifacts/QwQ-Music-${{ matrix.rid }}.${{ matrix.archive_ext }}
+          if-no-files-found: error
+
+  release:
+    name: create-release
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v5
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          name: ${{ inputs.release_name || inputs.release_tag }}
+          prerelease: ${{ inputs.prerelease }}
+          files: release/*
+
+  cleanup:
+    name: cleanup-artifacts
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete workflow artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const runId = context.runId;
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({ owner, repo, run_id: runId });
+            for (const artifact of artifacts.data.artifacts) {
+              await github.rest.actions.deleteArtifact({ owner, repo, artifact_id: artifact.id });
+            }

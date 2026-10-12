@@ -1,0 +1,32 @@
+<Grid xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      RowDefinitions="Auto,*,Auto" Margin="20 " RowSpacing="20"
+      x:DataType="vm:ImportConfirmViewModel"
+      x:Class="QwQ_Music.Views.Dialogs.ImportConfirm">
+
+    <StackPanel Orientation="Horizontal" Spacing="10">
+
+        <PathIcon
+            Height="20" Width="20"
+            Data="{StaticResource SemiIconHelpCircle}"
+            Foreground="{DynamicResource SemiBlue5}" />
+
+        <TextBlock Text="是否要导入这些歌曲？" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+    </StackPanel>
+
+
+    <StackPanel Spacing="20" HorizontalAlignment="Right" Grid.Row="2" Orientation="Horizontal">
+
+        <Button Content="取消"
+                Theme="{DynamicResource OutlineButton}"
+                Command="{CompiledBinding CancelCommand}" />
+
+        <Button Content="确认"
+                Command="{CompiledBinding ConfirmCommand}"
+                Theme="{DynamicResource SolidButton}" />
+
+    </StackPanel>
+
+</Grid>

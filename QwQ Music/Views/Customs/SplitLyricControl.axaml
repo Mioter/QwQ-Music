@@ -1,0 +1,26 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:custom="clr-namespace:QwQ_Music.Views.Customs">
+    <Style Selector="custom|SplitLyricControl">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid RowDefinitions="Auto,Auto" RowSpacing="{TemplateBinding Spacing}">
+
+                    <!-- 主歌词槽位 -->
+                    <ContentControl x:Name="PART_PrimarySlot"
+                                    Grid.Row="0"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left"
+                                    Opacity="1" />
+
+                    <!-- 副歌词槽位 -->
+                    <ContentControl x:Name="PART_AlternateSlot"
+                                    Grid.Row="1"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Right"
+                                    Opacity="1" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

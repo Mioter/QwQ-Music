@@ -1,0 +1,109 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:u="https://irihi.tech/ursa"
+             xmlns:panels="clr-namespace:QwQ_Music.ViewModels.Panels"
+             xmlns:customs="clr-namespace:QwQ_Music.Views.Customs"
+             x:DataType="panels:AllAlbumsPanelViewModel"
+             x:Class="QwQ_Music.Views.Pages.AlbumInfoPage">
+    <DockPanel IsVisible="{CompiledBinding SelectedItem,Converter={x:Static ObjectConverters.IsNotNull}}">
+
+        <DockPanel.Styles>
+
+            <Style Selector="u|IconButton.WithTextIconButton">
+                <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Setter Property="CornerRadius" Value="15" />
+            </Style>
+
+        </DockPanel.Styles>
+
+        <Grid DockPanel.Dock="Left" RowDefinitions="Auto,Auto,*,*" Margin="10,0" RowSpacing="10">
+
+            <Border CornerRadius="12" Effect="{DynamicResource LightColor0DropShadowEffect}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border CornerRadius="12"
+                        ClipToBounds="True">
+                    <Image MaxWidth="256" MaxHeight="256"
+                           Source="{CompiledBinding SelectedItem.Cover}" Stretch="Uniform" />
+                </Border>
+            </Border>
+
+            <TextBlock Grid.Row="1" Text="专辑简介" FontSize="16" FontWeight="Bold" />
+
+
+            <TextBlock Grid.Row="2" TextWrapping="Wrap"
+                       VerticalAlignment="Stretch"
+                       Classes="Secondary"
+                       LetterSpacing="1"
+                       LineSpacing="2"
+                       TextTrimming="CharacterEllipsis"
+                       Padding="10 10"
+                       Text="{CompiledBinding SelectedItem.Description}" />
+
+        </Grid>
+        <Grid RowDefinitions="Auto,Auto,*,Auto"
+              RowSpacing="10">
+
+            <DockPanel HorizontalSpacing="10"
+                       VerticalSpacing="10"
+                       Margin="10,0">
+
+                <u:IconButton ToolTip.Tip="返回全部专辑页面"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Top"
+                              DockPanel.Dock="Right"
+                              Theme="{StaticResource BorderlessIconButton}"
+                              Command="{CompiledBinding BackToPanelCommand}"
+                              Icon="{StaticResource SemiIconReplyStroked}" />
+
+                <TextBlock FontSize="16"
+                           DockPanel.Dock="Top"
+                           Text="{CompiledBinding SelectedItem.Name}"
+                           FontWeight="Bold" />
+
+                <StackPanel Spacing="10" Orientation="Horizontal" DockPanel.Dock="Bottom">
+
+                    <TextBlock>
+                        <Run Text="发布时间 : " Foreground="{DynamicResource TextBlockTertiaryForeground}" />
+                        <Run Text="{CompiledBinding SelectedItem.PublishTime}" />
+                    </TextBlock>
+
+                </StackPanel>
+
+                <TextBlock Classes="Secondary"
+                           FontSize="15"
+                           Text="{CompiledBinding SelectedItem.Artists}" />
+
+            </DockPanel>
+
+            <u:IconButton Grid.Row="1" ToolTip.Tip="播放本专辑"
+                          Content="播放"
+                          Classes="WithTextIconButton"
+                          HorizontalAlignment="Left"
+                          Icon="{StaticResource SemiIconMusicNoteStroked}"
+                          IsEnabled="{CompiledBinding FilteredList.Count}"
+                          Command="{CompiledBinding PlayAlbumMusicCommand}" />
+
+            <customs:MusicListDataGrid
+                Grid.Row="2"
+                DataContext="{CompiledBinding CurrentAlbum}"
+                IsCustomizable="False" />
+
+            <!-- <StackPanel Grid.Row="3" HorizontalAlignment="Right" Orientation="Horizontal"> -->
+            <!-- -->
+            <!--     <PathIcon Height="14" Data="{StaticResource NetEaseCloud}" Foreground="#E60026" -->
+            <!--               VerticalAlignment="Center" /> -->
+            <!-- -->
+            <!--     <TextBlock Text="专辑信息由网易云音乐提供，仅供学习参考" -->
+            <!--                TextWrapping="Wrap" -->
+            <!--                MaxLines="2" -->
+            <!--                VerticalAlignment="Center" -->
+            <!--                Classes="Tertiary" -->
+            <!--                FontSize="12" /> -->
+            <!-- -->
+            <!-- </StackPanel> -->
+
+        </Grid>
+
+    </DockPanel>
+</UserControl>

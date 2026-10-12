@@ -1,0 +1,39 @@
+﻿<Grid RowDefinitions="Auto,*"
+      Margin="10,20"
+      RowSpacing="20"
+      xmlns="https://github.com/avaloniaui"
+      Width="600"
+      MaxHeight="600"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:dialogs="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      x:Class="QwQ_Music.Views.Dialogs.CurrentStreamInfo"
+      x:DataType="dialogs:AudioDetailedInfoViewModel"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:u="https://irihi.tech/ursa"
+      mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
+      Name="MusicInfoContainer">
+
+
+    <TextBlock Text="播放流详细信息" Margin="10,0"
+               FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+    <ScrollViewer>
+        <u:Timeline HorizontalAlignment="Left" Mode="Right">
+            <u:TimelineItem
+                Header="音频信息" />
+            <u:TimelineItem
+                Header="QwQ Core" />
+            <u:TimelineItem
+                Header="流通道信息" />
+            <u:TimelineItem
+                Header="重采样" />
+            <u:TimelineItem
+                Header="数字信号处理" />
+            <u:TimelineItem
+                Header="音频输出" />
+        </u:Timeline>
+    </ScrollViewer>
+
+
+</Grid>

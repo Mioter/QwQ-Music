@@ -1,0 +1,25 @@
+<Grid RowDefinitions="Auto,*"
+      Margin="10,20"
+      RowSpacing="20"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:dialogs="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      x:DataType="dialogs:ViewTextViewModel"
+      x:Class="QwQ_Music.Views.Dialogs.ViewText">
+
+    <TextBlock Text="{CompiledBinding Title}" Margin="10,0"
+               FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+    <ScrollViewer Grid.Row="1">
+
+        <SelectableTextBlock Margin="10,0"
+                             TextWrapping="Wrap"
+                             MaxLines="5"
+                             MaxHeight="600"
+                             MaxWidth="800"
+                             MinWidth="400"
+                             MinHeight="300"
+                             Text="{CompiledBinding Text}" />
+    </ScrollViewer>
+
+</Grid>

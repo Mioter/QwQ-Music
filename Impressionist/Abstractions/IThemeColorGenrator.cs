@@ -1,3 +1,5 @@
 ﻿namespace Impressionist.Abstractions;
 
-public interface IThemeColorGenrator;
+public interface IThemeColorGenrator
+{
+}

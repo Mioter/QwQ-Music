@@ -1,0 +1,12 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- <StyleInclude Source="FontSelector.axaml" /> -->
+    <StyleInclude Source="MusicAlbumCover.axaml" />
+    <StyleInclude Source="MusicPlayButton.axaml" />
+    <!-- <StyleInclude Source="MusicPlayControllers.axaml" /> -->
+    <StyleInclude Source="MusicAlbumCoverButton.axaml" />
+    <StyleInclude Source="MusicListDataGrid.axaml" />
+    <StyleInclude Source="PlaylistAlbumCoverButton.axaml" />
+    <StyleInclude Source="DualTransitioningContentControl.axaml" />
+    <StyleInclude Source="SplitLyricControl.axaml" />
+</Styles>

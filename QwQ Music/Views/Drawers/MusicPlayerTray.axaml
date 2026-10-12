@@ -1,0 +1,214 @@
+<Grid mc:Ignorable="d" d:DesignHeight="100" d:DesignWidth="650"
+      x:Class="QwQ_Music.Views.Drawers.MusicPlayerTray"
+      x:DataType="drawers:MusicPlayerTrayViewModel"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:drawers="clr-namespace:QwQ_Music.ViewModels.Drawers"
+      xmlns:managers="clr-namespace:QwQ_Music.Common.Managers"
+      xmlns:customs="clr-namespace:QwQ_Music.Views.Customs"
+      ColumnDefinitions="Auto,Auto,6*">
+
+    <Grid.Styles>
+
+        <Style Selector="customs|MusicAlbumCover.AlbumCoverRotate">
+            <Style.Animations>
+                <Animation
+                    Duration="0:0:15"
+                    FillMode="Forward"
+                    IterationCount="Infinite">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="{CompiledBinding AlbumCoverRecordAngle}" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RotateTransform.Angle"
+                                Value="{CompiledBinding AlbumCoverRecordAngle, Converter={StaticResource CalcConverter}, ConverterParameter='@VALUE + 360'}" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+    </Grid.Styles>
+
+    <!--  专辑按钮  -->
+    <Button Classes="None"
+            Command="{CompiledBinding DrawerManager.ToggleMusicPlayerPageCommand}">
+
+        <customs:MusicAlbumCover
+            Classes="RoundAlbum"
+            Width="{CompiledBinding $self.Bounds.Height}"
+            Margin="4"
+            Classes.AlbumCoverRotate="{CompiledBinding AudioPlayManager.IsPlaying}"
+            Thumbnail="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Thumbnail}"
+            IsAutoRoundedCorners="True">
+
+            <customs:MusicAlbumCover.RenderTransform>
+                <RotateTransform Angle="{CompiledBinding AlbumCoverCurrentAngle, Mode=OneWayToSource}" />
+            </customs:MusicAlbumCover.RenderTransform>
+
+        </customs:MusicAlbumCover>
+    </Button>
+
+    <!--  音乐信息  -->
+    <StackPanel Grid.Column="1"
+                HorizontalAlignment="Left"
+                Spacing="5"
+                VerticalAlignment="Center"
+                Width="60">
+
+        <TextBlock Text="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Title}"
+                   FontWeight="Bold"
+                   ToolTip.Tip="{CompiledBinding RelativeSource={RelativeSource Self}, Path=Text}"
+                   Padding="0" />
+
+        <ContentPresenter>
+            <Interaction.Behaviors>
+
+                <IfElseTrigger Condition="{CompiledBinding (managers:AudioPlayManager).Instance.IsPlaying}">
+
+                    <IfElseTrigger.IfActions>
+
+                        <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ContentPresenter.ContentProperty}">
+
+                            <ChangeAvaloniaPropertyAction.Value>
+
+                                <ContentPresenter>
+
+                                    <Interaction.Behaviors>
+
+                                        <IfElseTrigger>
+
+                                            <IfElseTrigger.Condition>
+
+                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                    <Binding Path="RolledLyric.ShowTranslation" />
+                                                    <Binding
+                                                        Path="AudioPlayManager.LyricsModel.Current.Primary.Secondary"
+                                                        Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
+                                                </MultiBinding>
+
+                                            </IfElseTrigger.Condition>
+
+                                            <IfElseTrigger.IfActions>
+
+                                                <ChangeAvaloniaPropertyAction
+                                                    TargetProperty="{x:Static ContentPresenter.ContentProperty}">
+
+                                                    <ChangeAvaloniaPropertyAction.Value>
+
+                                                        <TextBlock FontSize="12"
+                                                                   MaxLines="2"
+                                                                   Text="{CompiledBinding AudioPlayManager.LyricsModel.Current.Primary.Secondary}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   TextWrapping="Wrap"
+                                                                   ToolTip.Tip="{CompiledBinding RelativeSource={RelativeSource Self}, Path=Text}" />
+
+                                                    </ChangeAvaloniaPropertyAction.Value>
+
+                                                </ChangeAvaloniaPropertyAction>
+
+                                            </IfElseTrigger.IfActions>
+
+                                            <IfElseTrigger.ElseActions>
+
+                                                <ChangeAvaloniaPropertyAction
+                                                    TargetProperty="{x:Static ContentPresenter.ContentProperty}">
+
+                                                    <ChangeAvaloniaPropertyAction.Value>
+
+                                                        <TextBlock FontSize="12"
+                                                                   MaxLines="2"
+                                                                   Text="{CompiledBinding AudioPlayManager.LyricsModel.Current.Primary.Primary}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   TextWrapping="Wrap"
+                                                                   ToolTip.Tip="{CompiledBinding RelativeSource={RelativeSource Self}, Path=Text}" />
+
+                                                    </ChangeAvaloniaPropertyAction.Value>
+
+                                                </ChangeAvaloniaPropertyAction>
+
+                                            </IfElseTrigger.ElseActions>
+
+                                        </IfElseTrigger>
+
+                                    </Interaction.Behaviors>
+                                </ContentPresenter>
+
+                            </ChangeAvaloniaPropertyAction.Value>
+
+                        </ChangeAvaloniaPropertyAction>
+
+                    </IfElseTrigger.IfActions>
+
+                    <IfElseTrigger.ElseActions>
+
+                        <ChangeAvaloniaPropertyAction
+                            TargetProperty="{x:Static ContentPresenter.ContentProperty}">
+
+                            <ChangeAvaloniaPropertyAction.Value>
+
+                                <TextBlock FontSize="12"
+                                           MaxLines="2"
+                                           Classes="Tertiary"
+                                           Text="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Artists}"
+                                           TextTrimming="CharacterEllipsis"
+                                           TextWrapping="Wrap"
+                                           ToolTip.Tip="{CompiledBinding RelativeSource={RelativeSource Self}, Path=Text}" />
+
+                            </ChangeAvaloniaPropertyAction.Value>
+
+                        </ChangeAvaloniaPropertyAction>
+
+                    </IfElseTrigger.ElseActions>
+
+                </IfElseTrigger>
+
+            </Interaction.Behaviors>
+
+        </ContentPresenter>
+    </StackPanel>
+
+    <!--  播放控制  -->
+    <Grid
+        ColumnDefinitions="*,Auto"
+        Grid.Column="2"
+        Margin="0 0 20 10"
+        RowDefinitions="*,Auto">
+
+        <customs:MusicPlayControllers Spacing="10" />
+        <!--  进度条  -->
+        <Slider
+            Grid.Column="0"
+            Grid.Row="1"
+            Margin="10,0"
+            Maximum="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Duration.TotalSeconds}"
+            Value="{CompiledBinding AudioPlayManager.Position}" />
+
+        <!--  播放时长 / 总时长  -->
+        <StackPanel
+            Grid.Column="1"
+            Grid.Row="1"
+            Orientation="Horizontal">
+
+            <TextBlock
+                FontSize="13"
+                Text="{CompiledBinding AudioPlayManager.Position, Mode=OneWay, Converter={StaticResource SecondsToStringConverter}}"
+                VerticalAlignment="Center" />
+
+            <TextBlock
+                FontSize="11"
+                Text="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Duration, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}, StringFormat=' / {0}'}"
+                VerticalAlignment="Center" />
+
+            <StackPanel.Styles>
+                <Style Selector="StackPanel > TextBlock">
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                </Style>
+            </StackPanel.Styles>
+
+        </StackPanel>
+    </Grid>
+
+
+</Grid>

@@ -1,0 +1,95 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Design.PreviewWith>
+        <ThemeVariantScope RequestedThemeVariant="Dark">
+            <StackPanel Background="Black" Spacing="20">
+                <StackPanel Spacing="10" Margin="20">
+                    <ComboBoxItem CornerRadius="8">Hello World</ComboBoxItem>
+                    <ComboBoxItem>Hello World</ComboBoxItem>
+                    <ComboBoxItem IsSelected="True">Hello World</ComboBoxItem>
+
+                    <ComboBox Width="100" SelectedIndex="0" CornerRadius="8">
+                        <ComboBoxItem>AAA</ComboBoxItem>
+                        <ComboBoxItem>BBB</ComboBoxItem>
+                        <ComboBoxItem>CCC</ComboBoxItem>
+                    </ComboBox>
+
+                    <ComboBox Width="100" SelectedIndex="0" CornerRadius="8">
+                        <ComboBoxItem>AAA</ComboBoxItem>
+                        <ComboBoxItem>BBB</ComboBoxItem>
+                        <ComboBoxItem>CCC</ComboBoxItem>
+                    </ComboBox>
+
+                    <ComboBox
+                        Width="100"
+                        IsEnabled="False"
+                        PlaceholderText="Select">
+                        <ComboBoxItem>AAA</ComboBoxItem>
+                        <ComboBoxItem>BBB</ComboBoxItem>
+                        <ComboBoxItem>CCC</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+            </StackPanel>
+        </ThemeVariantScope>
+    </Design.PreviewWith>
+
+    <!-- Add Resources Here -->
+    <Thickness x:Key="ComboBoxItemMargin">6,2</Thickness>
+    <CornerRadius x:Key="ComboBoxItemCornerRadius">8</CornerRadius>
+
+
+    <ControlTheme x:Key="{x:Type ComboBoxItem}" TargetType="ComboBoxItem">
+        <Setter Property="Margin" Value="{DynamicResource ComboBoxItemMargin}" />
+        <Setter Property="Foreground" Value="{DynamicResource ComboBoxItemForeground}" />
+        <Setter Property="Background" Value="{DynamicResource ComboBoxItemBackground}" />
+        <Setter Property="Padding" Value="{DynamicResource ComboBoxItemDefaultPadding}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ComboBoxItemCornerRadius}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="ComboBoxItem">
+                <Panel Name="BackgroundPanel">
+                    <Rectangle HorizontalAlignment="Left" Name="Indicator" Width="2"
+                               Margin="0,10" />
+                    <ContentPresenter
+                        Name="PART_ContentPresenter"
+                        Padding="{TemplateBinding Padding}"
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Content="{TemplateBinding Content}"
+                        ContentTemplate="{TemplateBinding ContentTemplate}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Foreground="{TemplateBinding Foreground}" />
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ComboBoxItemPointeroverBackground}" />
+        </Style>
+
+        <Style Selector="^:focus /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ComboBoxItemFocusBackground}" />
+        </Style>
+
+        <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ComboBoxItemDisabledBackground}" />
+        </Style>
+
+        <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ComboBoxItemPressedBackground}" />
+        </Style>
+
+        <Style Selector="^:selected">
+
+            <Style Selector="^ /template/ Rectangle#Indicator">
+                <Setter Property="Fill" Value="{DynamicResource SemiLightBlue5}" />
+            </Style>
+        </Style>
+
+    </ControlTheme>
+
+</ResourceDictionary>

@@ -1,0 +1,354 @@
+﻿<Window CanResize="False"
+        Focusable="False"
+        ShowActivated="False"
+        ShowInTaskbar="False"
+        WindowDecorations="None"
+        Topmost="{Binding LyricConfig.IsTopmost}"
+        FontFamily="{CompiledBinding LyricConfig.Font,Converter={StaticResource StringToFontFamily}}"
+        Width="{CompiledBinding LyricConfig.Width}"
+        SizeToContent="Height"
+        Background="{CompiledBinding LyricConfig.Background,Converter={StaticResource ToBrushConverter}}"
+        WindowStartupLocation="Manual"
+        Title="QwQ Music • 桌面歌词"
+        Icon="avares://QwQ Music/Assets/AvaloniaRes/AppIcon.ico"
+        x:Class="QwQ_Music.Windows.DesktopLyricsWindow"
+        x:DataType="vm:DesktopLyricsWindowViewModel"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:Avalonia.Controls.Converters;assembly=Avalonia.Controls.ColorPicker"
+        xmlns:control="clr-namespace:QwQ.Avalonia.Control;assembly=QwQ.Avalonia.Control"
+        xmlns:behaviors="clr-namespace:QwQ_Music.UI.Behaviors"
+        xmlns:vm="clr-namespace:QwQ_Music.ViewModels.Windows"
+        xmlns:models="clr-namespace:QwQ_Music.Models"
+        xmlns:custom="clr-namespace:QwQ_Music.Views.Customs"
+        Name="DesktopLyricContainer">
+
+    <Window.Resources>
+        <converters:ToBrushConverter x:Key="ToBrushConverter" />
+    </Window.Resources>
+
+    <Panel>
+        <Panel.Styles>
+            <Style Selector="control|TextPath">
+                <Setter Property="MinHeight" Value="{Binding $self.FontSize}" />
+            </Style>
+        </Panel.Styles>
+
+        <Border Classes.RunLyricBorder="{CompiledBinding $parent[Window].IsPointerOver}"
+                CornerRadius="{CompiledBinding LyricConfig.WindowCornerRadius}"
+                BorderThickness="2">
+
+            <Border.Styles>
+
+                <Style Selector="Border.RunLyricBorder">
+
+                    <Setter Property="BorderBrush">
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                            <LinearGradientBrush.GradientStops>
+                                <GradientStop Offset="0" Color="{CompiledBinding LyricConfig.MainTopColor}" />
+                                <GradientStop Offset="0.5" Color="{CompiledBinding LyricConfig.MainBorderColor}" />
+                                <GradientStop Offset="1" Color="{CompiledBinding LyricConfig.MainBottomColor}" />
+                            </LinearGradientBrush.GradientStops>
+
+                        </LinearGradientBrush>
+                    </Setter>
+
+                    <Style.Animations>
+                        <Animation
+                            Duration="0:0:3"
+                            FillMode="Forward"
+                            IterationCount="Infinite">
+                            <KeyFrame Cue="0%">
+                                <Setter Property="behaviors:BorderLinearGradientBrushBehavior.BorderBrushRotateAngle"
+                                        Value="0" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="behaviors:BorderLinearGradientBrushBehavior.BorderBrushRotateAngle"
+                                        Value="360" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                </Style>
+
+            </Border.Styles>
+
+        </Border>
+
+        <TransitioningContentControl x:Name="LyricsContainer" IsVisible="{CompiledBinding !LyricConfig.IsDoubleLine}"
+                                     Content="{CompiledBinding AudioPlayManager.LyricsModel.Current}">
+            <TransitioningContentControl.ContentTemplate>
+                <DataTemplate x:DataType="models:LyricLinePair">
+                    <StackPanel
+                        Orientation="Vertical"
+                        Spacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.Spacing}"
+                        HorizontalAlignment="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.TextAlignment}"
+                        VerticalAlignment="Center"
+                        Margin="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.Margin}">
+
+                        <StackPanel.Styles>
+
+                            <Style Selector="StackPanel">
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="Orientation" Value="Vertical" />
+                            </Style>
+
+                            <Style Selector="StackPanel > control|TextPath">
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="HorizontalAlignment"
+                                        Value="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.TextAlignment}" />
+                            </Style>
+
+                        </StackPanel.Styles>
+                        <StackPanel
+                            Spacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainTranslateSpacing}">
+
+                            <!-- 主歌词 -->
+                            <control:TextPath
+                                StrokeThickness="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainStrokeThickness}"
+                                LetterSpacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainCharSpacing}"
+                                Stroke="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBorderColor,Converter={StaticResource ToBrushConverter}}"
+                                FontSize="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainFontSize}"
+                                Text="{CompiledBinding Primary.Primary}"
+                                FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.PrimaryWeight}">
+
+                                <control:TextPath.Foreground>
+                                    <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
+                                        <GradientStop
+                                            Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainTopColor}"
+                                            Offset="0" />
+                                        <GradientStop
+                                            Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBottomColor}"
+                                            Offset="1" />
+                                    </LinearGradientBrush>
+                                </control:TextPath.Foreground>
+                            </control:TextPath>
+
+                            <!-- 主歌词翻译 -->
+                            <control:TextPath
+                                StrokeThickness="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainStrokeThickness}"
+                                LetterSpacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainCharSpacing}"
+                                Stroke="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBorderColor,Converter={StaticResource ToBrushConverter}}"
+                                FontSize="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainFontSize}"
+                                Text="{CompiledBinding Primary.Secondary,FallbackValue=''}"
+                                FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.SecondaryWeight}"
+                                IsVisible="{Binding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang}">
+
+                                <control:TextPath.Foreground>
+                                    <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
+                                        <GradientStop
+                                            Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainTopColor}"
+                                            Offset="0" />
+                                        <GradientStop
+                                            Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBottomColor}"
+                                            Offset="1" />
+                                    </LinearGradientBrush>
+                                </control:TextPath.Foreground>
+                            </control:TextPath>
+                        </StackPanel>
+                    </StackPanel>
+                </DataTemplate>
+            </TransitioningContentControl.ContentTemplate>
+        </TransitioningContentControl>
+
+        <custom:DualTransitioningContentControl Name="SlideLyric"
+                                                Total="3" Visible="2"
+                                                Content="{CompiledBinding AudioPlayManager.LyricsModel.Current}"
+                                                Spacing="{CompiledBinding LyricConfig.Spacing}"
+                                                Duration="{Binding LyricConfig.SlideTime}"
+                                                Alignment="{CompiledBinding LyricConfig.TextAlignment}"
+                                                Margin="{CompiledBinding LyricConfig.Margin}">
+            <custom:DualTransitioningContentControl.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="LyricConfig.IsDoubleLine" />
+                    <Binding Path="!LyricConfig.IsKtvMode" />
+                </MultiBinding>
+            </custom:DualTransitioningContentControl.IsVisible>
+            <custom:DualTransitioningContentControl.ContentTemplate>
+                <DataTemplate DataType="models:LyricLine">
+                    <StackPanel
+                        Spacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainTranslateSpacing}">
+
+                        <StackPanel.Styles>
+
+                            <Style Selector="StackPanel">
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+
+                            <Style Selector="StackPanel > control|TextPath">
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="HorizontalAlignment"
+                                        Value="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.TextAlignment}" />
+                            </Style>
+
+                        </StackPanel.Styles>
+                        <!-- 主歌词 -->
+                        <control:TextPath
+                            StrokeThickness="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainStrokeThickness}"
+                            LetterSpacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainCharSpacing}"
+                            Stroke="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBorderColor,Converter={StaticResource ToBrushConverter}}"
+                            FontSize="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainFontSize}"
+                            Text="{CompiledBinding Primary}"
+                            FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.PrimaryWeight}">
+
+                            <control:TextPath.Foreground>
+                                <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainTopColor}"
+                                        Offset="0" />
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBottomColor}"
+                                        Offset="1" />
+                                </LinearGradientBrush>
+                            </control:TextPath.Foreground>
+
+                        </control:TextPath>
+
+                        <!-- 主歌词翻译 -->
+                        <control:TextPath
+                            StrokeThickness="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainStrokeThickness}"
+                            LetterSpacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainCharSpacing}"
+                            Stroke="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBorderColor,Converter={StaticResource ToBrushConverter}}"
+                            FontSize="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainFontSize}"
+                            Text="{CompiledBinding Secondary,FallbackValue=''}"
+                            FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.SecondaryWeight}"
+                            IsVisible="{Binding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang}">
+
+                            <control:TextPath.Foreground>
+                                <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainTopColor}"
+                                        Offset="0" />
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBottomColor}"
+                                        Offset="1" />
+                                </LinearGradientBrush>
+                            </control:TextPath.Foreground>
+
+                        </control:TextPath>
+
+                    </StackPanel>
+                </DataTemplate>
+            </custom:DualTransitioningContentControl.ContentTemplate>
+        </custom:DualTransitioningContentControl>
+
+        <custom:SplitLyricControl Duration="{Binding LyricConfig.CrossFadeTime}"
+                                  Current="{Binding AudioPlayManager.LyricsModel.Current}"
+                                  IsVisible="{Binding LyricConfig.IsKtvMode}">
+            <custom:SplitLyricControl.FirstContentTemplate>
+                <DataTemplate DataType="models:LyricLine">
+                    <StackPanel
+                        Spacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainTranslateSpacing}">
+
+                        <!-- 主歌词 -->
+                        <control:TextPath
+                            StrokeThickness="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainStrokeThickness}"
+                            LetterSpacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainCharSpacing}"
+                            Stroke="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBorderColor,Converter={StaticResource ToBrushConverter}}"
+                            FontSize="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainFontSize}"
+                            Text="{CompiledBinding Primary}"
+                            FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.PrimaryWeight}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left">
+
+                            <control:TextPath.Foreground>
+                                <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainTopColor}"
+                                        Offset="0" />
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBottomColor}"
+                                        Offset="1" />
+                                </LinearGradientBrush>
+                            </control:TextPath.Foreground>
+
+                        </control:TextPath>
+
+                        <!-- 主歌词翻译 -->
+                        <control:TextPath
+                            StrokeThickness="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainStrokeThickness}"
+                            LetterSpacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainCharSpacing}"
+                            Stroke="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBorderColor,Converter={StaticResource ToBrushConverter}}"
+                            FontSize="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainFontSize}"
+                            Text="{CompiledBinding Secondary,FallbackValue=''}"
+                            FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.SecondaryWeight}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            IsVisible="{Binding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang}">
+
+                            <control:TextPath.Foreground>
+                                <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainTopColor}"
+                                        Offset="0" />
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.MainBottomColor}"
+                                        Offset="1" />
+                                </LinearGradientBrush>
+                            </control:TextPath.Foreground>
+
+                        </control:TextPath>
+
+                    </StackPanel>
+                </DataTemplate>
+            </custom:SplitLyricControl.FirstContentTemplate>
+
+            <custom:SplitLyricControl.SecondContentTemplate>
+                <DataTemplate DataType="models:LyricLine">
+                    <StackPanel
+                        Spacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltTranslateSpacing}">
+
+                        <!-- 副歌词 -->
+                        <control:TextPath
+                            StrokeThickness="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltStrokeThickness}"
+                            LetterSpacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltCharSpacing}"
+                            Stroke="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltBorderColor,Converter={StaticResource ToBrushConverter}}"
+                            FontSize="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltFontSize}"
+                            Text="{CompiledBinding Primary}"
+                            FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltPrimaryWeight}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Right">
+
+                            <control:TextPath.Foreground>
+                                <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltTopColor}"
+                                        Offset="0" />
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltBottomColor}"
+                                        Offset="1" />
+                                </LinearGradientBrush>
+                            </control:TextPath.Foreground>
+
+                        </control:TextPath>
+
+                        <!-- 副歌词翻译 -->
+                        <control:TextPath
+                            StrokeThickness="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltStrokeThickness}"
+                            LetterSpacing="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltCharSpacing}"
+                            Stroke="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltBorderColor,Converter={StaticResource ToBrushConverter}}"
+                            FontSize="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltFontSize}"
+                            Text="{CompiledBinding Secondary,FallbackValue=''}"
+                            FontWeight="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltSecondaryWeight}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Right"
+                            IsVisible="{Binding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.IsDualLang}">
+
+                            <control:TextPath.Foreground>
+                                <LinearGradientBrush EndPoint="100% 50%" StartPoint="0% 50%">
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltTopColor}"
+                                        Offset="0" />
+                                    <GradientStop
+                                        Color="{CompiledBinding #DesktopLyricContainer.((vm:DesktopLyricsWindowViewModel)DataContext).LyricConfig.AltBottomColor}"
+                                        Offset="1" />
+                                </LinearGradientBrush>
+                            </control:TextPath.Foreground>
+
+                        </control:TextPath>
+
+                    </StackPanel>
+                </DataTemplate>
+            </custom:SplitLyricControl.SecondContentTemplate>
+        </custom:SplitLyricControl>
+    </Panel>
+</Window>

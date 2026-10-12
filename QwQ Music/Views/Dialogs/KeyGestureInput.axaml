@@ -1,0 +1,71 @@
+<Grid xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:u="https://irihi.tech/ursa"
+      xmlns:dialogs="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      x:DataType="dialogs:KeyGestureInputViewModel"
+      x:Class="QwQ_Music.Views.Dialogs.KeyGestureInput"
+      RowDefinitions="Auto,Auto,Auto,Auto"
+      MinHeight="100" MinWidth="250"
+      Margin="20" RowSpacing="20">
+
+    <StackPanel Orientation="Horizontal" Spacing="10">
+
+        <PathIcon Height="20" Width="20"
+                  Data="{StaticResource SemiIconPlusCircle}"
+                  Foreground="#46C01B" />
+
+        <TextBlock Text="{CompiledBinding Title}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+    </StackPanel>
+
+
+    <u:KeyGestureInput
+        Name="GestureInputInDialog"
+        Grid.Row="1"
+        Gesture="{CompiledBinding KeyGesture,Mode=TwoWay}"
+        HorizontalAlignment="Center"
+        MinWidth="120"
+        CornerRadius="8"
+        VerticalAlignment="Center" />
+
+    <TextBlock Grid.Row="2"
+               HorizontalAlignment="Center"
+               Classes="Tertiary"
+               Classes.GestureIsNull="{CompiledBinding #GestureInputInDialog.Gesture,Converter={x:Static ObjectConverters.IsNull}}">
+
+        <TextBlock.Styles>
+
+            <Style Selector="TextBlock.GestureIsNull">
+                <Setter Property="Text" Value="请输入按键" />
+            </Style>
+
+            <Style Selector="TextBlock">
+                <Setter Property="Text" Value="{CompiledBinding #GestureInputInDialog.Gesture,StringFormat=' 你输入了: {0} '}" />
+            </Style>
+
+        </TextBlock.Styles>
+
+    </TextBlock>
+
+    <StackPanel Grid.Row="3" Spacing="20" HorizontalAlignment="Right" Orientation="Horizontal">
+
+        <StackPanel.Styles>
+            <Style Selector="Button">
+                <Setter Property="CornerRadius" Value="8" />
+            </Style>
+        </StackPanel.Styles>
+
+        <Button ToolTip.Tip="还是蒜了吧..."
+                Content="取消"
+                Theme="{DynamicResource OutlineButton}"
+                Command="{CompiledBinding CancelCommand}" />
+
+        <Button Content="确认"
+                Classes="Danger"
+                IsEnabled="{CompiledBinding !HasErrors,Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                Command="{CompiledBinding OkCommand}"
+                Theme="{DynamicResource SolidButton}" />
+
+    </StackPanel>
+
+</Grid>

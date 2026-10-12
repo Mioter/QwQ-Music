@@ -1,0 +1,310 @@
+<UserControl
+    x:Class="QwQ_Music.Views.Drawers.MusicPlayerPanel"
+    x:DataType="drawers:MusicPlayerPanelViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:u="https://irihi.tech/ursa"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:custom="clr-namespace:QwQ_Music.UI.Controls"
+    xmlns:drawers="clr-namespace:QwQ_Music.ViewModels.Drawers"
+    xmlns:customs="clr-namespace:QwQ_Music.Views.Customs"
+    xmlns:models="clr-namespace:QwQ_Music.Models"
+    x:Name="MusicInfoPanel">
+    <Border>
+        <Border.Background>
+            <SolidColorBrush Color="{CompiledBinding DropShadowColor}" />
+        </Border.Background>
+        <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*,*">
+            <!--  内容层  -->
+
+            <Grid.Styles>
+                <Style Selector="u|IconButton">
+                    <Setter Property="CornerRadius" Value="8" />
+                    <Setter Property="Background" Value="Transparent" />
+                </Style>
+
+                <Style Selector="TextBlock">
+                    <Setter Property="FontFamily" Value="{DynamicResource AppFont}" />
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <BrushTransition Duration="0:0:0.3" Easing="QuadraticEaseIn" Property="Foreground" />
+                        </Transitions>
+                    </Setter>
+                </Style>
+
+                <Style Selector="PathIcon">
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <BrushTransition Duration="0:0:0.15" Easing="QuadraticEaseIn" Property="Foreground" />
+                        </Transitions>
+                    </Setter>
+                </Style>
+
+                <Style Selector=":is(Button)">
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <BrushTransition Duration="0:0:0.15" Easing="QuadraticEaseIn" Property="Foreground" />
+                        </Transitions>
+                    </Setter>
+                </Style>
+
+            </Grid.Styles>
+
+            <custom:ShaderEffectControl
+                IsVisible="{CompiledBinding !VisualConfig.IsStaticBackground}"
+                Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="2"
+                Colors="{CompiledBinding Colors}"
+                PerformanceMode="Balanced"
+                ShaderCode="{CompiledBinding ShaderCode}"
+                ColorTransitionDuration="0:0:0.5">
+                <custom:ShaderEffectControl.IsEnableAnimation>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="DrawerManager.IsMusicPlayerPanelVisible" />
+                        <Binding Path="$self.IsVisible" />
+                    </MultiBinding>
+                </custom:ShaderEffectControl.IsEnableAnimation>
+            </custom:ShaderEffectControl>
+            <TransitioningContentControl Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="2"
+                                         Content="{CompiledBinding Cover}"
+                                         IsVisible="{CompiledBinding VisualConfig.IsStaticBackground}"
+                                         ClipToBounds="True">
+                <TransitioningContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="Bitmap">
+                        <Panel>
+                            <Image Source="{CompiledBinding }" Margin="-40" Stretch="UniformToFill">
+                                <Image.Effect>
+                                    <BlurEffect Radius="80" />
+                                </Image.Effect>
+                            </Image>
+                        </Panel>
+                    </DataTemplate>
+                </TransitioningContentControl.ContentTemplate>
+                <!-- 可选：可以显式指定页面过渡效果为交叉淡入淡出，并设置时长 -->
+                <TransitioningContentControl.PageTransition>
+                    <CrossFade Duration="0:0:0.4" />
+                </TransitioningContentControl.PageTransition>
+            </TransitioningContentControl>
+
+            <Panel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Name="TopPanel" Background="Transparent">
+
+                <u:IconButton
+                    Command="{CompiledBinding DrawerManager.ToggleMusicPlayerPageCommand}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Icon="{StaticResource SemiIconChevronDown}"
+                    Margin="5" />
+                <!--  音乐信息  -->
+                <TransitioningContentControl Content="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model}"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center"
+                                             Margin="0 15 0 5">
+                    <TransitioningContentControl.ContentTemplate>
+                        <DataTemplate x:DataType="models:MusicItemModel">
+                            <StackPanel
+                                HorizontalAlignment="Center"
+                                Margin="10,0"
+                                Spacing="5">
+
+                                <TextBlock FontSize="18"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           Text="{CompiledBinding Title}"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip.Tip="{CompiledBinding $self.Text}" />
+                                <TextBlock Classes="Tertiary"
+                                           FontSize="15"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           Text="{CompiledBinding Artists}"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip.Tip="{CompiledBinding $self.Text}" />
+
+                            </StackPanel>
+                        </DataTemplate>
+                    </TransitioningContentControl.ContentTemplate>
+                    <TransitioningContentControl.PageTransition>
+                        <CrossFade Duration="0:0:0.4" />
+                    </TransitioningContentControl.PageTransition>
+                </TransitioningContentControl>
+
+            </Panel>
+
+            <Panel Grid.Row="1" Grid.Column="0"
+                   Margin="50 10 10 10">
+                <Border BoxShadow="0 0 5 0 DarkGray"
+                        CornerRadius="20"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                    <TransitioningContentControl
+                        Content="{CompiledBinding Cover}"
+                        ClipToBounds="True">
+                        <TransitioningContentControl.ContentTemplate>
+                            <DataTemplate x:DataType="Bitmap">
+                                <Border
+                                    CornerRadius="20"
+                                    ClipToBounds="True">
+                                    <Image Source="{CompiledBinding }" />
+                                </Border>
+                            </DataTemplate>
+                        </TransitioningContentControl.ContentTemplate>
+                        <TransitioningContentControl.PageTransition>
+                            <CrossFade Duration="0:0:0.4" />
+                        </TransitioningContentControl.PageTransition>
+                    </TransitioningContentControl>
+                </Border>
+            </Panel>
+            <!-- <Grid Grid.Row="1" Grid.Column="0" -->
+            <!--       HorizontalAlignment="Stretch" -->
+            <!--       Margin="50,20,10,20" -->
+            <!--       RowDefinitions="*,Auto" -->
+            <!--       RowSpacing="10" -->
+            <!--       VerticalAlignment="Stretch"> -->
+            <!-- -->
+            <!-- -->
+            <!-- </Grid> -->
+
+            <TransitioningContentControl Grid.Row="1" Grid.Column="1"
+                                         Content="{CompiledBinding AudioPlayManager.LyricsModel.Lyrics}"
+                                         ClipToBounds="True"
+                                         x:Name="LyricsTransitionControl">
+
+                <TransitioningContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="models:LyricsData">
+                        <custom:LyricsControl
+                            Classes.EnableDropShadow="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).VisualConfig.IsStaticBackground}"
+                            Margin="10,20"
+                            TextMargin="30,10"
+                            ClickedLyricTime="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).SelectLyricsTimePoint}"
+                            CurrentLyricIndex="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).AudioPlayManager.LyricsModel.CurrentIndex}"
+                            LyricTextAlignment="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.LyricTextAlignment}"
+                            LyricsData="{CompiledBinding .}"
+                            ShowTranslation="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.ShowTranslation}"
+                            LineSpacing="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.LineSpacing}"
+                            TranslationSpacing="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.TranslationSpacing}">
+                            <custom:LyricsControl.Styles>
+
+                                <!-- 普通歌词样式 -->
+                                <Style Selector="custom|LyricLineControl">
+                                    <Setter Property="FontFamily"
+                                            Value="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.RolledLyricsFont,Converter={StaticResource StringToFontFamily}}" />
+                                    <Setter Property="PrimaryFontSize"
+                                            Value="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.PrimaryFontSize}" />
+                                    <Setter Property="TranslationFontSize"
+                                            Value="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).RolledLyric.TranslationFontSize}" />
+                                </Style>
+                                <Style Selector="custom|LyricsControl.EnableDropShadow custom|LyricLineControl">
+                                    <Setter Property="Effect">
+                                        <DropShadowEffect BlurRadius="4" OffsetX="1" OffsetY="1"
+                                                          Color="{CompiledBinding #LyricsTransitionControl.((drawers:MusicPlayerPanelViewModel)DataContext).DropShadowColor}" />
+                                    </Setter>
+                                </Style>
+                            </custom:LyricsControl.Styles>
+
+                        </custom:LyricsControl>
+                    </DataTemplate>
+                </TransitioningContentControl.ContentTemplate>
+                <TransitioningContentControl.PageTransition>
+                    <CrossFade Duration="0:0:0.4" />
+                </TransitioningContentControl.PageTransition>
+            </TransitioningContentControl>
+
+            <custom:SpectrumVisualizerControl x:Name="SpectrumVisualizer"
+                                              Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                              LineBrush="{CompiledBinding SpectrumVisualizerBrush}"
+                                              Margin="20 -20 20 20"
+                                              Classes="Hide"
+                                              LineThickness="{CompiledBinding SpectrumConfig.LineThickness}"
+                                              AmplitudeScale="{CompiledBinding SpectrumConfig.AmplitudeScale}"
+                                              SmoothingFactor="{CompiledBinding SpectrumConfig.SmoothingFactor}">
+
+                <custom:SpectrumVisualizerControl.Transitions>
+                    <Transitions>
+                        <DoubleTransition Duration="0:0:0.5"
+                                          Easing="CircularEaseOut"
+                                          Property="Opacity" />
+                    </Transitions>
+                </custom:SpectrumVisualizerControl.Transitions>
+
+                <custom:SpectrumVisualizerControl.Styles>
+
+                    <Style Selector="custom|SpectrumVisualizerControl.Hide">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="IsHitTestVisible" Value="False" />
+                    </Style>
+
+                </custom:SpectrumVisualizerControl.Styles>
+
+            </custom:SpectrumVisualizerControl>
+
+            <Grid Name="ControlPanelGrid"
+                  Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                  ColumnDefinitions="1*,3*,1*"
+                  RowDefinitions="Auto,Auto"
+                  RowSpacing="20"
+                  Margin="20">
+
+                <Grid.Transitions>
+                    <Transitions>
+                        <DoubleTransition Duration="0:0:0.5"
+                                          Easing="CircularEaseOut"
+                                          Property="Opacity" />
+                    </Transitions>
+                </Grid.Transitions>
+
+                <Grid.Styles>
+
+                    <Style Selector="Grid.Hide">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="IsHitTestVisible" Value="False" />
+                    </Style>
+
+                </Grid.Styles>
+
+                <!--  播放控制  -->
+                <customs:MusicPlayControllers Grid.Column="1" Spacing="30" />
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
+
+                    <!--  进度条  -->
+                    <Slider Maximum="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Duration.TotalSeconds}"
+                            Value="{CompiledBinding AudioPlayManager.Position}">
+                        <Slider.Transitions>
+                            <Transitions>
+                                <BrushTransition Duration="0:0:0.2" Property="Foreground" />
+                                <BrushTransition Duration="0:0:0.2" Property="Background" />
+                            </Transitions>
+                        </Slider.Transitions>
+                    </Slider>
+
+                    <!--  播放时长 / 总时长  -->
+                    <Panel>
+
+                        <TextBlock FontSize="13"
+                                   Text="{CompiledBinding AudioPlayManager.Position, Mode=OneWay, Converter={StaticResource SecondsToStringConverter}}" />
+
+                        <TextBlock FontSize="13"
+                                   HorizontalAlignment="Right"
+                                   Text="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Duration, Mode=OneWay, Converter={StaticResource TruncateDecimalConverter}}" />
+
+                    </Panel>
+                </StackPanel>
+
+            </Grid>
+
+            <!--
+    <Rectangle Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Opacity="1">
+        <Rectangle.Fill>
+            <RadialGradientBrush Center="25%,70%" GradientOrigin="20%,70%" RadiusX="50%" RadiusY="70%">
+                <GradientStop Color="{CompiledBinding ColorsList[0]}" Offset="0" />
+                <GradientStop Color="{CompiledBinding ColorsList[1]}" Offset="0.9" />
+                <GradientStop Color="{CompiledBinding ColorsList[2]}" Offset="1" />
+            </RadialGradientBrush>
+        </Rectangle.Fill>
+        <Rectangle.Effect>
+            <BlurEffect Radius="20" />
+        </Rectangle.Effect>
+    </Rectangle>
+    -->
+        </Grid>
+    </Border>
+</UserControl>

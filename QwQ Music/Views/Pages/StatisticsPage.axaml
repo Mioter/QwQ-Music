@@ -9,4 +9,20 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages">
+
+    <!--
+    <WrapPanel ItemSpacing="10" LineSpacing="10">
+        <WrapPanel.Styles>
+            <Style Selector="Image">
+                <Setter Property="Height" Value="60" />
+                <Setter Property="Width" Value="80" />
+            </Style>
+        </WrapPanel.Styles>
+
+        <Image Source="resm:QwQ_Music.Assets.EmbeddedRes.Images.PQ.png"></Image>
+        <Image Source="resm:QwQ_Music.Assets.EmbeddedRes.Images.HQ.png"></Image>
+        <Image Source="resm:QwQ_Music.Assets.EmbeddedRes.Images.SQ.png"></Image>
+        <Image Source="resm:QwQ_Music.Assets.EmbeddedRes.Images.HR.png"></Image>
+    </WrapPanel>-->
+
 </UserControl>

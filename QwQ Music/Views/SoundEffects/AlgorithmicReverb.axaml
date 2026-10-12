@@ -1,0 +1,55 @@
+<StackPanel xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:soundEffectModels="clr-namespace:QwQ_Music.Models.SoundEffectModels"
+            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+            x:DataType="soundEffectModels:AlgorithmicReverbModel"
+            Spacing="10"
+            x:Class="QwQ_Music.Views.SoundEffects.AlgorithmicReverb">
+
+    <DockPanel HorizontalSpacing="10" Height="40">
+        <Separator VerticalAlignment="Bottom" Margin="0" DockPanel.Dock="Bottom" />
+        <TextBlock FontSize="16" Text="{CompiledBinding Name}" FontWeight="Bold" VerticalAlignment="Center" />
+        <TextBlock Text="Free-verb 算法混响效果器"
+                   VerticalAlignment="Center"
+                   Foreground="{DynamicResource SemiColorTertiary}" />
+    </DockPanel>
+
+    <TextBlock Text="{CompiledBinding Wet, StringFormat='湿信号 : {0:F3}'}" />
+    <Slider
+        Maximum="1.0"
+        Minimum="0.0"
+        Value="{CompiledBinding Wet}" />
+
+    <TextBlock Text="{CompiledBinding Mix, StringFormat='干湿混合比例: {0:F3} '}" />
+    <Slider
+        Maximum="1"
+        Minimum="0"
+        Value="{CompiledBinding Mix}" />
+
+    <TextBlock Text="{CompiledBinding RoomSize, StringFormat='房间大小 : {0:F3}'}" />
+    <Slider
+        Maximum="1"
+        Minimum="0"
+        Value="{CompiledBinding RoomSize}" />
+
+    <TextBlock Text="{CompiledBinding Damp, StringFormat='阻尼 : {0:F3}'}" />
+    <Slider
+        Maximum="1"
+        Minimum="0"
+        Value="{CompiledBinding Damp}" />
+
+    <TextBlock Text="{CompiledBinding Width, StringFormat='立体声宽度 : {0:F3}'}" />
+    <Slider
+        Maximum="1"
+        Minimum="0"
+        Value="{CompiledBinding Width}" />
+
+    <TextBlock Text="{CompiledBinding PreDelay, StringFormat='预延迟: {0:F0} ms'}" />
+    <Slider
+        Maximum="100"
+        Minimum="0"
+        Value="{CompiledBinding PreDelay}" />
+
+</StackPanel>

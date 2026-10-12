@@ -1,0 +1,100 @@
+<Grid xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:dialogs="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      RowDefinitions="Auto,*,Auto"
+      Margin="20" RowSpacing="20"
+      x:DataType="dialogs:CreateMusicListViewModel"
+      x:Class="QwQ_Music.Views.Dialogs.CreateMusicList">
+
+    <StackPanel Orientation="Horizontal" Spacing="10">
+
+        <PathIcon Height="20" Width="20" Data="{StaticResource SemiIconPlusCircle}"
+                  Foreground="#46C01B" />
+
+        <TextBlock Text="{CompiledBinding Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+    </StackPanel>
+
+    <DockPanel Grid.Row="1" HorizontalSpacing="20" VerticalSpacing="10" Width="500">
+
+        <DockPanel.Styles>
+
+            <Style Selector="DockPanel > StackPanel">
+                <Setter Property="Spacing" Value="5" />
+            </Style>
+
+        </DockPanel.Styles>
+
+        <Button Classes="Icon"
+                Height="180"
+                Width="180"
+                Padding="0"
+                Command="{CompiledBinding SetCoverCommand}"
+                Background="#F5F5F6"
+                CornerRadius="8">
+
+            <Interaction.Behaviors>
+                <IfElseTrigger Condition="{CompiledBinding Cover,Converter={x:Static ObjectConverters.IsNull}}">
+
+                    <IfElseTrigger.IfActions>
+                        <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ContentPresenter.ContentProperty}">
+                            <ChangeAvaloniaPropertyAction.Value>
+                                <PathIcon Foreground="#CACACA" Margin="50"
+                                          Data="{StaticResource AddCover}" />
+                            </ChangeAvaloniaPropertyAction.Value>
+                        </ChangeAvaloniaPropertyAction>
+                    </IfElseTrigger.IfActions>
+
+                    <IfElseTrigger.ElseActions>
+                        <ChangeAvaloniaPropertyAction TargetProperty="{x:Static ContentPresenter.ContentProperty}">
+                            <ChangeAvaloniaPropertyAction.Value>
+                                <Border CornerRadius="{CompiledBinding $parent[Button].CornerRadius}" ClipToBounds="True">
+                                    <Image Source="{CompiledBinding Cover}" />
+                                </Border>
+                            </ChangeAvaloniaPropertyAction.Value>
+                        </ChangeAvaloniaPropertyAction>
+                    </IfElseTrigger.ElseActions>
+                </IfElseTrigger>
+
+            </Interaction.Behaviors>
+        </Button>
+
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock Text="名称 :"
+                       FontWeight="Bold" />
+
+            <TextBox Name="NameTextBlock" CornerRadius="8" Text="{CompiledBinding   Name}" />
+        </StackPanel>
+
+        <StackPanel>
+            <TextBlock Text="描述 :" Classes="Tertiary" FontWeight="Bold" />
+            <TextBox Height="155"
+                     CornerRadius="8"
+                     TextWrapping="Wrap"
+                     VerticalContentAlignment="Top"
+                     Padding="8,5"
+                     Text="{CompiledBinding Description}" />
+        </StackPanel>
+
+    </DockPanel>
+
+    <StackPanel Grid.Row="2" Spacing="20" HorizontalAlignment="Right" Orientation="Horizontal">
+
+        <StackPanel.Styles>
+            <Style Selector="Button">
+                <Setter Property="CornerRadius" Value="8" />
+            </Style>
+        </StackPanel.Styles>
+
+        <Button Content="取消"
+                Theme="{DynamicResource OutlineButton}"
+                Command="{CompiledBinding CancelCommand}" />
+
+        <Button Content="确认"
+                IsEnabled="{CompiledBinding !HasErrors}"
+                Command="{CompiledBinding OkCommand}"
+                Theme="{DynamicResource SolidButton}" />
+
+    </StackPanel>
+
+</Grid>

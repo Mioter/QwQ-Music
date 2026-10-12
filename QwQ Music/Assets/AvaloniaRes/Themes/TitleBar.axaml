@@ -1,0 +1,28 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Add Resources Here -->
+    <ControlTheme x:Key="{x:Type WindowDrawnDecorations}" TargetType="WindowDrawnDecorations">
+        <Setter Property="Template">
+            <WindowDrawnDecorationsTemplate>
+                <WindowDrawnDecorationsContent>
+                    <WindowDrawnDecorationsContent.Overlay>
+                        <DockPanel Height="{TemplateBinding TitleBarHeight}"
+                                   Background="{x:Null}"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Top"
+                                   Margin="{TemplateBinding ShadowThickness}">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2">
+                                <Button x:Name="PART_FullScreenButton" Content="{StaticResource WindowExpandGlyph}" />
+                                <Button x:Name="PART_MinimizeButton" Content="─" />
+                                <Button x:Name="PART_MaximizeButton" Content="□" />
+                                <Button x:Name="PART_CloseButton">
+                                    <PathIcon Data="{StaticResource PauseIconData}"></PathIcon>
+                                </Button>
+                            </StackPanel>
+                        </DockPanel>
+                    </WindowDrawnDecorationsContent.Overlay>
+                </WindowDrawnDecorationsContent>
+            </WindowDrawnDecorationsTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

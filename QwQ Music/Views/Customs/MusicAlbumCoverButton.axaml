@@ -1,0 +1,163 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:QwQ_Music.Models"
+        xmlns:customs="clr-namespace:QwQ_Music.Views.Customs"
+        xmlns:converters="clr-namespace:QwQ_Music.UI.Converters">
+    <Style Selector="customs|MusicAlbumCoverButton">
+        <Setter Property="Template">
+            <ControlTemplate x:DataType="models:MusicItemModel">
+                <Button Classes="None"
+                        Command="{TemplateBinding Command}"
+                        CommandParameter="{CompiledBinding }"
+                        Foreground="{DynamicResource SemiColorBackground4}"
+                        Height="50"
+                        Margin="10"
+                        CornerRadius="5"
+                        Width="50"
+                        ClipToBounds="True">
+                    <Border CornerRadius="5"
+                            ClipToBounds="True">
+                        <Panel>
+                            <Border x:Name="PART_CoverClip" CornerRadius="5" ClipToBounds="True"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <Image x:Name="PART_Cover" Source="{CompiledBinding Thumbnail}" />
+                            </Border>
+                            <Border Background="#33000000" Width="{CompiledBinding #PART_CoverClip.Bounds.Width}"
+                                    Height="{CompiledBinding #PART_CoverClip.Bounds.Height}">
+                                <Border.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                                        <TemplateBinding Property="ExternalPointerOver" />
+                                        <Binding Path="IsCurrent" />
+                                    </MultiBinding>
+                                </Border.IsVisible>
+                            </Border>
+                            <Panel x:Name="PART_Current" IsVisible="{CompiledBinding IsCurrent,Mode=OneWay}">
+                                <StackPanel Name="PART_Wave"
+                                            HorizontalAlignment="Center"
+                                            Orientation="Horizontal"
+                                            Spacing="4"
+                                            VerticalAlignment="Center">
+                                    <StackPanel.IsVisible>
+                                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                            <Binding Path="AudioPlayManager.IsPlaying"
+                                                     RelativeSource="{RelativeSource TemplatedParent}" />
+                                            <TemplateBinding Property="ExternalPointerOver"
+                                                             Converter="{x:Static BoolConverters.Not}" />
+                                        </MultiBinding>
+                                    </StackPanel.IsVisible>
+
+                                    <Border Classes="Short" />
+                                    <Border Classes="Long" />
+                                    <Border Classes="Short" />
+
+                                    <StackPanel.Styles>
+                                        <Style Selector="Border">
+                                            <Setter
+                                                Property="CornerRadius"
+                                                Value="3" />
+                                            <Setter
+                                                Property="Width"
+                                                Value="4" />
+                                            <Setter
+                                                Property="Background"
+                                                Value="White" />
+                                        </Style>
+
+                                        <Style
+                                            Selector="Border.Long">
+                                            <Setter
+                                                Property="Height"
+                                                Value="20" />
+                                            <Style.Animations>
+                                                <Animation
+                                                    Duration="0:0:1"
+                                                    FillMode="Forward"
+                                                    IterationCount="Infinite">
+                                                    <KeyFrame
+                                                        Cue="0%">
+                                                        <Setter
+                                                            Property="ScaleTransform.ScaleY"
+                                                            Value="1" />
+                                                    </KeyFrame>
+                                                    <KeyFrame
+                                                        Cue="50%">
+                                                        <Setter
+                                                            Property="ScaleTransform.ScaleY"
+                                                            Value="0.5" />
+                                                    </KeyFrame>
+                                                    <KeyFrame
+                                                        Cue="100%">
+                                                        <Setter
+                                                            Property="ScaleTransform.ScaleY"
+                                                            Value="1" />
+                                                    </KeyFrame>
+                                                </Animation>
+                                            </Style.Animations>
+                                        </Style>
+
+                                        <Style
+                                            Selector="Border.Short">
+                                            <Setter
+                                                Property="Height"
+                                                Value="10" />
+                                            <Style.Animations>
+                                                <Animation
+                                                    Duration="0:0:1"
+                                                    FillMode="Forward"
+                                                    IterationCount="Infinite">
+                                                    <KeyFrame
+                                                        Cue="0%">
+                                                        <Setter
+                                                            Property="ScaleTransform.ScaleY"
+                                                            Value="1" />
+                                                    </KeyFrame>
+                                                    <KeyFrame
+                                                        Cue="50%">
+                                                        <Setter
+                                                            Property="ScaleTransform.ScaleY"
+                                                            Value="1.5" />
+                                                    </KeyFrame>
+                                                    <KeyFrame
+                                                        Cue="100%">
+                                                        <Setter
+                                                            Property="ScaleTransform.ScaleY"
+                                                            Value="1" />
+                                                    </KeyFrame>
+                                                </Animation>
+                                            </Style.Animations>
+                                        </Style>
+                                    </StackPanel.Styles>
+                                </StackPanel>
+                                <PathIcon Name="PART_PauseIcon"
+                                          Foreground="White"
+                                          Data="{StaticResource PauseIconData}">
+                                    <PathIcon.IsVisible>
+                                        <MultiBinding Converter="{x:Static converters:ExtraBoolConverters.Xnor}">
+                                            <Binding Path="AudioPlayManager.IsPlaying"
+                                                     RelativeSource="{RelativeSource TemplatedParent}" />
+                                            <TemplateBinding Property="ExternalPointerOver" />
+                                        </MultiBinding>
+                                    </PathIcon.IsVisible>
+                                </PathIcon>
+                            </Panel>
+                            <Panel IsVisible="{TemplateBinding ExternalPointerOver,Mode=OneWay}">
+                                <PathIcon Name="PART_PlayIcon"
+                                          Foreground="White"
+                                          Data="{StaticResource PlayIconData}">
+                                    <PathIcon.IsVisible>
+                                        <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                                            <Binding Path="!IsCurrent" />
+                                            <Binding Path="!AudioPlayManager.IsPlaying"
+                                                     RelativeSource="{RelativeSource TemplatedParent}" />
+                                        </MultiBinding>
+                                    </PathIcon.IsVisible>
+                                </PathIcon>
+                            </Panel>
+                        </Panel>
+                    </Border>
+                </Button>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

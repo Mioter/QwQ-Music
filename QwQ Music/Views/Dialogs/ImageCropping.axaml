@@ -1,0 +1,54 @@
+<Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20" RowSpacing="20"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:dialogs="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      xmlns:controls="clr-namespace:QwQ_Music.UI.Controls"
+      mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+      x:DataType="dialogs:ImageCroppingViewModel"
+      x:Class="QwQ_Music.Views.Dialogs.ImageCropping">
+
+    <TextBlock Text="图片裁剪"
+               FontWeight="Bold"
+               FontSize="16"
+               VerticalAlignment="Center" />
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal"
+                Spacing="10">
+
+        <Button Content="保存图片"
+                IsEnabled="{CompiledBinding CroppedImage,Converter={x:Static ObjectConverters.IsNotNull}}"
+                Command="{CompiledBinding SaveImageButtonClickCommand}" />
+
+        <ComboBox Width="120"
+                  DisplayMemberBinding="{CompiledBinding Key}"
+                  SelectedValueBinding="{CompiledBinding Value}"
+                  SelectedValue="{CompiledBinding AspectRatio}"
+                  ItemsSource="{CompiledBinding AspectRatioMaps}" />
+
+    </StackPanel>
+
+    <controls:ImageCropperControl Name="ImageCropper"
+                                  Height="300" Width="500"
+                                  CroppedImage="{CompiledBinding CroppedImage,Mode=OneWayToSource}"
+                                  SourceImage="{CompiledBinding SourceImage}"
+                                  AspectRatio="{CompiledBinding AspectRatio}"
+                                  Grid.Row="2" />
+
+    <StackPanel Spacing="20" HorizontalAlignment="Right" Grid.Row="3" Orientation="Horizontal">
+
+        <Button ToolTip.Tip="还是蒜了吧..."
+                Content="取消"
+                Theme="{DynamicResource OutlineButton}"
+                Command="{CompiledBinding CancelCommand}" />
+
+        <Button Content="确认"
+                IsEnabled="{CompiledBinding CroppedImage,Converter={x:Static ObjectConverters.IsNotNull}}"
+                ToolTip.Tip="我确定好了！"
+                Command="{CompiledBinding OkCommand}"
+                Theme="{DynamicResource SolidButton}" />
+
+    </StackPanel>
+
+</Grid>

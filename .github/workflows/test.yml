@@ -1,4 +1,4 @@
-﻿name: Test and Validation
+name: Test and Validation
 
 # 在pr时触发
 on:
@@ -10,17 +10,16 @@ jobs:
   #构建测试
   Build-test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Setup .NET 9.0
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: "10.0.x"
 
       - name: Cache .NET packages
         uses: actions/cache@v4
@@ -37,7 +36,8 @@ jobs:
         run: dotnet build "QwQ Music.sln" --configuration Debug --no-restore
 
       - name: Run tests
-        run: dotnet test "QwQ Music.sln" --configuration Debug --no-build --verbosity normal --logger trx --results-directory TestResults/
+        run: dotnet test "QwQ Music.sln" --configuration Debug --no-build -f net10.0 --verbosity normal --logger trx --results-directory TestResults/
+
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -45,21 +45,22 @@ jobs:
         with:
           name: test-results
           path: TestResults/
-  
-  #代码规范检查
+
+#代码规范检查
   Code-quality:
-    runs-on: ubuntu-latest
-    
+    runs-on: windows-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup .NET 9.0
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: "10.0.x"
+
       #使用缓存
       - name: Cache .NET packages
         uses: actions/cache@v4
@@ -74,7 +75,8 @@ jobs:
 
       - name: Build and analyze
         run: |
-          dotnet build "QwQ Music.sln" --configuration Debug --verbosity normal
-          
+          dotnet build "QwQ Music.sln" --configuration Debug --no-restore --verbosity normal
+
       - name: Check formatting
-        run: dotnet format "QwQ Music.sln" --verify-no-changes --verbosity diagnostic
+        run: dotnet format "QwQ Music.sln" --no-restore --verify-no-changes --verbosity diagnostic
+

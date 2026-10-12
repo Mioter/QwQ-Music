@@ -1,0 +1,152 @@
+<Grid ColumnDefinitions="Auto,*" ColumnSpacing="20" Margin="0,10"
+      d:DesignHeight="450" d:DesignWidth="800"
+      mc:Ignorable="d"
+      x:Class="QwQ_Music.Views.Pages.ThemeConfigPage"
+      x:DataType="pages:UiConfigPageViewModel"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:pages="clr-namespace:QwQ_Music.ViewModels.Pages"
+      xmlns:u="https://irihi.tech/ursa"
+      xmlns:anchorControl="clr-namespace:QwQ_Music.UI.Controls.AnchorControl"
+      xmlns:services="clr-namespace:QwQ_Music.Common.Services"
+      xmlns:customs="clr-namespace:QwQ_Music.Views.Customs">
+
+    <u:SelectionList Grid.Column="0" Name="NavigationList">
+        <TextBlock Text="视觉" />
+        <TextBlock Text="主题" />
+
+    </u:SelectionList>
+
+    <anchorControl:Anchor Grid.Column="1" IndexSource="{CompiledBinding ElementName=NavigationList}">
+
+        <anchorControl:Anchor.Styles>
+
+            <Style Selector="StackPanel">
+                <Setter Property="Spacing" Value="10" />
+            </Style>
+
+        </anchorControl:Anchor.Styles>
+
+        <anchorControl:Anchor.HeaderTemplate>
+
+            <DataTemplate DataType="x:String">
+                <Panel>
+                    <TextBlock FontSize="16" Text="{CompiledBinding}" FontWeight="Bold" VerticalAlignment="Center" />
+                    <Separator VerticalAlignment="Bottom" Margin="0" />
+                </Panel>
+            </DataTemplate>
+
+        </anchorControl:Anchor.HeaderTemplate>
+        <anchorControl:AnchorItem Header="视觉">
+
+            <StackPanel Spacing="10">
+
+                <CheckBox IsChecked="{CompiledBinding UiConfig.VisualConfig.IsStaticBackground}">
+                    <TextBlock Text="播放界面静态背景" />
+                </CheckBox>
+
+                <!-- TODO -->
+                <CheckBox IsEnabled="False" IsChecked="{CompiledBinding UiConfig.VisualConfig.ColorfulUi}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="封面采色界面" Foreground="{DynamicResource  TextBlockTertiaryForeground}" />
+                        <TextBlock Text="未完成的功能" Foreground="{DynamicResource  TextBlockTertiaryForeground}" />
+                    </StackPanel>
+                </CheckBox>
+
+                <CheckBox
+                    IsChecked="{CompiledBinding UiConfig.VisualConfig.AllowNonSquareCover}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="允许异形封面" />
+                        <TextBlock Text="* 重新加载时生效" Foreground="{DynamicResource  TextBlockTertiaryForeground}" />
+                    </StackPanel>
+                </CheckBox>
+
+                <Panel>
+                    <TextBlock Text="颜色缓存 : " VerticalAlignment="Center" />
+                    <Button
+                        Command="{CompiledBinding ClearCoverColorCommand}"
+                        Content="清空"
+                        HorizontalAlignment="Right" />
+                </Panel>
+
+                <Panel>
+                    <TextBlock Text="取色算法 : " VerticalAlignment="Center" />
+
+                    <ComboBox HorizontalAlignment="Right"
+                              ItemsSource="{CompiledBinding ColorExtractionAlgorithms}"
+                              SelectedValueBinding="{CompiledBinding Key}"
+                              SelectedValue="{CompiledBinding UiConfig.VisualConfig.SelectedColorExtractionAlgorithm}">
+
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{CompiledBinding Key}" ToolTip.Tip="{CompiledBinding Value}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </Panel>
+
+                <CheckBox
+                    Content="忽略白色"
+                    IsChecked="{CompiledBinding UiConfig.VisualConfig.IgnoreWhite}" />
+
+                <CheckBox
+                    Content="转化为Lab矢量"
+                    IsVisible="{CompiledBinding UiConfig.VisualConfig.SelectedColorExtractionAlgorithm,Converter={x:Static ObjectConverters.Equal},ConverterParameter='{x:Static services:ColorExtractionAlgorithm.KMeans}'}"
+                    IsChecked="{CompiledBinding UiConfig.VisualConfig.ToLab}" />
+
+                <CheckBox
+                    Content="使用UseKMeansPp"
+                    IsVisible="{CompiledBinding UiConfig.VisualConfig.SelectedColorExtractionAlgorithm,Converter={x:Static ObjectConverters.Equal},ConverterParameter='{x:Static services:ColorExtractionAlgorithm.KMeans}'}"
+                    IsChecked="{CompiledBinding UiConfig.VisualConfig.UseKMeansPp}" />
+
+            </StackPanel>
+
+        </anchorControl:AnchorItem>
+
+        <anchorControl:AnchorItem Header="主题">
+
+            <StackPanel Spacing="10">
+
+                <Panel>
+                    <TextBlock Text="字体" VerticalAlignment="Center" />
+                    <Button HorizontalAlignment="Right"
+                            Theme="{StaticResource ComboButton}"
+                            Content="{CompiledBinding AppResources.CurrentFont}">
+
+                        <Button.Styles>
+
+                            <Style Selector="Button:pressed">
+                                <Setter Property="RenderTransform" Value="translateY(0px)" />
+                            </Style>
+
+                        </Button.Styles>
+
+                        <Button.Flyout>
+                            <Flyout>
+
+                                <customs:FontSelector
+                                    SelectedFont="{CompiledBinding AppResources.CurrentFont}" />
+
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                </Panel>
+
+                <Panel>
+                    <TextBlock Text="主题模式 " VerticalAlignment="Center" />
+                    <ComboBox HorizontalAlignment="Right"
+                              ItemsSource="{CompiledBinding ThemeModes}"
+                              DisplayMemberBinding="{CompiledBinding Value}"
+                              SelectedValueBinding="{CompiledBinding Key}"
+                              SelectedValue="{CompiledBinding ThemeMode}" />
+                </Panel>
+
+            </StackPanel>
+
+        </anchorControl:AnchorItem>
+
+    </anchorControl:Anchor>
+
+</Grid>

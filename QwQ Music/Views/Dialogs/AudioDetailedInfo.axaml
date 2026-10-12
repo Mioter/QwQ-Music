@@ -1,0 +1,79 @@
+<Grid RowDefinitions="Auto,*"
+      Margin="10,20"
+      RowSpacing="20"
+      xmlns="https://github.com/avaloniaui"
+      Width="600"
+      MaxHeight="600"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:dialogs="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      x:Class="QwQ_Music.Views.Dialogs.AudioDetailedInfo"
+      x:DataType="dialogs:AudioDetailedInfoViewModel"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
+      Name="MusicInfoContainer">
+
+
+    <TextBlock Text="详细信息" Margin="10,0"
+               FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+    <ScrollViewer Grid.Row="1">
+
+        <ItemsControl ItemsSource="{CompiledBinding MusicInfoGroups}" Margin="10,0">
+
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Spacing="10" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+
+                    <StackPanel Spacing="10">
+
+                        <TextBlock Text="{CompiledBinding Header}" FontWeight="Bold" />
+
+                        <ItemsControl ItemsSource="{CompiledBinding Items}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel ItemSpacing="10" LineSpacing="10" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <SelectableTextBlock
+                                        MinWidth="260"
+                                        SelectedText="{CompiledBinding #MusicInfoContainer.((dialogs:AudioDetailedInfoViewModel)DataContext).SelectedText}"
+                                        TextWrapping="Wrap"
+                                        VerticalAlignment="Center">
+                                        <Run Foreground="{DynamicResource TextBlockTertiaryForeground}"
+                                             Text="{CompiledBinding Key}" />
+                                        <Run Text=" : " />
+                                        <Run Text="{CompiledBinding Value}" />
+                                        <SelectableTextBlock.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem
+                                                    Command="{CompiledBinding #MusicInfoContainer.((dialogs:AudioDetailedInfoViewModel)DataContext).CopyTextCommand}"
+                                                    CommandParameter="{CompiledBinding}"
+                                                    Header="{DynamicResource STRING_MENU_COPY}"
+                                                    InputGesture="{x:Static TextBox.CopyGesture}" />
+                                            </ContextMenu>
+                                        </SelectableTextBlock.ContextMenu>
+                                    </SelectableTextBlock>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+
+                        </ItemsControl>
+
+                    </StackPanel>
+
+                </DataTemplate>
+
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+
+
+</Grid>

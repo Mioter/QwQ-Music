@@ -1,0 +1,172 @@
+<Window CanResize="False"
+        Focusable="False"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowDecorations="None"
+        RemoveAnimationDuration="0:0:0.25"
+        SizeToContent="WidthAndHeight"
+        Background="Transparent"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="clr-namespace:QwQ_Music.UI.Behaviors"
+        xmlns:vmWindows="clr-namespace:QwQ_Music.ViewModels.Windows"
+        xmlns:customs="clr-namespace:QwQ_Music.Views.Customs"
+        xmlns:vWindows="clr-namespace:QwQ_Music.Windows"
+        x:Class="QwQ_Music.Windows.DesktopPlayControlWindow"
+        x:DataType="vmWindows:DesktopPlayControlWindowViewModel"
+        Icon="avares://QwQ Music/Assets/AvaloniaRes/AppIcon.ico"
+        ClipToBounds="True"
+        Title="QwQ Music • 播放控制">
+
+    <Window.Styles>
+
+        <Style Selector="Border.MiniStatus">
+            <Style.Animations>
+                <Animation Easing="QuadraticEaseInOut"
+                           Duration="0:0:0.2"
+                           FillMode="Forward">
+                    <KeyFrame Cue="100%">
+                        <Setter
+                            Property="ScaleTransform.ScaleX"
+                            Value="0" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter
+                            Property="ScaleTransform.ScaleY"
+                            Value="0" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <Style Selector="Border.AnimationDuringDisplay">
+            <Style.Animations>
+                <Animation Easing="QuadraticEaseInOut"
+                           Duration="0:0:0.25"
+                           FillMode="Forward">
+                    <KeyFrame Cue="0%">
+                        <Setter
+                            Property="ScaleTransform.ScaleX"
+                            Value="0" />
+                    </KeyFrame>
+                    <KeyFrame Cue="0%">
+                        <Setter
+                            Property="ScaleTransform.ScaleY"
+                            Value="0" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter
+                            Property="ScaleTransform.ScaleX"
+                            Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter
+                            Property="ScaleTransform.ScaleY"
+                            Value="1" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+    </Window.Styles>
+
+    <Border CornerRadius="15"
+            Padding="10"
+            Margin="10"
+            Width="180"
+            Classes.MiniStatus="{CompiledBinding $parent[vWindows:DesktopPlayControlWindow].StartMovingOut}"
+            Classes.AnimationDuringDisplay="{CompiledBinding $parent[Window].IsVisible}"
+            Effect="{DynamicResource LightColor0DropShadowEffect}"
+            RenderTransformOrigin="50%,0%"
+            Background="{DynamicResource SemiColorBackground0}"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+
+        <StackPanel Spacing="10" HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+
+            <StackPanel.Styles>
+                <Style Selector="StackPanel > Button">
+                    <Setter Property="Padding" Value="0" />
+                </Style>
+            </StackPanel.Styles>
+
+            <Border HorizontalAlignment="Center" CornerRadius="25"
+                    BorderBrush="{DynamicResource BorderCardBorderBrush}"
+                    BorderThickness="1" Padding="10">
+
+                <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+
+                    <!--  上一首  -->
+                    <Button Theme="{DynamicResource BorderlessButton}"
+                            ToolTip.Tip="上一首"
+                            Command="{CompiledBinding AudioPlayManager.PreviousMusicCommand}"
+                            Foreground="{DynamicResource TextBlockDefaultForeground}"
+                            behaviors:DynamicCornerBehavior.IsEnabled="True">
+                        <PathIcon
+                            Data="{StaticResource PlayIconData}"
+                            Height="30"
+                            RenderTransform="rotate(180deg)" />
+                    </Button>
+
+                    <!--  播放/暂停 按钮  -->
+                    <customs:MusicPlayButton />
+
+                    <!--  下一首  -->
+                    <Button
+                        Classes="Icon"
+                        ToolTip.Tip="下一首"
+                        Command="{CompiledBinding AudioPlayManager.NextMusicCommand}"
+                        Foreground="{DynamicResource TextBlockDefaultForeground}"
+                        behaviors:DynamicCornerBehavior.IsEnabled="True">
+                        <PathIcon Data="{StaticResource PlayIconData}" Height="30" />
+                    </Button>
+
+                </StackPanel>
+
+            </Border>
+
+            <!--  音乐信息  -->
+            <StackPanel>
+
+                <StackPanel.Styles>
+                    <Style Selector="TextBlock">
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="HorizontalAlignment" Value="Center" />
+                    </Style>
+                </StackPanel.Styles>
+
+                <TextBlock Text="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Title}"
+                           FontWeight="Bold"
+                           Padding="0" />
+
+                <TextBlock Classes="Tertiary"
+                           FontSize="12"
+                           MaxLines="2"
+                           TextTrimming="CharacterEllipsis"
+                           TextWrapping="Wrap"
+                           ToolTip.Tip="{CompiledBinding RelativeSource={RelativeSource Self}, Path=Text}">
+                    <Run Text="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Artists}" />
+                    -
+                    <Run Text="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Album}" />
+                </TextBlock>
+
+            </StackPanel>
+            <StackPanel>
+
+                <!--  专辑按钮  -->
+                <Button
+                    CornerRadius="20"
+                    ClipToBounds="True"
+                    Command="{CompiledBinding ShowMusicPlayerPageCommand}">
+                    <Border CornerRadius="20" ClipToBounds="True">
+                        <Image Source="{CompiledBinding AudioPlayManager.CurrentMusicItem.Model.Cover}" Stretch="Uniform" />
+                    </Border>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+
+    </Border>
+
+</Window>

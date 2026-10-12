@@ -1,0 +1,96 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:panelVms="clr-namespace:QwQ_Music.ViewModels.Panels"
+    xmlns:customs="clr-namespace:QwQ_Music.Views.Customs"
+    xmlns:u="https://irihi.tech/ursa"
+    x:Class="QwQ_Music.Views.Pages.MusicListInfoPage"
+    x:DataType="panelVms:AllMusicListsPanelViewModel">
+    <DockPanel IsVisible="{CompiledBinding SelectedItem,Converter={x:Static ObjectConverters.IsNotNull}}">
+
+        <DockPanel.Styles>
+
+            <Style Selector="u|IconButton.WithTextIconButton">
+                <Setter Property="Foreground" Value="{DynamicResource TextBlockDefaultForeground}" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Setter Property="CornerRadius" Value="15" />
+            </Style>
+
+        </DockPanel.Styles>
+
+        <Grid DockPanel.Dock="Left" RowDefinitions="Auto,Auto,*,*" Margin="10,0" RowSpacing="10">
+
+            <Border CornerRadius="12" Effect="{DynamicResource LightColor0DropShadowEffect}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border CornerRadius="12"
+                        ClipToBounds="True">
+                    <Image MaxWidth="256" MaxHeight="256"
+                           Source="{CompiledBinding SelectedItem.Cover}" Stretch="Uniform" />
+                </Border>
+            </Border>
+
+            <TextBlock Grid.Row="1" Text="歌单简介" FontSize="16" FontWeight="Bold" />
+
+
+            <TextBox Grid.Row="2" TextWrapping="Wrap"
+                     Background="Transparent"
+                     BorderBrush="Transparent"
+                     VerticalAlignment="Stretch"
+                     Classes="Secondary"
+                     Padding="10 10"
+                     VerticalContentAlignment="Top"
+                     Text="{CompiledBinding SelectedItem.Description}"
+                     IsReadOnly="False" />
+
+        </Grid>
+        <Grid RowDefinitions="Auto,Auto,*,Auto"
+              RowSpacing="10">
+
+            <DockPanel HorizontalSpacing="10"
+                       VerticalSpacing="10"
+                       Margin="10,0">
+
+                <u:IconButton ToolTip.Tip="返回全部歌单页面"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Top"
+                              DockPanel.Dock="Right"
+                              Theme="{StaticResource BorderlessIconButton}"
+                              Command="{CompiledBinding BackToPanelCommand}"
+                              Icon="{StaticResource SemiIconReplyStroked}" />
+
+                <TextBlock FontSize="16"
+                           DockPanel.Dock="Top"
+                           Text="{CompiledBinding SelectedItem.Name}"
+                           FontWeight="Bold" />
+
+                <StackPanel Spacing="10" Orientation="Horizontal" DockPanel.Dock="Bottom">
+
+                    <TextBlock>
+                        <Run Text="发布时间 : " Foreground="{DynamicResource TextBlockTertiaryForeground}" />
+                        <Run Text="{CompiledBinding SelectedItem.CreateTime}" />
+                    </TextBlock>
+
+                </StackPanel>
+
+                <TextBlock Classes="Secondary"
+                           FontSize="15"
+                           Text="{CompiledBinding SelectedItem.Creator}" />
+
+            </DockPanel>
+
+            <u:IconButton Grid.Row="1" ToolTip.Tip="播放本歌单"
+                          Content="播放"
+                          Classes="WithTextIconButton"
+                          HorizontalAlignment="Left"
+                          Icon="{StaticResource SemiIconMusicNoteStroked}"
+                          IsEnabled="{CompiledBinding FilteredList.Count}"
+                          Command="{CompiledBinding PlayCurrentListCommand}" />
+
+            <customs:MusicListDataGrid
+                Grid.Row="2"
+                DataContext="{CompiledBinding Current}"
+                IsCustomizable="False" />
+        </Grid>
+
+    </DockPanel>
+</UserControl>

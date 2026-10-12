@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--  Add Resources Here  -->
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="Anchor.axaml" />
+        <ResourceInclude Source="AnchorItem.axaml" />
+        <ResourceInclude Source="ComboBox.axaml" />
+        <ResourceInclude Source="Button.axaml" />
+        <ResourceInclude Source="Dialog.axaml" />
+        <ResourceInclude Source="Drawer.axaml" />
+        <ResourceInclude Source="ToolTip.axaml" />
+        <ResourceInclude Source="DataGrid.axaml" />
+        <ResourceInclude Source="ScrollTo.axaml" />
+        <ResourceInclude Source="ContextMenu.axaml" />
+        <ResourceInclude Source="MenuItem.axaml" />
+        <ResourceInclude Source="MessageBoxControl.axaml" />
+        <ResourceInclude Source="DraggableContainer.axaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

@@ -1,0 +1,101 @@
+<Grid RowDefinitions="Auto,*" RowSpacing="10" Height="300" Width="200"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:u="https://irihi.tech/ursa"
+      xmlns:customs="clr-namespace:QwQ_Music.Views.Customs"
+      mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="400"
+      x:DataType="customs:FontSelector"
+      x:Class="QwQ_Music.Views.Customs.FontSelector">
+
+    <Grid.Styles>
+
+        <Style Selector="ListBoxItem">
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Margin" Value="0,0,0,5" />
+
+            <Style Selector="^:selected">
+                <Setter Property="Background"
+                        Value="{DynamicResource SemiBlue0}" />
+                <Setter Property="Foreground"
+                        Value="{DynamicResource SemiBlue4}" />
+            </Style>
+        </Style>
+
+    </Grid.Styles>
+
+    <StackPanel Orientation="Horizontal" Spacing="5">
+        <Border HorizontalAlignment="Left"
+                Theme="{StaticResource RadioButtonGroupBorder}"
+                CornerRadius="8">
+
+            <StackPanel Orientation="Horizontal" Spacing="0">
+                <RadioButton Name="CustomFontConfig" Content="用户字体"
+                             IsChecked="True"
+                             Theme="{DynamicResource ButtonRadioButton}" />
+                <RadioButton Name="SystemFontConfig" Content="系统字体"
+                             Theme="{DynamicResource ButtonRadioButton}" />
+            </StackPanel>
+        </Border>
+
+        <u:IconButton Icon="{StaticResource SemiIconPlus}" />
+
+    </StackPanel>
+
+    <ContentPresenter Grid.Row="1">
+        <Interaction.Behaviors>
+            <IfElseTrigger Condition="{CompiledBinding #CustomFontConfig.IsChecked}">
+
+                <IfElseTrigger.IfActions>
+                    <ChangeAvaloniaPropertyAction
+                        TargetProperty="{x:Static ContentPresenter.ContentProperty}">
+                        <ChangeAvaloniaPropertyAction.Value>
+
+                            <ListBox
+                                ItemsSource="{CompiledBinding AppResources.CustomFonts}"
+                                SelectedValueBinding="{CompiledBinding Key}"
+                                SelectedValue="{CompiledBinding SelectedFont}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{CompiledBinding Key}"
+                                                   FontFamily="{CompiledBinding Value}" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                        </ChangeAvaloniaPropertyAction.Value>
+                    </ChangeAvaloniaPropertyAction>
+                </IfElseTrigger.IfActions>
+
+            </IfElseTrigger>
+
+            <IfElseTrigger Condition="{CompiledBinding #SystemFontConfig.IsChecked}">
+
+                <IfElseTrigger.IfActions>
+                    <ChangeAvaloniaPropertyAction
+                        TargetProperty="{x:Static ContentPresenter.ContentProperty}">
+                        <ChangeAvaloniaPropertyAction.Value>
+
+                            <ListBox
+                                ItemsSource="{CompiledBinding AppResources.SystemFonts}"
+                                SelectedValueBinding="{CompiledBinding Key}"
+                                SelectedValue="{CompiledBinding SelectedFont}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{CompiledBinding Key}"
+                                                   FontFamily="{CompiledBinding Value}" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                        </ChangeAvaloniaPropertyAction.Value>
+                    </ChangeAvaloniaPropertyAction>
+                </IfElseTrigger.IfActions>
+
+            </IfElseTrigger>
+        </Interaction.Behaviors>
+
+    </ContentPresenter>
+
+</Grid>

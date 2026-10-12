@@ -1,0 +1,60 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:QwQ_Music.UI.Controls">
+
+    <!-- 歌词控件样式 -->
+    <Style Selector="controls|LyricsControl">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ListBox Name="PART_LyricsList"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         SelectionMode="Single"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ItemsSource="{TemplateBinding LyricItems}">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel CacheLength="0.5" Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0" />
+                        </Style>
+                        <Style Selector="ListBoxItem:selected">
+                            <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover">
+                            <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                        <Style Selector="ListBoxItem:selected:pointerover">
+                            <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                    </ListBox.Styles>
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="controls:LyricLineViewItem">
+                            <controls:LyricLineControl
+                                Height="{CompiledBinding LineHeight}"
+                                Margin="{CompiledBinding Margin}"
+                                Text="{CompiledBinding PrimaryText}"
+                                Translation="{CompiledBinding TranslationText}"
+                                TimePoint="{CompiledBinding TimePoint}"
+                                IsCurrent="{CompiledBinding IsCurrent}"
+                                IsPlaceholder="{CompiledBinding IsPlaceholder}"
+                                ShowTranslation="{CompiledBinding ShowTranslation}"
+                                TextAlignment="{CompiledBinding LyricTextAlignment, RelativeSource={RelativeSource AncestorType=controls:LyricsControl}}"
+                                TextMargin="{CompiledBinding TextMargin, RelativeSource={RelativeSource AncestorType=controls:LyricsControl}}"
+                                TranslationSpacing="{CompiledBinding TranslationSpacing, RelativeSource={RelativeSource AncestorType=controls:LyricsControl}}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

@@ -1,0 +1,42 @@
+<Grid xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      RowDefinitions="Auto,*,Auto" Margin="20" RowSpacing="20"
+      x:DataType="vm:ExitConfirmViewModel"
+      x:Class="QwQ_Music.Views.Dialogs.ExitConfirm">
+
+    <StackPanel Orientation="Horizontal" Spacing="10">
+
+        <PathIcon
+            Height="20" Width="20"
+            Data="{StaticResource SemiIconHelpCircle}"
+            Foreground="{DynamicResource SemiBlue5}" />
+
+        <TextBlock Text="确定要退出程序吗？" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+    </StackPanel>
+
+    <CheckBox Grid.Row="1" HorizontalAlignment="Center" CornerRadius="10" Content="不要再让我选了！"
+                                                        IsChecked="{CompiledBinding IsEnablePrompt}" />
+
+    <StackPanel Spacing="20" HorizontalAlignment="Right" Grid.Row="2" Orientation="Horizontal">
+
+        <Button ToolTip.Tip="还是蒜了吧..."
+                Content="取消"
+                Theme="{DynamicResource OutlineButton}"
+                Command="{CompiledBinding CancelCommand}" />
+
+        <Button ToolTip.Tip="要把我藏到系统托盘吗？"
+                Content="隐藏"
+                Theme="{DynamicResource OutlineButton}"
+                Command="{CompiledBinding HideCommand}" />
+
+        <Button Content="确认"
+                Classes="Danger"
+                ToolTip.Tip="确定以及肯定，我现在就要退出！！！"
+                Command="{CompiledBinding ExitCommand}"
+                Theme="{DynamicResource SolidButton}" />
+
+    </StackPanel>
+
+</Grid>

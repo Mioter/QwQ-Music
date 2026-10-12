@@ -1,381 +1,409 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+using ATL;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using QwQ_Music.Services;
-using QwQ_Music.Utilities;
+using QwQ_Music.Common.Helpers;
+using QwQ_Music.Common.Managers;
+using QwQ_Music.Common.Services;
+using QwQ_Music.Common.Services.Databases;
+using QwQ_Music.Common.Services.MusicTagExtractors;
+using QwQ_Music.Common.Utilities;
+using QwQ_Music.Common.Utilities.StringUtilities;
+using QwQ_Music.Models.Enums;
+using SystemMediaInterop;
 
 namespace QwQ_Music.Models;
 
-public class MusicItemModel : ObservableObject
-{
-    public MusicItemModel() { }
+public partial class MusicItemModel : ObservableObject, IMediaItem {
+    public static readonly MusicItemModel Default = new() {
+        Title = "听你想听", Artists = "YOU", FilePath = string.Empty, Lyrics = LyricsData.Default
+    };
 
-    public MusicItemModel(
-        string title,
-        string artists,
-        string composer,
-        string album,
-        string? coverFileName,
-        string filePath,
-        string fileSize,
-        TimeSpan duration,
-        string encodingFormat,
-        string comment,
-        Bitmap? coverImage
-    )
-    {
-        Title = string.IsNullOrWhiteSpace(title) ? "未知标题" : title;
-        Artists = string.IsNullOrWhiteSpace(artists) ? "未知歌手" : artists;
-        Composer = string.IsNullOrWhiteSpace(composer) ? "未知作曲" : composer;
-        Album = string.IsNullOrWhiteSpace(album) ? "未知专辑" : album;
-        CoverFileName = coverFileName;
-        FilePath = filePath;
-        FileSize = fileSize;
-        Duration = duration;
-        EncodingFormat = encodingFormat;
-        Comment = comment;
-        if (coverImage != null)
-        {
-            CoverImage = coverImage;
-        }
+    public string Extension;
 
-        IsInitialized = true;
-    }
-
-    public bool IsInitialized { get; private init; }
-
-    public bool IsLoading { get; set; }
-
-    public bool IsError { get; private set; }
-
-    public bool IsModified { get; set; }
-
-    public string Title
-    {
+    public bool IsTemporary {
         get;
-        set => SetPropertyWithModified(ref field, value);
-    } = "未知标题";
-
-    public string Artists
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value);
-    } = "未知歌手";
-
-    public string Composer
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value);
-    } = "未知作曲";
-
-    public string Album
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value);
-    } = "未知专辑";
-
-    public TimeSpan Current
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value, true);
-    }
-
-    public TimeSpan Duration
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value);
-    }
-
-    public string FilePath
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value);
-    } = "";
-
-    public string FileSize
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value);
-    } = "";
-
-    public double Gain
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value);
-    }
-
-    public string? EncodingFormat
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value);
-    }
-
-    public string? CoverFileName
-    {
-        get;
-        set
-        {
-            if (!SetPropertyWithModified(ref field, value))
+        set {
+            if (!SetProperty(ref field, value))
                 return;
-
-            _coverStatus = null;
-            OnPropertyChanged(nameof(CoverImage));
-        }
-    } // 初始值来自构造函数
-
-    public string[]? CoverColors
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value);
-    }
-
-    public string? Comment
-    {
-        get;
-        set => SetPropertyWithModified(ref field, value);
-    }
-
-    // 添加一个标志表示图片是否正在加载
-    private CoverStatus? _coverStatus;
-
-    public Bitmap CoverImage
-    {
-        get
-        {
-            // 如果封面路径不存在，返回默认封面
-            if (string.IsNullOrEmpty(CoverFileName) || _coverStatus == CoverStatus.NotExist)
-                return MusicExtractor.DefaultCover;
-
-            // 如果正在加载中，返回默认封面
-            if (_coverStatus == CoverStatus.Loading)
-                return MusicExtractor.DefaultCover;
-
-            // 尝试从缓存获取图片
-            if (MusicExtractor.ImageCache.TryGetValue(CoverFileName, out var image))
-            {
-                _coverStatus = CoverStatus.Loaded;
-                return image ?? MusicExtractor.DefaultCover;
-            }
-
-            // 缓存未命中，标记为正在加载
-            _coverStatus = CoverStatus.Loading;
-
-            // 启动异步加载任务
-            Task.Run(async () =>
-            {
-                var bitmap = await MusicExtractor.LoadCompressedBitmap(CoverFileName);
-
-                if (bitmap != null)
-                {
-                    MusicExtractor.ImageCache[CoverFileName] = Dispatcher.UIThread.Invoke(() => BitmapCropper.Crop(bitmap, 1.0));
-                    _coverStatus = CoverStatus.Loaded;
-                }
-                else
-                {
-                    string? newCoverPath = await MusicExtractor.ExtractAndSaveCoverFromAudioAsync(FilePath);
-
-                    if (newCoverPath != null)
-                        CoverFileName = newCoverPath;
-                    else
-                        _coverStatus = CoverStatus.NotExist;
-                }
-
-                OnPropertyChanged(); // 通知 UI 更新
-            });
-
-            // 首次或加载中时返回默认封面
-            return MusicExtractor.DefaultCover;
-        }
-        set
-        {
-            if (CoverFileName == null)
-                return;
-
-            MusicExtractor.ImageCache[CoverFileName] = value;
-            _coverStatus = CoverStatus.Loaded;
-
-            OnPropertyChanged();
+            _tempThumbnail = null;
+            _ = UpdateMetaDataAsync().ConfigureAwait(false);
         }
     }
 
-    public string? Remarks
-    {
+    public bool IsCurrent {
         get;
-        set => SetPropertyWithModified(ref field, value);
+        private set {
+            if (SetProperty(ref field, value))
+                OnPropertyChanged();
+        }
     }
 
-    public int LyricOffset
-    {
+    public Stream Data => File.OpenRead(FilePath);
+
+    [ObservableProperty]
+    public partial string Title { get; set; } = "未知标题";
+
+    [ObservableProperty]
+    public partial string Artists { get; set; } = "未知歌手";
+    //TODO SEPARATE ARTISTS
+
+    [ObservableProperty]
+    public partial string? Composer { get; set; }
+
+    [ObservableProperty]
+    public partial string Album { get; set; } = "未知专辑";
+
+    [ObservableProperty]
+    public partial string AlbumArtists { get; set; } = "未知专辑艺术家";
+
+    [ObservableProperty]
+    public partial TimeSpan Record { get; set; } = TimeSpan.Zero;
+
+    public TimeSpan Duration { get; set; }
+
+    public required string FilePath {
         get;
-        set => SetPropertyWithModified(ref field, value);
+        [MemberNotNull(nameof(Extension))]
+        set {
+            field = value;
+            Extension = Path.GetExtension(FilePath).ToUpper();
+        }
     }
 
-    // 通用的设置属性并标记修改的方法
-    private bool SetPropertyWithModified<T>(
-        ref T field,
-        T value,
-        bool isNotify = false,
-        [CallerMemberName] string? propertyName = null
-    )
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value))
+    public string FileSize { get; set; } = "未知";
+
+    public double Gain { get; set; }
+
+    public string EncodingFormat { get; set; } = "未知";
+
+    public (string Name, string Artists) AlbumId { get; set; } = (string.Empty, string.Empty);
+
+    public bool HasCover => !AlbumId.Name.StartsWith('\u0002');
+
+    public string[]? CoverColors { get; set; }
+
+    public AudioQualityLevel AudioQualityLevel { get; set; }
+
+    public string Comment { get; set; } = "";
+
+    private Bitmap? _tempThumbnail;
+
+    public Bitmap Thumbnail =>
+        IsTemporary ?
+            _tempThumbnail ?? CacheManager.Loading :
+            CacheManager.TryLoadThumbnail(
+                AlbumId,
+                "音频",
+                "封面",
+                AlbumThumbnailRepository.Instance,
+                () => OnPropertyChanged(),
+                Title);
+
+    public Stream ThumbnailStream {
+        get {
+            MemoryStream thumbnailStream = new();
+            Thumbnail.Save(thumbnailStream);
+            return thumbnailStream;
+        }
+    }
+
+    [ObservableProperty]
+    public partial string Remarks { get; set; } = "";
+
+    public double LyricOffset { get; set; }
+
+    public DateTime InsertTime { get; set; }
+
+    public DateTime ModificationTime { get; set; }
+
+    public int Channels { get; set; }
+    public double SampleRate { get; set; }
+
+    public void RemoveCover() {
+        if (AlbumId.Name.StartsWith('\u0002'))
+            CacheManager.DeleteImage(AlbumId);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ClearRecord() { Record = TimeSpan.Zero; }
+
+    public async Task<Track?> GetTrackAsync() {
+        if (Extension == AudioFileValidator.AudioFormatsExtendToNameMap[AudioFileValidator.ExtendAudioFormats.Ncm])
+            return await new NcmMusicTagExtractor(FilePath).GetTrackAsync().ConfigureAwait(false);
+
+        return new Track(FilePath);
+    }
+
+    public async Task<bool> UpdateMetaDataAsync(bool forceRefresh = false) {
+        if (!File.Exists(FilePath)) {
+            NotificationService.Error($"未找到{Title} - {Artists}: 文件不存在，源路径{FilePath}");
+            await LoggerService.ErrorAsync($"未找到音乐文件: {FilePath}").ConfigureAwait(false);
+            return false;
+        }
+
+        var fileInfo = new FileInfo(FilePath);
+
+        // 如果修改时间没有变动，不需要更新
+        if (fileInfo.LastWriteTimeUtc == ModificationTime && !forceRefresh)
             return false;
 
-        field = value;
 
-        if (isNotify)
-            OnPropertyChanged(propertyName);
+        if (await GetTrackAsync().ConfigureAwait(false) is not { } track) {
+            await LoggerService.WarningAsync($"无法获取《{Title}》的音轨信息").ConfigureAwait(false);
+            return false;
+        }
 
-        if (!IsModified && !IsLoading && propertyName != nameof(IsModified))
-            IsModified = true;
-
+        await SetMusicMetadata(track, fileInfo, forceRefresh).ConfigureAwait(false);
         return true;
     }
 
-    public Task<LyricsData> Lyrics => MusicExtractor.ExtractMusicLyricsAsync(FilePath);
+    private async Task SetMusicMetadata(Track track, FileInfo fileInfo, bool forceRefresh) {
+        Title = string.IsNullOrEmpty(track.Title) ?
+            Path.GetFileNameWithoutExtension(FilePath).Trim() :
+            track.Title.Trim();
 
-    public static MusicItemModel FromDictionary(Dictionary<string, object> data)
-    {
-        MusicItemModel result = new()
-        {
-            IsInitialized = true,
-            IsError = false,
-            IsLoading = true,
-        };
+        if (!string.IsNullOrEmpty(track.Artist))
+            Artists = track.Artist.Trim();
 
-        // 使用辅助方法安全地提取属性
-        SafeExtract(data, nameof(Title), val => result.Title = val?.ToString() ?? "未知标题");
-        SafeExtract(data, nameof(Artists), val => result.Artists = val?.ToString() ?? "未知歌手");
-        SafeExtract(data, nameof(Album), val => result.Album = val?.ToString() ?? "未知专辑");
-        SafeExtract(data, nameof(Composer), val => result.Composer = val?.ToString() ?? "未知作曲");
-        SafeExtract(data, nameof(CoverFileName), val => result.CoverFileName = val?.ToString()); // CoverFileName 现在是文件名或null
-        SafeExtract(
-            data,
-            nameof(Current),
-            val =>
-                result.Current =
-                    val != null
-                        ? TimeSpan.Parse(val.ToString() ?? "00:00:00", CultureInfo.InvariantCulture)
-                        : TimeSpan.Zero
-        );
-        SafeExtract(
-            data,
-            nameof(Duration),
-            val =>
-                result.Duration =
-                    val != null
-                        ? TimeSpan.Parse(val.ToString() ?? "00:00:00", CultureInfo.InvariantCulture)
-                        : TimeSpan.Zero
-        );
-        SafeExtract(data, nameof(FilePath), val => result.FilePath = val?.ToString() ?? "");
-        SafeExtract(data, nameof(FileSize), val => result.FileSize = val?.ToString() ?? "");
-        SafeExtract(data, nameof(Gain), val => result.Gain = val != null ? Convert.ToDouble(val) : -1.0);
-        SafeExtract(data, nameof(CoverColors), val => result.CoverColors = val?.ToString()?.Split("、"));
-        SafeExtract(data, nameof(Comment), val => result.Comment = val?.ToString());
-        SafeExtract(data, nameof(EncodingFormat), val => result.EncodingFormat = val?.ToString());
-        SafeExtract(data, nameof(Remarks), val => result.Remarks = val?.ToString());
-        SafeExtract(data, nameof(LyricOffset), val => result.LyricOffset = val != null ? Convert.ToInt32(val) : 0);
+        if (!string.IsNullOrEmpty(track.Album))
+            Album = track.Album.Trim();
 
-        result.IsLoading = false;
+        AlbumArtists = string.IsNullOrEmpty(track.AlbumArtist) ? Artists : track.AlbumArtist.Trim();
 
-        result.IsModified = false; // 使IsModified为false
+        Composer = track.Composer;
+        Duration = TimeSpan.FromMilliseconds(track.DurationMs);
+        EncodingFormat = track.AudioFormat.ShortName;
+        Comment = track.Comment;
+        AudioQualityLevel = AudioQualityDetector.DetermineQualityLevel(track);
+        Channels = track.ChannelsArrangement.NbChannels;
+        SampleRate = track.SampleRate;
+        ModificationTime = DateTime.Now;
+        FileSize = StringFormatter.FormatFileSize(fileInfo.Length);
+        try {
+            if (track.EmbeddedPictures.Count == 0) {
+                await LoggerService.InfoAsync($"{Title}的封面不存在。").ConfigureAwait(false);
+            } else {
+                byte[]? coverData = track.EmbeddedPictures[0].PictureData;
 
-        return result;
-
-        // 辅助方法：安全地从字典中提取值并应用转换
-        void SafeExtract(Dictionary<string, object> converter, string key, Action<object?> setter)
-        {
-            try
-            {
-                if (converter.TryGetValue(key, out object? value))
-                {
-                    setter(value);
+                AlbumId = (string.IsNullOrWhiteSpace(Album) ? $"\u0002{Guid.NewGuid()}" : Album, AlbumArtists);
+                if (!IsTemporary)
+                    await AlbumRepository.Instance.AddOrUpdateAlbumItemAsync(this).ConfigureAwait(false);
+                Bitmap? thumbnail = await ImageHelper
+                                          .LoadFromMemoryAsync(new MemoryStream(coverData), AlbumId.ToString(), 128)
+                                          .ConfigureAwait(false);
+                if (thumbnail is null) {
+                    await LoggerService.ErrorAsync("制作缩略图失败").ConfigureAwait(false);
+                    return;
                 }
+
+                await LoggerService.DebugAsync("制作缩略图成功").ConfigureAwait(false);
+                CacheManager.SetImage(AlbumId, "音频", thumbnail);
+                if (IsTemporary)
+                    _tempThumbnail = thumbnail;
+                else
+                    _ = AlbumCoverRepository.Instance
+                                            .InsertAsync(
+                                                this,
+                                                coverData,
+                                                forceRefresh ? InsertExist.REPLACE : InsertExist.IGNORE)
+                                            .ContinueWith(LoggerService.HandleException)
+                                            .ConfigureAwait(false);
+                OnPropertyChanged(nameof(Thumbnail));
             }
-            catch (Exception)
-            {
-                result.IsError = true;
+        } catch (Exception e) {
+            await LoggerService.ErrorAsync($"解码{Title}的封面图像失败", e).ConfigureAwait(false);
+        }
+
+        if (!IsTemporary)
+            await MusicItemRepository.Instance.UpdateAsync(this).ConfigureAwait(false);
+    }
+
+    private async Task<LyricsData> LoadLyricsAsync(Track track) {
+        var result = LyricsData.Create(Title, Artists, Album, AlbumArtists);
+        IList<LyricsInfo>? lyricsList = track.Lyrics;
+
+        // 查找同步歌词
+        LyricsInfo? syncLyricsInfo = lyricsList.FirstOrDefault(l => l.SynchronizedLyrics.Count > 0);
+
+        if (syncLyricsInfo != null) {
+            IList<LyricsInfo.LyricsPhrase>? syncLyrics = syncLyricsInfo.SynchronizedLyrics;
+
+            // 按时间点分组
+            IOrderedEnumerable<IGrouping<int, LyricsInfo.LyricsPhrase>> grouped =
+                syncLyrics.GroupBy(p => p.TimestampStart).OrderBy(g => g.Key);
+
+            foreach (IGrouping<int, LyricsInfo.LyricsPhrase> group in grouped) {
+                List<LyricsInfo.LyricsPhrase> phrases = group.ToList();
+
+                string? primary, translation = null;
+
+                // 方案二：尝试分隔符
+                string[] split = phrases[0].Text.Split(["//", "|", "\n", " "], StringSplitOptions.RemoveEmptyEntries);
+
+                if (split.Length == 2) {
+                    primary = split[0].Trim();
+                    translation = split[1].Trim();
+                } else {
+                    primary = phrases[0].Text.Trim();
+
+                    // 方案一：同一时间点有多条
+                    if (phrases.Count > 1)
+                        translation = phrases[1].Text.Trim();
+                }
+
+                result.Data.Add(new LyricLine(group.Key / 1000.0, primary, translation));
+            }
+
+            return result;
+        }
+
+        // 查找非同步歌词
+        LyricsInfo? unsyncedLyricsInfo = lyricsList.FirstOrDefault(l => !string.IsNullOrEmpty(l.UnsynchronizedLyrics));
+
+        if (unsyncedLyricsInfo != null) {
+            string? lyric = unsyncedLyricsInfo.UnsynchronizedLyrics;
+
+            if (!string.IsNullOrEmpty(lyric)) {
+                (double Offset, IEnumerable<LyricLine> Lyrics) embedded =
+                    await Task.Run(() => LyricsService.ParseLrcFile(lyric)).ConfigureAwait(false);
+                result.Offset += embedded.Offset;
+                result.Data.AddRange(embedded.Lyrics);
+                return result;
             }
         }
-    }
 
-    public Dictionary<string, string?> Dump()
-    {
-        var result = new Dictionary<string, string?>
-        {
-            [nameof(Title)] = Title,
-            [nameof(Artists)] = Artists,
-            [nameof(Album)] = Album,
-            [nameof(Composer)] = Composer,
-            [nameof(CoverFileName)] = CoverFileName, // 保存文件名或null
-            [nameof(Current)] = Current.ToString(),
-            [nameof(Duration)] = Duration.ToString(),
-            [nameof(FilePath)] = FilePath,
-            [nameof(FileSize)] = FileSize,
-            [nameof(Gain)] = Gain.ToString(CultureInfo.InvariantCulture),
-            [nameof(CoverColors)] = CoverColors != null ? string.Join("、", CoverColors) : null,
-            [nameof(Comment)] = Comment,
-            [nameof(EncodingFormat)] = EncodingFormat,
-            [nameof(Remarks)] = Remarks,
-            [nameof(LyricOffset)] = LyricOffset.ToString(),
-        };
+        // 获取目录路径
+        string? directoryPath = Path.GetDirectoryName(FilePath);
+
+        // 获取文件名（不含扩展名）
+        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(FilePath);
+
+        // 拼接完整路径（不含扩展名）
+        if (directoryPath == null || fileNameWithoutExtension == "")
+            return result;
+
+        string fullPathWithoutExtension = Path.Combine(directoryPath, fileNameWithoutExtension);
+        string lyricPath = fullPathWithoutExtension + ".lrc";
+
+        if (!Path.Exists(lyricPath))
+            return result;
+
+        string lyricText = await File.ReadAllTextAsync(lyricPath).ConfigureAwait(false);
+
+        (double Offset, IEnumerable<LyricLine> Lyrics) outer =
+            await Task.Run(() => LyricsService.ParseLrcFile(lyricText)).ConfigureAwait(false);
+        result.Offset += outer.Offset;
+        result.Data.AddRange(outer.Lyrics);
         return result;
     }
+
+    public async Task LoadCurrentAsync() {
+        if (IsCurrent) {
+            await LoggerService.WarningAsync("多余的音频封面与歌词加载请求，已忽略").ConfigureAwait(false);
+            return;
+        }
+
+        await LoggerService.DebugAsync($"正在异步加载音频《{Title}》的原始封面与歌词...").ConfigureAwait(false);
+        IsCurrent = true;
+        Cover = CacheManager.Loading;
+        if (string.IsNullOrWhiteSpace(FilePath)) {
+            await LoggerService.ErrorAsync($"{Title}的文件路径为空。").ConfigureAwait(false);
+            return;
+        }
+
+        if (await GetTrackAsync().ConfigureAwait(false) is not { } track) {
+            await LoggerService.ErrorAsync($"无法获取{Title}的音频流。").ConfigureAwait(false);
+            return;
+        }
+
+        Track = track;
+        Bitmap cover = track.EmbeddedPictures.Count > 0 ?
+            new Bitmap(new MemoryStream(track.EmbeddedPictures[0].PictureData)) :
+            CacheManager.NotExist;
+        Dispatcher.UIThread.Post(() => Cover = cover);
+
+        Lyrics = await LoadLyricsAsync(track).ConfigureAwait(false);
+        await LoggerService.DebugAsync($"音频《{Title}》的原始封面与歌词加载完毕。").ConfigureAwait(false);
+    }
+
+    public void DisposeCurrent() {
+        if (!IsCurrent) {
+            LoggerService.Warning("意外的音频封面与歌词释放请求，已忽略。");
+            return;
+        }
+
+        IsCurrent = false;
+        Track = null;
+        Cover = CacheManager.Loading;
+        Lyrics = LyricsData.Loading;
+        LoggerService.Debug($"已释放音频《{Title}》的歌词。");
+    }
+
+    #region 播放歌曲前加载的属性
+
+    public Bitmap Cover {
+        get {
+            try {
+                _ = field.PixelSize;
+                return field;
+            } catch (Exception ex) when (ex is NullReferenceException or ObjectDisposedException) {
+                Cover = Track?.EmbeddedPictures.Count > 0 ?
+                    new Bitmap(new MemoryStream(Track.EmbeddedPictures[0].PictureData)) :
+                    CacheManager.NotExist;
+                LoggerService.Warning($"歌曲《{Title}》的原始封面意外失效。已重新加载。");
+                return Cover;
+            }
+        }
+        private set {
+            try {
+                _ = value.PixelSize;
+            } catch (Exception ex) when (ex is NullReferenceException or ObjectDisposedException) {
+                field = CacheManager.Damaged;
+                OnPropertyChanged();
+                return;
+            }
+
+            if (!ConfigManager.UiConfig.VisualConfig.AllowNonSquareCover && Math.Abs(value.Size.AspectRatio - 1) > 1e-5)
+                BitmapCropper.Crop(ref value, 1.0);
+            field = value;
+            OnPropertyChanged();
+        }
+    } = CacheManager.NotExist;
+
+    public LyricsData Lyrics { get; private set; } = LyricsData.Loading;
+
+    public Track? Track { get; private set; }
+
+    #endregion 播放歌曲前加载的属性
+
+    public override string ToString() { return $"{Title}_{Artists}"; }
 }
 
-public readonly record struct MusicTagExtensions(
-    string Genre,
-    int? Year,
-    string Copyright,
-    uint Disc,
-    uint Track,
-    int SamplingRate,
-    int Channels,
-    int Bitrate,
-    int BitsPerSample,
-    // 添加更多基本信息
-    string OriginalAlbum,
-    string OriginalArtist,
-    string AlbumArtist,
-    string Publisher,
-    string Description,
-    string Language,
-    // 添加技术信息
-    bool IsVbr,
-    string AudioFormat,
-    string EncoderInfo
-);
+public readonly record struct PlaylistItemModel : IMediaItemWrapper {
+    public static readonly PlaylistItemModel RefDefault = new(MusicItemModel.Default, 0);
+    public readonly ulong Id = 0L;
 
-// 添加扩展结构体用于获取更多详细信息
-public readonly record struct MusicDetailedInfo(
-    // 发布信息
-    DateTime? ReleaseDate,
-    DateTime? OriginalReleaseDate,
-    DateTime? PublishingDate,
-    // 专业信息
-    string Isrc,
-    string CatalogNumber,
-    string ProductId,
-    // 其他信息
-    float? Bpm,
-    float? Popularity,
-    string SeriesTitle,
-    string SeriesPart,
-    string LongDescription,
-    string Group,
-    // 技术信息
-    long AudioDataOffset,
-    long AudioDataSize
-);
+    private PlaylistItemModel(MusicItemModel model, ulong id) {
+        Model = model;
+        Id = id;
+    }
 
-internal enum CoverStatus
-{
-    Loading,
-    Loaded,
-    NotExist,
+    public PlaylistItemModel(MusicItemModel model) {
+        Model = model;
+        Id = IdAllocator;
+    }
+
+    private static ulong IdAllocator {
+        get => field++;
+        set;
+    } = 1;
+
+    public MusicItemModel Model { get; } = MusicItemModel.Default;
+
+    public static void Reset() { IdAllocator = 1; }
+    public IMediaItem MediaItem => Model;
+    public override string ToString() { return $"{Model.Title}_{Model.Artists}({Id})"; }
 }

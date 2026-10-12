@@ -1,3 +1,5 @@
 ﻿namespace Impressionist.Abstractions;
 
-public interface IPaletteGenrator;
+public interface IPaletteGenrator
+{
+}

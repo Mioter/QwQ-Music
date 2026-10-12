@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -8,12 +5,11 @@ using Avalonia.Media;
 
 namespace QwQ_Music.Amusing;
 
-public class LoveWindow : Window
-{
+public class LoveWindow : Window {
     private static readonly List<LoveWindow> _allWindows = [];
+    private readonly LoveWindow? _centerWindow;
     private readonly int _dx;
     private readonly int _dy;
-    private readonly LoveWindow? _centerWindow;
 
     public LoveWindow(
         PixelPoint position,
@@ -22,20 +18,15 @@ public class LoveWindow : Window
         int dx = 0,
         int dy = 0,
         LoveWindow? centerWindow = null,
-        bool isCenter = false
-    )
-    {
+        bool isCenter = false) {
         _allWindows.Add(this);
         Closed += OnWindowClosed;
 
-        if (isCenter)
-        {
+        if (isCenter) {
             _centerWindow = this;
             Closed += OnCenterWindowClosed;
             PositionChanged += OnCenterPositionChanged; // 监听中心窗口的位置变化
-        }
-        else
-        {
+        } else {
             _dx = dx;
             _dy = dy;
             _centerWindow = centerWindow;
@@ -44,8 +35,7 @@ public class LoveWindow : Window
         InitializeWindow(position, color, content, isCenter);
     }
 
-    private void InitializeWindow(PixelPoint position, Color color, string content, bool isCenter)
-    {
+    private void InitializeWindow(PixelPoint position, Color color, string content, bool isCenter) {
         Title = $"♥️ > {_allWindows.Count}";
         Width = isCenter ? 200 : 80;
         Height = isCenter ? 160 : 80;
@@ -54,59 +44,47 @@ public class LoveWindow : Window
         CanResize = false;
         Background = new SolidColorBrush(color);
 
-        var textBlock = new TextBlock
-        {
+        var textBlock = new TextBlock {
             Text = content,
             FontSize = isCenter ? 40 : 28,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            Effect = new DropShadowEffect
-            {
-                BlurRadius = 10,
-                Color = Colors.DarkGray,
-                Opacity = 10,
-            },
+            Effect = new DropShadowEffect { BlurRadius = 10, Color = Colors.DarkGray, Opacity = 10 }
         };
 
         var panel = new Panel { Background = Brushes.Transparent };
+
         panel.Children.Add(textBlock);
         Content = panel;
 
         InitializeInteractions(panel);
     }
 
-    private void OnCenterPositionChanged(object? sender, PixelPointEventArgs e)
-    {
+    private void OnCenterPositionChanged(object? sender, PixelPointEventArgs e) {
         // 中心窗口移动时更新所有关联小窗口的位置
-        foreach (var window in _allWindows.Where(w => w._centerWindow == this))
-        {
+        foreach (LoveWindow window in _allWindows.Where(w => w._centerWindow == this))
             window.Position = new PixelPoint(Position.X + window._dx, Position.Y + window._dy);
-        }
     }
 
-    private static void OnCenterWindowClosed(object? sender, EventArgs e)
-    {
-        var windowsToClose = _allWindows.ToList();
-        foreach (var window in windowsToClose.OrderByDescending(w => _allWindows.IndexOf(w)))
-        {
+    private static void OnCenterWindowClosed(object? sender, EventArgs e) {
+        List<LoveWindow> windowsToClose = _allWindows.ToList();
+
+        foreach (LoveWindow window in windowsToClose.OrderByDescending(w => _allWindows.IndexOf(w)))
             window.Close();
-        }
     }
 
-    private void InitializeInteractions(Panel dragControl)
-    {
+    private void InitializeInteractions(Panel dragControl) {
         dragControl.PointerPressed += (_, e) => BeginMoveDrag(e);
         dragControl.DoubleTapped += (_, _) => Close();
         dragControl.PointerEntered += (_, _) => RenderTransform = new ScaleTransform(1.05, 1.05);
         dragControl.PointerExited += (_, _) => RenderTransform = null;
     }
 
-    private void OnWindowClosed(object? sender, EventArgs e)
-    {
+    private void OnWindowClosed(object? sender, EventArgs e) {
         // 清理事件订阅
         Closed -= OnWindowClosed;
-        if (_centerWindow == this)
-        {
+
+        if (_centerWindow == this) {
             Closed -= OnCenterWindowClosed;
             PositionChanged -= OnCenterPositionChanged;
         }

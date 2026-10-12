@@ -7,65 +7,73 @@ using Impressionist.Abstractions;
 
 namespace Impressionist.Implementations;
 
-public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
+public class OctTreePaletteGenerator :
+    IThemeColorGenrator,
+    IPaletteGenrator
 {
-    public static Task<ThemeColorResult> CreateThemeColor(
-        Dictionary<Vector3, int> sourceColor,
-        bool ignoreWhite = false
-    )
+    public Task<ThemeColorResult> CreateThemeColor(Dictionary<Vector3, int> sourceColor, bool ignoreWhite = false)
     {
         var quantizer = new PaletteQuantizer();
         var builder = sourceColor.AsEnumerable();
+
         if (ignoreWhite && sourceColor.Count > 1)
         {
             builder = builder.Where(t => t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250);
         }
+
         var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
+
         foreach (var color in targetColor)
         {
             quantizer.AddColorRange(color.Key, color.Value);
         }
+
         quantizer.Quantize(1);
         var result = quantizer.GetThemeResult();
-        bool colorIsDark = result.RgbVectorToHsvColor().SRgbColorIsDark();
+        bool colorIsDark = result.RGBVectorLStarIsDark();
+
         return Task.FromResult(new ThemeColorResult(result, colorIsDark));
     }
 
-    public static async Task<PaletteResult> CreatePalette(
-        Dictionary<Vector3, int> sourceColor,
-        int clusterCount,
-        bool ignoreWhite = false
-    )
+    public async Task<PaletteResult> CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false)
     {
         var quantizer = new PaletteQuantizer();
+
         if (sourceColor.Count == 1)
         {
             ignoreWhite = false;
         }
+
         var colorResult = await CreateThemeColor(sourceColor, ignoreWhite);
         var builder = sourceColor.AsEnumerable();
+
         if (ignoreWhite)
         {
             builder = builder.Where(t => t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250);
         }
+
         bool colorIsDark = colorResult.ColorIsDark;
+
         builder = colorIsDark
-            ? builder.Where(t => t.Key.RgbVectorToHsvColor().SRgbColorIsDark())
-            : builder.Where(t => !t.Key.RgbVectorToHsvColor().SRgbColorIsDark());
+            ? builder.Where(t => t.Key.RGBVectorLStarIsDark())
+            : builder.Where(t => !t.Key.RGBVectorLStarIsDark());
+
         var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
+
         foreach (var color in targetColor)
         {
             quantizer.AddColorRange(color.Key, color.Value);
         }
+
         quantizer.Quantize(clusterCount);
-        var quantizeResult = colorIsDark
-            ? quantizer.GetPaletteResult().OrderBy(t => t.LengthSquared()).Take(clusterCount).ToList()
-            : quantizer.GetPaletteResult().OrderByDescending(t => t.LengthSquared()).Take(clusterCount).ToList();
+        var quantizeResult = quantizer.GetPaletteResult(clusterCount);
         List<Vector3> result;
+
         if (quantizeResult.Count < clusterCount)
         {
             int count = quantizeResult.Count;
             result = [];
+
             for (int i = 0; i < clusterCount; i++)
             {
                 // You know, it is always hard to fullfill a palette when you have no enough colors. So please forgive me when placing the same color over and over again.
@@ -76,18 +84,20 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
         {
             result = quantizeResult;
         }
+
         return new PaletteResult(result, colorIsDark, colorResult);
     }
 
     private class PaletteQuantizer
     {
-        private readonly Node _root;
         private readonly IDictionary<int, List<Node>> _levelNodes;
+        private readonly Node _root;
 
         public PaletteQuantizer()
         {
             _root = new Node(this);
             _levelNodes = new Dictionary<int, List<Node>>();
+
             for (int i = 0; i < 8; i++)
             {
                 _levelNodes[i] = [];
@@ -114,6 +124,11 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
             return _root.GetPaletteResult().Keys.ToList();
         }
 
+        public List<Vector3> GetPaletteResult(int count)
+        {
+            return _root.GetPaletteResult().OrderByDescending(t => t.Value).Take(count).Select(t => t.Key).ToList();
+        }
+
         public Vector3 GetThemeResult()
         {
             return _root.GetThemeResult();
@@ -124,26 +139,36 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
             int nodesToRemove = _levelNodes[7].Count - colorCount;
             int level = 6;
             bool toBreak = false;
+
             while (level >= 0 && nodesToRemove > 0)
             {
                 int remove = nodesToRemove;
-                var leaves = _levelNodes[level].Where(n => n.ChildrenCount - 1 <= remove).OrderBy(n => n.ChildrenCount);
+
+                var leaves = _levelNodes[level]
+                    .Where(n => n.ChildrenCount - 1 <= remove)
+                    .OrderBy(n => n.ChildrenCount);
+
                 foreach (var leaf in leaves)
                 {
                     if (leaf.ChildrenCount > nodesToRemove)
                     {
                         toBreak = true;
+
                         continue;
                     }
+
                     nodesToRemove -= leaf.ChildrenCount - 1;
                     leaf.Merge();
+
                     if (nodesToRemove <= 0)
                     {
                         break;
                     }
                 }
+
                 _levelNodes.Remove(level + 1);
                 level--;
+
                 if (toBreak)
                 {
                     break;
@@ -155,7 +180,9 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
     private class Node(PaletteQuantizer parent)
     {
         private Node[] _children = new Node[8];
+
         private Vector3 Color { get; set; }
+
         private int Count { get; set; }
 
         public int ChildrenCount => _children.Count(c => c != null);
@@ -165,12 +192,14 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
             if (level < 8)
             {
                 byte index = GetIndex(color, level);
+
                 if (_children[index] == null)
                 {
                     var newNode = new Node(parent);
                     _children[index] = newNode;
                     parent.AddLevelNode(newNode, level);
                 }
+
                 _children[index].AddColor(color, level + 1);
             }
             else
@@ -185,12 +214,14 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
             if (level < 8)
             {
                 byte index = GetIndex(color, level);
+
                 if (_children[index] == null)
                 {
                     var newNode = new Node(parent);
                     _children[index] = newNode;
                     parent.AddLevelNode(newNode, level);
                 }
+
                 _children[index].AddColorRange(color, level + 1, count);
             }
             else
@@ -208,6 +239,7 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
             }
 
             byte index = GetIndex(color, level);
+
             return _children[index].GetColor(color, level + 1);
         }
 
@@ -216,19 +248,21 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
             var paletteResult = GetPaletteResult();
             var sum = new Vector3(0, 0, 0);
             int count = 0;
+
             foreach (var item in paletteResult)
             {
                 sum += item.Key * item.Value;
                 count += item.Value;
             }
+
             return sum / count;
         }
 
         public Dictionary<Vector3, int> GetPaletteResult()
         {
             var result = new Dictionary<Vector3, int>();
-            if (_children.All(t => t == null))
-                result[Color] = Count;
+
+            if (_children.All(t => t == null)) result[Color] = Count;
             else
             {
                 foreach (var child in _children)
@@ -236,13 +270,13 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
                     child?.NodeGetResult(result);
                 }
             }
+
             return result;
         }
 
         private void NodeGetResult(Dictionary<Vector3, int> result)
         {
-            if (_children.All(t => t == null))
-                result[Color] = Count;
+            if (_children.All(t => t == null)) result[Color] = Count;
             else
             {
                 foreach (var child in _children)
@@ -252,22 +286,24 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
             }
         }
 
-        private static byte GetIndex(Vector3 color, int level)
+        private byte GetIndex(Vector3 color, int level)
         {
             byte ret = 0;
             byte mask = Convert.ToByte(0b10000000 >> level);
+
             if (((byte)color.X & mask) != 0)
             {
                 ret |= 0b100;
             }
-            if (((byte)color.Y & mask) != 0)
+            else if (((byte)color.Y & mask) != 0)
             {
                 ret |= 0b010;
             }
-            if (((byte)color.Z & mask) != 0)
+            else if (((byte)color.Z & mask) != 0)
             {
                 ret |= 0b001;
             }
+
             return ret;
         }
 
@@ -280,20 +316,13 @@ public class OctTreePaletteGenerator : IThemeColorGenrator, IPaletteGenrator
 
         private static Vector3 Average(IEnumerable<Tuple<Vector3, int>> colors)
         {
-            float totalX = 0,
-                totalY = 0,
-                totalZ = 0;
-            int totals = 0;
+            var tuples = colors as Tuple<Vector3, int>[] ?? colors.ToArray();
+            int totals = tuples.Sum(c => c.Item2);
 
-            foreach ((var color, int count) in colors)
-            {
-                totalX += color.X * count;
-                totalY += color.Y * count;
-                totalZ += color.Z * count;
-                totals += count;
-            }
-
-            return new Vector3(x: (int)(totalX / totals), y: (int)(totalY / totals), z: (int)(totalZ / totals));
+            return new Vector3(
+                tuples.Sum(c => c.Item1.X * c.Item2) / totals,
+                tuples.Sum(c => c.Item1.Y * c.Item2) / totals,
+                tuples.Sum(c => c.Item1.Z * c.Item2) / totals);
         }
     }
 }

@@ -1,0 +1,60 @@
+<StackPanel xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:soundEffectModels="clr-namespace:QwQ_Music.Models.SoundEffectModels"
+            xmlns:u="https://irihi.tech/ursa"
+            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+            Spacing="10"
+            x:DataType="soundEffectModels:CompressorModel"
+            x:Class="QwQ_Music.Views.SoundEffects.Compressor">
+
+    <DockPanel HorizontalSpacing="10" Height="40">
+        <Separator VerticalAlignment="Bottom" Margin="0" DockPanel.Dock="Bottom" />
+        <TextBlock FontSize="16" Text="{CompiledBinding Name}" FontWeight="Bold" VerticalAlignment="Center" />
+        <TextBlock Text="提审音频细节，控制响度"
+                   VerticalAlignment="Center"
+                   Foreground="{DynamicResource SemiColorTertiary}" />
+    </DockPanel>
+
+    <TextBlock Text="{CompiledBinding ThresholdDb, StringFormat='阈值 : {0} dBFS'}" />
+    <u:NumericIntUpDown
+        InnerRightContent="dB"
+        Step="50"
+        Maximum="0"
+        Value="{CompiledBinding ThresholdDb}" />
+
+    <TextBlock Text="{CompiledBinding Ratio, StringFormat='压缩比 : {0:F3}'}" />
+    <u:NumericFloatUpDown
+        Step="1"
+        Value="{CompiledBinding Ratio}" />
+
+    <TextBlock Text="{CompiledBinding AttackMs, StringFormat='启动时间 : {0:F3} ms'}" />
+    <u:NumericFloatUpDown
+        InnerRightContent="ms"
+        Step="10"
+        Value="{CompiledBinding AttackMs}" />
+
+    <TextBlock Text="{CompiledBinding ReleaseMs, StringFormat='释放时间 : {0:F3} ms'}" />
+    <u:NumericFloatUpDown
+        InnerRightContent="ms"
+        Step="100"
+        Value="{CompiledBinding ReleaseMs}" />
+
+    <StackPanel Orientation="Horizontal" Spacing="10">
+        <TextBlock Text="{CompiledBinding KneeDb, StringFormat='膝部宽度 : {0:F3} dBFS'}" />
+        <TextBlock Text="* 0 表示硬覆盖" Foreground="{DynamicResource  TextBlockTertiaryForeground}" />
+    </StackPanel>
+
+    <u:NumericFloatUpDown
+        InnerRightContent="dB"
+        Step="1"
+        Value="{CompiledBinding KneeDb}" />
+
+    <TextBlock Text="{CompiledBinding MakeupGainDb, StringFormat='补偿增益 : {0:F3} dBFS'}" />
+    <u:NumericFloatUpDown
+        InnerRightContent="dB"
+        Step="1"
+        Value="{CompiledBinding MakeupGainDb}" />
+
+</StackPanel>

@@ -1,0 +1,71 @@
+<Grid RowDefinitions="Auto,*,Auto"
+      Margin="20" RowSpacing="20"
+      xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:dialogs="clr-namespace:QwQ_Music.ViewModels.Dialogs"
+      xmlns:converters="clr-namespace:QwQ_Music.UI.Converters"
+      mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+      x:DataType="dialogs:ManageSoundEffectViewModel"
+      x:Class="QwQ_Music.Views.Dialogs.ManageSoundModifier">
+
+    <Grid.Resources>
+
+        <converters:SoundEffectsNameConverter x:Key="SoundEffectsNameConverter" />
+
+    </Grid.Resources>
+
+    <TextBlock Text="管理音效" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" />
+
+    <Border Grid.Row="1" HorizontalAlignment="Center"
+            CornerRadius="8"
+            BorderBrush="{DynamicResource BorderCardBorderBrush}"
+            BorderThickness="1">
+
+        <ScrollViewer>
+
+            <ItemsControl ItemsSource="{CompiledBinding BuiltInSoundEffects}"
+                          Margin="10"
+                          MinWidth="300">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Spacing="5" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{CompiledBinding Key,Converter={StaticResource SoundEffectsNameConverter}}" />
+                            <ToggleSwitch Grid.Column="1" IsChecked="{CompiledBinding Value}"
+                                          Theme="{StaticResource SimpleToggleSwitch}"
+                                          OffContent="〇" OnContent="｜"
+                                          Command="{CompiledBinding $parent[ItemsControl].((dialogs:ManageSoundEffectViewModel)DataContext).ChangeEnabledStatusCommand}"
+                                          CommandParameter="{CompiledBinding Key}" />
+
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </ScrollViewer>
+
+    </Border>
+
+    <StackPanel Spacing="20" HorizontalAlignment="Right" Grid.Row="2" Orientation="Horizontal">
+
+        <Button ToolTip.Tip="还是蒜了吧..."
+                Content="取消"
+                Theme="{DynamicResource OutlineButton}"
+                Command="{CompiledBinding CancelCommand}" />
+
+        <Button Content="确认"
+                IsEnabled="{CompiledBinding !HasErrors}"
+                ToolTip.Tip="我确定好了！"
+                Command="{CompiledBinding OkCommand}"
+                Theme="{DynamicResource SolidButton}" />
+
+    </StackPanel>
+
+</Grid>

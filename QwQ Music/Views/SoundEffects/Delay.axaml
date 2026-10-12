@@ -1,0 +1,46 @@
+<StackPanel xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:soundEffectModels="clr-namespace:QwQ_Music.Models.SoundEffectModels"
+            xmlns:u="https://irihi.tech/ursa"
+            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+            Spacing="10"
+            x:DataType="soundEffectModels:DelayModel"
+            x:Class="QwQ_Music.Views.SoundEffects.Delay">
+
+    <DockPanel HorizontalSpacing="10" Height="40">
+        <Separator VerticalAlignment="Bottom" Margin="0" DockPanel.Dock="Bottom" />
+        <TextBlock FontSize="16" Text="{CompiledBinding Name}" FontWeight="Bold" VerticalAlignment="Center" />
+        <TextBlock Text="基于时间得音频效果，重放信号"
+                   VerticalAlignment="Center"
+                   Foreground="{DynamicResource SemiColorTertiary}" />
+    </DockPanel>
+
+    <TextBlock Text="{CompiledBinding DelayTimeMs, StringFormat='延迟时间 : {0} ms'}" />
+    <u:NumericIntUpDown
+        InnerRightContent="ms"
+        Step="50"
+        Minimum="0"
+        Value="{CompiledBinding DelayTimeMs}" />
+
+    <TextBlock Text="{CompiledBinding Feedback, StringFormat='反馈量 : {0}'}" />
+    <Slider
+        Minimum="0"
+        Maximum="1"
+        Value="{CompiledBinding Feedback}" />
+
+    <TextBlock Text="{CompiledBinding WetMix, StringFormat='湿声混合量 : {0}'}" />
+    <Slider
+        Minimum="0"
+        Maximum="1"
+        Value="{CompiledBinding WetMix}" />
+
+    <TextBlock Text="{CompiledBinding Cutoff, StringFormat='截止赫兹 : {0} Hz'}" />
+    <u:NumericIntUpDown
+        InnerRightContent="Hz"
+        Step="50"
+        Minimum="20"
+        Value="{CompiledBinding Cutoff}" />
+
+</StackPanel>
