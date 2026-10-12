@@ -8,6 +8,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using QwQ_Music.Common.Managers;
+using QwQ_Music.Common.Utilities;
 using QwQ_Music.ViewModels.Windows;
 using QwQ_Music.Windows;
 using Timer = System.Timers.Timer;
@@ -45,6 +46,7 @@ public static class DesktopLyricsService {
         LoggerService.Info("桌面歌词正在淡入");
         Dispatcher.UIThread.Post(() => {
             DesktopLyricsWindow.Show();
+            DesktopLyricsWindow.SetPenetrate(ConfigManager.LyricConfig.DesktopLyric.IsAnchored);
             double time = (1 - DesktopLyricsWindow.Opacity) * ConfigManager.LyricConfig.DesktopLyric.FadeInMilliseconds;
             if (time > 0) {
                 Fade(TimeSpan.FromMilliseconds(time), TimeSpan.Zero, 1f);
