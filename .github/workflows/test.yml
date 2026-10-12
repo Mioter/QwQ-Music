@@ -16,7 +16,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -39,6 +38,7 @@ jobs:
       - name: Run tests
         run: dotnet test "QwQ Music.sln" --configuration Debug --no-build -f net10.0 --verbosity normal --logger trx --results-directory TestResults/
 
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -46,7 +46,7 @@ jobs:
           name: test-results
           path: TestResults/
 
-  #代码规范检查
+#代码规范检查
   Code-quality:
     runs-on: windows-latest
 
@@ -60,6 +60,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
+
       #使用缓存
       - name: Cache .NET packages
         uses: actions/cache@v4
@@ -78,3 +79,4 @@ jobs:
 
       - name: Check formatting
         run: dotnet format "QwQ Music.sln" --no-restore --verify-no-changes --verbosity diagnostic
+
