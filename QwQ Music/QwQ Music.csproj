@@ -7,7 +7,9 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <TargetFrameworks>net10.0;net10.0-windows10.0.19041.0</TargetFrameworks>
+        <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
+        <TargetFrameworks>net10.0</TargetFrameworks>
+        <TargetFrameworks Condition="$(RuntimeIdentifier.StartsWith('win-'))">net10.0;net10.0-windows10.0.19041.0</TargetFrameworks>
         <LangVersion>default</LangVersion>
         <ImplicitUsings>true</ImplicitUsings>
         <ApplicationIcon>QwQ Music.ico</ApplicationIcon>
@@ -17,15 +19,14 @@
         <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
         <TrimMode>link</TrimMode>
         <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' And '$(TargetFramework)' == 'net10.0-windows10.0.19041.0'">
+    <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('win-')) And '$(TargetFramework)' == 'net10.0-windows10.0.19041.0'">
         <DefineConstants>_WIN_NT;$(DefineConstants)</DefineConstants>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+    <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux-'))">
         <DefineConstants>_LINUX;$(DefineConstants)</DefineConstants>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
+    <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('osx-'))">
         <DefineConstants>_OSX;$(DefineConstants)</DefineConstants>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">

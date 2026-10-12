@@ -31,7 +31,7 @@ jobs:
             rid: win-x64
             framework: net10.0-windows10.0.19041.0
             archive_ext: zip
-          - os: windows-latest
+          - os: windows-11-arm
             rid: win-arm64
             framework: net10.0-windows10.0.19041.0
             archive_ext: zip
@@ -39,11 +39,11 @@ jobs:
             rid: linux-x64
             framework: net10.0
             archive_ext: tar.gz
-          - os: ubuntu-latest
+          - os: ubuntu-24.04-arm
             rid: linux-arm64
             framework: net10.0
             archive_ext: tar.gz
-          - os: macos-latest
+          - os: macos-15-intel
             rid: osx-x64
             framework: net10.0
             archive_ext: tar.gz
@@ -55,12 +55,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          submodules: recursive
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "10.0.x"
-          include-prerelease: true
 
       - name: Publish Windows ${{matrix.rid}}
         if: startsWith(matrix.rid,'win')

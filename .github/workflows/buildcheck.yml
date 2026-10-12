@@ -13,21 +13,31 @@ jobs:
     name: build (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os:
-          - windows-latest
-          - ubuntu-latest
-          - macos-latest
+        include:
+          - os: windows-latest
+            framework: net10.0-windows10.0.19041.0
+            rid: win-x64
+          - os: ubuntu-latest
+            framework: net10.0
+            rid: linux-x64
+          - os: macos-latest
+            framework: net10.0
+            rid: osx-arm64
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
-          include-prerelease: true
 
       - name: Build
-        run: dotnet build "QwQ Music/QwQ Music.csproj" -c Release
+        run: >-
+          dotnet build "QwQ Music/QwQ Music.csproj" -c Release
+          -f "${{ matrix.framework }}" -r "${{ matrix.rid }}"
